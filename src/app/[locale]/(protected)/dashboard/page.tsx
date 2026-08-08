@@ -16,10 +16,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import Link from 'next/link'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { AlertCircleIcon, WalletIcon } from '@hugeicons/core-free-icons'
-import ReviewForm from '@/components/review-form'
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { EmptyState, ErrorState } from "@/components/ui/empty-state"
+import { CalendarX } from "lucide-react"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { AlertCircleIcon, WalletIcon } from "@hugeicons/core-free-icons"
+import ReviewForm from "@/components/review-form"
 
 interface BalanceLog {
   id: string
@@ -85,6 +88,7 @@ const transactionTypeConfig: Record<string, { label: string; variant: 'default' 
 }
 
 export default function DashboardPage() {
+  const router = useRouter()
   const { data: session } = useSession()
   const [reviewBookingId, setReviewBookingId] = useState<string | null>(null)
 
@@ -187,13 +191,12 @@ export default function DashboardPage() {
       </Card>
 
       {bookingsError && (
-        <Alert variant="destructive" className="mb-6">
-          <HugeiconsIcon icon={AlertCircleIcon} strokeWidth={2} className="size-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {bookingsErr instanceof Error ? bookingsErr.message : 'Gagal memuat data booking.'}
-          </AlertDescription>
-        </Alert>
+        <ErrorState
+          title="Gagal Memuat Booking"
+          description={bookingsErr instanceof Error ? bookingsErr.message : 'Gagal memuat data booking.'}
+          onRetry={() => refetch()}
+          className="mb-6"
+        />
       )}
 
       <Card className="mb-6">
@@ -261,9 +264,13 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : bookings.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground">
-              <p className="text-sm">Belum ada booking.</p>
-            </div>
+            <EmptyState
+              icon={CalendarX}
+              title="Belum Ada Booking"
+              description="Anda belum memiliki riwayat pemesanan."
+              actionLabel="Cari Kost Sekarang"
+              onAction={() => router.push('/properties')}
+            />
           ) : (
             <div className="overflow-x-auto">
               <Table>

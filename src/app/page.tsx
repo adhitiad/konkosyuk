@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/config";
 import QuickSearch from "@/components/landing/quick-search";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {

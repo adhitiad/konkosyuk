@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { useState, useMemo, useEffect, useCallback } from "react"
+import { EmptyState, ErrorState } from "@/components/ui/empty-state"
+import { SearchX } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -135,7 +137,7 @@ export default function PropertiesPage() {
     [page, limit, debouncedSearch, type, city, minPriceParam, maxPriceParam, userLocation, radius, selectedAmenities]
   )
 
-  const { data, isLoading, isError, error } = useQuery<PropertyResponse>({
+  const { data, isLoading, isError, error, refetch } = useQuery<PropertyResponse>({
     queryKey: ["properties", { search: debouncedSearch, city, type, minPrice: minPriceParam, maxPrice: maxPriceParam, page, userLocation, radius, amenities: selectedAmenities }],
     queryFn: async () => {
       const res = await fetch(
@@ -409,19 +411,11 @@ export default function PropertiesPage() {
       )}
 
       {isError && (
-        <Alert variant="destructive">
-          <HugeiconsIcon
-            icon={AlertCircleIcon}
-            strokeWidth={2}
-            className="size-4"
-          />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {error instanceof Error
-              ? error.message
-              : "Gagal memuat data properti. Silakan coba lagi."}
-          </AlertDescription>
-        </Alert>
+        <ErrorState
+          title="Gagal Memuat Properti"
+          description={error instanceof Error ? error.message : "Gagal memuat data properti. Silakan coba lagi."}
+          onRetry={() => refetch()}
+        />
       )}
 
       {!isLoading && !isError && items.length === 0 && (
