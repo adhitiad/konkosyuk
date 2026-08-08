@@ -1,0 +1,67 @@
+{
+  "common": {
+    "appName": "Konkosyuk",
+    "dashboard": "Papan Pemuka",
+    "logout": "Log Keluar",
+    "settings": "Tetapan",
+    "profile": "Profil",
+    "search": "Cari Kost",
+    "payment": "Bayaran",
+    "booking": "Tempahan",
+    "properties": "Hartanah",
+    "users": "Pengguna",
+    "webhookLog": "Log Webhook",
+    "myBookings": "Tempahan Saya",
+    "myProperties": "Hartanah Saya",
+    "units": "Unit",
+    "incomingBookings": "Tempahan Masuk",
+    "reports": "Laporan",
+    "analytics": "Analitik",
+    "settings": "Tetapan"
+  },
+  "sidebar": {
+    "menu": "Menu"
+  },
+  "navbar": {
+    "title": "Konkosyuk"
+  },
+  "public": {
+    "findKost": "Cari Kost",
+    "aboutUs": "Tentang Kami",
+    "findKostDesc": "Cari hartanah kost dan sewa yang terbaik",
+    "aboutUsDesc": "Pelajari lebih lanjut tentang Konkosyuk",
+    "viewAll": "Lihat Semua",
+    "login": "Log Masuk",
+    "register": "Daftar",
+    "tagline": "Sistem tempahan kost dan sewa yang dipercayai.",
+    "nav": "Navigasi",
+    "help": "Bantuan",
+    "legal": "Undang-Undang",
+    "faq": "FAQ",
+    "contact": "Hubungi",
+    "privacy": "Privasi",
+    "terms": "Syarat",
+    "copyright": "© {year} Konkosyuk. Hak cipta terpelihara."
+  },
+  "auth": {
+    "emailRequired": "Email wajib diisi",
+    "invalidEmail": "Format email tidak valid",
+    "passwordRequired": "Password wajib diisi",
+    "minPasswordLength": "Password minimal {min} aksara",
+    "loginError": "Ralat berlaku semasa log masuk. Sila cuba lagi.",
+    "loginTitle": "Log Masuk",
+    "loginDescription": "Masuk ke akaun anda",
+    "email": "E-mel",
+    "password": "Kata Laluan",
+    "loginButton": "Log Masuk",
+    "noAccount": "Belum mempunyai akaun?",
+    "registerLink": "Daftar di sini"
+  },
+  "role": {
+    "customerDashboard": "Papan Pemuka Pelanggan",
+    "ownerDashboard": "Papan Pemuka Pemilik",
+    "adminDashboard": "Papan Pemuka Admin",
+    "admin": "Admin",
+    "staff": "Staf"
+  }
+}

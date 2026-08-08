@@ -1,0 +1,67 @@
+{
+  "common": {
+    "appName": "Konkosyuk",
+    "dashboard": "Панель управления",
+    "logout": "Выйти",
+    "settings": "Настройки",
+    "profile": "Профиль",
+    "search": "Поиск общежития",
+    "payment": "Оплата",
+    "booking": "Бронирование",
+    "properties": "Недвижимость",
+    "users": "Пользователи",
+    "webhookLog": "Журнал Webhook",
+    "myBookings": "Мои бронирования",
+    "myProperties": "Моя недвижимость",
+    "units": "Юниты",
+    "incomingBookings": "Входящие бронирования",
+    "reports": "Отчеты",
+    "analytics": "Аналитика",
+    "settings": "Настройки"
+  },
+  "sidebar": {
+    "menu": "Меню"
+  },
+  "navbar": {
+    "title": "Konkosyuk"
+  },
+  "public": {
+    "findKost": "Поиск общежития",
+    "aboutUs": "О нас",
+    "findKostDesc": "Найдите лучшее общежитие и аренду",
+    "aboutUsDesc": "Узнайте больше о Konkosyuk",
+    "viewAll": "Смотреть все",
+    "login": "Войти",
+    "register": "Регистрация",
+    "tagline": "Надежная система бронирования общежитий и аренды.",
+    "nav": "Навигация",
+    "help": "Помощь",
+    "legal": "Правовая информация",
+    "faq": "Частые вопросы",
+    "contact": "Контакты",
+    "privacy": "Конфиденциальность",
+    "terms": "Условия",
+    "copyright": "© {year} Konkosyuk. Все права защищены."
+  },
+  "auth": {
+    "emailRequired": "Введите email",
+    "invalidEmail": "Некорректный формат email",
+    "passwordRequired": "Введите пароль",
+    "minPasswordLength": "Пароль должен содержать не менее {min} символов",
+    "loginError": "Произошла ошибка при входе. Пожалуйста, попробуйте снова.",
+    "loginTitle": "Вход",
+    "loginDescription": "Войдите в свой аккаунт",
+    "email": "Email",
+    "password": "Пароль",
+    "loginButton": "Войти",
+    "noAccount": "Нет аккаунта?",
+    "registerLink": "Зарегистрируйтесь здесь"
+  },
+  "role": {
+    "customerDashboard": "Панель клиента",
+    "ownerDashboard": "Панель владельца",
+    "adminDashboard": "Панель администратора",
+    "admin": "Администратор",
+    "staff": "Сотрудник"
+  }
+}

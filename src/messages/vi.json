@@ -1,0 +1,67 @@
+{
+  "common": {
+    "appName": "Konkosyuk",
+    "dashboard": "Bảng điều khiển",
+    "logout": "Đăng xuất",
+    "settings": "Cài đặt",
+    "profile": "Hồ sơ",
+    "search": "Tìm kiếm nhà trọ",
+    "payment": "Thanh toán",
+    "booking": "Đặt phòng",
+    "properties": "Bất động sản",
+    "users": "Người dùng",
+    "webhookLog": "Nhật ký Webhook",
+    "myBookings": "Đặt phòng của tôi",
+    "myProperties": "Bất động sản của tôi",
+    "units": "Đơn vị",
+    "incomingBookings": "Đặt phòng đến",
+    "reports": "Báo cáo",
+    "analytics": "Phân tích",
+    "settings": "Cài đặt"
+  },
+  "sidebar": {
+    "menu": "Menu"
+  },
+  "navbar": {
+    "title": "Konkosyuk"
+  },
+  "public": {
+    "findKost": "Tìm kiếm nhà trọ",
+    "aboutUs": "Về chúng tôi",
+    "findKostDesc": "Tìm kiếm nhà trọ và bất động sản cho thuê tốt nhất",
+    "aboutUsDesc": "Tìm hiểu thêm về Konkosyuk",
+    "viewAll": "Xem tất cả",
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "tagline": "Hệ thống đặt phòng nhà trọ và bất động sản tin cậy.",
+    "nav": "Điều hướng",
+    "help": "Trợ giúp",
+    "legal": "Pháp lý",
+    "faq": "Câu hỏi thường gặp",
+    "contact": "Liên hệ",
+    "privacy": "Quyền riêng tư",
+    "terms": "Điều khoản",
+    "copyright": "© {year} Konkosyuk. Đã đăng ký bản quyền."
+  },
+  "auth": {
+    "emailRequired": "Email là bắt buộc",
+    "invalidEmail": "Định dạng email không hợp lệ",
+    "passwordRequired": "Mật khẩu là bắt buộc",
+    "minPasswordLength": "Mật khẩu phải có ít nhất {min} ký tự",
+    "loginError": "Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.",
+    "loginTitle": "Đăng nhập",
+    "loginDescription": "Đăng nhập vào tài khoản của bạn",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "loginButton": "Đăng nhập",
+    "noAccount": "Chưa có tài khoản?",
+    "registerLink": "Đăng ký tại đây"
+  },
+  "role": {
+    "customerDashboard": "Bảng điều khiển khách hàng",
+    "ownerDashboard": "Bảng điều khiển chủ sở hữu",
+    "adminDashboard": "Bảng điều khiển quản trị",
+    "admin": "Quản trị",
+    "staff": "Nhân viên"
+  }
+}

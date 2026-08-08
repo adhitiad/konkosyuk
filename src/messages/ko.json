@@ -1,0 +1,67 @@
+{
+  "common": {
+    "appName": "Konkosyuk",
+    "dashboard": "대시보드",
+    "logout": "로그아웃",
+    "settings": "설정",
+    "profile": "프로필",
+    "search": "고시원 찾기",
+    "payment": "결제",
+    "booking": "예약",
+    "properties": "부동산",
+    "users": "사용자",
+    "webhookLog": "웹훅 로그",
+    "myBookings": "내 예약",
+    "myProperties": "내 부동산",
+    "units": "유닛",
+    "incomingBookings": "들어오는 예약",
+    "reports": "보고서",
+    "analytics": "분석",
+    "settings": "설정"
+  },
+  "sidebar": {
+    "menu": "메뉴"
+  },
+  "navbar": {
+    "title": "Konkosyuk"
+  },
+  "public": {
+    "findKost": "고시원 찾기",
+    "aboutUs": "회사 소개",
+    "findKostDesc": "최고의 고시원과 임대 부동산을 찾아보세요",
+    "aboutUsDesc": "Konkosyuk에 대해 자세히 알아보세요",
+    "viewAll": "전체 보기",
+    "login": "로그인",
+    "register": "가입하기",
+    "tagline": "신뢰할 수 있는 고시원 및 임대 부동산 예약 시스템.",
+    "nav": "탐색",
+    "help": "도움말",
+    "legal": "법적 고지",
+    "faq": "자주 묻는 질문",
+    "contact": "문의하기",
+    "privacy": "개인정보",
+    "terms": "이용약관",
+    "copyright": "© {year} Konkosyuk. 판권 소유."
+  },
+  "auth": {
+    "emailRequired": "이메일을 입력해주세요",
+    "invalidEmail": "잘못된 이메일 형식입니다",
+    "passwordRequired": "비밀번호를 입력해주세요",
+    "minPasswordLength": "비밀번호는 최소 {min}자 이상이어야 합니다",
+    "loginError": "로그인 중 오류가 발생했습니다. 다시 시도해주세요.",
+    "loginTitle": "로그인",
+    "loginDescription": "계정에 로그인하세요",
+    "email": "이메일",
+    "password": "비밀번호",
+    "loginButton": "로그인",
+    "noAccount": "계정이 없으신가요?",
+    "registerLink": "여기서 가입하세요"
+  },
+  "role": {
+    "customerDashboard": "고객 대시보드",
+    "ownerDashboard": "소유자 대시보드",
+    "adminDashboard": "관리자 대시보드",
+    "admin": "관리자",
+    "staff": "직원"
+  }
+}

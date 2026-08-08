@@ -1,0 +1,67 @@
+{
+  "common": {
+    "appName": "Konkosyuk",
+    "dashboard": "แผงควบคุม",
+    "logout": "ออกจากระบบ",
+    "settings": "การตั้งค่า",
+    "profile": "โปรไฟล์",
+    "search": "ค้นหาหอพัก",
+    "payment": "การชำระเงิน",
+    "booking": "การจอง",
+    "properties": "ทรัพย์สิน",
+    "users": "ผู้ใช้",
+    "webhookLog": "บันทึก Webhook",
+    "myBookings": "การจองของฉัน",
+    "myProperties": "ทรัพย์สินของฉัน",
+    "units": "ยูนิต",
+    "incomingBookings": "การจองที่เข้ามา",
+    "reports": "รายงาน",
+    "analytics": "การวิเคราะห์",
+    "settings": "การตั้งค่า"
+  },
+  "sidebar": {
+    "menu": "เมนู"
+  },
+  "navbar": {
+    "title": "Konkosyuk"
+  },
+  "public": {
+    "findKost": "ค้นหาหอพัก",
+    "aboutUs": "เกี่ยวกับเรา",
+    "findKostDesc": "ค้นหาหอพักและทรัพย์สินให้เช่าที่ดีที่สุด",
+    "aboutUsDesc": "เรียนรู้เพิ่มเติมเกี่ยวกับ Konkosyuk",
+    "viewAll": "ดูทั้งหมด",
+    "login": "เข้าสู่ระบบ",
+    "register": "ลงทะเบียน",
+    "tagline": "ระบบจองหอพักและทรัพย์สินให้เช่าเชื่อถือได้",
+    "nav": "การนำทาง",
+    "help": "ช่วยเหลือ",
+    "legal": "กฎหมาย",
+    "faq": "คำถามที่พบบ่อย",
+    "contact": "ติดต่อ",
+    "privacy": "ความเป็นส่วนตัว",
+    "terms": "ข้อกำหนด",
+    "copyright": "© {year} Konkosyuk. สงวนลิขสิทธิ์"
+  },
+  "auth": {
+    "emailRequired": "กรุณากรอกอีเมล",
+    "invalidEmail": "รูปแบบอีเมลไม่ถูกต้อง",
+    "passwordRequired": "กรุณากรอกรหัสผ่าน",
+    "minPasswordLength": "รหัสผ่านต้องมีอย่างน้อย {min} ตัวอักษร",
+    "loginError": "เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองอีกครั้ง",
+    "loginTitle": "เข้าสู่ระบบ",
+    "loginDescription": "ลงชื่อเข้าใช้บัญชีของคุณ",
+    "email": "อีเมล",
+    "password": "รหัสผ่าน",
+    "loginButton": "เข้าสู่ระบบ",
+    "noAccount": "ยังไม่มีบัญชี?",
+    "registerLink": "ลงทะเบียนที่นี่"
+  },
+  "role": {
+    "customerDashboard": "แผงควบคุมลูกค้า",
+    "ownerDashboard": "แผงควบคุมเจ้าของ",
+    "adminDashboard": "แผงควบคุมผู้ดูแล",
+    "admin": "ผู้ดูแล",
+    "staff": "พนักงาน"
+  }
+}

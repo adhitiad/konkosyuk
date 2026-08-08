@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1785904771816,
+      "tag": "0000_wild_nico_minoru",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785905453278,
+      "tag": "0001_awesome_purple_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786069916261,
+      "tag": "0002_parallel_polaris",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786074321555,
+      "tag": "0003_famous_power_pack",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786077849193,
+      "tag": "0004_fuzzy_captain_midlands",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786078374880,
+      "tag": "0005_fat_omega_sentinel",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786093012599,
+      "tag": "0007_add_gin_indexes",
+      "breakpoints": true
+    }
+  ]
+}

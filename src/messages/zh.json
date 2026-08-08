@@ -1,0 +1,67 @@
+{
+  "common": {
+    "appName": "Konkosyuk",
+    "dashboard": "仪表板",
+    "logout": "退出登录",
+    "settings": "设置",
+    "profile": "个人资料",
+    "search": "寻找宿舍",
+    "payment": "支付",
+    "booking": "预订",
+    "properties": "房产",
+    "users": "用户",
+    "webhookLog": "Webhook 日志",
+    "myBookings": "我的预订",
+    "myProperties": "我的房产",
+    "units": "单元",
+    "incomingBookings": " incoming 预订",
+    "reports": "报告",
+    "analytics": "分析",
+    "settings": "设置"
+  },
+  "sidebar": {
+    "menu": "菜单"
+  },
+  "navbar": {
+    "title": "Konkosyuk"
+  },
+  "public": {
+    "findKost": "寻找宿舍",
+    "aboutUs": "关于我们",
+    "findKostDesc": "寻找最好的宿舍和租赁房产",
+    "aboutUsDesc": "了解更多关于 Konkosyuk",
+    "viewAll": "查看全部",
+    "login": "登录",
+    "register": "注册",
+    "tagline": "值得信赖的宿舍和租赁预订系统。",
+    "nav": "导航",
+    "help": "帮助",
+    "legal": "法律",
+    "faq": "常见问题",
+    "contact": "联系我们",
+    "privacy": "隐私",
+    "terms": "条款",
+    "copyright": "© {year} Konkosyuk. 版权所有。"
+  },
+  "auth": {
+    "emailRequired": "请输入邮箱",
+    "invalidEmail": "邮箱格式无效",
+    "passwordRequired": "请输入密码",
+    "minPasswordLength": "密码至少需要 {min} 个字符",
+    "loginError": "登录时发生错误，请重试。",
+    "loginTitle": "登录",
+    "loginDescription": "登录您的账户",
+    "email": "邮箱",
+    "password": "密码",
+    "loginButton": "登录",
+    "noAccount": "还没有账户？",
+    "registerLink": "在此注册"
+  },
+  "role": {
+    "customerDashboard": "客户仪表板",
+    "ownerDashboard": "所有者仪表板",
+    "adminDashboard": "管理员仪表板",
+    "admin": "管理员",
+    "staff": "员工"
+  }
+}

@@ -1,0 +1,1 @@
+ALTER TABLE "properties" ADD COLUMN "packages" jsonb DEFAULT '{"predefined":[],"custom":{"enabled":false,"label":"Custom Duration","unit":"days","pricePerUnit":0,"minDuration":1,"maxDuration":365}}'::jsonb NOT NULL;

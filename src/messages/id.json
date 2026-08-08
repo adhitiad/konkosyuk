@@ -1,0 +1,71 @@
+{
+  "common": {
+    "appName": "Konkosyuk",
+    "dashboard": "Dashboard",
+    "logout": "Logout",
+    "settings": "Pengaturan",
+    "profile": "Profil",
+    "pengaturanProfil": "Pengaturan Profil",
+    "search": "Cari Kost",
+    "payment": "Pembayaran",
+    "booking": "Booking",
+    "properties": "Properti",
+    "users": "User",
+    "webhookLog": "Webhook Log",
+    "myBookings": "Booking Saya",
+    "myProperties": "Properti Saya",
+    "units": "Unit",
+    "incomingBookings": "Booking Masuk",
+    "reports": "Laporan",
+    "kyc": "Verifikasi KYC",
+    "kycRequests": "Permintaan KYC",
+    "wallet": "Dompet",
+    "analytics": "Analitik",
+    "settings": "Pengaturan"
+  },
+  "sidebar": {
+    "menu": "Menu"
+  },
+  "navbar": {
+    "title": "Konkosyuk"
+  },
+  "public": {
+    "findKost": "Cari Kost",
+    "aboutUs": "Tentang Kami",
+    "findKostDesc": "Temukan kost dan kontrakan terbaik",
+    "aboutUsDesc": "Pelajari lebih lanjut tentang Konkosyuk",
+    "viewAll": "Lihat Semua",
+    "login": "Masuk",
+    "register": "Daftar",
+    "tagline": "Sistem booking kost dan kontrakan terpercaya.",
+    "nav": "Navigasi",
+    "help": "Bantuan",
+    "legal": "Legal",
+    "faq": "FAQ",
+    "contact": "Kontak",
+    "privacy": "Privasi",
+    "terms": "Syarat",
+    "copyright": "© {year} Konkosyuk. All rights reserved."
+  },
+  "auth": {
+    "emailRequired": "Email wajib diisi",
+    "invalidEmail": "Format email tidak valid",
+    "passwordRequired": "Password wajib diisi",
+    "minPasswordLength": "Password minimal {min} karakter",
+    "loginError": "Terjadi kesalahan saat login. Silakan coba lagi.",
+    "loginTitle": "Login",
+    "loginDescription": "Masuk ke akun Anda",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Masuk",
+    "noAccount": "Belum punya akun?",
+    "registerLink": "Daftar di sini"
+  },
+  "role": {
+    "customerDashboard": "Dashboard Customer",
+    "ownerDashboard": "Dashboard Owner",
+    "adminDashboard": "Dashboard Admin",
+    "admin": "Admin",
+    "staff": "Staff"
+  }
+}

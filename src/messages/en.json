@@ -1,0 +1,70 @@
+{
+  "common": {
+    "appName": "Konkosyuk",
+    "dashboard": "Dashboard",
+    "logout": "Logout",
+    "settings": "Settings",
+    "profile": "Profile",
+    "search": "Find Kost",
+    "payment": "Payment",
+    "booking": "Booking",
+    "properties": "Properties",
+    "users": "Users",
+    "webhookLog": "Webhook Log",
+    "myBookings": "My Bookings",
+    "myProperties": "My Properties",
+    "units": "Units",
+    "incomingBookings": "Incoming Bookings",
+    "reports": "Reports",
+    "kyc": "KYC Verification",
+    "kycRequests": "KYC Requests",
+    "wallet": "Wallet",
+    "analytics": "Analytics",
+    "settings": "Settings"
+  },
+  "sidebar": {
+    "menu": "Menu"
+  },
+  "navbar": {
+    "title": "Konkosyuk"
+  },
+  "public": {
+    "findKost": "Find Kost",
+    "aboutUs": "About Us",
+    "findKostDesc": "Find the best kost and rental properties",
+    "aboutUsDesc": "Learn more about Konkosyuk",
+    "viewAll": "View All",
+    "login": "Login",
+    "register": "Register",
+    "tagline": "Trusted kost and rental booking system.",
+    "nav": "Navigation",
+    "help": "Help",
+    "legal": "Legal",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "copyright": "© {year} Konkosyuk. All rights reserved."
+  },
+  "auth": {
+    "emailRequired": "Email is required",
+    "invalidEmail": "Invalid email format",
+    "passwordRequired": "Password is required",
+    "minPasswordLength": "Password must be at least {min} characters",
+    "loginError": "An error occurred during login. Please try again.",
+    "loginTitle": "Login",
+    "loginDescription": "Sign in to your account",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Login",
+    "noAccount": "Don't have an account?",
+    "registerLink": "Register here"
+  },
+  "role": {
+    "customerDashboard": "Customer Dashboard",
+    "ownerDashboard": "Owner Dashboard",
+    "adminDashboard": "Admin Dashboard",
+    "admin": "Admin",
+    "staff": "Staff"
+  }
+}

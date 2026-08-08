@@ -1,0 +1,178 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useSession } from '@/lib/auth-client'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { KYCBankForm } from '@/components/owner/kyc-bank-form'
+import type { OwnerBankAccount } from '@/db/schema'
+
+const KYC_STATUS_LABEL: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+  none: { label: 'Belum Verifikasi', variant: 'outline' },
+  pending: { label: 'Menunggu Verifikasi', variant: 'secondary' },
+  verified: { label: 'Terverifikasi', variant: 'default' },
+  rejected: { label: 'Ditolak', variant: 'destructive' },
+}
+
+export default function BankAccountsPage() {
+  const { data: session } = useSession()
+  const [accounts, setAccounts] = useState<OwnerBankAccount[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchAccounts = async () => {
+    try {
+      const res = await fetch('/api/owner/bank-accounts')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Gagal memuat data')
+      setAccounts(data.data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchAccounts()
+  }, [])
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus rekening ini?')) return
+
+    try {
+      const res = await fetch(`/api/owner/bank-accounts/${id}`, {
+        method: 'DELETE',
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Gagal menghapus rekening')
+      setAccounts((prev) => prev.filter((acc) => acc.id !== id))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
+    }
+  }
+
+  const handleSetPrimary = async (id: string) => {
+    try {
+      const res = await fetch(`/api/owner/bank-accounts/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_primary: true }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Gagal mengubah rekening utama')
+      setAccounts((prev) =>
+        prev.map((acc) => ({
+          ...acc,
+          isPrimary: acc.id === id,
+        })),
+      )
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
+    }
+  }
+
+  const kycStatus = (session?.user as any)?.kycStatus || 'none'
+  const kycInfo = KYC_STATUS_LABEL[kycStatus] || KYC_STATUS_LABEL.none
+
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-12">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+          Rekening Bank & E-Wallet
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          Kelola rekening untuk menerima pembayaran dari tenant.
+        </p>
+      </div>
+
+      <div className="mb-6">
+        <Badge variant={kycInfo.variant}>KYC: {kycInfo.label}</Badge>
+      </div>
+
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="grid gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Daftar Rekening</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <p className="text-sm text-muted-foreground">Memuat...</p>
+            ) : accounts.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Belum ada rekening yang ditambahkan.</p>
+            ) : (
+              <div className="space-y-4">
+                {accounts.map((account) => (
+                  <div
+                    key={account.id}
+                    className="flex items-center justify-between rounded-lg border p-4"
+                  >
+                    <div>
+                      <p className="font-medium">{account.providerName}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {account.accountType === 'bank' ? 'Bank' : 'E-Wallet'} • {account.accountNumber}
+                      </p>
+                      <p className="text-sm text-muted-foreground">{account.accountName}</p>
+                      {account.isPrimary && (
+                        <Badge variant="secondary" className="mt-1">
+                          Utama
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      {!account.isPrimary && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSetPrimary(account.id)}
+                        >
+                          Jadikan Utama
+                        </Button>
+                      )}
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(account.id)}
+                        disabled={account.isPrimary}
+                      >
+                        Hapus
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{showForm ? 'Tambah Rekening Baru' : 'Tambah Rekening'}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {showForm ? (
+              <KYCBankForm
+                userName={session?.user?.name || ''}
+                onSuccess={() => {
+                  setShowForm(false)
+                  fetchAccounts()
+                }}
+              />
+            ) : (
+              <Button onClick={() => setShowForm(true)}>Tambah Rekening</Button>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
