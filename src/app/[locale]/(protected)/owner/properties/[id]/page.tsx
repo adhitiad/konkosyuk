@@ -190,7 +190,7 @@ export default function PropertyDetailPage() {
     setError(null);
 
     const payload: UpdatePropertyInput = {
-      name: title,
+      title,
       type,
       address,
       description: description || undefined,

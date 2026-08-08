@@ -1,6 +1,6 @@
 'use client'
 
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet'
 import { Icon, LatLngBoundsExpression } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -12,6 +12,7 @@ interface MarkerData {
   lng: number
   title: string
   popup?: string
+  isJittered?: boolean
 }
 
 interface MapViewProps {
@@ -58,16 +59,37 @@ export default function MapView({ center, zoom = 13, markers, height = '400px' }
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {markers.length > 0 && <FitBounds markers={markers} />}
-        {markers.map((marker) => (
-          <Marker key={marker.id} position={[marker.lat, marker.lng]} icon={customIcon}>
-            <Popup>
-              <div className="space-y-1">
-                <p className="font-semibold text-sm">{marker.title}</p>
-                {marker.popup && <p className="text-xs text-muted-foreground">{marker.popup}</p>}
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+        {markers.map((marker) =>
+          marker.isJittered ? (
+            <Circle
+              key={marker.id}
+              center={[marker.lat, marker.lng]}
+              radius={500}
+              pathOptions={{
+                color: '#06b6d4',
+                fillColor: '#06b6d4',
+                fillOpacity: 0.2,
+                weight: 2,
+              }}
+            >
+              <Popup>
+                <div className="space-y-1">
+                  <p className="font-semibold text-sm">{marker.title}</p>
+                  <p className="text-xs text-muted-foreground">Lokasi Perkiraan Properti</p>
+                </div>
+              </Popup>
+            </Circle>
+          ) : (
+            <Marker key={marker.id} position={[marker.lat, marker.lng]} icon={customIcon}>
+              <Popup>
+                <div className="space-y-1">
+                  <p className="font-semibold text-sm">{marker.title}</p>
+                  {marker.popup && <p className="text-xs text-muted-foreground">{marker.popup}</p>}
+                </div>
+              </Popup>
+            </Marker>
+          ),
+        )}
       </MapContainer>
     </div>
   )

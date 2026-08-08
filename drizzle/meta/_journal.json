@@ -50,6 +50,13 @@
       "when": 1786093012599,
       "tag": "0007_add_gin_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1786181315003,
+      "tag": "0007_high_psynapse",
+      "breakpoints": true
     }
   ]
 }

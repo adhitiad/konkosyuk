@@ -26,13 +26,24 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    const ext = file.name.split('.').pop() || 'jpg'
+    const nameWithoutExt = file.name.includes('.') ? file.name.slice(0, file.name.lastIndexOf('.')) : file.name
+    const rawExt = file.name.includes('.') ? file.name.split('.').pop()?.toLowerCase() : ''
+    const mimeToExt: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp',
+      'image/gif': 'gif',
+      'image/svg+xml': 'svg',
+    }
+    const ext = (rawExt && rawExt.length <= 5 && !rawExt.includes('blob')) ? rawExt : (mimeToExt[file.type] || 'jpg')
     const filename = `${session.user.id}-${Date.now()}.${ext}`
     const filepath = path.join(uploadDir, filename)
 
     await writeFile(filepath, buffer)
 
-    const publicUrl = `/uploads/avatars/${filename}`
+    const host = req.headers.get('host') || 'localhost:3001'
+    const protocol = req.headers.get('x-forwarded-proto') || 'http'
+    const publicUrl = `${protocol}://${host}/uploads/avatars/${filename}`
     return NextResponse.json({ url: publicUrl })
   } catch (error) {
     console.error('Upload avatar error:', error)

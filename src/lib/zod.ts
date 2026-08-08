@@ -37,16 +37,20 @@ const propertyPackagesSchema: z.ZodType<PropertyPackages> = z.object({
 export const propertyStatus = ["aktif", "nonaktif"] as const;
 
 export const createPropertySchema = z.object({
-  name: z.string().min(1).max(255),
+  title: z.string().min(1).max(255),
   description: z.string().optional(),
-  address: z.string().min(1).max(500),
+  address: z.string().min(10, "Alamat detail minimal 10 karakter"),
+  province: z.string().min(1, "Pilih Provinsi"),
+  city: z.string().min(1, "Pilih Kota"),
   type: z.enum(["kost", "kontrakan"]),
-  city: z.string().optional(),
   basePrice: z.string().optional(),
   packages: propertyPackagesSchema.optional(),
   status: z.enum(propertyStatus).optional(),
   amenities: z.array(z.string()).optional(),
+  images: z.array(z.string().url()).min(3, "Upload minimal 3 foto properti").max(5, "Maksimal 5 foto properti"),
   metadata: z.record(z.string(), z.unknown()).optional(),
+  latitude: z.coerce.number().optional(),
+  longitude: z.coerce.number().optional(),
 });
 
 export const updatePropertySchema = createPropertySchema.partial();
@@ -137,8 +141,16 @@ export const createWithdrawalSchema = z.object({
   amount: z.coerce.number().positive("Jumlah penarikan harus lebih dari 0"),
 });
 
+export const updateUserProfileSchema = z.object({
+  phone: z.string().min(10, "Nomor telepon minimal 10 digit").regex(/^[0-9+]+$/, "Nomor telepon hanya boleh angka dan tanda +"),
+  whatsapp: z.string().min(10, "WhatsApp minimal 10 digit"),
+  telegram: z.string().min(5, "Telegram minimal 5 karakter"),
+  email: z.string().email("Format email tidak valid"),
+});
+
 export type AddBankAccountInput = z.infer<typeof addBankAccountSchema>;
 export type CreateWithdrawalInput = z.infer<typeof createWithdrawalSchema>;
+export type UpdateUserProfileInput = z.infer<typeof updateUserProfileSchema>;
 
 export type CreatePropertyInput = z.infer<typeof createPropertySchema>;
 export type UpdatePropertyInput = z.infer<typeof updatePropertySchema>;

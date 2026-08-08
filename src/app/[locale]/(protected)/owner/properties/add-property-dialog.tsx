@@ -70,14 +70,16 @@ export default function AddPropertyDialog() {
     setError(null);
 
     const payload: CreatePropertyInput = {
-      name: title,
+      title,
       type,
       address,
       description: description || undefined,
-      city: city || undefined,
+      city,
       packages: packages || undefined,
       amenities,
       status: "aktif",
+      province: '',
+      images: [],
     };
 
     const result = createPropertySchema.safeParse(payload);

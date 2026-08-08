@@ -8,7 +8,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Dialog,
   DialogContent,
@@ -18,10 +17,11 @@ import {
 } from '@/components/ui/dialog'
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { EmptyState, ErrorState } from "@/components/ui/empty-state"
+import { EmptyState } from "@/components/ui/empty-state"
+import { ErrorState } from "@/components/ui/error-state"
 import { CalendarX } from "lucide-react"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { AlertCircleIcon, WalletIcon } from "@hugeicons/core-free-icons"
+import { WalletIcon } from "@hugeicons/core-free-icons"
 import ReviewForm from "@/components/review-form"
 
 interface BalanceLog {
@@ -92,7 +92,7 @@ export default function DashboardPage() {
   const { data: session } = useSession()
   const [reviewBookingId, setReviewBookingId] = useState<string | null>(null)
 
-  const { data: bookingsData, isLoading: bookingsLoading, isError: bookingsError, error: bookingsErr } = useQuery<BookingResponse>({
+  const { data: bookingsData, isLoading: bookingsLoading, isError: bookingsError, error: bookingsErr, refetch: refetchBookings } = useQuery<BookingResponse>({
     queryKey: ['bookings'],
     queryFn: async () => {
       const res = await fetch('/api/bookings')
@@ -194,7 +194,7 @@ export default function DashboardPage() {
         <ErrorState
           title="Gagal Memuat Booking"
           description={bookingsErr instanceof Error ? bookingsErr.message : 'Gagal memuat data booking.'}
-          onRetry={() => refetch()}
+          onRetry={() => refetchBookings()}
           className="mb-6"
         />
       )}

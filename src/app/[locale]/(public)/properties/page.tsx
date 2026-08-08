@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { useState, useMemo, useEffect, useCallback } from "react"
-import { EmptyState, ErrorState } from "@/components/ui/empty-state"
+import { EmptyState } from "@/components/ui/empty-state"
+import { ErrorState } from "@/components/ui/error-state"
 import { SearchX } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import {
@@ -22,11 +23,10 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Pagination } from "@/components/ui/pagination"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { AlertCircleIcon, Search01Icon, MapsIcon, ViewAgendaIcon } from "@hugeicons/core-free-icons"
+import { Search01Icon, MapsIcon, ViewAgendaIcon } from "@hugeicons/core-free-icons"
 import MapView from "@/components/map-view"
 import LocationFinder from "@/components/location-finder"
 import { OptimizedImage } from "@/components/ui/optimized-image"
@@ -419,17 +419,13 @@ export default function PropertiesPage() {
       )}
 
       {!isLoading && !isError && items.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <HugeiconsIcon
-            icon={Search01Icon}
-            strokeWidth={2}
-            className="size-12 text-muted-foreground"
-          />
-          <p className="mt-4 text-lg font-medium">Tidak ada hasil</p>
-          <p className="text-muted-foreground">
-            Coba ubah filter pencarianmu
-          </p>
-        </div>
+        <EmptyState
+          icon={SearchX}
+          title="Tidak Ditemukan"
+          description="Coba ubah filter lokasi, harga, atau fasilitas Anda."
+          actionLabel="Reset Filter"
+          onAction={() => router.push('/properties')}
+        />
       )}
 
       {!isLoading && !isError && items.length > 0 && viewMode === 'map' ? (

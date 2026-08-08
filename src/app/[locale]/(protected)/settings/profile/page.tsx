@@ -13,17 +13,22 @@ import { User, Upload, AlertTriangle } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
 
 export default function ProfileSettingsPage() {
-  const { data: session, isPending } = useSession();
+  const { data: session, isPending, error } = useSession();
   const router = useRouter();
-  
+
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (error) {
+      setFormError('Gagal memuat sesi. Silakan login kembali.');
+      return;
+    }
+
     if (!isPending && !session) {
       router.push('/login');
     }
@@ -33,13 +38,13 @@ export default function ProfileSettingsPage() {
       setPhone(user.phone || '');
       setImagePreview(user.image || null);
     }
-  }, [session, isPending, router]);
+  }, [session, isPending, error, router]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setError(null);
+    setFormError(null);
     setLoading(true);
 
     try {
@@ -55,7 +60,7 @@ export default function ProfileSettingsPage() {
       setImagePreview(URL.createObjectURL(compressedFile));
       console.log(`Ukuran asli: ${(file.size / 1024 / 1024).toFixed(2)} MB -> Terkompresi: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
     } catch (err) {
-      setError('Gagal mengompres gambar.');
+      setFormError('Gagal mengompres gambar.');
       console.error(err);
     } finally {
       setLoading(false);
@@ -64,7 +69,7 @@ export default function ProfileSettingsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setFormError(null);
     setLoading(true);
 
     try {
@@ -95,7 +100,7 @@ export default function ProfileSettingsPage() {
       router.refresh();
       alert('Profil berhasil diperbarui!');
     } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan');
+      setFormError(err.message || 'Terjadi kesalahan');
     } finally {
       setLoading(false);
     }
@@ -159,10 +164,10 @@ export default function ProfileSettingsPage() {
             <CardTitle>Informasi Pribadi</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {error && (
+            {formError && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>{formError}</AlertDescription>
               </Alert>
             )}
 

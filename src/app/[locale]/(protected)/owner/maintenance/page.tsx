@@ -8,7 +8,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Dialog,
   DialogContent,
@@ -25,7 +24,10 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { AlertCircleIcon, EyeIcon } from '@hugeicons/core-free-icons'
+import { EyeIcon } from '@hugeicons/core-free-icons'
+import { EmptyState } from '@/components/ui/empty-state'
+import { ErrorState } from '@/components/ui/error-state'
+import { Wrench } from 'lucide-react'
 import type { MaintenanceTicket } from '@/db/schema'
 
 interface MaintenanceTicketWithNames extends MaintenanceTicket {
@@ -112,13 +114,12 @@ export default function OwnerMaintenancePage() {
       </div>
 
       {isError && (
-        <Alert variant="destructive" className="mb-6">
-          <HugeiconsIcon icon={AlertCircleIcon} strokeWidth={2} className="size-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {error instanceof Error ? error.message : 'Gagal memuat data tiket.'}
-          </AlertDescription>
-        </Alert>
+        <ErrorState
+          title="Gagal Memuat Tiket"
+          description={error instanceof Error ? error.message : 'Gagal memuat data tiket.'}
+          onRetry={() => refetch()}
+          className="mb-6"
+        />
       )}
 
       <Card>
@@ -147,9 +148,11 @@ export default function OwnerMaintenancePage() {
               ))}
             </div>
           ) : tickets.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground">
-              <p className="text-sm">Belum ada tiket maintenance.</p>
-            </div>
+            <EmptyState
+              icon={Wrench}
+              title="Semua Aman!"
+              description="Tidak ada laporan kerusakan yang perlu ditindaklanjuti saat ini."
+            />
           ) : (
             <div className="overflow-x-auto">
               <Table>

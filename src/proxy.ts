@@ -119,9 +119,14 @@ export async function proxy(request: NextRequest) {
       pathWithoutLocale === route ||
       pathWithoutLocale.startsWith(`${route}/`)
     ) {
-      const session = await auth.api.getSession({
-        headers: request.headers,
-      });
+      let session: Awaited<ReturnType<typeof auth.api.getSession>> | null = null
+      try {
+        session = await auth.api.getSession({
+          headers: request.headers,
+        });
+      } catch {
+        session = null
+      }
 
       if (!session) {
         const loginUrl = new URL(`/${locale}/login`, request.url);

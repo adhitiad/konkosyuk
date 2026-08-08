@@ -1,8 +1,10 @@
 import { db } from "@/db"
-import { properties, units } from "@/db/schema"
-import { eq, desc } from "drizzle-orm"
+import { properties, units, bookings } from "@/db/schema"
+import { eq, desc, and, or, sql } from "drizzle-orm"
 import { notFound } from "next/navigation"
 import { Metadata } from "next"
+import { headers } from "next/headers"
+import { auth } from "@/lib/auth"
 import {
   Card,
   CardContent,
@@ -27,9 +29,10 @@ import {
   Search01Icon,
 } from "@hugeicons/core-free-icons"
 import type { PropertyPackages } from "@/lib/types/property-packages"
+import { jitterCoordinates } from "@/lib/utils/location"
 
 interface PropertyPageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ locale: string; id: string }>
 }
 
 const propertyTypeLabels: Record<string, string> = {
@@ -102,29 +105,35 @@ async function getUnits(propertyId: string) {
 }
 
 export async function generateMetadata({ params }: PropertyPageProps): Promise<Metadata> {
-  const { id } = await params
+  const { locale, id } = await params
   const property = await getProperty(id)
 
   if (!property) {
-    return { title: "Properti Tidak Ditemukan" }
+    return {
+      title: "Properti Tidak Ditemukan | KonkosYuk",
+      description: "Properti yang Anda cari tidak ditemukan.",
+    }
   }
 
+  const metadata = (property.metadata ?? {}) as Record<string, unknown>
+  const imageUrl = (metadata.image as string | null | undefined) ?? `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001"}/logo.png`
   const description = property.description ?? `Cari ${propertyTypeLabels[property.type] ?? "properti"} di ${property.address}`
-  const truncatedDescription = description.length > 160 ? description.slice(0, 157) + '...' : description
+  const truncatedDescription = description.length > 160 ? description.slice(0, 157) + "..." : description
+  const price = property.packages?.predefined?.[0]?.finalPrice ? Number(property.packages.predefined[0].finalPrice) : Number(property.basePrice ?? 0)
 
   return {
-    title: `${property.name} - Sewa ${propertyTypeLabels[property.type] ?? "properti"} di ${property.city ?? property.address}`,
-    description: truncatedDescription,
+    title: `${property.name} - Sewa ${propertyTypeLabels[property.type] ?? "properti"} di ${property.city ?? property.address} | KonkosYuk`,
+    description: `Sewa ${propertyTypeLabels[property.type] ?? "properti"} nyaman, aman, dan transparan di ${property.city ?? property.address}. Mulai dari Rp ${price.toLocaleString("id-ID")}/bulan. DP hanya 35%!`,
     openGraph: {
-      title: property.name,
-      description: truncatedDescription,
+      title: `${property.name} | KonkosYuk`,
+      description: `Sewa ${propertyTypeLabels[property.type] ?? "properti"} nyaman dan aman. DP hanya 35%!`,
       url: `${process.env.NEXT_PUBLIC_APP_URL}/properties/${property.id}`,
-      siteName: 'Konkosyuk',
-      locale: 'id_ID',
-      type: 'website',
+      siteName: "Konkosyuk",
+      locale: locale,
+      type: "website",
       images: [
         {
-          url: `${process.env.NEXT_PUBLIC_APP_URL}/opengraph-image`,
+          url: imageUrl,
           width: 1200,
           height: 630,
           alt: property.name,
@@ -132,9 +141,10 @@ export async function generateMetadata({ params }: PropertyPageProps): Promise<M
       ],
     },
     twitter: {
-      card: 'summary_large_image',
-      title: property.name,
-      description: truncatedDescription,
+      card: "summary_large_image",
+      title: `${property.name} | KonkosYuk`,
+      description: `Sewa ${propertyTypeLabels[property.type] ?? "properti"} nyaman dan aman. DP hanya 35%!`,
+      images: [imageUrl],
     },
   }
 }
@@ -157,9 +167,78 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
       ? (metadata.amenities as string[])
       : []
   const rules = metadata.rules as Record<string, unknown> | undefined
+  const ogImage = (metadata.image as string | null | undefined) ?? `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001"}/logo.png`
 
   const availableUnits = propertyUnits.filter((u) => u.status === "available")
   const bookedUnits = propertyUnits.filter((u) => u.status === "booked")
+
+  let viewerId: string | null = null
+  let isLocationMasked = false
+  let maskedAddress = property.address
+  let maskedLatitude = property.latitude
+  let maskedLongitude = property.longitude
+
+  try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (session?.user?.id) {
+      viewerId = session.user.id
+
+      if (session.user.role !== 'admin' && property.ownerId !== session.user.id) {
+        const [qualifyingBooking] = await db
+          .select()
+          .from(bookings)
+          .where(
+            and(
+              eq(bookings.propertyId, property.id),
+              eq(bookings.userId, session.user.id),
+              or(
+                eq(bookings.status, 'confirmed'),
+                eq(bookings.status, 'awaiting_full_payment'),
+              ),
+            ),
+          )
+          .limit(1)
+
+        if (!qualifyingBooking) {
+          isLocationMasked = true
+          maskedAddress =
+            property.city && property.province
+              ? `Lokasi Perkiraan di ${property.city}, ${property.province}`
+              : 'Lokasi Perkiraan'
+
+          if (property.latitude && property.longitude) {
+            const jittered = jitterCoordinates(Number(property.latitude), Number(property.longitude))
+            maskedLatitude = String(jittered.lat)
+            maskedLongitude = String(jittered.lng)
+          }
+        }
+      }
+    } else {
+      isLocationMasked = true
+      maskedAddress =
+        property.city && property.province
+          ? `Lokasi Perkiraan di ${property.city}, ${property.province}`
+          : 'Lokasi Perkiraan'
+
+      if (property.latitude && property.longitude) {
+        const jittered = jitterCoordinates(Number(property.latitude), Number(property.longitude))
+        maskedLatitude = String(jittered.lat)
+        maskedLongitude = String(jittered.lng)
+      }
+    }
+  } catch {
+    isLocationMasked = true
+    maskedAddress =
+      property.city && property.province
+        ? `Lokasi Perkiraan di ${property.city}, ${property.province}`
+        : 'Lokasi Perkiraan'
+
+    if (property.latitude && property.longitude) {
+      const jittered = jitterCoordinates(Number(property.latitude), Number(property.longitude))
+      maskedLatitude = String(jittered.lat)
+      maskedLongitude = String(jittered.lng)
+    }
+  }
 
   return (
     <div className="container py-8">
@@ -172,8 +251,15 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
         </div>
         <div className="mt-2 flex items-center gap-2 text-muted-foreground">
           <HugeiconsIcon icon={MapPinIcon} strokeWidth={2} className="size-4" />
-          <span>{property.address}</span>
+          <span>{maskedAddress}</span>
         </div>
+        {isLocationMasked && (
+          <div className="mt-2">
+            <Badge variant="outline" className="text-xs">
+              Alamat lengkap akan dibuka setelah Anda membayar DP 35%
+            </Badge>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -459,7 +545,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
             '@type': 'Product',
             name: property.name,
             description: property.description ?? undefined,
-            image: `${process.env.NEXT_PUBLIC_APP_URL}/opengraph-image`,
+            image: ogImage,
             address: {
               '@type': 'PostalAddress',
               addressLocality: property.city ?? undefined,
