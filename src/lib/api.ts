@@ -26,6 +26,8 @@ export function handleApiError(error: unknown, context?: string) {
 
   if (error instanceof Error) {
     logError(error, context || 'API_ERROR')
+    if (error.message === 'Unauthorized') return fail('Unauthorized', 401)
+    if (error.message === 'Forbidden') return fail('Forbidden', 403)
     const message = process.env.NODE_ENV === 'production'
       ? 'Internal server error'
       : error.message

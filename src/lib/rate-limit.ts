@@ -15,46 +15,25 @@ export interface RateLimitDeviceInput {
   deviceName?: string
 }
 
-const rateLimitStore = new Map<string, { count: number; resetAt: Date }>()
+import { getRedis } from '@/lib/redis'
 
 export function rateLimit(
   options: RateLimitOptions,
-): (req: RateLimitDeviceInput) => RateLimitResult {
+): (req: RateLimitDeviceInput) => Promise<RateLimitResult> {
   const { windowMs, max, key = "global" } = options
 
-  return (req: RateLimitDeviceInput) => {
-    const now = new Date()
+  return async (req: RateLimitDeviceInput) => {
     const deviceId = req.deviceId || key
     const deviceName = req.deviceName || ''
     const clientKey = `${key}:${deviceId}:${deviceName}`
-
-    const record = rateLimitStore.get(clientKey)
-
-    if (record && now < record.resetAt) {
-      if (record.count >= max) {
-        return {
-          success: false,
-          remaining: 0,
-          resetAt: record.resetAt,
-        }
-      }
-      record.count++
-      return {
-        success: true,
-        remaining: max - record.count,
-        resetAt: record.resetAt,
-      }
-    }
-
-    rateLimitStore.set(clientKey, {
-      count: 1,
-      resetAt: new Date(now.getTime() + windowMs),
-    })
-
+    const redis = await getRedis()
+    const ttlSeconds = Math.ceil(windowMs / 1000)
+    const count = await redis.incr(`ratelimit:${clientKey}`, ttlSeconds)
+    const resetAt = new Date(Date.now() + ttlSeconds * 1000)
     return {
-      success: true,
-      remaining: max - 1,
-      resetAt: new Date(now.getTime() + windowMs),
+      success: count <= max,
+      remaining: Math.max(0, max - count),
+      resetAt,
     }
   }
 }

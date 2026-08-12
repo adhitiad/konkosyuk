@@ -1,5 +1,26 @@
 import { getAxiosInstance } from '@/lib/api'
 
+type WhatsAppTemplateParameter = { type: 'text'; text: string }
+
+export async function sendMaintenanceWhatsApp(to: string, templateName: string, parameters: string[]): Promise<void> {
+  const phoneNumberId = process.env.META_PHONE_NUMBER_ID
+  const accessToken = process.env.META_ACCESS_TOKEN
+  if (!phoneNumberId || !accessToken) {
+    console.warn('WhatsApp credentials belum dikonfigurasi, notifikasi maintenance dilewati')
+    return
+  }
+  const formattedPhone = to.replace(/\D/g, '').replace(/^0/, '62')
+  try {
+    await getAxiosInstance().post(`https://graph.facebook.com/v18.0/${phoneNumberId}/messages`, {
+      messaging_product: 'whatsapp', to: formattedPhone, type: 'template',
+      template: { name: templateName, language: { code: 'id' }, components: [{ type: 'body', parameters: parameters.map((text): WhatsAppTemplateParameter => ({ type: 'text', text })) }] },
+    }, { headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' } })
+  } catch (error) {
+    const response = (error as { response?: { status?: number; data?: unknown } }).response
+    console.error('WhatsApp maintenance API error:', response?.status, response?.data ?? error)
+  }
+}
+
 export async function sendApprovalWhatsApp(
   tenantPhone: string,
   tenantName: string,

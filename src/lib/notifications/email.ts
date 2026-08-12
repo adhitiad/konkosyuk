@@ -2,6 +2,36 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>'"]/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
+  })[character] ?? character)
+}
+
+async function sendMaintenanceEmail(to: string, subject: string, heading: string, content: string): Promise<void> {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('RESEND_API_KEY belum dikonfigurasi, email maintenance dilewati')
+    return
+  }
+  try {
+    await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'KonkosYuk <onboarding@resend.dev>',
+      to: [to], subject,
+      html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:20px;color:#333"><h2 style="color:#2563eb">${escapeHtml(heading)}</h2>${content}<p style="margin-top:24px;font-size:12px;color:#64748b">Email otomatis dari KonkosYuk.</p></div>`,
+    })
+  } catch (error) {
+    console.error('Failed to send maintenance email:', error)
+  }
+}
+
+export function sendMaintenanceReportCreatedEmail(to: string, recipientName: string, propertyName: string, category: string, description: string): Promise<void> {
+  return sendMaintenanceEmail(to, 'Laporan Masalah Baru - KonkosYuk', `Halo ${recipientName}, ada laporan masalah baru`, `<p><strong>Properti:</strong> ${escapeHtml(propertyName)}</p><p><strong>Kategori:</strong> ${escapeHtml(category)}</p><p><strong>Deskripsi:</strong> ${escapeHtml(description)}</p>`)
+}
+
+export function sendMaintenanceReportUpdatedEmail(to: string, recipientName: string, status: string, resolutionNote?: string | null): Promise<void> {
+  return sendMaintenanceEmail(to, 'Status Laporan Masalah Diperbarui - KonkosYuk', `Halo ${recipientName}, status laporan Anda berubah`, `<p><strong>Status:</strong> ${escapeHtml(status)}</p>${resolutionNote ? `<p><strong>Catatan:</strong> ${escapeHtml(resolutionNote)}</p>` : ''}`)
+}
+
 export async function sendApprovalEmail(
   tenantEmail: string,
   tenantName: string,

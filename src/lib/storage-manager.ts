@@ -9,16 +9,16 @@ export interface UploadResult {
   provider: StorageProvider
 }
 
-function getUploadthingFieldName(type: 'avatar' | 'property'): string {
-  return type === 'avatar' ? 'avatarUploader' : 'propertyImageUploader'
+function getUploadthingFieldName(type: 'avatar' | 'property' | 'ktp' | 'report'): string {
+  return type === 'avatar' ? 'avatarUploader' : type === 'property' || type === 'report' ? 'propertyImageUploader' : 'ktpUploader'
 }
 
-export async function uploadFile(file: File, type: 'avatar' | 'property'): Promise<UploadResult> {
+export async function uploadFile(file: File, type: 'avatar' | 'property' | 'ktp' | 'report'): Promise<UploadResult> {
   const primary = env.STORAGE_PRIMARY ?? 'uploadthing'
 
   if (primary === 'cloudinary') {
     const buffer = Buffer.from(await file.arrayBuffer())
-    const folder = type === 'avatar' ? 'konkosyuk/avatars' : 'konkosyuk/properties'
+    const folder = type === 'avatar' ? 'konkosyuk/avatars' : type === 'property' ? 'konkosyuk/properties' : type === 'ktp' ? 'konkosyuk/ktp' : 'konkosyuk/reports'
     const { secure_url } = await uploadToCloudinary(buffer, folder)
     return { url: secure_url, provider: 'cloudinary' }
   }
@@ -39,7 +39,7 @@ export async function uploadFile(file: File, type: 'avatar' | 'property'): Promi
       console.warn('Uploadthing failed, falling back to Cloudinary:', error)
 
       const buffer = Buffer.from(await file.arrayBuffer())
-      const folder = type === 'avatar' ? 'konkosyuk/avatars' : 'konkosyuk/properties'
+      const folder = type === 'avatar' ? 'konkosyuk/avatars' : type === 'report' ? 'konkosyuk/reports' : 'konkosyuk/properties'
       const { secure_url } = await uploadToCloudinary(buffer, folder)
       return { url: secure_url, provider: 'cloudinary' }
     }

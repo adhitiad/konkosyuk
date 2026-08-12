@@ -13,13 +13,13 @@ export function withRateLimit(
     let result
     switch (options.type) {
       case 'auth':
-        result = authRateLimit({ deviceId, deviceName })
+        result = await authRateLimit({ deviceId, deviceName })
         break
       case 'booking':
-        result = bookingRateLimit({ deviceId, deviceName })
+        result = await bookingRateLimit({ deviceId, deviceName })
         break
       default:
-        result = generalRateLimit({ deviceId, deviceName })
+        result = await generalRateLimit({ deviceId, deviceName })
     }
 
     if (!result.success) {

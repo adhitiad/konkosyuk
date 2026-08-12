@@ -22,6 +22,7 @@ import { AlertCircleIcon, EyeIcon } from '@hugeicons/core-free-icons'
 import MaintenanceTicketForm from '@/components/maintenance/maintenance-ticket-form'
 import type { MaintenanceTicket } from '@/db/schema'
 import { apiClient } from '@/lib/axios'
+import ReportForm from '@/components/reports/report-form'
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   reported: { label: 'Dilaporkan', variant: 'secondary' },
@@ -62,6 +63,8 @@ export default function TenantMaintenancePage() {
         </div>
         <MaintenanceTicketForm onSuccess={() => queryClient.invalidateQueries({ queryKey: ['maintenance-tickets'] })} />
       </div>
+
+      <div className="mb-6"><ReportForm onSuccess={() => queryClient.invalidateQueries({ queryKey: ['maintenance-reports'] })} /></div>
 
       {isError && (
         <Alert variant="destructive" className="mb-6">

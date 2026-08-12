@@ -39,6 +39,7 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   useEffect(() => {
     if (!isPending && session) {
@@ -89,6 +90,22 @@ export default function RegisterPage() {
     }
   };
 
+  const handleGoogleRegister = async () => {
+    setError(null);
+    setGoogleLoading(true);
+    try {
+      const callbackURL = `${window.location.origin}${window.location.pathname}?oauth=success`;
+      const result = await authClient.signIn.social({ provider: 'google', callbackURL });
+      if (result.error) {
+        setError(result.error.message || 'Pendaftaran dengan Google gagal');
+        setGoogleLoading(false);
+      }
+    } catch {
+      setError('Pendaftaran dengan Google gagal. Periksa konfigurasi OAuth Google.');
+      setGoogleLoading(false);
+    }
+  };
+
   if (isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -118,9 +135,9 @@ export default function RegisterPage() {
             </Alert>
           )}
 
-          <Button type="button" variant="outline" className="w-full" size="default">
+          <Button type="button" variant="outline" className="w-full" size="default" onClick={handleGoogleRegister} disabled={loading || googleLoading}>
             <Globe className="mr-2 h-4 w-4" />
-            Daftar dengan Google
+            {googleLoading ? 'Menghubungkan ke Google...' : 'Daftar dengan Google'}
           </Button>
 
           <div className="relative">

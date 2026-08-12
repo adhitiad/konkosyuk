@@ -1,5 +1,5 @@
-import PropertyWizard from '@/components/owner/property-wizard'
+import AddPropertyDialog from '../add-property-dialog'
 
 export default function AddPropertyPage() {
-  return <PropertyWizard />
+  return <AddPropertyDialog />
 }

@@ -10,14 +10,20 @@ import {
   numeric,
   integer,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import type { PropertyPackages } from "@/lib/types/property-packages";
 
 export const userRole = ["cust", "owner", "admin", "staff"] as const;
 export const propertyType = ["kost", "kontrakan", "ruko"] as const;
 export const unitStatus = ["available", "booked", "maintenance"] as const;
 export const bookingType = ["instant", "request"] as const;
-export const bookingRequestStatus = ["pending", "approved", "rejected", "paid", "cancelled"] as const;
+export const bookingRequestStatus = [
+  "pending",
+  "approved",
+  "rejected",
+  "paid",
+  "cancelled",
+] as const;
 export const bookingStatus = [
   "pending_dp",
   "awaiting_owner_approval",
@@ -28,11 +34,42 @@ export const bookingStatus = [
   "cancelled",
 ] as const;
 export const reviewType = ["tenant", "property"] as const;
-export const notificationType = ["booking", "payment", "system", "booking_approved", "booking_rejected", "payment_success"] as const;
+export const notificationType = [
+  "report",
+  "booking",
+  "payment",
+  "system",
+  "booking_approved",
+  "booking_rejected",
+  "payment_success",
+] as const;
 export const maintenancePriority = ["low", "medium", "high", "urgent"] as const;
-export const maintenanceStatus = ["reported", "in_progress", "resolved", "cancelled"] as const;
+export const maintenanceStatus = [
+  "reported",
+  "in_progress",
+  "resolved",
+  "cancelled",
+] as const;
+export const maintenanceReportCategory = [
+  "air",
+  "listrik",
+  "kunci_pintu",
+  "ac",
+  "furniture",
+  "lainnya",
+] as const;
+export const maintenanceReportStatus = [
+  "pending",
+  "in_progress",
+  "resolved",
+  "rejected",
+] as const;
 export const paymentProvider = ["doku", "ipaymu", "nicepay"] as const;
-export const paymentPurpose = ["dp", "full_payment", "featured_listing"] as const;
+export const paymentPurpose = [
+  "dp",
+  "full_payment",
+  "featured_listing",
+] as const;
 export const paymentStatus = [
   "pending",
   "success",
@@ -49,17 +86,34 @@ export const paymentTransactionStatus = [
 ] as const;
 export const kycStatus = ["none", "pending", "verified", "rejected"] as const;
 export const bankAccountType = ["bank", "ewallet"] as const;
-export const withdrawalStatus = ["pending", "processing", "success", "rejected"] as const;
+export const withdrawalStatus = [
+  "pending",
+  "processing",
+  "success",
+  "rejected",
+] as const;
 export const gatewayEnvironment = ["sandbox", "production"] as const;
-export const accountType = ["asset", "liability", "equity", "revenue", "expense"] as const;
-export const ledgerReferenceType = ["payment", "withdrawal", "fee", "refund", "adjustment"] as const;
+export const accountType = [
+  "asset",
+  "liability",
+  "equity",
+  "revenue",
+  "expense",
+] as const;
+export const ledgerReferenceType = [
+  "payment",
+  "withdrawal",
+  "fee",
+  "refund",
+  "adjustment",
+] as const;
 
 export const users = pgTable(
   "users",
   {
     id: uuid("id").defaultRandom().primaryKey(),
     email: text("email").notNull(),
-    emailVerified: timestamp("email_verified", { mode: "date" }),
+    emailVerified: boolean("email_verified").notNull().default(false),
     name: text("name").notNull(),
     image: text("image"),
     phone: text("phone"),
@@ -69,11 +123,17 @@ export const users = pgTable(
     isActive: boolean("is_active").notNull().default(true),
     isBanned: boolean("is_banned").notNull().default(false),
     banReason: text("ban_reason"),
-    kycStatus: text("kyc_status", { enum: kycStatus }).notNull().default("none"),
+    kycStatus: text("kyc_status", { enum: kycStatus })
+      .notNull()
+      .default("none"),
     ktpNumber: text("ktp_number"),
     ktpImageUrl: text("ktp_image_url"),
-    reputationScore: numeric("reputation_score", { precision: 4, scale: 2 }).notNull().default("0.00"),
-    balance: numeric("balance", { precision: 12, scale: 2 }).notNull().default("0.00"),
+    reputationScore: numeric("reputation_score", { precision: 4, scale: 2 })
+      .notNull()
+      .default("0.00"),
+    balance: numeric("balance", { precision: 12, scale: 2 })
+      .notNull()
+      .default("0.00"),
     province: text("province"),
     city: text("city"),
     district: text("district"),
@@ -102,7 +162,9 @@ export const ownerBankAccounts = pgTable(
   },
   (table) => ({
     ownerIdIdx: index("owner_bank_accounts_owner_id_idx").on(table.ownerId),
-    accountTypeIdx: index("owner_bank_accounts_account_type_idx").on(table.accountType),
+    accountTypeIdx: index("owner_bank_accounts_account_type_idx").on(
+      table.accountType,
+    ),
   }),
 );
 
@@ -117,7 +179,9 @@ export const withdrawals = pgTable(
       .notNull()
       .references(() => ownerBankAccounts.id, { onDelete: "restrict" }),
     amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
-    status: text("status", { enum: withdrawalStatus }).notNull().default("pending"),
+    status: text("status", { enum: withdrawalStatus })
+      .notNull()
+      .default("pending"),
     adminNote: text("admin_note"),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
@@ -125,14 +189,16 @@ export const withdrawals = pgTable(
   (table) => ({
     ownerIdIdx: index("withdrawals_owner_id_idx").on(table.ownerId),
     statusIdx: index("withdrawals_status_idx").on(table.status),
-    bankAccountIdIdx: index("withdrawals_bank_account_id_idx").on(table.bankAccountId),
+    bankAccountIdIdx: index("withdrawals_bank_account_id_idx").on(
+      table.bankAccountId,
+    ),
   }),
 );
 
 export const sessions = pgTable(
   "sessions",
   {
-    id: text("id").primaryKey(),
+    id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -151,7 +217,7 @@ export const sessions = pgTable(
 export const accounts = pgTable(
   "accounts",
   {
-    id: text("id").primaryKey(),
+    id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -160,6 +226,8 @@ export const accounts = pgTable(
     accessToken: text("access_token"),
     refreshToken: text("refresh_token"),
     idToken: text("id_token"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at", { mode: "date" }),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at", { mode: "date" }),
     expiresAt: timestamp("expires_at", { mode: "date" }),
     password: text("password"),
     scope: text("scope"),
@@ -178,7 +246,7 @@ export const accounts = pgTable(
 export const verifications = pgTable(
   "verifications",
   {
-    id: text("id").primaryKey(),
+    id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
     identifier: text("identifier").notNull(),
     value: text("value").notNull(),
     expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
@@ -194,8 +262,14 @@ export const propertyStatus = ["aktif", "nonaktif"] as const;
 
 export const platformSettings = pgTable("platform_settings", {
   id: text("id").primaryKey().default("default"),
-  platformFeePercent: numeric("platform_fee_percent", { precision: 5, scale: 2 }).default("1.8"),
-  featuredListingPrice: numeric("featured_listing_price", { precision: 12, scale: 2 }).default("50000"),
+  platformFeePercent: numeric("platform_fee_percent", {
+    precision: 5,
+    scale: 2,
+  }).default("1.8"),
+  featuredListingPrice: numeric("featured_listing_price", {
+    precision: 12,
+    scale: 2,
+  }).default("50000"),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
@@ -211,19 +285,23 @@ export const properties = pgTable(
     address: text("address").notNull(),
     province: text("province"),
     city: text("city"),
+    district: text("district"),
     type: text("type", { enum: propertyType }).notNull(),
     basePrice: text("base_price"),
-    packages: jsonb("packages").$type<PropertyPackages>().notNull().default({
-      predefined: [],
-      custom: {
-        enabled: false,
-        label: 'Custom Duration',
-        unit: 'days',
-        pricePerUnit: 0,
-        minDuration: 1,
-        maxDuration: 365,
-      },
-    }),
+    packages: jsonb("packages")
+      .$type<PropertyPackages>()
+      .notNull()
+      .default({
+        predefined: [],
+        custom: {
+          enabled: false,
+          label: "Custom Duration",
+          unit: "days",
+          pricePerUnit: 0,
+          minDuration: 1,
+          maxDuration: 365,
+        },
+      }),
     status: text("status", { enum: propertyStatus }).notNull().default("aktif"),
     amenities: jsonb("amenities").$type<string[]>().default([]),
     metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
@@ -246,8 +324,14 @@ export const properties = pgTable(
     cityIdx: index("properties_city_idx").on(table.city),
     provinceIdx: index("properties_province_idx").on(table.province),
     isActiveIdx: index("properties_is_active_idx").on(table.isActive),
-    amenitiesGinIdx: index("properties_amenities_gin_idx").using("gin", table.amenities),
-    metadataGinIdx: index("properties_metadata_gin_idx").using("gin", table.metadata),
+    amenitiesGinIdx: index("properties_amenities_gin_idx").using(
+      "gin",
+      table.amenities,
+    ),
+    metadataGinIdx: index("properties_metadata_gin_idx").using(
+      "gin",
+      table.metadata,
+    ),
   }),
 );
 
@@ -271,7 +355,10 @@ export const units = pgTable(
   (table) => ({
     propertyIdIdx: index("units_property_id_idx").on(table.propertyId),
     statusIdx: index("units_status_idx").on(table.status),
-    propertyNameUnique: unique("units_property_id_name_unique").on(table.propertyId, table.name),
+    propertyNameUnique: unique("units_property_id_name_unique").on(
+      table.propertyId,
+      table.name,
+    ),
   }),
 );
 
@@ -288,7 +375,7 @@ export const unitPricingTiers = pgTable(
   },
   (table) => ({
     unitIdIdx: index("unit_pricing_tiers_unit_id_idx").on(table.unitId),
-  })
+  }),
 );
 
 export const bookingRequests = pgTable(
@@ -306,7 +393,9 @@ export const bookingRequests = pgTable(
       .references(() => properties.id, { onDelete: "cascade" }),
     numOccupants: integer("num_occupants").notNull(),
     startDate: timestamp("start_date", { mode: "date" }).notNull(),
-    status: text("status", { enum: bookingRequestStatus }).notNull().default("pending"),
+    status: text("status", { enum: bookingRequestStatus })
+      .notNull()
+      .default("pending"),
     agreedPrice: numeric("agreed_price", { precision: 12, scale: 2 }),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
@@ -314,9 +403,11 @@ export const bookingRequests = pgTable(
   (table) => ({
     tenantIdIdx: index("booking_requests_tenant_id_idx").on(table.tenantId),
     unitIdIdx: index("booking_requests_unit_id_idx").on(table.unitId),
-    propertyIdIdx: index("booking_requests_property_id_idx").on(table.propertyId),
+    propertyIdIdx: index("booking_requests_property_id_idx").on(
+      table.propertyId,
+    ),
     statusIdx: index("booking_requests_status_idx").on(table.status),
-  })
+  }),
 );
 
 export const bookings = pgTable(
@@ -358,8 +449,9 @@ export const payments = pgTable(
     bookingId: uuid("booking_id")
       .notNull()
       .references(() => bookings.id, { onDelete: "cascade" }),
-    propertyId: uuid("property_id")
-      .references(() => properties.id, { onDelete: "cascade" }),
+    propertyId: uuid("property_id").references(() => properties.id, {
+      onDelete: "cascade",
+    }),
     provider: text("provider", { enum: paymentProvider }).notNull(),
     purpose: text("purpose", { enum: paymentPurpose }).notNull(),
     amount: text("amount").notNull(),
@@ -412,8 +504,12 @@ export const reviews = pgTable(
     reviewerId: uuid("reviewer_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    reviewedUserId: uuid("reviewed_user_id").references(() => users.id, { onDelete: "cascade" }),
-    propertyId: uuid("property_id").references(() => properties.id, { onDelete: "cascade" }),
+    reviewedUserId: uuid("reviewed_user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    propertyId: uuid("property_id").references(() => properties.id, {
+      onDelete: "cascade",
+    }),
     type: text("type", { enum: reviewType }).notNull(),
     rating: integer("rating").notNull(),
     comment: text("comment").notNull(),
@@ -424,7 +520,9 @@ export const reviews = pgTable(
   },
   (table) => ({
     reviewerIdIdx: index("reviews_reviewer_id_idx").on(table.reviewerId),
-    reviewedUserIdIdx: index("reviews_reviewed_user_id_idx").on(table.reviewedUserId),
+    reviewedUserIdIdx: index("reviews_reviewed_user_id_idx").on(
+      table.reviewedUserId,
+    ),
     propertyIdIdx: index("reviews_property_id_idx").on(table.propertyId),
     bookingIdIdx: index("reviews_booking_id_idx").on(table.bookingId),
     typeIdx: index("reviews_type_idx").on(table.type),
@@ -446,7 +544,10 @@ export const favorites = pgTable(
   (table) => ({
     userIdIdx: index("favorites_user_id_idx").on(table.userId),
     propertyIdIdx: index("favorites_property_id_idx").on(table.propertyId),
-    userPropertyUnique: unique("favorites_user_property_unique").on(table.userId, table.propertyId),
+    userPropertyUnique: unique("favorites_user_property_unique").on(
+      table.userId,
+      table.propertyId,
+    ),
   }),
 );
 
@@ -460,6 +561,7 @@ export const notifications = pgTable(
     title: text("title").notNull(),
     message: text("message").notNull(),
     type: text("type", { enum: notificationType }).notNull(),
+    referenceId: uuid("reference_id"),
     isRead: boolean("is_read").notNull().default(false),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   },
@@ -500,8 +602,12 @@ export const maintenanceTickets = pgTable(
     title: text("title").notNull(),
     description: text("description").notNull(),
     images: jsonb("images").$type<string[]>().default([]),
-    priority: text("priority", { enum: maintenancePriority }).notNull().default("medium"),
-    status: text("status", { enum: maintenanceStatus }).notNull().default("reported"),
+    priority: text("priority", { enum: maintenancePriority })
+      .notNull()
+      .default("medium"),
+    status: text("status", { enum: maintenanceStatus })
+      .notNull()
+      .default("reported"),
     ownerNotes: text("owner_notes"),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
@@ -510,6 +616,29 @@ export const maintenanceTickets = pgTable(
     tenantIdIdx: index("maintenance_tickets_tenant_id_idx").on(table.tenantId),
     statusIdx: index("maintenance_tickets_status_idx").on(table.status),
     priorityIdx: index("maintenance_tickets_priority_idx").on(table.priority),
+  }),
+);
+
+// Laporan masalah dari tenant, terpisah dari tiket maintenance lama.
+export const maintenanceReports = pgTable(
+  "maintenance_reports",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    propertyId: uuid("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+    unitId: uuid("unit_id").references(() => units.id, { onDelete: "set null" }),
+    category: text("category", { enum: maintenanceReportCategory }).notNull(),
+    description: text("description").notNull(),
+    images: jsonb("images").$type<string[]>().default([]),
+    status: text("status", { enum: maintenanceReportStatus }).notNull().default("pending"),
+    resolutionNote: text("resolution_note"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    tenantIdIdx: index("maintenance_reports_tenant_id_idx").on(table.tenantId),
+    propertyIdIdx: index("maintenance_reports_property_id_idx").on(table.propertyId),
+    statusIdx: index("maintenance_reports_status_idx").on(table.status),
   }),
 );
 
@@ -561,6 +690,8 @@ export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 export type NewPushSubscription = typeof pushSubscriptions.$inferInsert;
 export type MaintenanceTicket = typeof maintenanceTickets.$inferSelect;
 export type NewMaintenanceTicket = typeof maintenanceTickets.$inferInsert;
+export type MaintenanceReport = typeof maintenanceReports.$inferSelect;
+export type NewMaintenanceReport = typeof maintenanceReports.$inferInsert;
 export type OwnerBankAccount = typeof ownerBankAccounts.$inferSelect;
 export type NewOwnerBankAccount = typeof ownerBankAccounts.$inferInsert;
 export type BalanceLog = typeof balanceLogs.$inferSelect;
@@ -628,27 +759,33 @@ export const unitsRelations = relations(units, ({ one, many }) => ({
   pricingTiers: many(unitPricingTiers),
 }));
 
-export const unitPricingTiersRelations = relations(unitPricingTiers, ({ one }) => ({
-  unit: one(units, {
-    fields: [unitPricingTiers.unitId],
-    references: [units.id],
+export const unitPricingTiersRelations = relations(
+  unitPricingTiers,
+  ({ one }) => ({
+    unit: one(units, {
+      fields: [unitPricingTiers.unitId],
+      references: [units.id],
+    }),
   }),
-}));
+);
 
-export const bookingRequestsRelations = relations(bookingRequests, ({ one }) => ({
-  tenant: one(users, {
-    fields: [bookingRequests.tenantId],
-    references: [users.id],
+export const bookingRequestsRelations = relations(
+  bookingRequests,
+  ({ one }) => ({
+    tenant: one(users, {
+      fields: [bookingRequests.tenantId],
+      references: [users.id],
+    }),
+    unit: one(units, {
+      fields: [bookingRequests.unitId],
+      references: [units.id],
+    }),
+    property: one(properties, {
+      fields: [bookingRequests.propertyId],
+      references: [properties.id],
+    }),
   }),
-  unit: one(units, {
-    fields: [bookingRequests.unitId],
-    references: [units.id],
-  }),
-  property: one(properties, {
-    fields: [bookingRequests.propertyId],
-    references: [properties.id],
-  }),
-}))
+);
 
 export const bookingsRelations = relations(bookings, ({ one, many }) => ({
   user: one(users, {
@@ -701,55 +838,79 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
   }),
 }));
 
-export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one }) => ({
-  user: one(users, {
-    fields: [pushSubscriptions.userId],
-    references: [users.id],
+export const pushSubscriptionsRelations = relations(
+  pushSubscriptions,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [pushSubscriptions.userId],
+      references: [users.id],
+    }),
   }),
-}));
+);
 
-export const maintenanceTicketsRelations = relations(maintenanceTickets, ({ one }) => ({
-  unit: one(units, {
-    fields: [maintenanceTickets.unitId],
-    references: [units.id],
+export const maintenanceTicketsRelations = relations(
+  maintenanceTickets,
+  ({ one }) => ({
+    unit: one(units, {
+      fields: [maintenanceTickets.unitId],
+      references: [units.id],
+    }),
+    tenant: one(users, {
+      fields: [maintenanceTickets.tenantId],
+      references: [users.id],
+    }),
   }),
-  tenant: one(users, {
-    fields: [maintenanceTickets.tenantId],
-    references: [users.id],
-  }),
-}))
+);
+
+export const maintenanceReportsRelations = relations(maintenanceReports, ({ one }) => ({
+  tenant: one(users, { fields: [maintenanceReports.tenantId], references: [users.id] }),
+  property: one(properties, { fields: [maintenanceReports.propertyId], references: [properties.id] }),
+  unit: one(units, { fields: [maintenanceReports.unitId], references: [units.id] }),
+}));
 
 export const paymentGatewayConfigs = pgTable("payment_gateway_configs", {
   id: text("id").primaryKey(),
   provider: text("provider", { enum: paymentProvider }).notNull(),
   isActive: boolean("is_active").default(false),
-  config: jsonb("config").$type<Record<string, unknown>>().notNull().default({}),
-  environment: text("environment", { enum: gatewayEnvironment }).default("sandbox"),
+  config: jsonb("config")
+    .$type<Record<string, unknown>>()
+    .notNull()
+    .default({}),
+  environment: text("environment", { enum: gatewayEnvironment }).default(
+    "sandbox",
+  ),
   updatedAt: timestamp("updated_at").defaultNow(),
-})
+});
 
 export const paymentTransactions = pgTable("payment_transactions", {
   id: text("id").primaryKey(),
   invoiceNumber: text("invoice_number").notNull().unique(),
-  bookingId: uuid("booking_id").references(() => bookings.id, { onDelete: "cascade" }),
+  bookingId: uuid("booking_id").references(() => bookings.id, {
+    onDelete: "cascade",
+  }),
   provider: text("provider", { enum: paymentProvider }).notNull(),
   amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
-  status: text("status", { enum: paymentTransactionStatus }).notNull().default("pending"),
+  status: text("status", { enum: paymentTransactionStatus })
+    .notNull()
+    .default("pending"),
   gatewayResponse: jsonb("gateway_response").$type<Record<string, unknown>>(),
   webhookPayload: jsonb("webhook_payload").$type<Record<string, unknown>>(),
   paidAt: timestamp("paid_at", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
-})
+});
 
 export const chartOfAccounts = pgTable("chart_of_accounts", {
   id: text("id").primaryKey(),
   accountCode: text("account_code").notNull().unique(),
   accountName: text("account_name").notNull(),
   accountType: text("account_type", { enum: accountType }).notNull(),
-  parentAccountId: text("parent_account_id").references((): any => chartOfAccounts.id, { onDelete: "set null" }),
+  parentAccountId: text("parent_account_id").references(
+    (): any => chartOfAccounts.id,
+    { onDelete: "set null" },
+  ),
   isActive: boolean("is_active").default(true),
-})
+});
 
 export const generalLedger = pgTable("general_ledger", {
   id: text("id").primaryKey(),
@@ -762,36 +923,47 @@ export const generalLedger = pgTable("general_ledger", {
   debit: numeric("debit", { precision: 12, scale: 2 }).default("0"),
   credit: numeric("credit", { precision: 12, scale: 2 }).default("0"),
   balance: numeric("balance", { precision: 12, scale: 2 }),
-  createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+  createdBy: uuid("created_by").references(() => users.id, {
+    onDelete: "set null",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
-})
+});
 
-export const paymentGatewayConfigsRelations = relations(paymentGatewayConfigs, ({ many }) => ({
-  transactions: many(paymentTransactions),
-}))
+export const paymentGatewayConfigsRelations = relations(
+  paymentGatewayConfigs,
+  ({ many }) => ({
+    transactions: many(paymentTransactions),
+  }),
+);
 
-export const paymentTransactionsRelations = relations(paymentTransactions, ({ one }) => ({
-  gatewayConfig: one(paymentGatewayConfigs, {
-    fields: [paymentTransactions.provider],
-    references: [paymentGatewayConfigs.provider],
+export const paymentTransactionsRelations = relations(
+  paymentTransactions,
+  ({ one }) => ({
+    gatewayConfig: one(paymentGatewayConfigs, {
+      fields: [paymentTransactions.provider],
+      references: [paymentGatewayConfigs.provider],
+    }),
+    booking: one(bookings, {
+      fields: [paymentTransactions.bookingId],
+      references: [bookings.id],
+    }),
   }),
-  booking: one(bookings, {
-    fields: [paymentTransactions.bookingId],
-    references: [bookings.id],
-  }),
-}))
+);
 
-export const chartOfAccountsRelations = relations(chartOfAccounts, ({ one, many }) => ({
-  parent: one(chartOfAccounts, {
-    fields: [chartOfAccounts.parentAccountId],
-    references: [chartOfAccounts.id],
-    relationName: 'children'
+export const chartOfAccountsRelations = relations(
+  chartOfAccounts,
+  ({ one, many }) => ({
+    parent: one(chartOfAccounts, {
+      fields: [chartOfAccounts.parentAccountId],
+      references: [chartOfAccounts.id],
+      relationName: "children",
+    }),
+    children: many(chartOfAccounts, {
+      relationName: "children",
+    }),
+    ledgerEntries: many(generalLedger),
   }),
-  children: many(chartOfAccounts, {
-    relationName: 'children'
-  }),
-  ledgerEntries: many(generalLedger),
-}))
+);
 
 export const generalLedgerRelations = relations(generalLedger, ({ one }) => ({
   account: one(chartOfAccounts, {
@@ -802,14 +974,14 @@ export const generalLedgerRelations = relations(generalLedger, ({ one }) => ({
     fields: [generalLedger.createdBy],
     references: [users.id],
   }),
-}))
+}));
 
 export const tags = pgTable("tags", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull().unique(),
   category: text("category", { enum: ["facility", "rule"] }).notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-})
+});
 
 export const propertyTags = pgTable(
   "property_tags",
@@ -823,8 +995,8 @@ export const propertyTags = pgTable(
   },
   (table) => ({
     pk: index("property_tags_pk").on(table.propertyId, table.tagId),
-  })
-)
+  }),
+);
 
 export const propertyTagsRelations = relations(propertyTags, ({ one }) => ({
   property: one(properties, {
@@ -835,11 +1007,11 @@ export const propertyTagsRelations = relations(propertyTags, ({ one }) => ({
     fields: [propertyTags.tagId],
     references: [tags.id],
   }),
-}))
+}));
 
 export const tagsRelations = relations(tags, ({ many }) => ({
   propertyTags: many(propertyTags),
-}))
+}));
 
 export const auditLogs = pgTable("audit_logs", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -851,12 +1023,11 @@ export const auditLogs = pgTable("audit_logs", {
   targetId: text("target_id").notNull(),
   details: jsonb("details").$type<Record<string, unknown>>().default({}),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-})
+});
 
 export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
   admin: one(users, {
     fields: [auditLogs.adminId],
     references: [users.id],
   }),
-}))
-
+}));

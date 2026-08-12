@@ -62,10 +62,16 @@ export default function OwnerMaintenancePage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['maintenance-tickets', statusFilter],
     queryFn: async () => {
-      const { data } = await apiClient.get('/api/maintenance', {
+      const response = await apiClient.get('/api/maintenance', {
         params: statusFilter === 'all' ? undefined : { status: statusFilter },
       })
-      return data
+      const body = response.data as { data?: { data?: MaintenanceTicketWithNames[] } }
+      const items = Array.isArray(body?.data?.data)
+        ? body.data.data
+        : Array.isArray(body?.data)
+          ? (body.data as MaintenanceTicketWithNames[])
+          : []
+      return { data: items, meta: { total: items.length } }
     },
     staleTime: 30000,
   })

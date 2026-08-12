@@ -9,12 +9,13 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY || ''
 )
 
-export async function createNotification(userId: string, type: 'booking' | 'payment' | 'system', title: string, message: string) {
+export async function createNotification(userId: string, type: 'report' | 'booking' | 'payment' | 'system', title: string, message: string, referenceId?: string) {
   await db.insert(notifications).values({
     userId,
     type,
     title,
     message,
+    referenceId,
   })
 }
 

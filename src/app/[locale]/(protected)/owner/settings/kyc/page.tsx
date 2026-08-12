@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSession } from '@/lib/auth-client'
+import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -9,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { KYCUploadForm } from '@/components/owner/kyc-upload-form'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Clock01Icon, CheckmarkCircle02Icon, Cancel01Icon } from '@hugeicons/core-free-icons'
+import { apiClient } from '@/lib/axios'
 
 const KYC_STATUS_LABEL: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   none: { label: 'Belum Verifikasi', variant: 'outline' },
@@ -22,7 +24,18 @@ export default function OwnerKYCPage() {
   const [showForm, setShowForm] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const kycStatus = (session?.user as any)?.kycStatus || 'none'
+  const { data: userData } = useQuery({
+    queryKey: ['current-user-kyc'],
+    queryFn: async () => {
+      const { data } = await apiClient.get('/api/users/me')
+      return data.data
+    },
+    enabled: !!session?.user?.id,
+    refetchInterval: 5000,
+    refetchIntervalInBackground: true,
+  })
+
+  const kycStatus = userData?.kycStatus || (session?.user as any)?.kycStatus || 'none'
   const kycInfo = KYC_STATUS_LABEL[kycStatus] || KYC_STATUS_LABEL.none
 
   const maskKtp = (ktp: string | null) => {
@@ -88,7 +101,7 @@ export default function OwnerKYCPage() {
         </Card>
       )}
 
-      {kycStatus === 'verified' && session?.user && (
+      {kycStatus === 'verified' && userData && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -103,7 +116,7 @@ export default function OwnerKYCPage() {
             <div className="rounded-lg border p-4">
               <p className="text-sm font-medium">Detail KTP</p>
               <p className="text-sm text-muted-foreground">
-                NIK: {maskKtp((session.user as any).ktpNumber || null)}
+                NIK: {maskKtp(userData.ktpNumber || null)}
               </p>
             </div>
           </CardContent>

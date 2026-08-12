@@ -48,6 +48,7 @@ export async function GET(req: NextRequest) {
         title: notifications.title,
         message: notifications.message,
         type: notifications.type,
+        referenceId: notifications.referenceId,
         isRead: notifications.isRead,
         createdAt: notifications.createdAt,
         userName: users.name,

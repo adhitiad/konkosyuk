@@ -231,7 +231,7 @@ export async function POST(req: NextRequest) {
         ownerId: session.user.id,
         latitude: body.latitude !== undefined ? String(body.latitude) : undefined,
         longitude: body.longitude !== undefined ? String(body.longitude) : undefined,
-      })
+      } as any)
       .returning()
 
     return ok(property, 201)

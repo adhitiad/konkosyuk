@@ -6,7 +6,7 @@ export async function withAdminRateLimit(req: NextRequest) {
   const deviceId = await getOrCreateDeviceId()
   const deviceName = await getDeviceName()
 
-  const result = adminRateLimit({ deviceId, deviceName })
+  const result = await adminRateLimit({ deviceId, deviceName })
 
   if (!result.success) {
     return NextResponse.json(

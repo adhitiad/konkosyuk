@@ -55,8 +55,14 @@ export default function OwnerBookingRequestsPage() {
   const { data, isLoading, isError, error } = useQuery<{ data: BookingRequestWithDetails[] }>({
     queryKey: ['owner-booking-requests'],
     queryFn: async () => {
-      const { data } = await apiClient.get('/api/owner/booking-requests')
-      return data
+      const response = await apiClient.get('/api/owner/booking-requests')
+      const body = response.data as { data?: { data?: BookingRequestWithDetails[] } }
+      const items = Array.isArray(body?.data?.data)
+        ? body.data.data
+        : Array.isArray(body?.data)
+          ? (body.data as BookingRequestWithDetails[])
+          : []
+      return { data: items }
     },
     staleTime: 30000,
     enabled: !!session?.user?.id,

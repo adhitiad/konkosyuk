@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -29,6 +30,7 @@ interface AdminNotification {
   title: string
   message: string
   type: string
+  referenceId: string | null
   isRead: boolean
   createdAt: string
   userName: string | null
@@ -47,6 +49,7 @@ const typeOptions = [
   { value: 'booking', label: 'Booking' },
   { value: 'payment', label: 'Payment' },
   { value: 'system', label: 'System' },
+  { value: 'report', label: 'Laporan Masalah' },
 ]
 
 const readOptions = [
@@ -59,6 +62,7 @@ export default withAdminAuth(AdminNotificationsPage)
 
 function AdminNotificationsPage() {
   const queryClient = useQueryClient()
+  const router = useRouter()
   const [type, setType] = useState<string | null>(null)
   const [isRead, setIsRead] = useState<string | null>(null)
   const [search, setSearch] = useState('')
@@ -108,6 +112,7 @@ function AdminNotificationsPage() {
       booking: 'default',
       payment: 'secondary',
       system: 'destructive',
+      report: 'outline',
     }
     return variants[type] || 'outline'
   }
@@ -190,9 +195,17 @@ function AdminNotificationsPage() {
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
+                  role={notification.type === 'report' && notification.referenceId ? 'button' : undefined}
+                  tabIndex={notification.type === 'report' && notification.referenceId ? 0 : undefined}
                   className={`flex items-start gap-4 rounded-4xl border p-4 transition-colors ${
                     !notification.isRead ? 'bg-primary/5 border-primary/20' : ''
                   }`}
+                  onClick={() => {
+                    if (notification.type === 'report' && notification.referenceId) {
+                      if (!notification.isRead) markAsReadMutation.mutate(notification.id)
+                      router.push(`/admin/maintenance-reports?reportId=${notification.referenceId}`)
+                    }
+                  }}
                 >
                   <div className="mt-1">
                     {notification.isRead ? (
@@ -220,7 +233,10 @@ function AdminNotificationsPage() {
                       variant="ghost"
                       size="sm"
                       disabled={markAsReadMutation.isPending}
-                      onClick={() => markAsReadMutation.mutate(notification.id)}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        markAsReadMutation.mutate(notification.id)
+                      }}
                     >
                       {markAsReadMutation.isPending ? 'Memproses...' : 'Tandai dibaca'}
                     </Button>

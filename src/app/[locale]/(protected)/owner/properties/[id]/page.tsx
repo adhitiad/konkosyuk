@@ -70,11 +70,12 @@ export default function PropertyDetailPage() {
     isLoading,
     isError,
     error: fetchError,
-  } = useQuery<Property>({
+  } = useQuery<Property | undefined>({
     queryKey: ["property", id],
     queryFn: async () => {
-      const { data } = await apiClient.get(`/api/properties/${id}`)
-      return data
+      const response = await apiClient.get(`/api/properties/${id}`)
+      const body = response.data as { data?: Property }
+      return body.data
     },
     staleTime: 30000,
     enabled: !!id,
@@ -84,10 +85,10 @@ export default function PropertyDetailPage() {
 
   useEffect(() => {
     if (property) {
-      setTitle(property.name);
-      setType(property.type as UpdatePropertyInput["type"]);
+      setTitle(property.name ?? "");
+      setType((property.type as UpdatePropertyInput["type"]) ?? "kost");
       setCity(property.city ?? "");
-      setAddress(property.address);
+      setAddress(property.address ?? "");
       setBasePrice(property.basePrice ?? "");
       setAmenities(property.amenities ?? []);
       setDescription(property.description ?? "");

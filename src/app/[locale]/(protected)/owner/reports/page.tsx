@@ -14,6 +14,7 @@ import {
   Users,
   Calendar,
 } from "lucide-react";
+import OwnerReportList from "@/components/reports/owner-report-list";
 
 interface ReportStats {
   totalRevenue: number;
@@ -226,6 +227,7 @@ function OwnerReportsPage() {
           </div>
         </CardContent>
       </Card>
+      <OwnerReportList />
     </div>
   );
 }

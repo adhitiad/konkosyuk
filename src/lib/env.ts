@@ -38,8 +38,17 @@ const envSchema = z.object({
 
   // Notifications
   RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM_EMAIL: z.string().optional(),
   META_ACCESS_TOKEN: z.string().optional(),
   META_PHONE_NUMBER_ID: z.string().optional(),
+  META_MAINTENANCE_CREATED_TEMPLATE: z.string().default("maintenance_report_created"),
+  META_MAINTENANCE_UPDATED_TEMPLATE: z.string().default("maintenance_report_updated"),
+
+  // Redis: prioritas Upstash -> Redis Cloud -> lokal
+  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
+  REDIS_CLOUD_URL: z.string().optional(),
+  REDIS_URL: z.string().default("redis://localhost:6379"),
 });
 
 export const env = envSchema.parse(process.env);

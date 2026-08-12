@@ -80,7 +80,7 @@ export async function proxy(request: NextRequest) {
     const deviceName = request.cookies.get("device_name")?.value || "unknown"
 
     if (path.startsWith("/api/auth")) {
-      const result = authRateLimit({ deviceId, deviceName })
+      const result = await authRateLimit({ deviceId, deviceName })
       if (!result.success) {
         return NextResponse.json(
           { success: false, error: "Too many requests" },
@@ -97,7 +97,7 @@ export async function proxy(request: NextRequest) {
     }
 
     if (path.startsWith("/api/bookings") && request.method === "POST") {
-      const result = bookingRateLimit({ deviceId, deviceName })
+      const result = await bookingRateLimit({ deviceId, deviceName })
       if (!result.success) {
         return NextResponse.json(
           { success: false, error: "Too many requests" },
@@ -114,7 +114,7 @@ export async function proxy(request: NextRequest) {
     }
 
     if (path.startsWith("/api/admin")) {
-      const result = adminRateLimit({ deviceId, deviceName })
+      const result = await adminRateLimit({ deviceId, deviceName })
       if (!result.success) {
         return NextResponse.json(
           { success: false, error: "Too many requests" },

@@ -21,6 +21,20 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      prompt: 'select_account' as const,
+    },
+  },
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ['google'],
+      requireLocalEmailVerified: false,
+    },
+  },
   user: {
     additionalFields: {
       role: {
@@ -38,6 +52,9 @@ export const auth = betterAuth({
     },
   },
   advanced: {
+    database: {
+      generateId: 'uuid',
+    },
     cookies: {
       sessionToken: {
         name: "session_token",

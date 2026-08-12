@@ -86,3 +86,35 @@ export async function getCoordsFromAddress(address: string): Promise<{ lat: numb
     lng: parseFloat(data[0].lon),
   }
 }
+
+export interface StructuredAddress {
+  displayName: string
+  province: string
+  city: string
+  district: string
+}
+
+export async function getStructuredAddressFromCoords(lat: number, lng: number): Promise<StructuredAddress> {
+  const { data } = await axios.get(
+    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+    {
+      headers: {
+        'User-Agent': 'Konkosyuk/1.0',
+      },
+    }
+  )
+
+  const address = data.address || {}
+  const displayName = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`
+
+  const province = address.state || ''
+  const city = address.city || address.town || address.municipality || address.county || ''
+  const district = address.suburb || address.district || address.borough || ''
+
+  return {
+    displayName,
+    province,
+    city,
+    district,
+  }
+}
