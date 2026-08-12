@@ -77,6 +77,7 @@ export const propertyQuerySchema = z.object({
   search: z.string().optional(),
   lat: z.coerce.number().optional(),
   lng: z.coerce.number().optional(),
+  radiusKm: z.coerce.number().positive().default(5).optional(),
   radius: z.coerce.number().positive().optional(),
   amenities: z.array(z.string()).optional(),
   minPrice: z.coerce.number().nonnegative().optional(),

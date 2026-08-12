@@ -1,14 +1,18 @@
 import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
+import { createAuthMiddleware, APIError } from "better-auth/api";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 
 export const auth = betterAuth({
-  baseURL: "http://localhost:3001",
-  trustedOrigins: ["http://localhost:3001"],
-  secret: process.env.BETTER_AUTH_SECRET || "super-secret-key-yang-panjang-minimal-32-karakter-random-1234567890",
+  trustedOrigins: [
+    "http://localhost:3000",
+    "http://localhost:3001",
+  ],
   database: drizzleAdapter(db, {
     provider: "pg",
     usePlural: true,
@@ -33,18 +37,45 @@ export const auth = betterAuth({
       },
     },
   },
-  cookies: {
-    sessionToken: {
-      name: "session_token",
-      options: {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
+  advanced: {
+    cookies: {
+      sessionToken: {
+        name: "session_token",
+        attributes: {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+          path: "/",
+        },
       },
     },
   },
   plugins: [nextCookies()],
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path === "/sign-in/email") {
+        const email = ctx.body?.email as string | undefined;
+        if (!email) {
+          return;
+        }
+
+        const [existing] = await db
+          .select({
+            isBanned: users.isBanned,
+            banReason: users.banReason,
+          })
+          .from(users)
+          .where(eq(users.email, email))
+          .limit(1);
+
+        if (existing?.isBanned) {
+          throw new APIError("FORBIDDEN", {
+            message: `Akun Anda telah diblokir. Alasan: ${existing.banReason ?? "Tidak ada alasan yang diberikan."}`,
+          });
+        }
+      }
+    }),
+  },
 });
 
 export type Role = "cust" | "owner" | "admin" | "staff";

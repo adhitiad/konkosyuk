@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   try {
     const rawParams = Object.fromEntries(req.nextUrl.searchParams)
     const query = propertyQuerySchema.parse(rawParams)
-    const { page, limit, ownerId, type, city, search, lat, lng, radius, amenities, minPrice, maxPrice } = query
+    const { page, limit, ownerId, type, city, search, lat, lng, radiusKm, radius, amenities, minPrice, maxPrice } = query
 
     let isOwner = false
     let effectiveOwnerId = ownerId
@@ -37,12 +37,28 @@ export async function GET(req: NextRequest) {
       conditions.push(eq(properties.city, city))
     }
     if (search) {
-      const searchTerm = search.replace(/'/g, "''")
       const searchCondition = sql`
         to_tsvector('indonesian', ${properties.name} || ' ' || ${properties.address} || ' ' || COALESCE(${properties.description}, ''))
-        @@ websearch_to_tsquery('indonesian', ${searchTerm})
+        @@ websearch_to_tsquery('indonesian', ${search})
       `
       conditions.push(searchCondition)
+    }
+
+    let orderBy = sql`${properties.gpsVerified} DESC, ${properties.createdAt} DESC`
+
+    if (lat !== undefined && lng !== undefined && radiusKm !== undefined) {
+      const distanceExpr = sql<number>`
+        6371 * acos(
+          cos(radians(${lat})) * cos(radians(${properties.latitude})) *
+          cos(radians(${properties.longitude}) - radians(${lng})) +
+          sin(radians(${lat})) * sin(radians(${properties.latitude}))
+        )
+      `
+      conditions.push(eq(properties.isActive, true))
+      conditions.push(eq(properties.gpsVerified, true))
+      conditions.push(sql`${properties.latitude} IS NOT NULL AND ${properties.longitude} IS NOT NULL`)
+      conditions.push(sql`${distanceExpr} <= ${radiusKm}`)
+      orderBy = sql`${distanceExpr} ASC`
     }
 
     const where = conditions.length > 0 ? and(...conditions) : undefined
@@ -54,7 +70,7 @@ export async function GET(req: NextRequest) {
 
     try {
       const [rows, [{ count: totalCount }]] = await Promise.all([
-        db.select().from(properties).where(where).orderBy(desc(properties.createdAt)).limit(limit).offset(offset),
+        db.select().from(properties).where(where).orderBy(orderBy).limit(limit).offset(offset),
         db.select({ count: sql<number>`count(*)` }).from(properties).where(where),
       ])
 
@@ -65,15 +81,11 @@ export async function GET(req: NextRequest) {
       return fail('Gagal memuat data properti dari database.', 500)
     }
 
-    if (lat !== undefined && lng !== undefined && radius !== undefined) {
-      data = data
-        .map((property) => {
-          if (!property.latitude || !property.longitude) return null
-          const distance = calculateDistance(lat, lng, Number(property.latitude), Number(property.longitude))
-          return { ...property, distance }
-        })
-        .filter((p): p is NonNullable<typeof p> => p !== null && p.distance <= radius)
-        .sort((a, b) => a.distance - b.distance)
+    if (lat !== undefined && lng !== undefined && radiusKm !== undefined) {
+      data = data.map((property) => {
+        const distance = calculateDistance(lat, lng, Number(property.latitude), Number(property.longitude))
+        return { ...property, distance }
+      })
     }
 
     if (amenities && amenities.length > 0) {

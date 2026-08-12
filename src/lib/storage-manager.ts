@@ -1,5 +1,6 @@
 import { env } from '@/lib/env'
 import { uploadToCloudinary } from '@/lib/cloudinary'
+import { apiClient } from '@/lib/axios'
 
 type StorageProvider = 'uploadthing' | 'cloudinary'
 
@@ -26,17 +27,12 @@ export async function uploadFile(file: File, type: 'avatar' | 'property'): Promi
     const formData = new FormData()
     formData.append(getUploadthingFieldName(type), file)
 
-    const res = await fetch('/api/uploadthing', {
-      method: 'POST',
-      body: formData,
+    const { data: json } = await apiClient.post('/api/uploadthing', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     })
 
-    if (!res.ok) {
-      const text = await res.text()
-      throw new Error(text || 'Upload failed')
-    }
-
-    const json = await res.json()
     return { url: json.url, provider: json.provider ?? 'uploadthing' }
   } catch (error) {
     if (primary === 'uploadthing') {

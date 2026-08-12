@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/public/uploads/**
 /.pnp
 .pnp.*
 .yarn/*
@@ -44,3 +45,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 g.json
+
+# audit
+ADMIN_**_**_**.md
+ADMIN_**_**.md
+AUDIT_**.md

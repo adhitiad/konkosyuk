@@ -17,6 +17,16 @@
     "incomingBookings": "Входящие бронирования",
     "reports": "Отчеты",
     "analytics": "Аналитика",
+    "wallet": "Кошелек",
+    "kyc": "Верификация KYC",
+    "kycRequests": "Запросы KYC",
+    "notifications": "Уведомления",
+    "systemHealth": "Здоровье системы",
+    "activityLogs": "Журнал активности",
+    "paymentGateways": "Платежные шлюзы",
+    "auditLogs": "Журнал аудита",
+    "generalLedger": "Главная книга",
+    "pengaturanProfil": "Настройки профиля",
     "settings": "Настройки"
   },
   "sidebar": {

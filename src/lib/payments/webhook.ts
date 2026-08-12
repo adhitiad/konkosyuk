@@ -1,6 +1,6 @@
 import { db } from '@/db'
-import { payments, bookings, units, properties, webhookEvents } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { payments, bookings, units, properties, webhookEvents, bookingRequests } from '@/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { getPaymentProvider } from './index'
 import type { WebhookContext, NormalizedWebhook } from './types'
 
@@ -139,6 +139,32 @@ export async function handleWebhookRequest(providerName: string, ctx: WebhookCon
             .update(bookings)
             .set({ status: 'cancelled', updatedAt: new Date() })
             .where(eq(bookings.id, booking.id))
+
+          const [bookingRequest] = await tx
+            .select()
+            .from(bookingRequests)
+            .where(
+              and(
+                eq(bookingRequests.tenantId, booking.userId),
+                eq(bookingRequests.unitId, booking.unitId),
+                eq(bookingRequests.propertyId, booking.propertyId),
+                eq(bookingRequests.status, 'approved'),
+              ),
+            )
+            .for('update')
+            .limit(1)
+
+          if (bookingRequest) {
+            await tx
+              .update(bookingRequests)
+              .set({ status: 'cancelled', updatedAt: new Date() })
+              .where(eq(bookingRequests.id, bookingRequest.id))
+
+            await tx
+              .update(units)
+              .set({ status: 'available', updatedAt: new Date() })
+              .where(eq(units.id, booking.unitId))
+          }
         }
       }
     }

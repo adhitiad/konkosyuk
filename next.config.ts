@@ -24,10 +24,15 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "via.placeholder.com",
       },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
     ],
   },
+  turbopack: {},
   async headers() {
-    const isProd = process.env.NODE_ENV === 'production'
+    const isProd = process.env.NODE_ENV === "production";
 
     return [
       {
@@ -51,7 +56,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "X-Frame-Options",
-            value: "DENY",
+            value: "SAMEORIGIN",
           },
           {
             key: "X-XSS-Protection",
@@ -69,12 +74,14 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://translate.google.com https://cdn.jsdelivr.net",
-              "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
-              "img-src 'self' data: blob: https://cdn.jsdelivr.net https://*.openstreetmap.org https://*.tile.openstreetmap.org https://*.uploadthing.com https://utfs.io https://res.cloudinary.com https://*.placehold.co https://via.placeholder.com",
-              "font-src 'self' data: https://cdn.jsdelivr.net",
-              "connect-src 'self' blob: https://nominatim.openstreetmap.org https://translate.google.com",
-              "frame-src 'none'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https:",
+              "img-src 'self' data: blob: https://* http://* https: *",
+              "font-src 'self' data: https://fonts.gstatic.com",
+              "connect-src 'self' https://tiles.basemaps.cartocdn.com https://basemaps.cartocdn.com https://*.cartocdn.com https://*.cartodb.com https://*.openstreetmap.org https://*.tile.openstreetmap.org https://tiles.openstreetmap.org https://tiles.stadiamaps.com https://nominatim.openstreetmap.org https://*.osm.org https://raw.githubusercontent.com https://*.githubusercontent.com https://api.maptiler.com https://tiles.maptiler.com https://*.maptiler.com blob: data: ws: wss:",
+              "frame-src 'self' https:",
+              "worker-src 'self' blob: data:",
+              "child-src 'self' blob:",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
@@ -87,6 +94,6 @@ const nextConfig: NextConfig = {
   },
 };
 
-const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 export default withNextIntl(nextConfig);

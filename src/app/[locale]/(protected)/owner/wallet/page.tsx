@@ -19,6 +19,7 @@ import {
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Clock01Icon, CheckmarkCircle02Icon, Cancel01Icon, WalletIcon } from '@hugeicons/core-free-icons'
 import type { OwnerBankAccount } from '@/db/schema'
+import { apiClient } from '@/lib/axios'
 
 interface Withdrawal {
   id: string
@@ -60,22 +61,20 @@ export default function WalletPage() {
   const fetchData = async () => {
     try {
       const [accountsRes, withdrawalsRes] = await Promise.all([
-        fetch('/api/owner/bank-accounts'),
-        fetch('/api/owner/withdrawals'),
+        apiClient.get('/api/owner/bank-accounts'),
+        apiClient.get('/api/owner/withdrawals'),
       ])
 
-      if (accountsRes.ok) {
-        const accountsData = await accountsRes.json()
-        setAccounts(accountsData.data || [])
-        if (accountsData.data?.length > 0 && !selectedAccount) {
-          setSelectedAccount(accountsData.data[0].id)
-        }
+      const accountsBody = accountsRes.data as any
+      const accountsItems = Array.isArray(accountsBody?.data) ? accountsBody.data : (accountsBody as any)?.data?.data || []
+      setAccounts(accountsItems)
+      if (accountsItems.length > 0 && !selectedAccount) {
+        setSelectedAccount(accountsItems[0].id)
       }
 
-      if (withdrawalsRes.ok) {
-        const withdrawalsData = await withdrawalsRes.json()
-        setWithdrawals(withdrawalsData.data || [])
-      }
+      const withdrawalsBody = withdrawalsRes.data as any
+      const withdrawalsItems = Array.isArray(withdrawalsBody?.data) ? withdrawalsBody.data : (withdrawalsBody as any)?.data?.data || []
+      setWithdrawals(withdrawalsItems)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
     } finally {
@@ -105,18 +104,14 @@ export default function WalletPage() {
         return
       }
 
-      const res = await fetch('/api/owner/withdrawals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const res = await apiClient.post('/api/owner/withdrawals', {
           bank_account_id: selectedAccount,
           amount: numericAmount.toFixed(2),
-        }),
-      })
+        })
 
-      const data = await res.json()
+      const data = res.data
 
-      if (!res.ok) {
+      if (res.status >= 400) {
         setError(data.error || 'Gagal mengajukan penarikan')
         return
       }

@@ -8,6 +8,7 @@ export interface CreatePaymentInput {
   purpose: PaymentPurpose
   amount: number
   currency?: string
+  expiresIn?: number
   metadata?: Record<string, unknown>
 }
 

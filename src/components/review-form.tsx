@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { AlertCircleIcon, StarIcon } from '@hugeicons/core-free-icons'
 import { reviewType } from '@/db/schema'
+import { apiClient } from '@/lib/axios'
 
 interface ReviewFormProps {
   bookingId: string
@@ -91,14 +92,9 @@ export default function ReviewForm({
         body.propertyId = targetId
       }
 
-      const res = await fetch('/api/reviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-
-      const json = await res.json()
-      if (!res.ok) {
+      const res = await apiClient.post('/api/reviews', body)
+      const json = res.data
+      if (res.status >= 400) {
         throw new Error(json.error || 'Gagal mengirim review')
       }
 

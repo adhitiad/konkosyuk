@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Upload01Icon, Delete01Icon } from '@hugeicons/core-free-icons'
 import { toast } from '@/components/ui/toast'
+import { apiClient } from '@/lib/axios'
 
 interface ImageUploaderProps {
   value?: string[]
@@ -51,13 +52,11 @@ export default function ImageUploader({
           const formData = new FormData()
           formData.append('file', file)
 
-          const res = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData,
+          const { data } = await apiClient.post('/api/upload', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
           })
-
-          if (!res.ok) throw new Error('Upload failed')
-          const data = await res.json()
           return data.url as string
         })
 

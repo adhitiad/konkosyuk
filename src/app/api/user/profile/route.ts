@@ -10,6 +10,9 @@ const updateProfileSchema = z.object({
   name: z.string().min(3, 'Nama minimal 3 karakter').max(255),
   phone: z.string().min(1, 'Nomor telepon wajib diisi').max(20),
   image: z.string().url('URL gambar tidak valid').optional().nullable(),
+  province: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
+  district: z.string().optional().nullable(),
 })
 
 export async function PATCH(req: NextRequest) {
@@ -23,6 +26,9 @@ export async function PATCH(req: NextRequest) {
         name: body.name,
         phone: body.phone,
         image: body.image ?? null,
+        province: body.province ?? null,
+        city: body.city ?? null,
+        district: body.district ?? null,
         updatedAt: new Date(),
       })
       .where(eq(users.id, session.user.id))

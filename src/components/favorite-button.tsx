@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { HeartIcon } from '@hugeicons/core-free-icons'
 import { showToastSuccess, showToastError, showToastInfo } from '@/lib/use-toast-custom'
+import { apiClient } from '@/lib/axios'
 
 interface FavoriteButtonProps {
   propertyId: string
@@ -23,20 +24,9 @@ export default function FavoriteButton({ propertyId, initialFavorite = false }: 
       if (!session) throw new Error('Unauthorized')
 
       if (isFavorite) {
-        const res = await fetch(`/api/favorites/${propertyId}`, { method: 'DELETE' })
-        if (!res.ok) throw new Error('Failed to remove favorite')
-        return res.json()
+        await apiClient.delete(`/api/favorites/${propertyId}`)
       } else {
-        const res = await fetch('/api/favorites', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ propertyId }),
-        })
-        if (!res.ok) {
-          const text = await res.text()
-          throw new Error(text || 'Failed to add favorite')
-        }
-        return res.json()
+        await apiClient.post('/api/favorites', { propertyId })
       }
     },
     onMutate: () => {

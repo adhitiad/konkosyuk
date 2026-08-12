@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { generateSha256Signature, verifySignature } from './signature'
 import { normalizeGatewayStatus } from './status'
 import type {
@@ -28,14 +29,7 @@ export const dokuAdapter: PaymentProviderAdapter = {
       env.DOKU_SECRET_KEY,
     )
 
-    const response = await fetch(`${baseUrl}/api/v1/payment/create`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Doku-Client-Id': env.DOKU_CLIENT_ID,
-        'X-Doku-Signature': signature,
-      },
-      body: JSON.stringify({
+    const response = await axios.post(`${baseUrl}/api/v1/payment/create`, {
         clientId: env.DOKU_CLIENT_ID,
         invoiceNumber,
         amount: integerAmount,
@@ -43,15 +37,20 @@ export const dokuAdapter: PaymentProviderAdapter = {
         email: input.metadata?.email ?? '',
         callbackUrl: `${env.NEXT_PUBLIC_APP_URL1}/api/webhooks/doku`,
         returnUrl: `${env.NEXT_PUBLIC_APP_URL1}/payment/result?provider=doku&bookingId=${invoiceNumber}`,
-      }),
-    })
+        expiredIn: input.expiresIn ? String(input.expiresIn) : undefined,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Doku-Client-Id': env.DOKU_CLIENT_ID,
+          'X-Doku-Signature': signature,
+        },
+      })
 
-    if (!response.ok) {
-      const text = await response.text()
-      throw new Error(`Doku payment failed: ${response.status} ${text}`)
-    }
+      if (response.status >= 400) {
+        throw new Error(`Doku payment failed: ${response.status} ${response.data}`)
+      }
 
-    const raw = (await response.json()) as Record<string, unknown>
+      const raw = response.data as Record<string, unknown>
 
     return {
       paymentId: String(raw.payment_id ?? raw.id ?? crypto.randomUUID()),
@@ -75,22 +74,19 @@ export const dokuAdapter: PaymentProviderAdapter = {
       env.DOKU_SECRET_KEY,
     )
 
-    const response = await fetch(
-      `${baseUrl}/api/v1/payment/${encodeURIComponent(transactionId)}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Doku-Client-Id': env.DOKU_CLIENT_ID,
-          'X-Doku-Signature': signature,
-        },
+    const response = await axios.get(`${baseUrl}/api/v1/payment/${encodeURIComponent(transactionId)}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Doku-Client-Id': env.DOKU_CLIENT_ID,
+        'X-Doku-Signature': signature,
       },
-    )
+    })
 
-    if (!response.ok) {
+    if (response.status >= 400) {
       throw new Error(`Doku status check failed: ${response.status}`)
     }
 
-    const raw = (await response.json()) as Record<string, unknown>
+    const raw = response.data as Record<string, unknown>
     const status = String(raw.status ?? raw.transaction_status ?? 'pending')
 
     return normalizeGatewayStatus(status)

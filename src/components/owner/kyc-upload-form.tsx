@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { InformationCircleIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { showToastSuccess, showToastError } from '@/lib/use-toast-custom'
+import { apiClient } from '@/lib/axios'
 
 export function KYCUploadForm({ onSuccess }: { onSuccess?: () => void }) {
   const [ktpNumber, setKtpNumber] = useState('')
@@ -21,15 +22,11 @@ export function KYCUploadForm({ onSuccess }: { onSuccess?: () => void }) {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/owner/kyc/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ktpNumber, ktpImageUrl }),
-      })
+      const res = await apiClient.post('/api/owner/kyc/submit', { ktpNumber, ktpImageUrl })
 
-      const data = await res.json()
+      const data = res.data
 
-      if (!res.ok) {
+      if (res.status >= 400) {
         setError(data.error || 'Gagal mengirim KYC')
         showToastError('Gagal mengunggah dokumen. Coba lagi.')
         return

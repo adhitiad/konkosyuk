@@ -6,6 +6,7 @@ import { requireSession } from '@/lib/auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 import { z } from 'zod'
 import type { Role } from '@/lib/auth'
+import { createAuditLog } from '@/lib/audit-log'
 
 const updatePlatformFeeSchema = z.object({
   platformFeePercent: z.coerce.number().min(0).max(10),
@@ -37,7 +38,7 @@ export async function GET() {
 
 export async function PATCH(req: NextRequest) {
   try {
-    await requireSession(['admin'] as Role[])
+    const session = await requireSession(['admin'] as Role[])
     const body = updatePlatformFeeSchema.parse(await req.json())
 
     const [settings] = await db
@@ -56,6 +57,18 @@ export async function PATCH(req: NextRequest) {
         })
         .returning()
 
+      await createAuditLog({
+        action: 'config_change',
+        targetType: 'platform_setting',
+        targetId: 'default',
+        adminId: session.user.id,
+        details: {
+          platformFeePercent: body.platformFeePercent,
+          featuredListingPrice: body.featuredListingPrice ?? 50000,
+          action: 'created',
+        },
+      })
+
       return ok(created)
     }
 
@@ -70,6 +83,17 @@ export async function PATCH(req: NextRequest) {
       })
       .where(eq(platformSettings.id, 'default'))
       .returning()
+
+    await createAuditLog({
+      action: 'config_change',
+      targetType: 'platform_setting',
+      targetId: 'default',
+      adminId: session.user.id,
+      details: {
+        platformFeePercent: body.platformFeePercent,
+        featuredListingPrice: body.featuredListingPrice ?? settings.featuredListingPrice,
+      },
+    })
 
     return ok(updated)
   } catch (error) {

@@ -24,21 +24,17 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  const messages = await getMessages();
+  const messages = await getMessages({ locale });
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body>
-        <ThemeProvider>
-          <LanguageProvider>
-            <NextIntlClientProvider messages={messages}>
-              <TooltipProvider>
-                <Providers>{children}</Providers>
-              </TooltipProvider>
-            </NextIntlClientProvider>
-          </LanguageProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+    <ThemeProvider>
+      <LanguageProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <TooltipProvider>
+            <Providers>{children}</Providers>
+          </TooltipProvider>
+        </NextIntlClientProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }

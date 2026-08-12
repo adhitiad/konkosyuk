@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import Link from 'next/link'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { AlertCircleIcon, CheckmarkCircle02Icon, Clock01Icon, CancelCircleIcon } from '@hugeicons/core-free-icons'
+import { apiClient } from '@/lib/axios'
 
 interface BookingDetail {
   id: string
@@ -73,10 +74,8 @@ export default function BookingDetailPage() {
   const { data, isLoading, isError, error } = useQuery<{ data: BookingDetail }>({
     queryKey: ['booking', bookingId],
     queryFn: async () => {
-      const res = await fetch(`/api/bookings/${bookingId}`)
-      if (!res.ok) throw new Error('Failed to fetch booking')
-      const json = await res.json()
-      return json.data as { data: BookingDetail }
+      const { data } = await apiClient.get(`/api/bookings/${bookingId}`)
+      return data
     },
     staleTime: 30000,
   })

@@ -13,6 +13,7 @@ import { AlertCircleIcon } from '@hugeicons/core-free-icons'
 import StarRating from '@/components/star-rating'
 import { useState } from 'react'
 import { toast } from '@/components/ui/toast'
+import { apiClient } from '@/lib/axios'
 
 interface Review {
   id: string
@@ -41,9 +42,8 @@ export default function ReviewsPage() {
   const { data, isLoading, isError, error } = useQuery<ReviewsResponse>({
     queryKey: ['reviews', id],
     queryFn: async () => {
-      const res = await fetch(`/api/reviews?propertyId=${id}`)
-      if (!res.ok) throw new Error('Failed to fetch reviews')
-      return res.json()
+      const { data } = await apiClient.get('/api/reviews', { params: { propertyId: id } })
+      return data
     },
     staleTime: 30000,
     enabled: !!id,
@@ -51,16 +51,8 @@ export default function ReviewsPage() {
 
   const createMutation = useMutation({
     mutationFn: async (payload: { bookingId: string; rating: number; comment?: string }) => {
-      const res = await fetch('/api/reviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...payload, propertyId: id }),
-      })
-      if (!res.ok) {
-        const text = await res.text()
-        throw new Error(text || 'Failed to submit review')
-      }
-      return res.json()
+      const { data } = await apiClient.post('/api/reviews', { ...payload, propertyId: id })
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reviews', id] })

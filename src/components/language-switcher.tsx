@@ -1,7 +1,7 @@
 "use client";
 
-import { useLanguage } from "@/components/language-provider";
-import { languages } from "@/lib/i18n";
+import { useLocale } from "next-intl";
+import { useRouter, usePathname } from "@/config";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,14 +10,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { type Language, languages } from "@/lib/i18n";
 
 export function LanguageSwitcher() {
-  const { language, setLanguage } = useLanguage();
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+  const current =
+    languages[locale as keyof typeof languages] || languages["id"];
 
-  const current = languages[language];
-
-  function handleLanguageChange(next: string) {
-    setLanguage(next as typeof language);
+  function handleLanguageChange(nextLocale: string) {
+    if (nextLocale !== locale) {
+      router.push(pathname, { locale: nextLocale });
+    }
   }
 
   return (
@@ -30,11 +35,7 @@ export function LanguageSwitcher() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {Object.entries(languages).map(([key, value]) => (
-          <DropdownMenuItem
-            key={key}
-            onClick={() => handleLanguageChange(key)}
-            data-active={language === key}
-          >
+          <DropdownMenuItem key={key} onClick={() => handleLanguageChange(key)}>
             <span className="mr-2">{value.flag}</span>
             {value.nativeName}
           </DropdownMenuItem>

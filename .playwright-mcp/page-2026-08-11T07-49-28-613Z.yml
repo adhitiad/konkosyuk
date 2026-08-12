@@ -1,0 +1,214 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e4]:
+        - link "KonkosYuk KonkosYuk" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "KonkosYuk" [ref=e6]
+          - generic [ref=e7]: KonkosYuk
+        - generic [ref=e8]:
+          - link "Cari Kost" [ref=e9] [cursor=pointer]:
+            - /url: /properties
+          - link "Tentang Kami" [ref=e10] [cursor=pointer]:
+            - /url: /about
+          - link "FAQ" [ref=e11] [cursor=pointer]:
+            - /url: /faq
+          - link "Kontak" [ref=e12] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=e13]:
+          - button "Toggle theme" [ref=e14]
+          - button "🇮🇩 Switch language" [expanded] [ref=e16]:
+            - generic [ref=e17]: 🇮🇩
+            - generic [ref=e18]: Switch language
+          - menu "🇮🇩 Switch language" [active] [ref=e262]:
+            - menuitem "🇺🇸 English" [ref=e263]:
+              - generic [ref=e264]: 🇺🇸
+              - text: English
+            - menuitem "🇮🇩 Bahasa Indonesia" [ref=e265]:
+              - generic [ref=e266]: 🇮🇩
+              - text: Bahasa Indonesia
+            - menuitem "🇲🇾 Bahasa Melayu" [ref=e267]:
+              - generic [ref=e268]: 🇲🇾
+              - text: Bahasa Melayu
+            - menuitem "🇹🇭 ไทย" [ref=e269]:
+              - generic [ref=e270]: 🇹🇭
+              - text: ไทย
+            - menuitem "🇻🇳 Tiếng Việt" [ref=e271]:
+              - generic [ref=e272]: 🇻🇳
+              - text: Tiếng Việt
+            - menuitem "🇰🇷 한국어" [ref=e273]:
+              - generic [ref=e274]: 🇰🇷
+              - text: 한국어
+            - menuitem "🇨🇳 中文" [ref=e275]:
+              - generic [ref=e276]: 🇨🇳
+              - text: 中文
+            - menuitem "🇷🇺 Русский" [ref=e277]:
+              - generic [ref=e278]: 🇷🇺
+              - text: Русский
+          - button "Masuk" [ref=e19] [cursor=pointer]
+          - button "Daftar" [ref=e20] [cursor=pointer]
+    - main [ref=e162]:
+      - generic [ref=e163]:
+        - heading "Cari Kost & Kontrakan" [level=1] [ref=e164]
+        - paragraph [ref=e165]: Temukan tempat tinggal yang sesuai dengan kebutuhanmu
+      - generic [ref=e167]:
+        - generic [ref=e168]:
+          - textbox "Cari lokasi, nama, atau deskripsi..." [ref=e173]
+          - combobox [ref=e174]:
+            - generic [ref=e175]: all
+          - textbox [ref=e178]: all
+          - textbox "Kota" [ref=e179]
+          - spinbutton "Harga Maksimal" [ref=e180]
+        - generic [ref=e181]:
+          - paragraph [ref=e182]: Fasilitas
+          - generic [ref=e183]:
+            - button "WiFi" [ref=e184]
+            - button "AC" [ref=e185]
+            - button "Laundry" [ref=e186]
+            - button "Parkir Motor" [ref=e187]
+            - button "Parkir Mobil" [ref=e188]
+            - button "Dapur" [ref=e189]
+            - button "Kamar Mandi Dalam" [ref=e190]
+            - button "Balcony" [ref=e191]
+        - generic [ref=e192]:
+          - generic [ref=e193]:
+            - paragraph [ref=e194]: Rentang Harga
+            - generic [ref=e195]: 0 - 10jt
+          - generic [ref=e196]:
+            - spinbutton "Min" [ref=e197]
+            - generic [ref=e198]: "-"
+            - spinbutton "Max" [ref=e199]: "10000000"
+        - generic [ref=e200]:
+          - generic [ref=e203]:
+            - button "Lokasi Saya" [ref=e204]
+            - combobox [ref=e205]:
+              - option "1 km"
+              - option "5 km" [selected]
+              - option "10 km"
+              - option "25 km"
+          - generic [ref=e206]:
+            - generic [ref=e207]:
+              - button [ref=e208]
+              - button [ref=e209]
+            - button "Reset" [ref=e210]
+      - generic [ref=e211]:
+        - generic [ref=e212]:
+          - img "Kost Melati Syariah" [ref=e214]
+          - generic [ref=e215]:
+            - heading "Kost Melati Syariah" [level=3] [ref=e216]
+            - generic [ref=e217]: Lokasi Perkiraan
+          - generic [ref=e222]:
+            - generic [ref=e223]:
+              - paragraph [ref=e224]: Harga
+              - paragraph [ref=e225]: Hubungi Kami
+            - button "Lihat Detail" [ref=e226] [cursor=pointer]
+        - generic [ref=e227]:
+          - img "Kost Putra Merdeka" [ref=e229]
+          - generic [ref=e230]:
+            - heading "Kost Putra Merdeka" [level=3] [ref=e231]
+            - generic [ref=e232]: Lokasi Perkiraan
+          - generic [ref=e237]:
+            - generic [ref=e238]:
+              - paragraph [ref=e239]: Harga
+              - paragraph [ref=e240]: Hubungi Kami
+            - button "Lihat Detail" [ref=e241] [cursor=pointer]
+        - generic [ref=e242]:
+          - img "Kontrakan Rumah Keluarga" [ref=e244]
+          - generic [ref=e245]:
+            - heading "Kontrakan Rumah Keluarga" [level=3] [ref=e246]
+            - generic [ref=e247]: Lokasi Perkiraan
+          - generic [ref=e252]:
+            - generic [ref=e253]:
+              - paragraph [ref=e254]: Harga
+              - paragraph [ref=e255]: Hubungi Kami
+            - button "Lihat Detail" [ref=e256] [cursor=pointer]
+    - contentinfo [ref=e40]:
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - generic [ref=e43]:
+            - link "KonkosYuk KonkosYuk" [ref=e44] [cursor=pointer]:
+              - /url: /
+              - img "KonkosYuk" [ref=e45]
+              - generic [ref=e46]: KonkosYuk
+            - paragraph [ref=e47]: Temukan kost dan kontrakan terbaik dengan harga terjangkau. KonkosYuk memudahkan Anda mencari tempat tinggal ideal.
+            - generic [ref=e48]:
+              - textbox "Masukkan email Anda" [ref=e49]
+              - button "Dapatkan Info Kost Terbaru" [ref=e50]
+          - generic [ref=e51]:
+            - heading "Perusahaan" [level=3] [ref=e52]
+            - list [ref=e53]:
+              - listitem [ref=e54]:
+                - link "Tentang Kami" [ref=e55] [cursor=pointer]:
+                  - /url: /about
+              - listitem [ref=e56]:
+                - link "Cara Kerja" [ref=e57] [cursor=pointer]:
+                  - /url: /properties
+              - listitem [ref=e58]:
+                - link "Hubungi Kami" [ref=e59] [cursor=pointer]:
+                  - /url: /contact
+              - listitem [ref=e60]:
+                - link "Bantuan" [ref=e61] [cursor=pointer]:
+                  - /url: /faq
+          - generic [ref=e62]:
+            - heading "Tipe Properti" [level=3] [ref=e63]
+            - list [ref=e64]:
+              - listitem [ref=e65]:
+                - link "Kost Putra" [ref=e66] [cursor=pointer]:
+                  - /url: /properties?type=kost
+              - listitem [ref=e67]:
+                - link "Kost Putri" [ref=e68] [cursor=pointer]:
+                  - /url: /properties?type=kost
+              - listitem [ref=e69]:
+                - link "Kontrakan" [ref=e70] [cursor=pointer]:
+                  - /url: /properties?type=kontrakan
+              - listitem [ref=e71]:
+                - link "Ruko" [ref=e72] [cursor=pointer]:
+                  - /url: /properties
+          - generic [ref=e73]:
+            - heading "Layanan" [level=3] [ref=e74]
+            - list [ref=e75]:
+              - listitem [ref=e76]:
+                - link "Kebijakan Privasi" [ref=e77] [cursor=pointer]:
+                  - /url: /privacy
+              - listitem [ref=e78]:
+                - link "Syarat & Ketentuan" [ref=e79] [cursor=pointer]:
+                  - /url: /terms
+        - separator [ref=e80]
+        - generic [ref=e81]:
+          - generic [ref=e82]:
+            - link [ref=e83] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e92]:
+                - paragraph [ref=e93]: Get it on
+                - text: Google Play
+            - link [ref=e94] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e97]:
+                - paragraph [ref=e98]: Download on the
+                - text: App Store
+          - generic [ref=e99]:
+            - paragraph [ref=e100]: Kami Menerima Pembayaran Dari
+            - generic [ref=e101]:
+              - img [ref=e104]:
+                - generic [ref=e106]: BCA
+              - img [ref=e109]:
+                - generic [ref=e111]: mandiri
+              - img [ref=e114]:
+                - generic [ref=e116]: BRI
+              - img [ref=e119]:
+                - generic [ref=e121]: BNI
+              - img [ref=e124]:
+                - generic [ref=e126]: BTN
+              - img [ref=e129]:
+                - generic [ref=e136]: QRIS
+              - img [ref=e139]:
+                - generic [ref=e141]: OVO
+              - img [ref=e144]:
+                - generic [ref=e146]: dana
+              - img [ref=e149]:
+                - generic [ref=e151]: GoPay
+          - generic [ref=e152]: © 2026 KonkosYuk. All rights reserved.
+  - button "Open Next.js Dev Tools" [ref=e158] [cursor=pointer]
+  - alert [ref=e257]
+  - generic:
+    - region "Notifications"

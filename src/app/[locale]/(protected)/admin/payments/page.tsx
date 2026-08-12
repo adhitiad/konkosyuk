@@ -6,6 +6,7 @@ import { useSession } from '@/lib/auth-client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { BreadcrumbNav } from '@/components/ui/breadcrumb-nav'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -20,6 +21,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { HugeiconsIcon } from '@hugeicons/react'
 import { AlertCircleIcon, Add01Icon, MultiplicationSignIcon } from '@hugeicons/core-free-icons'
 import { toast } from '@/components/ui/toast'
+import { apiClient } from '@/lib/axios'
+import { withAdminAuth } from '@/lib/with-admin-auth'
 
 interface Payment {
   id: string
@@ -71,7 +74,9 @@ const statusConfig: Record<string, { label: string; variant: 'default' | 'second
   refunded: { label: 'Refunded', variant: 'secondary' },
 }
 
-export default function AdminPaymentsPage() {
+export default withAdminAuth(AdminPaymentsPage)
+
+function AdminPaymentsPage() {
   const queryClient = useQueryClient()
   const [statusFilter, setStatusFilter] = useState('')
   const [reconcileId, setReconcileId] = useState<string | null>(null)
@@ -94,9 +99,7 @@ export default function AdminPaymentsPage() {
       const params = new URLSearchParams()
       if (statusFilter) params.set('status', statusFilter)
 
-      const res = await fetch(`/api/admin/payments?${params.toString()}`)
-      if (!res.ok) throw new Error('Failed to fetch payments')
-      const json = await res.json()
+      const { data: json } = await apiClient.get(`/api/admin/payments?${params.toString()}`)
       return { data: json.data?.data, meta: json.data?.meta }
     },
     staleTime: 30000,
@@ -104,16 +107,12 @@ export default function AdminPaymentsPage() {
 
   const reconcileMutation = useMutation({
     mutationFn: async ({ paymentId, transactionId, reason }: { paymentId: string; transactionId?: string; reason: string }) => {
-      const res = await fetch(`/api/admin/payments/${paymentId}/reconcile`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transactionId, reason }),
-      })
-      if (!res.ok) {
-        const text = await res.text()
+      const res = await apiClient.post(`/api/admin/payments/${paymentId}/reconcile`, { transactionId, reason })
+      if (res.status >= 400) {
+        const text = res.data
         throw new Error(text || 'Failed to reconcile payment')
       }
-      return res.json()
+      return res.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-payments'] })
@@ -129,23 +128,19 @@ export default function AdminPaymentsPage() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch('/api/admin/payments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: manualUserId,
-          bookingId: manualBookingId,
-          amount: manualAmount,
-          provider: manualProvider,
-          purpose: manualPurpose,
-          status: manualStatus,
-        }),
+      const res = await apiClient.post('/api/admin/payments', {
+        userId: manualUserId,
+        bookingId: manualBookingId,
+        amount: manualAmount,
+        provider: manualProvider,
+        purpose: manualPurpose,
+        status: manualStatus,
       })
-      if (!res.ok) {
-        const text = await res.text()
+      if (res.status >= 400) {
+        const text = res.data
         throw new Error(text || 'Failed to create payment')
       }
-      return res.json()
+      return res.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-payments'] })
@@ -165,16 +160,12 @@ export default function AdminPaymentsPage() {
 
   const cancelMutation = useMutation({
     mutationFn: async ({ paymentId, reason }: { paymentId: string; reason: string }) => {
-      const res = await fetch(`/api/admin/payments/${paymentId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason }),
-      })
-      if (!res.ok) {
-        const text = await res.text()
+      const res = await apiClient.patch(`/api/admin/payments/${paymentId}`, { reason })
+      if (res.status >= 400) {
+        const text = res.data
         throw new Error(text || 'Failed to cancel payment')
       }
-      return res.json()
+      return res.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-payments'] })
@@ -216,6 +207,7 @@ export default function AdminPaymentsPage() {
     <div className="container py-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
+          <BreadcrumbNav items={[{ label: 'Dashboard', href: '/admin' }, { label: 'Manajemen Pembayaran' }]} />
           <h1 className="text-2xl font-bold tracking-tight">Manajemen Pembayaran</h1>
           <p className="text-muted-foreground">Monitor dan rekonsiliasi pembayaran</p>
         </div>
@@ -266,18 +258,18 @@ export default function AdminPaymentsPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Invoice</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Booking Code</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Provider</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Purpose</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Amount</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Paid At</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Aksi</th>
-                  </tr>
-                </thead>
+<thead>
+                    <tr className="border-b">
+                      <th scope="col" className="text-left py-3 px-4 font-medium text-muted-foreground">Invoice</th>
+                      <th scope="col" className="text-left py-3 px-4 font-medium text-muted-foreground">Booking Code</th>
+                      <th scope="col" className="text-left py-3 px-4 font-medium text-muted-foreground">Provider</th>
+                      <th scope="col" className="text-left py-3 px-4 font-medium text-muted-foreground">Purpose</th>
+                      <th scope="col" className="text-left py-3 px-4 font-medium text-muted-foreground">Amount</th>
+                      <th scope="col" className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
+                      <th scope="col" className="text-left py-3 px-4 font-medium text-muted-foreground">Paid At</th>
+                      <th scope="col" className="text-left py-3 px-4 font-medium text-muted-foreground">Aksi</th>
+                    </tr>
+                  </thead>
                 <tbody>
                   {payments.map((payment) => {
                     const config = statusConfig[payment.status] ?? { label: payment.status, variant: 'outline' }
@@ -319,25 +311,27 @@ export default function AdminPaymentsPage() {
                                         <p className="text-sm"><span className="font-medium">Amount:</span> {formatCurrency(selectedPayment.amount)}</p>
                                         <p className="text-sm"><span className="font-medium">Provider:</span> {selectedPayment.provider}</p>
                                       </div>
-                                      <div className="space-y-2">
-                                        <label className="text-sm font-medium">Transaction ID (opsional)</label>
-                                        <input
-                                          type="text"
-                                          value={reconcileTransactionId}
-                                          onChange={(e) => setReconcileTransactionId(e.target.value)}
-                                          placeholder="Masukkan transaction ID dari gateway"
-                                          className="w-full rounded-4xl border border-input bg-input/30 px-3 py-2 text-sm"
-                                        />
-                                      </div>
-                                      <div className="space-y-2">
-                                        <label className="text-sm font-medium">Alasan Rekonsiliasi *</label>
-                                        <textarea
-                                          value={reconcileReason}
-                                          onChange={(e) => setReconcileReason(e.target.value)}
-                                          placeholder="Berikan alasan untuk rekonsiliasi manual..."
-                                          className="w-full min-h-[80px] rounded-4xl border border-input bg-input/30 px-3 py-2 text-sm"
-                                        />
-                                      </div>
+                                       <div className="space-y-2">
+                                         <label htmlFor="reconcile-transaction-id" className="text-sm font-medium">Transaction ID (opsional)</label>
+                                         <input
+                                           id="reconcile-transaction-id"
+                                           type="text"
+                                           value={reconcileTransactionId}
+                                           onChange={(e) => setReconcileTransactionId(e.target.value)}
+                                           placeholder="Masukkan transaction ID dari gateway"
+                                           className="w-full rounded-4xl border border-input bg-input/30 px-3 py-2 text-sm"
+                                         />
+                                       </div>
+                                       <div className="space-y-2">
+                                         <label htmlFor="reconcile-reason" className="text-sm font-medium">Alasan Rekonsiliasi *</label>
+                                         <textarea
+                                           id="reconcile-reason"
+                                           value={reconcileReason}
+                                           onChange={(e) => setReconcileReason(e.target.value)}
+                                           placeholder="Berikan alasan untuk rekonsiliasi manual..."
+                                           className="w-full min-h-[80px] rounded-4xl border border-input bg-input/30 px-3 py-2 text-sm"
+                                         />
+                                       </div>
                                       <div className="flex justify-end gap-2">
                                         <Button variant="outline" onClick={() => setReconcileId(null)}>Batal</Button>
                                         <Button
@@ -369,8 +363,9 @@ export default function AdminPaymentsPage() {
                                       Apakah kamu yakin ingin membatalkan payment ini? Status booking akan menjadi &quot;cancelled&quot;.
                                     </p>
                                     <div className="space-y-2">
-                                      <label className="text-sm font-medium">Alasan Pembatalan *</label>
+                                      <label htmlFor="cancel-reason" className="text-sm font-medium">Alasan Pembatalan *</label>
                                       <textarea
+                                        id="cancel-reason"
                                         value={cancelReason}
                                         onChange={(e) => setCancelReason(e.target.value)}
                                         placeholder="Berikan alasan pembatalan..."
@@ -461,7 +456,7 @@ export default function AdminPaymentsPage() {
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setCreateOpen(false)}>Batal</Button>
               <Button disabled={createMutation.isPending} onClick={handleCreate}>
-                {createMutation.isPending ? 'Membuat...' : 'Buat Payment'}
+                {createMutation.isPending ? 'Menyimpan...' : 'Buat Payment'}
               </Button>
             </div>
           </div>

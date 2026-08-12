@@ -18,6 +18,7 @@ import { addBankAccountSchema } from '@/lib/zod'
 import type { AddBankAccountInput } from '@/lib/zod'
 import { showToastSuccess, showToastError, showToastWarning } from '@/lib/use-toast-custom'
 import { Spinner } from '@/components/ui/spinner'
+import { apiClient } from '@/lib/axios'
 
 const PROVIDERS = [
   { value: 'bank', label: 'Bank', options: BANKS },
@@ -57,32 +58,29 @@ export function KYCBankForm({
 
       const validated = addBankAccountSchema.parse(payload)
 
-      const res = await fetch('/api/owner/bank-accounts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(validated),
-      })
+      try {
+        const res = await apiClient.post('/api/owner/bank-accounts', validated)
 
-      const data = await res.json()
+        showToastSuccess('Rekening berhasil ditambahkan! Nama sesuai dengan profil Anda.')
+        setAccountType('bank')
+        setProviderName('')
+        setAccountNumber('')
+        setAccountName('')
+        onSuccess?.()
+      } catch (err: unknown) {
+        const axiosError = err as { response?: { data?: { error?: string; code?: string } } }
+        const data = axiosError?.response?.data ?? {}
+        const errorMessage = data.error || 'Gagal menambahkan rekening'
+        const errorCode = data.code || null
 
-      if (!res.ok) {
-        const data = await res.json()
-        if (data.code === 'NAME_MISMATCH') {
+        if (errorCode === 'NAME_MISMATCH') {
           showToastError('Nama rekening tidak cocok. Silakan perbarui nama profil terlebih dahulu.')
         } else {
-          showToastError(data.error || 'Gagal menambahkan rekening')
+          showToastError(errorMessage)
         }
-        setError(data.error || 'Gagal menambahkan rekening')
-        setErrorCode(data.code || null)
-        return
+        setError(errorMessage)
+        setErrorCode(errorCode)
       }
-
-      showToastSuccess('Rekening berhasil ditambahkan! Nama sesuai dengan profil Anda.')
-      setAccountType('bank')
-      setProviderName('')
-      setAccountNumber('')
-      setAccountName('')
-      onSuccess?.()
     } catch (err) {
       showToastWarning('Mohon lengkapi semua field dengan benar.')
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan')

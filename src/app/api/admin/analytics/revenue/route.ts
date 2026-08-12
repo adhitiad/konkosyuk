@@ -14,13 +14,11 @@ export async function GET(req: NextRequest) {
     const endDate = searchParams.get('endDate')
 
     const now = new Date()
-    const defaultEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    const defaultStart = new Date(defaultEnd.getFullYear(), defaultEnd.getMonth(), 1)
+    const defaultEnd = new Date(Date.UTC(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999))
+    const defaultStart = new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0))
 
-    const start = startDate ? new Date(startDate) : defaultStart
-    const end = endDate ? new Date(endDate) : defaultEnd
-    const endInclusive = new Date(end)
-    endInclusive.setHours(23, 59, 59, 999)
+    const start = startDate ? new Date(`${startDate}T00:00:00.000Z`) : defaultStart
+    const end = endDate ? new Date(`${endDate}T23:59:59.999Z`) : defaultEnd
 
     const [settings] = await db
       .select()
@@ -51,7 +49,7 @@ export async function GET(req: NextRequest) {
         and(
           eq(payments.status, 'success'),
           gte(payments.paidAt, start),
-          lte(payments.paidAt, endInclusive),
+          lte(payments.paidAt, end),
         ),
       )
       .orderBy(desc(payments.paidAt))

@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { authRateLimit, bookingRateLimit } from "@/lib/rate-limit";
+import { authRateLimit, bookingRateLimit, adminRateLimit } from "@/lib/rate-limit";
 import createMiddleware from "next-intl/middleware";
 import { defineRouting } from "next-intl/routing";
 import { auth } from "@/lib/auth";
 import { locales } from "@/config";
+import { getOrCreateDeviceId, getDeviceName, generateDeviceId } from "@/lib/device";
+import { validateCsrfToken } from "@/lib/csrf";
 
 const protectedRoutes: Record<string, string[]> = {
   "/dashboard": ["cust"],
@@ -62,6 +64,7 @@ export async function proxy(request: NextRequest) {
     ".woff2",
     ".ttf",
     ".eot",
+    ".geojson",
   ];
   if (staticAssetExtensions.some((ext) => path.endsWith(ext))) {
     return NextResponse.next();
@@ -69,12 +72,15 @@ export async function proxy(request: NextRequest) {
 
   // 1. API routes: Apply rate limiting, do NOT apply next-intl
   if (path.startsWith("/api/")) {
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      "unknown";
+    let deviceId = request.cookies.get("device_id")?.value
+    if (!deviceId) {
+      deviceId = generateDeviceId()
+    }
+
+    const deviceName = request.cookies.get("device_name")?.value || "unknown"
 
     if (path.startsWith("/api/auth")) {
-      const result = authRateLimit({ ip });
+      const result = authRateLimit({ deviceId, deviceName })
       if (!result.success) {
         return NextResponse.json(
           { success: false, error: "Too many requests" },
@@ -86,12 +92,12 @@ export async function proxy(request: NextRequest) {
               ).toString(),
             },
           },
-        );
+        )
       }
     }
 
     if (path.startsWith("/api/bookings") && request.method === "POST") {
-      const result = bookingRateLimit({ ip });
+      const result = bookingRateLimit({ deviceId, deviceName })
       if (!result.success) {
         return NextResponse.json(
           { success: false, error: "Too many requests" },
@@ -103,11 +109,69 @@ export async function proxy(request: NextRequest) {
               ).toString(),
             },
           },
-        );
+        )
       }
     }
 
-    return NextResponse.next();
+    if (path.startsWith("/api/admin")) {
+      const result = adminRateLimit({ deviceId, deviceName })
+      if (!result.success) {
+        return NextResponse.json(
+          { success: false, error: "Too many requests" },
+          {
+            status: 429,
+            headers: {
+              "Retry-After": Math.ceil(
+                (result.resetAt.getTime() - Date.now()) / 1000,
+              ).toString(),
+            },
+          },
+        )
+      }
+
+      if (request.method !== "GET" && request.method !== "HEAD" && request.method !== "OPTIONS") {
+        const csrfToken = request.headers.get("x-csrf-token")
+        const csrfCookie = request.cookies.get("csrf_token")?.value
+        if (!csrfToken || !csrfCookie || csrfToken !== csrfCookie) {
+          return NextResponse.json(
+            { success: false, error: "Invalid or missing CSRF token" },
+            { status: 403 }
+          )
+        }
+      }
+    }
+
+    const response = NextResponse.next()
+    if (!request.cookies.has("device_id")) {
+      response.cookies.set("device_id", deviceId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 365,
+        path: "/",
+      })
+    }
+    if (!request.cookies.has("device_name")) {
+      response.cookies.set("device_name", deviceName, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 365,
+        path: "/",
+      })
+    }
+    if (!request.cookies.has("csrf_token")) {
+      const csrfToken = crypto.randomUUID().replace(/-/g, "")
+      response.cookies.set("csrf_token", csrfToken, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24,
+        path: "/",
+      })
+    }
+
+    return response
   }
 
   // 2. Auth checks for protected pages

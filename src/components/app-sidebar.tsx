@@ -25,13 +25,17 @@ import {
   Search,
   User,
   Building2,
-  DoorOpen,
+  Layers,
   BarChart3,
   Users,
   Activity,
   IdCard,
   Wallet,
   Settings,
+  Bell,
+  FileText,
+  Shield,
+  HeartPulse,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Logo } from "@/components/ui/logo";
@@ -50,7 +54,7 @@ const menuConfig: Record<
   owner: [
     { title: "dashboard", href: "/owner", icon: LayoutDashboard },
     { title: "myProperties", href: "/owner/properties", icon: Building2 },
-    { title: "units", href: "/owner/units", icon: DoorOpen },
+    { title: "units", href: "/owner/units", icon: Layers },
     { title: "incomingBookings", href: "/owner/bookings", icon: CalendarDays },
     { title: "reports", href: "/owner/reports", icon: BarChart3 },
     { title: "wallet", href: "/owner/wallet", icon: Wallet },
@@ -64,8 +68,15 @@ const menuConfig: Record<
     { title: "properties", href: "/admin/properties", icon: Building2 },
     { title: "booking", href: "/admin/bookings", icon: CalendarDays },
     { title: "payment", href: "/admin/payments", icon: CreditCard },
+    { title: "paymentGateways", href: "/admin/payment-gateways", icon: Wallet },
     { title: "webhookLog", href: "/admin/webhooks", icon: Activity },
     { title: "kycRequests", href: "/admin/kyc-requests", icon: IdCard },
+    { title: "notifications", href: "/admin/notifications", icon: Bell },
+    { title: "systemHealth", href: "/admin/system-health", icon: HeartPulse },
+    { title: "activityLogs", href: "/admin/activity-logs", icon: FileText },
+    { title: "auditLogs", href: "/admin/audit-logs", icon: Shield },
+    { title: "generalLedger", href: "/admin/general-ledger", icon: FileText },
+    { title: "reports", href: "/admin/reports/demographics", icon: BarChart3 },
     { title: "settings", href: "/admin/settings/monetization", icon: Settings },
     { title: "pengaturanProfil", href: "/settings/profile", icon: User },
   ],
@@ -76,8 +87,15 @@ const menuConfig: Record<
     { title: "properties", href: "/admin/properties", icon: Building2 },
     { title: "booking", href: "/admin/bookings", icon: CalendarDays },
     { title: "payment", href: "/admin/payments", icon: CreditCard },
+    { title: "paymentGateways", href: "/admin/payment-gateways", icon: Wallet },
     { title: "webhookLog", href: "/admin/webhooks", icon: Activity },
     { title: "kycRequests", href: "/admin/kyc-requests", icon: IdCard },
+    { title: "notifications", href: "/admin/notifications", icon: Bell },
+    { title: "systemHealth", href: "/admin/system-health", icon: HeartPulse },
+    { title: "activityLogs", href: "/admin/activity-logs", icon: FileText },
+    { title: "auditLogs", href: "/admin/audit-logs", icon: Shield },
+    { title: "generalLedger", href: "/admin/general-ledger", icon: FileText },
+    { title: "reports", href: "/admin/reports/demographics", icon: BarChart3 },
     { title: "pengaturanProfil", href: "/settings/profile", icon: User },
   ],
 };
@@ -113,7 +131,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>{tSidebar("menu")}</SidebarGroupLabel>
           <SidebarMenu>
-            {items.map((item) => (
+            {items?.map((item: any) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   render={

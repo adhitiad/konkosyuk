@@ -17,6 +17,16 @@
     "incomingBookings": " incoming 预订",
     "reports": "报告",
     "analytics": "分析",
+    "wallet": "钱包",
+    "kyc": "KYC 验证",
+    "kycRequests": "KYC 请求",
+    "notifications": "通知",
+    "systemHealth": "系统健康",
+    "activityLogs": "活动日志",
+    "paymentGateways": "支付网关",
+    "auditLogs": "审计日志",
+    "generalLedger": "总账",
+    "pengaturanProfil": "个人资料设置",
     "settings": "设置"
   },
   "sidebar": {

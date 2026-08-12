@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 interface EmptyStateProps {
-  icon: ElementType
+  icon?: ElementType
   title: string
   description: string
   actionLabel?: string
@@ -19,7 +19,7 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-      <Icon className={cn("h-12 w-12 text-muted-foreground/50")} />
+      {Icon && <Icon className="h-12 w-12 text-muted-foreground/50" />}
       <h3 className="text-xl font-semibold">{title}</h3>
       <p className="text-muted-foreground max-w-md">{description}</p>
       {actionLabel && onAction && (

@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 export function getCurrentPosition(): Promise<{ lat: number; lng: number }> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
@@ -52,7 +54,7 @@ function toRad(deg: number): number {
 }
 
 export async function getAddressFromCoords(lat: number, lng: number): Promise<string> {
-  const res = await fetch(
+  const { data } = await axios.get(
     `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
     {
       headers: {
@@ -61,17 +63,12 @@ export async function getAddressFromCoords(lat: number, lng: number): Promise<st
     }
   )
 
-  if (!res.ok) {
-    throw new Error('Failed to fetch address from coordinates')
-  }
-
-  const data = await res.json()
   const address = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`
   return address
 }
 
 export async function getCoordsFromAddress(address: string): Promise<{ lat: number; lng: number }> {
-  const res = await fetch(
+  const { data } = await axios.get(
     `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`,
     {
       headers: {
@@ -80,11 +77,6 @@ export async function getCoordsFromAddress(address: string): Promise<{ lat: numb
     }
   )
 
-  if (!res.ok) {
-    throw new Error('Failed to fetch coordinates from address')
-  }
-
-  const data = await res.json()
   if (!data || data.length === 0) {
     throw new Error('Location not found')
   }

@@ -17,6 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { AlertCircleIcon } from '@hugeicons/core-free-icons'
 import { DialogClose } from '@/components/ui/dialog'
+import { apiClient } from '@/lib/axios'
 
 interface AddUnitDialogProps {
   propertyId: string
@@ -62,14 +63,10 @@ export default function AddUnitDialog({ propertyId }: AddUnitDialogProps) {
 
     setIsSubmitting(true)
     try {
-      const res = await fetch('/api/units', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(result.data),
-      })
+      const res = await apiClient.post('/api/units', result.data)
 
-      if (!res.ok) {
-        const text = await res.text()
+      if (res.status >= 400) {
+        const text = res.data
         throw new Error(text || 'Gagal menambahkan unit.')
       }
 

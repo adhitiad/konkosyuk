@@ -21,6 +21,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import { AlertCircleIcon, EyeIcon } from '@hugeicons/core-free-icons'
 import MaintenanceTicketForm from '@/components/maintenance/maintenance-ticket-form'
 import type { MaintenanceTicket } from '@/db/schema'
+import { apiClient } from '@/lib/axios'
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   reported: { label: 'Dilaporkan', variant: 'secondary' },
@@ -44,9 +45,8 @@ export default function TenantMaintenancePage() {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['maintenance-tickets'],
     queryFn: async () => {
-      const res = await fetch('/api/maintenance')
-      if (!res.ok) throw new Error('Failed to fetch tickets')
-      return res.json()
+      const { data } = await apiClient.get('/api/maintenance')
+      return data
     },
     staleTime: 30000,
   })

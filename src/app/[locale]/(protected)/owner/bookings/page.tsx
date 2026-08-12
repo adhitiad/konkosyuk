@@ -32,6 +32,7 @@ import ReviewBookingDialog from './review-booking-dialog'
 import TenantDetailDialog from './tenant-detail-dialog'
 import ReviewForm from '@/components/review-form'
 import type { Booking } from '@/db/schema'
+import { apiClient } from '@/lib/axios'
 
 export interface OwnerBooking extends Booking {
   propertyName: string | null
@@ -86,14 +87,22 @@ export default function OwnerBookingsPage() {
   const { data, isLoading, isError, error } = useQuery<{ data: OwnerBooking[]; meta: { total: number; page: number; limit: number; totalPages: number } }>({
     queryKey: ['owner-bookings', activeTab, page],
     queryFn: async () => {
-      const res = await fetch(`/api/bookings?status=${activeTab === 'all' ? '' : activeTab}&page=${page}&limit=${limit}`)
-      if (!res.ok) throw new Error('Failed to fetch bookings')
-      return res.json()
+      const response = await apiClient.get('/api/bookings', {
+        params: {
+          status: activeTab === 'all' ? '' : activeTab,
+          page,
+          limit,
+        },
+      })
+      const body = response.data as { success?: boolean; data?: { data: OwnerBooking[]; meta: { total: number; page: number; limit: number; totalPages: number } } }
+      const payload = body.data
+      return payload ?? { data: [], meta: { total: 0, page, limit, totalPages: 0 } }
     },
     staleTime: 30000,
   })
 
-  const bookings = data?.data ?? []
+  const rawBookings = Array.isArray(data?.data) ? data.data : (data as any)?.data?.data
+  const bookings = Array.isArray(rawBookings) ? rawBookings : []
   const totalPages = data?.meta?.totalPages ?? 1
 
   return (

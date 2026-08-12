@@ -35,6 +35,7 @@ import { AlertCircleIcon, Add01Icon } from '@hugeicons/core-free-icons'
 import { BreadcrumbNav } from '@/components/ui/breadcrumb-nav'
 import AddUnitDialog from './add-unit-dialog'
 import type { Unit } from '@/db/schema'
+import { apiClient } from '@/lib/axios'
 
 interface UnitResponse {
   data: Unit[]
@@ -66,10 +67,8 @@ export default function UnitsPage() {
   const { data, isLoading, isError, error } = useQuery<UnitResponse>({
     queryKey: ['units', propertyId],
     queryFn: async () => {
-      const res = await fetch(`/api/units?propertyId=${propertyId}`)
-      if (!res.ok) throw new Error('Failed to fetch units')
-      const json = await res.json()
-      return json.data as UnitResponse
+      const { data } = await apiClient.get('/api/units', { params: { propertyId } })
+      return data
     },
     staleTime: 30000,
     enabled: !!propertyId,
@@ -77,16 +76,8 @@ export default function UnitsPage() {
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ unitId, status }: { unitId: string; status: string }) => {
-      const res = await fetch(`/api/units/${unitId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      })
-      if (!res.ok) {
-        const text = await res.text()
-        throw new Error(text || 'Failed to update unit status')
-      }
-      return res.json()
+      const { data } = await apiClient.patch(`/api/units/${unitId}`, { status })
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['units', propertyId] })

@@ -24,6 +24,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { AlertCircleIcon, Add01Icon } from '@hugeicons/core-free-icons'
 import { useSession } from '@/lib/auth-client'
+import { apiClient } from '@/lib/axios'
 
 interface MaintenanceTicketFormProps {
   onSuccess?: () => void
@@ -44,9 +45,7 @@ export default function MaintenanceTicketForm({ onSuccess }: MaintenanceTicketFo
   const [success, setSuccess] = useState(false)
 
   const fetchUnits = async () => {
-    const res = await fetch('/api/bookings')
-    if (!res.ok) throw new Error('Failed to fetch bookings')
-    const json = await res.json()
+    const { data: json } = await apiClient.get('/api/bookings')
     const bookings = json.data ?? []
     
     const activeUnits = new Map<string, string>()
@@ -106,20 +105,14 @@ export default function MaintenanceTicketForm({ onSuccess }: MaintenanceTicketFo
 
     setLoading(true)
     try {
-      const res = await fetch('/api/maintenance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { data: json } = await apiClient.post('/api/maintenance', {
           unitId: selectedUnitId,
           title: title.trim(),
           description: description.trim(),
           priority,
           images: imageUrls,
-        }),
-      })
-
-      const json = await res.json()
-      if (!res.ok) {
+        })
+      if (json.error) {
         throw new Error(json.error || 'Gagal membuat tiket maintenance')
       }
 

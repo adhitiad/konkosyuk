@@ -13,6 +13,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { AlertCircleIcon, Clock01Icon, CheckmarkCircle02Icon, Cancel01Icon } from '@hugeicons/core-free-icons'
 import { toast } from '@/components/ui/toast'
+import { BreadcrumbNav } from '@/components/ui/breadcrumb-nav'
+import { apiClient } from '@/lib/axios'
+import { withAdminAuth } from '@/lib/with-admin-auth'
 
 interface KYCRequest {
   id: string
@@ -25,7 +28,9 @@ interface KYCRequest {
   createdAt: string
 }
 
-export default function AdminKYCRequestsPage() {
+export default withAdminAuth(AdminKYCRequestsPage)
+
+function AdminKYCRequestsPage() {
   const { data: session } = useSession()
   const queryClient = useQueryClient()
   const [rejectUserId, setRejectUserId] = useState<string | null>(null)
@@ -34,9 +39,7 @@ export default function AdminKYCRequestsPage() {
   const { data, isLoading, isError, error, refetch } = useQuery<{ data: KYCRequest[] }>({
     queryKey: ['admin-kyc-requests'],
     queryFn: async () => {
-      const res = await fetch('/api/admin/kyc/requests')
-      if (!res.ok) throw new Error('Failed to fetch KYC requests')
-      const json = await res.json()
+      const { data: json } = await apiClient.get('/api/admin/kyc/requests')
       return { data: json.data?.data }
     },
     staleTime: 30000,
@@ -44,16 +47,12 @@ export default function AdminKYCRequestsPage() {
 
   const approveMutation = useMutation({
     mutationFn: async ({ userId, action, adminNote }: { userId: string; action: 'verified' | 'rejected'; adminNote?: string }) => {
-      const res = await fetch('/api/admin/kyc/approve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, action, adminNote }),
-      })
-      if (!res.ok) {
-        const text = await res.text()
+      const res = await apiClient.post('/api/admin/kyc/approve', { userId, action, adminNote })
+      if (res.status >= 400) {
+        const text = res.data
         throw new Error(text || 'Failed to update KYC')
       }
-      return res.json()
+      return res.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-kyc-requests'] })
@@ -97,6 +96,7 @@ export default function AdminKYCRequestsPage() {
   return (
     <div className="container py-6">
       <div className="mb-6">
+        <BreadcrumbNav items={[{ label: 'Dashboard', href: '/admin' }, { label: 'Permintaan KYC' }]} />
         <h1 className="text-2xl font-bold tracking-tight">Permintaan KYC</h1>
         <p className="text-muted-foreground">Verifikasi identitas owner yang menunggu</p>
       </div>
@@ -166,7 +166,7 @@ export default function AdminKYCRequestsPage() {
                     onClick={() => handleApprove(request.id)}
                   >
                     <HugeiconsIcon icon={CheckmarkCircle02Icon} strokeWidth={2} className="mr-1 size-4" />
-                    Verifikasi
+                    {approveMutation.isPending ? 'Memproses...' : 'Verifikasi'}
                   </Button>
                   <Button
                     size="sm"
@@ -175,7 +175,7 @@ export default function AdminKYCRequestsPage() {
                     onClick={() => setRejectUserId(request.id)}
                   >
                     <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} className="mr-1 size-4" />
-                    Tolak
+                    {approveMutation.isPending ? 'Memproses...' : 'Tolak'}
                   </Button>
                 </div>
               </CardContent>
@@ -206,7 +206,7 @@ export default function AdminKYCRequestsPage() {
               disabled={approveMutation.isPending || !adminNote.trim()}
               onClick={handleReject}
             >
-              Tolak
+              {approveMutation.isPending ? 'Memproses...' : 'Tolak'}
             </Button>
           </DialogFooter>
         </DialogContent>

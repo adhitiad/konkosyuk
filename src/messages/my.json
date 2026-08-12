@@ -17,6 +17,16 @@
     "incomingBookings": "Tempahan Masuk",
     "reports": "Laporan",
     "analytics": "Analitik",
+    "wallet": "Dompet",
+    "kyc": "Pengesahan KYC",
+    "kycRequests": "Permintaan KYC",
+    "notifications": "Notifikasi",
+    "systemHealth": "Kesihatan Sistem",
+    "activityLogs": "Log Aktiviti",
+    "paymentGateways": "Gerb Pembayaran",
+    "auditLogs": "Log Audit",
+    "generalLedger": "Buku Besar",
+    "pengaturanProfil": "Tetapan Profil",
     "settings": "Tetapan"
   },
   "sidebar": {

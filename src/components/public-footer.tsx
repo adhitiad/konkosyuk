@@ -1,49 +1,171 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { useTranslations } from 'next-intl'
-import { Logo } from '@/components/ui/logo'
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Logo } from "@/components/ui/logo";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { PaymentLogos } from "@/components/public/payment-logos";
+import { AppStoreBadges } from "@/components/public/app-store-badges";
+import { Globe } from "lucide-react";
 
 export function PublicFooter() {
-  const t = useTranslations('public')
-  const year = new Date().getFullYear()
+  const t = useTranslations("public");
+  const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t bg-background">
-      <div className="container py-8">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
-          <div>
-              <Logo withText />
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t('tagline')}
+    <footer className="bg-slate-50 dark:bg-slate-900 border-t">
+      <div className="max-w-screen-xl mx-auto px-6 py-12">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="sm:col-span-2">
+            <Logo withText />
+            <p className="mt-3 text-sm text-muted-foreground max-w-md">
+              Temukan kost dan kontrakan terbaik dengan harga terjangkau.
+              KonkosYuk memudahkan Anda mencari tempat tinggal ideal.
             </p>
+            <div className="mt-4 flex flex-col sm:flex-row gap-2">
+              <Input
+                type="email"
+                placeholder="Masukkan email Anda"
+                className="max-w-sm"
+              />
+              <Button type="button" className="whitespace-nowrap">
+                Dapatkan Info Kost Terbaru
+              </Button>
+            </div>
           </div>
+
           <div>
-            <h3 className="font-semibold">{t('nav')}</h3>
-            <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/properties" className="hover:text-foreground">{t('findKost')}</Link></li>
-              <li><Link href="/about" className="hover:text-foreground">{t('aboutUs')}</Link></li>
+            <h3 className="font-semibold text-sm">Perusahaan</h3>
+            <ul className="mt-3 space-y-2.5">
+              <li>
+                <Link
+                  href="/about"
+                  className="text-sm text-muted-foreground transition-colors hover:text-primary hover:underline"
+                >
+                  Tentang Kami
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/properties"
+                  className="text-sm text-muted-foreground transition-colors hover:text-primary hover:underline"
+                >
+                  Cara Kerja
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/contact"
+                  className="text-sm text-muted-foreground transition-colors hover:text-primary hover:underline"
+                >
+                  Hubungi Kami
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/faq"
+                  className="text-sm text-muted-foreground transition-colors hover:text-primary hover:underline"
+                >
+                  Bantuan
+                </Link>
+              </li>
             </ul>
           </div>
+
           <div>
-            <h3 className="font-semibold">{t('help')}</h3>
-            <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/faq" className="hover:text-foreground">{t('faq')}</Link></li>
-              <li><Link href="/contact" className="hover:text-foreground">{t('contact')}</Link></li>
+            <h3 className="font-semibold text-sm">Tipe Properti</h3>
+            <ul className="mt-3 space-y-2.5">
+              <li>
+                <Link
+                  href="/properties?type=kost"
+                  className="text-sm text-muted-foreground transition-colors hover:text-primary hover:underline"
+                >
+                  Kost Putra
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/properties?type=kost"
+                  className="text-sm text-muted-foreground transition-colors hover:text-primary hover:underline"
+                >
+                  Kost Putri
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/properties?type=kontrakan"
+                  className="text-sm text-muted-foreground transition-colors hover:text-primary hover:underline"
+                >
+                  Kontrakan
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/properties"
+                  className="text-sm text-muted-foreground transition-colors hover:text-primary hover:underline"
+                >
+                  Ruko
+                </Link>
+              </li>
             </ul>
           </div>
+
           <div>
-            <h3 className="font-semibold">{t('legal')}</h3>
-            <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/privacy" className="hover:text-foreground">{t('privacy')}</Link></li>
-              <li><Link href="/terms" className="hover:text-foreground">{t('terms')}</Link></li>
+            <h3 className="font-semibold text-sm">Layanan</h3>
+            <ul className="mt-3 space-y-2.5">
+              <li>
+                <Link
+                  href="/privacy"
+                  className="text-sm text-muted-foreground transition-colors hover:text-primary hover:underline"
+                >
+                  Kebijakan Privasi
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/terms"
+                  className="text-sm text-muted-foreground transition-colors hover:text-primary hover:underline"
+                >
+                  Syarat & Ketentuan
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
-        <div className="mt-8 border-t pt-4 text-center text-sm text-muted-foreground">
-          {t('copyright', { year })}
+
+        <hr className="my-8 border-gray-200 dark:border-gray-700" />
+
+        <div className="flex flex-col items-center gap-6">
+          <AppStoreBadges />
+
+          <div className="w-full">
+            <p className="text-sm text-muted-foreground text-center mb-4">
+              Kami Menerima Pembayaran Dari
+            </p>
+            <PaymentLogos />
+          </div>
+
+          {/* <div className="flex items-center gap-4">
+            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Facebook">
+              <Globe className="w-5 h-5" />
+            </Link>
+            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Instagram">
+              <Globe className="w-5 h-5" />
+            </Link>
+            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Twitter">
+              <Globe className="w-5 h-5" />
+            </Link>
+            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="LinkedIn">
+              <Globe className="w-5 h-5" />
+            </Link>
+          </div> */}
+
+          <div className="text-center text-xs text-muted-foreground">
+            © {year} KonkosYuk. All rights reserved.
+          </div>
         </div>
       </div>
     </footer>
-  )
+  );
 }

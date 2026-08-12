@@ -32,6 +32,7 @@ import {
 import AddPropertyDialog from "./add-property-dialog";
 import type { Property } from "@/db/schema";
 import type { PropertyPackages } from "@/lib/types/property-packages";
+import { apiClient } from "@/lib/axios";
 
 interface PropertyResponse {
   data: Property[];
@@ -59,12 +60,18 @@ export default function PropertiesPage() {
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError, error } = useQuery<PropertyResponse>({
-    queryKey: ["properties"],
+    queryKey: ["owner-properties-v2"],
     queryFn: async () => {
-      const res = await fetch(`/api/properties?ownerId=${session?.user?.id}`);
-      if (!res.ok) throw new Error("Failed to fetch properties");
-      const json = await res.json();
-      return json.data as PropertyResponse;
+      const response = await apiClient.get('/api/properties', {
+        params: { ownerId: session?.user?.id },
+      })
+      const body = response.data as any
+      const items = Array.isArray(body?.data)
+        ? body.data
+        : Array.isArray(body?.data?.data)
+          ? body.data.data
+          : []
+      return { data: items, meta: { page: 1, limit: 10, total: 0, totalPages: 1 } }
     },
     staleTime: 30000,
     enabled: !!session?.user?.id,
@@ -72,19 +79,16 @@ export default function PropertiesPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/properties/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Failed to delete property");
-      }
-      return res.json();
+      const { data } = await apiClient.delete(`/api/properties/${id}`)
+      return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["properties"] });
+      queryClient.invalidateQueries({ queryKey: ["owner-properties-v2"] });
     },
   });
 
-  const properties = data?.data ?? [];
+  const rawProperties = Array.isArray(data?.data) ? data.data : (data as any)?.data?.data
+  const properties = Array.isArray(rawProperties) ? rawProperties : []
 
   return (
     <div className="container py-6">

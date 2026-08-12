@@ -5,6 +5,7 @@
     "logout": "Logout",
     "settings": "Settings",
     "profile": "Profile",
+    "pengaturanProfil": "Profile Settings",
     "search": "Find Kost",
     "payment": "Payment",
     "booking": "Booking",
@@ -20,6 +21,12 @@
     "kycRequests": "KYC Requests",
     "wallet": "Wallet",
     "analytics": "Analytics",
+    "notifications": "Notifications",
+    "systemHealth": "System Health",
+    "activityLogs": "Activity Logs",
+    "paymentGateways": "Payment Gateways",
+    "auditLogs": "Audit Logs",
+    "generalLedger": "General Ledger",
     "settings": "Settings"
   },
   "sidebar": {

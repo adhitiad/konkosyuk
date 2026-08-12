@@ -3,14 +3,22 @@ import { db } from '@/db'
 import { payments, bookings, units, properties, users } from '@/db/schema'
 import { eq, desc, sql, and, inArray } from 'drizzle-orm'
 import { requireSession } from '@/lib/auth'
+import { validateAdminRequest } from '@/lib/api-auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 import { z } from 'zod'
 import type { Role } from '@/lib/auth'
+import { createAuditLog } from '@/lib/audit-log'
 
 const createManualPaymentSchema = z.object({
   userId: z.string().uuid(),
   bookingId: z.string().uuid(),
-  amount: z.string().min(1),
+  amount: z.string().regex(/^\d+(\.\d{1,2})?$/).refine(
+    (val) => {
+      const num = Number(val)
+      return num > 0 && num < 1e12
+    },
+    { message: 'Amount must be a valid positive number less than 1 trillion' }
+  ),
   provider: z.enum(['doku', 'ipaymu', 'nicepay']),
   purpose: z.enum(['dp', 'full_payment']),
   transactionId: z.string().optional(),
@@ -61,7 +69,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requireSession(['admin', 'staff'] as Role[])
+    const authResult = await validateAdminRequest(req)
+    if (authResult instanceof Response) return authResult
+    const { session, ipAddress, userAgent } = authResult
     const body = createManualPaymentSchema.parse(await req.json())
 
     const [booking] = await db
@@ -121,6 +131,20 @@ export async function POST(req: NextRequest) {
         })
       }
     }
+
+    await createAuditLog({
+      action: 'create',
+      targetType: 'payment',
+      targetId: payment.id,
+      adminId: session.user.id,
+      details: {
+        bookingId: body.bookingId,
+        amount: body.amount,
+        provider: body.provider,
+        purpose: body.purpose,
+        status: body.status,
+      },
+    })
 
     return ok(payment, 201)
   } catch (error) {

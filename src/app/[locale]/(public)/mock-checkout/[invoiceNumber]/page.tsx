@@ -16,6 +16,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { showToastSuccess, showToastError } from '@/lib/use-toast-custom'
+import { apiClient } from '@/lib/axios'
 
 function formatIDR(amount: string): string {
   const num = parseFloat(amount)
@@ -67,11 +68,10 @@ export default function MockCheckoutPage({
   const fetchPayment = async () => {
     try {
       setFetching(true)
-      const res = await fetch(
-        `/api/payments?invoiceNumber=${params.invoiceNumber}`,
-      )
-      const data = await res.json()
-      if (!res.ok) {
+      const { data } = await apiClient.get('/api/payments', {
+        params: { invoiceNumber: params.invoiceNumber },
+      })
+      if (data.error) {
         throw new Error(data.error ?? 'Gagal mengambil data pembayaran')
       }
       setPayment(data.data)
@@ -86,16 +86,12 @@ export default function MockCheckoutPage({
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/webhooks/mock', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          invoiceNumber: params.invoiceNumber,
-          status,
-        }),
+      const res = await apiClient.post('/api/webhooks/mock', {
+        invoiceNumber: params.invoiceNumber,
+        status,
       })
-      const data = await res.json()
-      if (!res.ok) {
+      const data = res.data
+      if (res.status >= 400) {
         throw new Error(data.error ?? 'Gagal memproses simulasi')
       }
 

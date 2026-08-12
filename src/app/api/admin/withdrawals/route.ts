@@ -1,12 +1,13 @@
 import { NextRequest } from 'next/server'
 import { db } from '@/db'
 import { users, withdrawals, ownerBankAccounts } from '@/db/schema'
-import { requireSession } from '@/lib/auth'
+import { validateAdminRequest, validateAdminOnlyRequest } from '@/lib/api-auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 import { eq, desc, and, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { logError } from '@/lib/logger'
 import type { Role } from '@/lib/auth'
+import { createAuditLog } from '@/lib/audit-log'
 
 const processWithdrawalSchema = z.object({
   id: z.string().uuid(),
@@ -16,7 +17,9 @@ const processWithdrawalSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await requireSession(['admin', 'staff'] as Role[])
+    const authResult = await validateAdminRequest(req)
+    if (authResult instanceof Response) return authResult
+    const { session } = authResult
 
     const data = await db
       .select({
@@ -54,7 +57,9 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const session = await requireSession(['admin', 'staff'] as Role[])
+    const authResult = await validateAdminOnlyRequest(req)
+    if (authResult instanceof Response) return authResult
+    const { session, ipAddress, userAgent } = authResult
     const body = processWithdrawalSchema.parse(await req.json())
 
     const [withdrawal] = await db
@@ -94,6 +99,18 @@ export async function PATCH(req: NextRequest) {
           })
           .where(eq(users.id, withdrawal.ownerId))
       }
+    })
+
+    await createAuditLog({
+      action: body.action === 'success' ? 'approve' : 'reject',
+      targetType: 'withdrawal',
+      targetId: withdrawal.id,
+      adminId: session.user.id,
+      details: {
+        ownerId: withdrawal.ownerId,
+        amount: withdrawal.amount,
+        adminNote: body.adminNote,
+      },
     })
 
     return ok({ success: true, message: `Withdrawal ${body.action === 'success' ? 'disetujui' : 'ditolak'}.` })

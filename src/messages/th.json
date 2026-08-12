@@ -17,6 +17,16 @@
     "incomingBookings": "การจองที่เข้ามา",
     "reports": "รายงาน",
     "analytics": "การวิเคราะห์",
+    "wallet": "วอลเล็ต",
+    "kyc": "การตรวจสอบ KYC",
+    "kycRequests": "คำขอ KYC",
+    "notifications": "การแจ้งเตือน",
+    "systemHealth": "สุขภาพระบบ",
+    "activityLogs": "บันทึกกิจกรรม",
+    "paymentGateways": "เกตเวย์การชำระเงิน",
+    "auditLogs": "บันทึกตรวจสอบ",
+    "generalLedger": "สมุดบัญชีรวม",
+    "pengaturanProfil": "การตั้งค่าโปรไฟล์",
     "settings": "การตั้งค่า"
   },
   "sidebar": {

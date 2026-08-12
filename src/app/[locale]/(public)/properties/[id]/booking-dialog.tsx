@@ -27,6 +27,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { AlertCircleIcon } from "@hugeicons/core-free-icons"
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom"
 import type { PropertyPackages, PackageItem, DurationUnit } from "@/lib/types/property-packages"
+import { apiClient } from "@/lib/axios"
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("id-ID", {
@@ -138,14 +139,10 @@ export default function BookingDialogClient({
         body.customDuration = customDuration
       }
 
-      const res = await fetch("/api/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
+      const res = await apiClient.post("/api/bookings", body)
 
-      const json = await res.json()
-      if (!res.ok) {
+      const json = res.data
+      if (res.status >= 400) {
         showToastError(json.error ?? "Gagal membuat booking")
         throw new Error(json.error ?? "Gagal membuat booking")
       }

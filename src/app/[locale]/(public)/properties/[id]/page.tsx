@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import BookingDialogClient from "./booking-dialog"
+import UnitCard from "@/components/tenant/unit-card"
 import { OptimizedImage } from "@/components/ui/optimized-image"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
@@ -359,64 +360,35 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                     strokeWidth={2}
                     className="size-10 text-muted-foreground"
                   />
-                  <p className="mt-3 text-sm font-medium">Belum ada unit</p>
+                  <p className="mt-3 text-sm font-medium">Belum ada kamar tersedia</p>
                   <p className="text-xs text-muted-foreground">
-                    Unit untuk properti ini belum ditambahkan.
+                    Owner belum membuka kamar untuk disewa. Silakan hubungi pemilik.
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {propertyUnits.map((unit) => {
-                    const price = parseFloat(unit.price)
-                    const isAvailable = unit.status === "available"
-
-                    return (
-                      <Card key={unit.id} className="flex flex-col">
-                        <CardHeader>
-                          <div className="flex items-start justify-between gap-2">
-                            <CardTitle className="text-base">
-                              {unit.name}
-                            </CardTitle>
-                            <Badge
-                              variant={
-                                isAvailable ? "default" : "destructive"
-                              }
-                            >
-                              {isAvailable ? "Available" : "Booked"}
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="flex flex-1 flex-col gap-3">
-                          {unit.description && (
-                            <p className="line-clamp-2 text-sm text-muted-foreground">
-                              {unit.description}
-                            </p>
-                          )}
-                          <div className="mt-auto flex items-center justify-between">
-                            <span className="text-sm font-medium">
-                              {formatCurrency(price)}
-                            </span>
-                            {isAvailable ? (
-                              <BookingDialogClient
-                                unitId={unit.id}
-                                unitName={unit.name}
-                                propertyId={property.id}
-                                packages={property.packages}
-                              >
-                                <Button size="sm">
-                                  Booking Sekarang
-                                </Button>
-                              </BookingDialogClient>
-                            ) : (
-                              <Button size="sm" variant="outline" disabled>
-                                Booking Sekarang
-                              </Button>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )
-                  })}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {propertyUnits.map((unit) => (
+                    <UnitCard
+                      key={unit.id}
+                      unit={unit}
+                      action={
+                        unit.status === "available" ? (
+                          <BookingDialogClient
+                            unitId={unit.id}
+                            unitName={unit.name}
+                            propertyId={property.id}
+                            packages={property.packages}
+                          >
+                            <Button className="w-full">Pilih Kamar</Button>
+                          </BookingDialogClient>
+                        ) : (
+                          <Button className="w-full" disabled>
+                            Tidak Tersedia
+                          </Button>
+                        )
+                      }
+                    />
+                  ))}
                 </div>
               )}
             </CardContent>

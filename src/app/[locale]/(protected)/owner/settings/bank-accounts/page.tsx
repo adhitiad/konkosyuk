@@ -6,8 +6,18 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { KYCBankForm } from '@/components/owner/kyc-bank-form'
 import type { OwnerBankAccount } from '@/db/schema'
+import { apiClient } from '@/lib/axios'
 
 const KYC_STATUS_LABEL: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   none: { label: 'Belum Verifikasi', variant: 'outline' },
@@ -22,12 +32,14 @@ export default function BankAccountsPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   const fetchAccounts = async () => {
     try {
-      const res = await fetch('/api/owner/bank-accounts')
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Gagal memuat data')
+      const res = await apiClient.get('/api/owner/bank-accounts')
+      const data = res.data
+      if (res.status >= 400) throw new Error(data.error || 'Gagal memuat data')
       setAccounts(data.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
@@ -41,29 +53,25 @@ export default function BankAccountsPage() {
   }, [])
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus rekening ini?')) return
-
+    setDeleteLoading(true)
     try {
-      const res = await fetch(`/api/owner/bank-accounts/${id}`, {
-        method: 'DELETE',
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Gagal menghapus rekening')
+      const res = await apiClient.delete(`/api/owner/bank-accounts/${id}`)
+      const data = res.data
+      if (res.status >= 400) throw new Error(data.error || 'Gagal menghapus rekening')
       setAccounts((prev) => prev.filter((acc) => acc.id !== id))
+      setDeleteTargetId(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
+    } finally {
+      setDeleteLoading(false)
     }
   }
 
   const handleSetPrimary = async (id: string) => {
     try {
-      const res = await fetch(`/api/owner/bank-accounts/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_primary: true }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Gagal mengubah rekening utama')
+      const res = await apiClient.patch(`/api/owner/bank-accounts/${id}`, { is_primary: true })
+      const data = res.data
+      if (res.status >= 400) throw new Error(data.error || 'Gagal mengubah rekening utama')
       setAccounts((prev) =>
         prev.map((acc) => ({
           ...acc,
@@ -138,14 +146,25 @@ export default function BankAccountsPage() {
                           Jadikan Utama
                         </Button>
                       )}
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(account.id)}
-                        disabled={account.isPrimary}
-                      >
-                        Hapus
-                      </Button>
+                      {!account.isPrimary && (
+                      <Dialog open={deleteTargetId === account.id} onOpenChange={(open) => !open && setDeleteTargetId(null)}>
+                        <DialogTrigger render={<Button variant="destructive" size="sm" onClick={() => setDeleteTargetId(account.id)} disabled={account.isPrimary} />}>
+                          Hapus
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Hapus Rekening</DialogTitle>
+                            <DialogDescription>
+                              Apakah Anda yakin ingin menghapus rekening ini? Aksi ini tidak dapat dibatalkan.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <DialogFooter>
+                            <Button variant="outline" onClick={() => setDeleteTargetId(null)} disabled={deleteLoading}>Batal</Button>
+                            <Button variant="destructive" onClick={() => handleDelete(account.id)} disabled={deleteLoading}>Hapus</Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                      )}
                     </div>
                   </div>
                 ))}

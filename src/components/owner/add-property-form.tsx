@@ -26,6 +26,7 @@ import { Dropzone } from '@/components/owner/dropzone';
 import PackageForm from '@/components/owner/package-form';
 import type { PropertyPackages } from '@/lib/types/property-packages';
 import Link from 'next/link';
+import { apiClient } from '@/lib/axios';
 
 const propertyTypeOptions = [
   { value: 'kost', label: 'Kost' },
@@ -127,17 +128,11 @@ export default function AddPropertyForm() {
       formData.append('file', file);
       formData.append('type', 'property');
 
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+      const { data: json } = await apiClient.post('/api/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || 'Gagal upload gambar');
-      }
-
-      const json = await res.json();
       uploaded.push(json.url);
     }
     return uploaded;
@@ -171,14 +166,9 @@ export default function AddPropertyForm() {
         images: finalImages,
       };
 
-      const res = await fetch('/api/properties', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
+      const res = await apiClient.post('/api/properties', payload)
+      if (res.status >= 400) {
+        const text = await res.data;
         throw new Error(text || 'Gagal menambahkan properti.');
       }
 

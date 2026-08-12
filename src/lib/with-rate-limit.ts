@@ -1,23 +1,25 @@
 import { NextResponse } from 'next/server'
 import { authRateLimit, bookingRateLimit, generalRateLimit } from '@/lib/rate-limit'
+import { getOrCreateDeviceId, getDeviceName } from '@/lib/device'
 
 export function withRateLimit(
   handler: (req: Request) => Promise<NextResponse>,
   options: { type?: 'auth' | 'booking' | 'general' } = {}
 ) {
   return async (req: Request): Promise<NextResponse> => {
-    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+    const deviceId = await getOrCreateDeviceId()
+    const deviceName = await getDeviceName()
 
     let result
     switch (options.type) {
       case 'auth':
-        result = authRateLimit({ ip })
+        result = authRateLimit({ deviceId, deviceName })
         break
       case 'booking':
-        result = bookingRateLimit({ ip })
+        result = bookingRateLimit({ deviceId, deviceName })
         break
       default:
-        result = generalRateLimit({ ip })
+        result = generalRateLimit({ deviceId, deviceName })
     }
 
     if (!result.success) {

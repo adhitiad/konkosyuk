@@ -29,6 +29,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { ErrorState } from '@/components/ui/error-state'
 import { Wrench } from 'lucide-react'
 import type { MaintenanceTicket } from '@/db/schema'
+import { apiClient } from '@/lib/axios'
 
 interface MaintenanceTicketWithNames extends MaintenanceTicket {
   unitName: string | null
@@ -61,12 +62,10 @@ export default function OwnerMaintenancePage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['maintenance-tickets', statusFilter],
     queryFn: async () => {
-      const url = statusFilter === 'all' 
-        ? '/api/maintenance' 
-        : `/api/maintenance?status=${statusFilter}`
-      const res = await fetch(url)
-      if (!res.ok) throw new Error('Failed to fetch tickets')
-      return res.json()
+      const { data } = await apiClient.get('/api/maintenance', {
+        params: statusFilter === 'all' ? undefined : { status: statusFilter },
+      })
+      return data
     },
     staleTime: 30000,
   })
@@ -83,17 +82,13 @@ export default function OwnerMaintenancePage() {
     if (!selectedTicket) return
     setSaving(true)
     try {
-      const res = await fetch(`/api/maintenance/${selectedTicket.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: newStatus,
-          ownerNotes: ownerNotes.trim() || undefined,
-        }),
+      const res = await apiClient.patch(`/api/maintenance/${selectedTicket.id}`, {
+        status: newStatus,
+        ownerNotes: ownerNotes.trim() || undefined,
       })
 
-      if (!res.ok) {
-        const json = await res.json()
+      if (res.status >= 400) {
+        const json = res.data
         throw new Error(json.error || 'Gagal update tiket')
       }
 

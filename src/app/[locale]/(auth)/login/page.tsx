@@ -1,32 +1,43 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useSession, authClient } from '@/lib/auth-client';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import type { SessionUserWithRole } from '@/lib/auth-client';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useSession, authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Globe, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { AuthLayout } from "@/components/auth/auth-layout";
+import type { SessionUserWithRole } from "@/lib/auth-client";
 
 export default function LoginPage() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!isPending && session) {
-      const user = session.user as unknown as SessionUserWithRole
-      if (user.role === 'admin' || user.role === 'staff') {
-        router.push('/admin');
-      } else if (user.role === 'owner') {
-        router.push('/owner');
+      const user = session.user as unknown as SessionUserWithRole;
+      if (user.role === "admin" || user.role === "staff") {
+        router.push("/admin");
+      } else if (user.role === "owner") {
+        router.push("/owner");
       } else {
-        router.push('/dashboard');
+        router.push("/dashboard");
       }
     }
   }, [session, isPending, router]);
@@ -43,13 +54,13 @@ export default function LoginPage() {
       });
 
       if (error) {
-        setError(error.message || 'Login gagal');
+        setError(error.message || "Login gagal");
         return;
       }
 
       router.refresh();
     } catch (err) {
-      setError('Terjadi kesalahan sistem');
+      setError("Terjadi kesalahan sistem");
     } finally {
       setLoading(false);
     }
@@ -67,22 +78,43 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Masuk ke KonkosYuk</CardTitle>
-          <CardDescription>Masukkan email dan password Anda</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+    <AuthLayout>
+      <CardHeader className="space-y-1 px-0 sm:px-6">
+        <CardTitle className="text-2xl font-bold">
+          Selamat Datang Kembali
+        </CardTitle>
+        <CardDescription>
+          Masuk ke akun KonkosYuk Anda
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="px-0 sm:px-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+          <Button type="button" variant="outline" className="w-full" size="default">
+            <Globe className="mr-2 h-4 w-4" />
+            Lanjut dengan Google
+          </Button>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Atau lanjutkan dengan
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="email"
                 type="email"
@@ -90,26 +122,58 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="pl-9"
               />
             </div>
+          </div>
 
-            <div className="space-y-2">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
+              <Link
+                href="/forgot-password"
+                className="text-xs text-primary hover:underline"
+              >
+                Lupa kata sandi?
+              </Link>
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="pl-9 pr-9"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
             </div>
+          </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Memproses...' : 'Masuk'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Memproses..." : "Masuk"}
+          </Button>
+
+          <p className="text-center text-sm text-muted-foreground">
+            Belum punya akun?{" "}
+            <Link href="/register" className="text-primary hover:underline font-medium">
+              Daftar sekarang
+            </Link>
+          </p>
+        </form>
+      </CardContent>
+    </AuthLayout>
   );
 }

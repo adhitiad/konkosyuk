@@ -3,11 +3,15 @@
 import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { BreadcrumbNav } from '@/components/ui/breadcrumb-nav';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, CreditCard, Shield, Bell } from 'lucide-react';
+import { Settings, CreditCard, Shield, Bell } from 'lucide-react'
+import { withAdminAuth } from '@/lib/with-admin-auth'
 
-export default function AdminSettingsPage() {
+export default withAdminAuth(AdminSettingsPage, ['admin'])
+
+function AdminSettingsPage() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
 
@@ -43,7 +47,8 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
+      <div className="mb-6">
+        <BreadcrumbNav items={[{ label: 'Dashboard', href: '/admin' }, { label: 'Pengaturan Sistem' }]} />
         <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
           <Settings className="h-8 w-8" />
           Pengaturan Sistem

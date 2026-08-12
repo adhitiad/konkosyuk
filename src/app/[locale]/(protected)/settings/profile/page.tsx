@@ -9,8 +9,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { User, Upload, AlertTriangle } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
+import { apiClient } from '@/lib/axios';
+import { apiGet } from '@/lib/api.client';
+
+interface RegionOption {
+  id: string;
+  name: string;
+}
 
 export default function ProfileSettingsPage() {
   const { data: session, isPending, error } = useSession();
@@ -18,10 +32,20 @@ export default function ProfileSettingsPage() {
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [province, setProvince] = useState('');
+  const [city, setCity] = useState('');
+  const [district, setDistrict] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  const [provinces, setProvinces] = useState<RegionOption[]>([]);
+  const [cities, setCities] = useState<RegionOption[]>([]);
+  const [districts, setDistricts] = useState<RegionOption[]>([]);
+  const [loadingProvinces, setLoadingProvinces] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
 
   useEffect(() => {
     if (error) {
@@ -36,9 +60,75 @@ export default function ProfileSettingsPage() {
       const user = session.user as any;
       setName(user.name || '');
       setPhone(user.phone || '');
+      setProvince(user.province || '');
+      setCity(user.city || '');
+      setDistrict(user.district || '');
       setImagePreview(user.image || null);
     }
   }, [session, isPending, error, router]);
+
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      setLoadingProvinces(true);
+      try {
+        const data = await apiGet<RegionOption[]>('/api/proxy/wilayah/provinces.json');
+        setProvinces(data);
+      } catch (err) {
+        console.error('Gagal fetch provinsi', err);
+      } finally {
+        setLoadingProvinces(false);
+      }
+    };
+    fetchProvinces();
+  }, []);
+
+  useEffect(() => {
+    if (!province) {
+      setCities([]);
+      setCity('');
+      setDistricts([]);
+      setDistrict('');
+      return;
+    }
+    const selectedProvince = provinces.find((p) => p.name === province);
+    if (!selectedProvince) return;
+
+    const fetchCities = async () => {
+      setLoadingCities(true);
+      try {
+        const data = await apiGet<RegionOption[]>(`/api/proxy/wilayah/regencies/${selectedProvince.id}.json`);
+        setCities(data);
+      } catch (err) {
+        console.error('Gagal fetch kota', err);
+      } finally {
+        setLoadingCities(false);
+      }
+    };
+    fetchCities();
+  }, [province, provinces]);
+
+  useEffect(() => {
+    if (!city) {
+      setDistricts([]);
+      setDistrict('');
+      return;
+    }
+    const selectedCity = cities.find((c) => c.name === city);
+    if (!selectedCity) return;
+
+    const fetchDistricts = async () => {
+      setLoadingDistricts(true);
+      try {
+        const data = await apiGet<RegionOption[]>(`/api/proxy/wilayah/districts/${selectedCity.id}.json`);
+        setDistricts(data);
+      } catch (err) {
+        console.error('Gagal fetch kecamatan', err);
+      } finally {
+        setLoadingDistricts(false);
+      }
+    };
+    fetchDistricts();
+  }, [city, cities]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -79,23 +169,26 @@ export default function ProfileSettingsPage() {
         const formData = new FormData();
         formData.append('file', imageFile);
         
-        const uploadRes = await fetch('/api/user/upload-avatar', {
-          method: 'POST',
-          body: formData,
+        const { data: uploadData } = await apiClient.post('/api/user/upload-avatar', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         });
         
-        const uploadData = await uploadRes.json();
-        if (!uploadRes.ok) throw new Error(uploadData.error || 'Gagal upload');
+        if (uploadData.error) throw new Error(uploadData.error || 'Gagal upload');
         imageUrl = uploadData.url;
       }
 
-      const res = await fetch('/api/user/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone, image: imageUrl }),
-      });
+      const res = await apiClient.patch('/api/user/profile', { 
+        name, 
+        phone, 
+        image: imageUrl,
+        province,
+        city,
+        district,
+      })
 
-      if (!res.ok) throw new Error('Gagal update profil');
+      if (res.status >= 400) throw new Error('Gagal update profil');
 
       router.refresh();
       alert('Profil berhasil diperbarui!');
@@ -203,6 +296,67 @@ export default function ProfileSettingsPage() {
                 required
                 disabled={loading}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="province">Provinsi</Label>
+              <Select
+                value={province}
+                onValueChange={(value) => {
+                  setProvince(value ?? '');
+                  setCity('');
+                  setDistrict('');
+                }}
+                disabled={loadingProvinces || loading}
+              >
+                <SelectTrigger id="province">
+                  <SelectValue placeholder={loadingProvinces ? 'Memuat provinsi...' : 'Pilih Provinsi'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {provinces.map((prov) => (
+                    <SelectItem key={prov.id} value={prov.name}>{prov.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="city">Kota/Kabupaten</Label>
+              <Select
+                value={city}
+                onValueChange={(value) => {
+                  setCity(value ?? '');
+                  setDistrict('');
+                }}
+                disabled={!province || loadingCities || loading}
+              >
+                <SelectTrigger id="city">
+                  <SelectValue placeholder={loadingCities ? 'Memuat kota...' : (!province ? 'Pilih provinsi dahulu' : 'Pilih Kota/Kabupaten')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {cities.map((c) => (
+                    <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="district">Kecamatan</Label>
+              <Select
+                value={district}
+                onValueChange={(value) => setDistrict(value ?? '')}
+                disabled={!city || loadingDistricts || loading}
+              >
+                <SelectTrigger id="district">
+                  <SelectValue placeholder={loadingDistricts ? 'Memuat kecamatan...' : (!city ? 'Pilih kota dahulu' : 'Pilih Kecamatan')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {districts.map((d) => (
+                    <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>

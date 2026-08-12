@@ -21,6 +21,12 @@
     "kycRequests": "Permintaan KYC",
     "wallet": "Dompet",
     "analytics": "Analitik",
+    "notifications": "Notifikasi",
+    "systemHealth": "Kesehatan Sistem",
+    "activityLogs": "Log Aktivitas",
+    "paymentGateways": "Payment Gateway",
+    "auditLogs": "Log Audit",
+    "generalLedger": "Buku Besar",
     "settings": "Pengaturan"
   },
   "sidebar": {

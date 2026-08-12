@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { BarChartIcon, CalendarDaysIcon, CurrencyIcon, TrendingUp } from '@hugeicons/core-free-icons'
 import { Button } from '@/components/ui/button'
+import { apiClient } from '@/lib/axios'
 
 interface AnalyticsData {
   totalBookings: number
@@ -19,9 +20,8 @@ export default function AnalyticsPage() {
   const { data, isLoading } = useQuery<AnalyticsData>({
     queryKey: ['owner-analytics'],
     queryFn: async () => {
-      const res = await fetch('/api/owner/analytics')
-      if (!res.ok) throw new Error('Failed to fetch analytics')
-      return res.json()
+      const { data } = await apiClient.get('/api/owner/analytics')
+      return data
     },
     staleTime: 60000,
   })

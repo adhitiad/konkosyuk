@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
+import { apiClient } from '@/lib/axios'
 
 interface UsePaymentPollingOptions {
   invoiceNumber: string | null | undefined
@@ -44,11 +45,9 @@ export function usePaymentPolling({
     setError(null)
 
     try {
-      const res = await fetch(`/api/payments?invoiceNumber=${encodeURIComponent(invoiceNumber)}`)
-      if (!res.ok) {
-        throw new Error('Failed to fetch payment status')
-      }
-      const json = await res.json()
+      const { data: json } = await apiClient.get('/api/payments', {
+        params: { invoiceNumber },
+      })
       const data = json.data as Record<string, unknown> | undefined
 
       if (!data) {

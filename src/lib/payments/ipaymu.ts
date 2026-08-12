@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { generateMd5Signature, verifySignature } from './signature'
 import { normalizeGatewayStatus } from './status'
 import type {
@@ -42,6 +43,7 @@ export const ipaymuAdapter: PaymentProviderAdapter = {
       name: input.metadata?.customerName ?? 'Customer',
       phone: input.metadata?.phone ?? '',
       email: input.metadata?.email ?? '',
+      expiredIn: input.expiresIn ? String(input.expiresIn) : undefined,
     }
 
     const requestBody = JSON.stringify(payload)
@@ -49,23 +51,20 @@ export const ipaymuAdapter: PaymentProviderAdapter = {
     const stringToSign = buildIpaymuStringToSign(userAgent, env.IPAYMU_VA, requestBody, env.IPAYMU_API_KEY)
     const signature = generateMd5Signature(stringToSign)
 
-    const response = await fetch(`${baseUrl}/api/v2/transaction`, {
-      method: 'POST',
+    const response = await axios.post(`${baseUrl}/api/v2/transaction`, payload, {
       headers: {
         'Content-Type': 'application/json',
         va: env.IPAYMU_VA,
         signature,
         timestamp: new Date().toISOString(),
       },
-      body: requestBody,
     })
 
-    if (!response.ok) {
-      const text = await response.text()
-      throw new Error(`iPaymu payment failed: ${response.status} ${text}`)
+    if (response.status >= 400) {
+      throw new Error(`iPaymu payment failed: ${response.status} ${response.data}`)
     }
 
-    const raw = (await response.json()) as Record<string, unknown>
+    const raw = response.data as Record<string, unknown>
 
     return {
       paymentId: String(raw.payment_id ?? raw.id ?? raw.reference_id ?? crypto.randomUUID()),
@@ -94,8 +93,7 @@ export const ipaymuAdapter: PaymentProviderAdapter = {
     const stringToSign = buildIpaymuStringToSign(userAgent, env.IPAYMU_VA, requestBody, env.IPAYMU_API_KEY)
     const signature = generateMd5Signature(stringToSign)
 
-    const response = await fetch(`${baseUrl}/api/v2/transaction/${encodeURIComponent(transactionId)}`, {
-      method: 'GET',
+    const response = await axios.get(`${baseUrl}/api/v2/transaction/${encodeURIComponent(transactionId)}`, {
       headers: {
         'Content-Type': 'application/json',
         va: env.IPAYMU_VA,
@@ -104,11 +102,11 @@ export const ipaymuAdapter: PaymentProviderAdapter = {
       },
     })
 
-    if (!response.ok) {
+    if (response.status >= 400) {
       throw new Error(`iPaymu status check failed: ${response.status}`)
     }
 
-    const raw = (await response.json()) as Record<string, unknown>
+    const raw = response.data as Record<string, unknown>
     const status = String(raw.status ?? raw.transaction_status ?? 'pending')
 
     return normalizeGatewayStatus(status)

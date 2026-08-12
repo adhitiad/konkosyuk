@@ -17,6 +17,16 @@
     "incomingBookings": "들어오는 예약",
     "reports": "보고서",
     "analytics": "분석",
+    "wallet": "지갑",
+    "kyc": "KYC 인증",
+    "kycRequests": "KYC 요청",
+    "notifications": "알림",
+    "systemHealth": "시스템 상태",
+    "activityLogs": "활동 로그",
+    "paymentGateways": "결제 게이트웨이",
+    "auditLogs": "감사 로그",
+    "generalLedger": "총계정원장",
+    "pengaturanProfil": "프로필 설정",
     "settings": "설정"
   },
   "sidebar": {

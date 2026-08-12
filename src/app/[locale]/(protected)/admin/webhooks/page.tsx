@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,11 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { AlertCircleIcon } from '@hugeicons/core-free-icons'
+import { AlertCircleIcon, Refresh01Icon } from '@hugeicons/core-free-icons'
+import { toast } from '@/components/ui/toast'
+import { apiClient } from '@/lib/axios'
+import { BreadcrumbNav } from '@/components/ui/breadcrumb-nav'
+import { withAdminAuth } from '@/lib/with-admin-auth'
 
 interface WebhookEvent {
   id: string
@@ -48,9 +52,12 @@ const statusOptions = [
   { value: 'pending', label: 'Pending' },
 ]
 
-export default function AdminWebhooksPage() {
+export default withAdminAuth(AdminWebhooksPage)
+
+function AdminWebhooksPage() {
   const [provider, setProvider] = useState('')
   const [status, setStatus] = useState('')
+  const queryClient = useQueryClient()
 
   const { data, isLoading, isError, error } = useQuery<WebhookResponse>({
     queryKey: ['admin-webhooks', provider, status],
@@ -59,12 +66,24 @@ export default function AdminWebhooksPage() {
       if (provider) params.set('provider', provider)
       if (status) params.set('status', status)
 
-      const res = await fetch(`/api/admin/webhooks?${params.toString()}`)
-      if (!res.ok) throw new Error('Failed to fetch webhooks')
-      const json = await res.json()
+      const { data: json } = await apiClient.get(`/api/admin/webhooks?${params.toString()}`)
       return { data: json.data?.data, meta: json.data?.meta }
     },
     staleTime: 30000,
+  })
+
+  const reprocessMutation = useMutation({
+    mutationFn: async (webhookId: string) => {
+      const { data } = await apiClient.patch('/api/admin/webhooks', { id: webhookId })
+      return data.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-webhooks'] })
+      toast({ title: 'Webhook berhasil diproses ulang', type: 'success' })
+    },
+    onError: (err) => {
+      toast({ title: 'Gagal', description: err instanceof Error ? err.message : 'Gagal memproses ulang webhook.', type: 'error' })
+    },
   })
 
   const webhooks: WebhookEvent[] = Array.isArray(data?.data) ? data.data : []
@@ -88,6 +107,7 @@ export default function AdminWebhooksPage() {
   return (
     <div className="container py-6">
       <div className="mb-6">
+        <BreadcrumbNav items={[{ label: 'Dashboard', href: '/admin' }, { label: 'Webhook Monitoring' }]} />
         <h1 className="text-2xl font-bold tracking-tight">Webhook Monitoring</h1>
         <p className="text-muted-foreground">Monitor webhook events dari payment gateway</p>
       </div>
@@ -145,26 +165,37 @@ export default function AdminWebhooksPage() {
                     !event.signatureValid ? 'border-destructive bg-destructive/5' : ''
                   }`}
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">{event.provider}</Badge>
-                        <Badge variant={event.signatureValid ? 'default' : 'destructive'}>
-                          {event.signatureValid ? 'Signature Valid' : 'Signature Invalid'}
-                        </Badge>
-                        {event.processedAt ? (
-                          <Badge variant="secondary">Processed</Badge>
-                        ) : (
-                          <Badge variant="outline">Pending</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm font-mono">Event ID: {event.eventId}</p>
-                      <p className="text-sm text-muted-foreground">Type: {event.eventType ?? '-'}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Created: {formatDate(event.createdAt)} | Processed: {formatDate(event.processedAt)}
-                      </p>
-                    </div>
-                  </div>
+                   <div className="flex flex-wrap items-start justify-between gap-2">
+                     <div className="space-y-1">
+                       <div className="flex items-center gap-2">
+                         <Badge variant="outline">{event.provider}</Badge>
+                         <Badge variant={event.signatureValid ? 'default' : 'destructive'}>
+                           {event.signatureValid ? 'Signature Valid' : 'Signature Invalid'}
+                         </Badge>
+                         {event.processedAt ? (
+                           <Badge variant="secondary">Processed</Badge>
+                         ) : (
+                           <Badge variant="outline">Pending</Badge>
+                         )}
+                       </div>
+                       <p className="text-sm font-mono">Event ID: {event.eventId}</p>
+                       <p className="text-sm text-muted-foreground">Type: {event.eventType ?? '-'}</p>
+                       <p className="text-xs text-muted-foreground">
+                         Created: {formatDate(event.createdAt)} | Processed: {formatDate(event.processedAt)}
+                       </p>
+                     </div>
+                     {!event.processedAt && (
+                       <Button
+                         size="sm"
+                         variant="outline"
+                         disabled={reprocessMutation.isPending}
+                         onClick={() => reprocessMutation.mutate(event.id)}
+                       >
+                         <HugeiconsIcon icon={Refresh01Icon} strokeWidth={2} className="size-4 mr-1" />
+                         Proses Ulang
+                       </Button>
+                     )}
+                   </div>
 
                   <details className="mt-3">
                     <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">

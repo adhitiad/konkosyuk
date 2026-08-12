@@ -17,6 +17,16 @@
     "incomingBookings": "Đặt phòng đến",
     "reports": "Báo cáo",
     "analytics": "Phân tích",
+    "wallet": "Ví",
+    "kyc": "Xác minh KYC",
+    "kycRequests": "Yêu cầu KYC",
+    "notifications": "Thông báo",
+    "systemHealth": "Sức khỏe hệ thống",
+    "activityLogs": "Nhật ký hoạt động",
+    "paymentGateways": "Cổng thanh toán",
+    "auditLogs": "Nhật ký kiểm toán",
+    "generalLedger": "Sổ cái",
+    "pengaturanProfil": "Cài đặt hồ sơ",
     "settings": "Cài đặt"
   },
   "sidebar": {

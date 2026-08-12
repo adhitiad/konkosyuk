@@ -25,6 +25,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon, Analytics01Icon } from "@hugeicons/core-free-icons";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import { toast } from "@/components/ui/toast";
+import { apiClient } from "@/lib/axios";
+import { withAdminAuth } from "@/lib/with-admin-auth";
 
 interface OwnerProfit {
   ownerId: string;
@@ -104,7 +106,9 @@ function RevenueChart({ data }: { data: OwnerProfit[] }) {
   );
 }
 
-export default function AdminAnalyticsPage() {
+export default withAdminAuth(AdminAnalyticsPage);
+
+function AdminAnalyticsPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -115,11 +119,10 @@ export default function AdminAnalyticsPage() {
       if (startDate) params.set("startDate", startDate);
       if (endDate) params.set("endDate", endDate);
 
-      const res = await fetch(
+      const { data } = await apiClient.get(
         `/api/admin/analytics/revenue?${params.toString()}`,
       );
-      if (!res.ok) throw new Error("Failed to fetch analytics");
-      return res.json();
+      return data;
     },
     staleTime: 60000,
   });
@@ -139,32 +142,33 @@ export default function AdminAnalyticsPage() {
         />
       </div>
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Analitik Keuntungan
-          </h1>
-          <p className="text-muted-foreground">
-            Dashboard keuntungan platform dan owner
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="w-40"
-          />
-          <span className="text-muted-foreground">-</span>
-          <Input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="w-40"
-          />
-          <Button onClick={handleApply}>Terapkan</Button>
+        <div className="md:grid-cols-2 flex flex-col gap-4 md:flex-row md:items-center md:gap-8">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              Analitik Keuntungan
+            </h1>
+            <p className="text-muted-foreground">
+              Dashboard keuntungan platform dan owner
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-40"
+            />
+            <span className="text-muted-foreground">-</span>
+            <Input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-40"
+            />
+            <Button onClick={handleApply}>Terapkan</Button>
+          </div>
         </div>
       </div>
-
       {isError && (
         <Alert variant="destructive">
           <HugeiconsIcon
@@ -265,36 +269,38 @@ export default function AdminAnalyticsPage() {
               ))}
             </div>
           ) : data && (data.ownerProfits?.length ?? 0) > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nama Owner</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Total Transaksi Sukses</TableHead>
-                  <TableHead>Fee Platform </TableHead>
-                  <TableHead>Pendapatan Bersih Owner</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.ownerProfits.map((owner) => (
-                  <TableRow key={owner.ownerId}>
-                    <TableCell className="font-medium">
-                      {owner.ownerName}
-                    </TableCell>
-                    <TableCell>{owner.ownerEmail}</TableCell>
-                    <TableCell>
-                      {formatCurrency(owner.totalEarning + owner.platformFee)}
-                    </TableCell>
-                    <TableCell className="text-red-600">
-                      -{formatCurrency(owner.platformFee)}
-                    </TableCell>
-                    <TableCell className="font-semibold text-teal-600">
-                      {formatCurrency(owner.totalEarning)}
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead scope="col">Nama Owner</TableHead>
+                    <TableHead scope="col">Email</TableHead>
+                    <TableHead scope="col">Total Transaksi Sukses</TableHead>
+                    <TableHead scope="col">Fee Platform </TableHead>
+                    <TableHead scope="col">Pendapatan Bersih Owner</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {data.ownerProfits.map((owner) => (
+                    <TableRow key={owner.ownerId}>
+                      <TableCell className="font-medium">
+                        {owner.ownerName}
+                      </TableCell>
+                      <TableCell>{owner.ownerEmail}</TableCell>
+                      <TableCell>
+                        {formatCurrency(owner.totalEarning + owner.platformFee)}
+                      </TableCell>
+                      <TableCell className="text-red-600">
+                        -{formatCurrency(owner.platformFee)}
+                      </TableCell>
+                      <TableCell className="font-semibold text-teal-600">
+                        {formatCurrency(owner.totalEarning)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           ) : (
             <p className="text-sm text-muted-foreground text-center py-8">
               Tidak ada data keuntungan untuk periode ini.

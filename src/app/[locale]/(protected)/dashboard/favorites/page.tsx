@@ -12,6 +12,7 @@ import { AlertCircleIcon } from '@hugeicons/core-free-icons'
 import { toast } from '@/components/ui/toast'
 import Link from 'next/link'
 import FavoriteButton from '@/components/favorite-button'
+import { apiClient } from '@/lib/axios'
 
 interface FavoriteProperty {
   id: string
@@ -34,18 +35,16 @@ export default function FavoritesPage() {
   const { data, isLoading, isError, error } = useQuery<FavoritesResponse>({
     queryKey: ['favorites'],
     queryFn: async () => {
-      const res = await fetch('/api/favorites')
-      if (!res.ok) throw new Error('Failed to fetch favorites')
-      return res.json()
+      const { data } = await apiClient.get('/api/favorites')
+      return data
     },
     staleTime: 30000,
   })
 
   const removeMutation = useMutation({
     mutationFn: async (propertyId: string) => {
-      const res = await fetch(`/api/favorites/${propertyId}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed to remove favorite')
-      return res.json()
+      const { data } = await apiClient.delete(`/api/favorites/${propertyId}`)
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['favorites'] })

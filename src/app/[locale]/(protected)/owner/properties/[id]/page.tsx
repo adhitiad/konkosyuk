@@ -30,6 +30,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import type { Property } from "@/db/schema";
 import { updatePropertySchema, type UpdatePropertyInput } from "@/lib/zod";
+import { apiClient } from "@/lib/axios";
 
 const propertyTypeOptions = [
   { value: "kost", label: "Kost" },
@@ -72,10 +73,8 @@ export default function PropertyDetailPage() {
   } = useQuery<Property>({
     queryKey: ["property", id],
     queryFn: async () => {
-      const res = await fetch(`/api/properties/${id}`);
-      if (!res.ok) throw new Error("Failed to fetch property");
-      const json = await res.json();
-      return json.data as Property;
+      const { data } = await apiClient.get(`/api/properties/${id}`)
+      return data
     },
     staleTime: 30000,
     enabled: !!id,
@@ -97,16 +96,8 @@ export default function PropertyDetailPage() {
 
   const updateMutation = useMutation({
     mutationFn: async (payload: UpdatePropertyInput) => {
-      const res = await fetch(`/api/properties/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Failed to update property");
-      }
-      return res.json();
+      const { data } = await apiClient.put(`/api/properties/${id}`, payload)
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["properties"] });
@@ -116,12 +107,8 @@ export default function PropertyDetailPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`/api/properties/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Failed to delete property");
-      }
-      return res.json();
+      const { data } = await apiClient.delete(`/api/properties/${id}`)
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["properties"] });

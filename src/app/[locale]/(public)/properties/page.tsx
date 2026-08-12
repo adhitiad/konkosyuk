@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { useState, useMemo, useEffect, useCallback } from "react"
+import dynamic from "next/dynamic"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
 import { SearchX } from "lucide-react"
@@ -19,17 +20,16 @@ import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Pagination } from "@/components/ui/pagination"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Search01Icon, MapsIcon, ViewAgendaIcon } from "@hugeicons/core-free-icons"
-import MapView from "@/components/map-view"
 import LocationFinder from "@/components/location-finder"
-import { OptimizedImage } from "@/components/ui/optimized-image"
+import { PropertyCard } from "@/components/property-card"
+
+const MapView = dynamic(() => import("@/components/map-view"), { ssr: false })
 
 interface PropertyItem {
   id: string
@@ -38,6 +38,9 @@ interface PropertyItem {
   address: string
   type: "kost" | "kontrakan"
   metadata: Record<string, unknown>
+  images: string[]
+  basePrice: string | null
+  amenities: string[]
   latitude?: number | null
   longitude?: number | null
   distance?: number | null
@@ -56,12 +59,6 @@ interface PropertyResponse {
   data: PropertyItem[]
   meta: PropertyMeta
 }
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-  }).format(value)
 
 const COMMON_AMENITIES = [
   "WiFi",
@@ -242,7 +239,7 @@ export default function PropertiesPage() {
   }
 
   return (
-    <div className="container py-8">
+    <main className="max-w-screen-xl mx-auto px-4 lg:px-0 py-10">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Cari Kost & Kontrakan</h1>
         <p className="mt-2 text-muted-foreground">
@@ -250,8 +247,8 @@ export default function PropertiesPage() {
         </p>
       </div>
 
-      <Card className="mb-8">
-        <CardContent className="pt-6 space-y-4">
+      <Card className="shadow-sm">
+        <CardContent className="p-4 space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
             <div className="lg:col-span-2 relative">
               <HugeiconsIcon icon={Search01Icon} strokeWidth={2} className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -310,7 +307,7 @@ export default function PropertiesPage() {
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium">Rentang Harga</p>
               <span className="text-sm text-muted-foreground">
-                {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
+                {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
               </span>
             </div>
             <div className="flex items-center gap-4">
@@ -387,17 +384,12 @@ export default function PropertiesPage() {
       </Card>
 
       {isLoading && (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mt-8">
           {Array.from({ length: limit }).map((_, i) => (
             <Card key={i} className="flex flex-col overflow-hidden">
               <Skeleton className="h-48 w-full" />
-              <CardHeader>
-                <div className="flex items-start justify-between gap-2">
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-5 w-16" />
-                </div>
-              </CardHeader>
-              <CardContent className="flex flex-1 flex-col gap-3">
+              <CardContent className="p-4 space-y-3">
+                <Skeleton className="h-5 w-3/4" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-2/3" />
                 <div className="mt-auto flex items-center justify-between">
@@ -429,7 +421,7 @@ export default function PropertiesPage() {
       )}
 
       {!isLoading && !isError && items.length > 0 && viewMode === 'map' ? (
-        <Card>
+        <Card className="mt-8">
           <CardContent className="p-4">
             <MapView
               center={userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : undefined}
@@ -442,38 +434,9 @@ export default function PropertiesPage() {
 
       {!isLoading && !isError && items.length > 0 && viewMode === 'list' && (
         <>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mt-8">
             {sortedItems.map((item) => (
-              <Card key={item.id} className="flex flex-col overflow-hidden">
-                <div className="relative h-48 w-full bg-muted">
-                  <OptimizedImage
-                    src={(item.metadata?.image as string | null | undefined) ?? null}
-                    size="card"
-                    alt={item.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="line-clamp-1">{item.name}</CardTitle>
-                    <Badge variant="secondary">
-                      {item.type === "kost" ? "Kost" : "Kontrakan"}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex flex-1 flex-col gap-3">
-                  <p className="line-clamp-2 text-sm text-muted-foreground">
-                    {item.description || item.address}
-                  </p>
-                  <div className="mt-auto flex items-center justify-between">
-                    <Badge variant="outline">{item.address}</Badge>
-                    <Button render={<Link href={`/properties/${item.id}`} />} size="sm" nativeButton={false}>
-                      Lihat Detail
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <PropertyCard key={item.id} property={item} />
             ))}
           </div>
           <div className="mt-8 flex justify-center">
@@ -485,6 +448,6 @@ export default function PropertiesPage() {
           </div>
         </>
       )}
-    </div>
+    </main>
   )
 }

@@ -9,6 +9,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import { AlertCircleIcon } from '@hugeicons/core-free-icons'
 import { toast } from '@/components/ui/toast'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog'
+import { apiClient } from '@/lib/axios'
 
 interface ReviewBookingDialogProps {
   bookingId: string
@@ -33,16 +34,15 @@ export default function ReviewBookingDialog({
 
   const mutation = useMutation({
     mutationFn: async ({ action, reason }: { action: 'approve' | 'reject'; reason?: string }) => {
-      const res = await fetch(`/api/bookings/${bookingId}/review`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: action === 'approve' ? 'confirmed' : 'rejected', note: reason }),
+      const res = await apiClient.post(`/api/bookings/${bookingId}/review`, {
+        status: action === 'approve' ? 'confirmed' : 'rejected',
+        note: reason,
       })
-      if (!res.ok) {
-        const text = await res.text()
+      if (res.status >= 400) {
+        const text = res.data
         throw new Error(text || 'Gagal memproses review.')
       }
-      return res.json()
+      return res.data
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['owner-bookings'] })

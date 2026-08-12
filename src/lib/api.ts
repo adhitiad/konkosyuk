@@ -1,12 +1,8 @@
+import { ApiError, getAxiosInstance } from './api.client'
+import { logError } from './logger'
 import { z, ZodError } from 'zod'
-import { logError } from '@/lib/logger'
 
-export class ApiError extends Error {
-  constructor(public statusCode: number, message: string) {
-    super(message)
-    this.name = 'ApiError'
-  }
-}
+export { ApiError, getAxiosInstance }
 
 export function ok(data: unknown, status = 200) {
   return Response.json({ success: true, data }, { status })
@@ -30,7 +26,10 @@ export function handleApiError(error: unknown, context?: string) {
 
   if (error instanceof Error) {
     logError(error, context || 'API_ERROR')
-    return fail(error.message, 500)
+    const message = process.env.NODE_ENV === 'production'
+      ? 'Internal server error'
+      : error.message
+    return fail(message, 500)
   }
 
   logError(new Error('Unknown error'), context || 'API_ERROR')

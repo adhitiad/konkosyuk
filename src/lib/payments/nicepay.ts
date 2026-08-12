@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { generateSha256Signature, verifySignature } from './signature'
 import { normalizeGatewayStatus } from './status'
 import type {
@@ -28,29 +29,27 @@ export const nicepayAdapter: PaymentProviderAdapter = {
       env.NICEPAY_MERCHANT_KEY,
     )
 
-    const response = await fetch(`${baseUrl}/api/v1/payment`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Nicepay-Merchant-Id': env.NICEPAY_MERCHANT_ID,
-        'X-Nicepay-Signature': signature,
-      },
-      body: JSON.stringify({
+    const response = await axios.post(`${baseUrl}/api/v1/payment`, {
         merchantId: env.NICEPAY_MERCHANT_ID,
         orderId,
         amount: integerAmount,
         paymentMethod: input.metadata?.paymentMethod as string | undefined,
         callbackUrl: `${env.NEXT_PUBLIC_APP_URL1}/api/webhooks/nicepay`,
         returnUrl: `${env.NEXT_PUBLIC_APP_URL1}/payment/result?provider=nicepay&bookingId=${orderId}`,
-      }),
-    })
+        expiredIn: input.expiresIn ? String(input.expiresIn) : undefined,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Nicepay-Merchant-Id': env.NICEPAY_MERCHANT_ID,
+          'X-Nicepay-Signature': signature,
+        },
+      })
 
-    if (!response.ok) {
-      const text = await response.text()
-      throw new Error(`Nicepay payment failed: ${response.status} ${text}`)
-    }
+      if (response.status >= 400) {
+        throw new Error(`Nicepay payment failed: ${response.status} ${response.data}`)
+      }
 
-    const raw = (await response.json()) as Record<string, unknown>
+      const raw = response.data as Record<string, unknown>
 
     return {
       paymentId: String(raw.payment_id ?? raw.id ?? crypto.randomUUID()),
@@ -74,7 +73,7 @@ export const nicepayAdapter: PaymentProviderAdapter = {
       env.NICEPAY_MERCHANT_KEY,
     )
 
-    const response = await fetch(
+const response = await axios.get(
       `${baseUrl}/api/v1/payment/${encodeURIComponent(transactionId)}`,
       {
         headers: {
@@ -82,14 +81,14 @@ export const nicepayAdapter: PaymentProviderAdapter = {
           'X-Nicepay-Merchant-Id': env.NICEPAY_MERCHANT_ID,
           'X-Nicepay-Signature': signature,
         },
-      },
+      }
     )
 
-    if (!response.ok) {
+    if (response.status >= 400) {
       throw new Error(`Nicepay status check failed: ${response.status}`)
     }
 
-    const raw = (await response.json()) as Record<string, unknown>
+    const raw = response.data as Record<string, unknown>
     const status = String(raw.status ?? raw.transaction_status ?? 'pending')
 
     return normalizeGatewayStatus(status)

@@ -11,13 +11,17 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from '@/components/ui/toast'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Skeleton } from '@/components/ui/skeleton'
+import { apiClient } from '@/lib/axios'
+import { withAdminAuth } from '@/lib/with-admin-auth'
 
 interface PlatformSettings {
   platformFeePercent: string
   featuredListingPrice: string
 }
 
-export default function MonetizationSettingsPage() {
+export default withAdminAuth(MonetizationSettingsPage, ['admin'])
+
+function MonetizationSettingsPage() {
   const { data: session, isPending } = useSession()
   const router = useRouter()
   const [feePercent, setFeePercent] = useState('1.8')
@@ -32,9 +36,7 @@ export default function MonetizationSettingsPage() {
   const { data: settings, isLoading } = useQuery<PlatformSettings>({
     queryKey: ['platform-settings'],
     queryFn: async () => {
-      const res = await fetch('/api/admin/settings/platform-fee')
-      if (!res.ok) throw new Error('Failed to fetch settings')
-      const json = await res.json()
+      const { data: json } = await apiClient.get('/api/admin/settings/platform-fee')
       return json.data
     },
     enabled: !!session && (session.user as any).role === 'admin',
@@ -42,16 +44,12 @@ export default function MonetizationSettingsPage() {
 
   const mutation = useMutation({
     mutationFn: async (values: { platformFeePercent: number; featuredListingPrice?: number }) => {
-      const res = await fetch('/api/admin/settings/platform-fee', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      })
-      if (!res.ok) {
-        const text = await res.text()
+      const res = await apiClient.patch('/api/admin/settings/platform-fee', values)
+      if (res.status >= 400) {
+        const text = res.data
         throw new Error(text || 'Failed to update settings')
       }
-      return res.json()
+      return res.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['platform-settings'] })

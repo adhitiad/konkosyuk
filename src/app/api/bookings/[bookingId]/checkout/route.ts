@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/db'
-import { bookings, payments } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { bookings, payments, users } from '@/db/schema'
+import { eq, and, or, gte } from 'drizzle-orm'
 import { requireSession } from '@/lib/auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 import { checkoutBookingSchema } from '@/lib/zod'
 import { getPaymentProvider } from '@/lib/payments'
 import { generateInvoiceNumber, money } from '@/lib/utils'
+import { checkFraudFlags } from '@/lib/fraud-check'
 import type { Role } from '@/lib/auth'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ bookingId: string }> }) {
@@ -51,7 +52,37 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ boo
       return fail('Invalid payment provider', 400)
     }
 
+    const [user] = await db
+      .select({ name: users.name, email: users.email })
+      .from(users)
+      .where(eq(users.id, booking.userId))
+      .limit(1)
+
+    if (!user?.name || !user?.email) {
+      return fail('Nama di profil harus sesuai dengan rekening untuk keamanan', 403)
+    }
+
+    const fraudResult = await checkFraudFlags(booking.userId, amount)
+    if (fraudResult.isBlocked) {
+      return fail(fraudResult.reason ?? 'Akses diblokir karena aktivitas mencurigakan', 403)
+    }
+
+    const customerIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'unknown'
+    const userAgent = req.headers.get('user-agent') || 'unknown'
+
     const invoiceNumber = generateInvoiceNumber(purpose.toUpperCase() as 'DP' | 'FULL')
+
+    const paymentMetadata: Record<string, unknown> = {
+      invoiceNumber,
+      bookingCode: booking.metadata?.bookingCode,
+      customerIp,
+      userAgent,
+    }
+
+    if (fraudResult.requiresManualReview) {
+      paymentMetadata.fraudReview = true
+      paymentMetadata.fraudReason = 'amount_exceeds_10m'
+    }
 
     const [payment] = await db
       .insert(payments)
@@ -63,6 +94,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ boo
         currency: 'IDR',
         status: 'pending',
         transactionId: invoiceNumber,
+        metadata: paymentMetadata,
       })
       .returning()
 
@@ -73,9 +105,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ boo
         purpose,
         amount,
         currency: 'IDR',
+        expiresIn: 21600,
         metadata: {
           invoiceNumber,
           bookingCode: booking.metadata?.bookingCode,
+          customerName: user.name,
+          customerEmail: user.email,
+          customerIp,
+          userAgent,
         },
       })
 

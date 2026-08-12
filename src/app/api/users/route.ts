@@ -6,6 +6,29 @@ import { requireSession } from '@/lib/auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 import type { Role } from '@/lib/auth'
 
+const publicFields = {
+  id: users.id,
+  name: users.name,
+  role: users.role,
+  isActive: users.isActive,
+  createdAt: users.createdAt,
+  updatedAt: users.updatedAt,
+}
+
+const adminFields = {
+  ...publicFields,
+  email: users.email,
+  emailVerified: users.emailVerified,
+  phone: users.phone,
+  whatsapp: users.whatsapp,
+  telegram: users.telegram,
+  kycStatus: users.kycStatus,
+  ktpNumber: users.ktpNumber,
+  ktpImageUrl: users.ktpImageUrl,
+  reputationScore: users.reputationScore,
+  balance: users.balance,
+}
+
 export async function GET(req: NextRequest) {
   try {
     const session = await requireSession(['admin', 'staff'] as Role[])
@@ -29,8 +52,11 @@ export async function GET(req: NextRequest) {
 
     const where = conditions.length > 0 ? (conditions.length === 1 ? conditions[0] : and(...conditions)) : undefined
 
+    const isAdmin = session.user.role === 'admin'
+    const selectedFields = isAdmin ? adminFields : publicFields
+
     const data = await db
-      .select()
+      .select(selectedFields)
       .from(users)
       .where(where)
       .orderBy(desc(users.createdAt))

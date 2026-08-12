@@ -2,13 +2,14 @@ import { NextRequest } from 'next/server'
 import { db } from '@/db'
 import { payments, bookings, units } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import { requireSession } from '@/lib/auth'
+import { validateAdminOnlyRequest } from '@/lib/api-auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 import { z } from 'zod'
 import type { Role } from '@/lib/auth'
+import { createAuditLog } from '@/lib/audit-log'
 
 const reconcileSchema = z.object({
-  transactionId: z.string().optional(),
+  transactionId: z.string().min(1, 'Transaction ID wajib diisi untuk rekonsiliasi'),
   reason: z.string().min(1),
 })
 
@@ -17,7 +18,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await requireSession(['admin', 'staff'] as Role[])
+    const authResult = await validateAdminOnlyRequest(req)
+    if (authResult instanceof Response) return authResult
+    const { session, ipAddress, userAgent } = authResult
     const { id: paymentId } = await params
     const body = reconcileSchema.parse(await req.json())
 
@@ -31,8 +34,9 @@ export async function POST(
       return fail('Payment not found', 404)
     }
 
-    if (payment.status === 'success') {
-      return fail('Payment is already success', 400)
+    const terminalStatuses = ['success', 'refunded', 'cancelled'] as const
+    if (terminalStatuses.includes(payment.status as typeof terminalStatuses[number])) {
+      return fail('Payment is already in a terminal state', 400)
     }
 
     const [booking] = await db
@@ -41,8 +45,9 @@ export async function POST(
       .where(eq(bookings.id, payment.bookingId))
       .limit(1)
 
-    if (!booking) {
-      return fail('Booking not found', 404)
+    const terminalBookingStatuses = ['completed', 'cancelled', 'rejected'] as const
+    if (booking && terminalBookingStatuses.includes(booking.status as typeof terminalBookingStatuses[number])) {
+      return fail(`Cannot reconcile payment for booking in ${booking.status} state`, 400)
     }
 
     const now = new Date()
@@ -99,6 +104,19 @@ export async function POST(
           .where(eq(units.id, booking.unitId))
       })
     }
+
+    await createAuditLog({
+      action: 'reconcile',
+      targetType: 'payment',
+      targetId: paymentId,
+      adminId: session.user.id,
+      details: {
+        bookingId: payment.bookingId,
+        transactionId: body.transactionId,
+        previousStatus: payment.status,
+        newStatus: 'success',
+      },
+    })
 
     return ok({ success: true })
   } catch (error) {

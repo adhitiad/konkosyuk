@@ -1,8 +1,9 @@
 "use client";
 
-import { useSession } from "@/lib/auth-client";
+import { useSession, signOut } from "@/lib/auth-client";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import NotificationBell from "@/components/notification-bell";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -47,15 +48,9 @@ export function AppNavbar() {
       <div className="flex items-center gap-2">
         <ThemeSwitcher />
         <LanguageSwitcher />
+        <NotificationBell />
         <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                variant="ghost"
-                className="relative h-9 w-9 rounded-full"
-              />
-            }
-          >
+          <Button render={<DropdownMenuTrigger />} variant="ghost" className="relative h-9 w-9 rounded-full">
             <Avatar className="h-9 w-9">
               <AvatarImage
                 src={user?.image ?? undefined}
@@ -63,7 +58,7 @@ export function AppNavbar() {
               />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
-          </DropdownMenuTrigger>
+          </Button>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuGroup>
               <DropdownMenuLabel>
@@ -82,7 +77,7 @@ export function AppNavbar() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                 onClick={() => router.push({ pathname: '/dashboard/settings' })}
+                onClick={() => router.push({ pathname: "/dashboard/settings" })}
               >
                 <HugeiconsIcon
                   icon={Settings01Icon}
@@ -93,9 +88,9 @@ export function AppNavbar() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => {
-                  import("@/lib/auth-client").then(({ signOut }) => signOut());
-                   router.push({ pathname: '/login' });
+                onClick={async () => {
+                  await signOut()
+                  window.location.href = '/login'
                 }}
               >
                 <HugeiconsIcon
