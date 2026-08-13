@@ -7,6 +7,7 @@ import { ok, fail, handleApiError } from '@/lib/api'
 import { z } from 'zod'
 import type { Role } from '@/lib/auth'
 import { createAuditLog } from '@/lib/audit-log'
+import { validateAdminOnlyRequest } from '@/lib/api-auth'
 
 const updatePlatformFeeSchema = z.object({
   platformFeePercent: z.coerce.number().min(0).max(10),
@@ -38,7 +39,9 @@ export async function GET() {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const session = await requireSession(['admin'] as Role[])
+    const authResult = await validateAdminOnlyRequest(req)
+    if (authResult instanceof Response) return authResult
+    const { session } = authResult
     const body = updatePlatformFeeSchema.parse(await req.json())
 
     const [settings] = await db

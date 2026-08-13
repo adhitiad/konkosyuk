@@ -1,9 +1,33 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from "axios"
 
-function getCsrfToken(): string | null {
+export function getCsrfToken(): string | null {
   if (typeof document === "undefined") return null
   const match = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/)
   return match ? decodeURIComponent(match[1]) : null
+}
+
+let csrfRequest: Promise<void> | null = null
+
+export async function ensureCsrfToken(): Promise<void> {
+  if (getCsrfToken()) return
+  csrfRequest ??= fetch('/api/csrf', { credentials: 'same-origin' })
+    .then((response) => {
+      if (!response.ok) throw new Error('Failed to initialize CSRF token')
+    })
+    .finally(() => { csrfRequest = null })
+  await csrfRequest
+}
+
+export async function csrfFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+  const method = (init.method || 'GET').toUpperCase()
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    await ensureCsrfToken()
+    const headers = new Headers(init.headers)
+    const token = getCsrfToken()
+    if (token) headers.set('X-CSRF-Token', token)
+    return fetch(input, { ...init, headers, credentials: init.credentials || 'same-origin' })
+  }
+  return fetch(input, init)
 }
 
 export const apiClient: AxiosInstance = axios.create({
@@ -15,7 +39,10 @@ export const apiClient: AxiosInstance = axios.create({
 })
 
 apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+  async (config: InternalAxiosRequestConfig) => {
+    if (config.method && ['post', 'patch', 'delete', 'put'].includes(config.method.toLowerCase())) {
+      await ensureCsrfToken()
+    }
     const csrfToken = getCsrfToken()
     if (csrfToken && config.method && ['post', 'patch', 'delete', 'put'].includes(config.method.toLowerCase())) {
       config.headers['X-CSRF-Token'] = csrfToken

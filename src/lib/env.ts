@@ -36,6 +36,7 @@ const envSchema = z.object({
   // storage Configuration Application ID for UploadThing, Cloudinary configuration, and primary storage selection
   UPLOADTHING_SECRET: z.string().optional(),
   UPLOADTHING_APP_ID: z.string().optional(),
+  UPLOADTHING_TOKEN: z.string().optional(),
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
@@ -57,5 +58,60 @@ const envSchema = z.object({
 });
 
 export const env = envSchema.parse(process.env);
+
+type LiveGateway = {
+  name: string
+  fields: Record<string, string | undefined>
+}
+
+function validateLivePaymentConfig() {
+  if (env.PAYMENT_MODE !== 'live') return
+
+  const gateways: LiveGateway[] = [
+    {
+      name: 'DOKU',
+      fields: {
+        DOKU_BASE_URL: env.DOKU_BASE_URL,
+        DOKU_CLIENT_ID: env.DOKU_CLIENT_ID,
+        DOKU_SECRET_KEY: env.DOKU_SECRET_KEY,
+        DOKU_WEBHOOK_SECRET: env.DOKU_WEBHOOK_SECRET,
+      },
+    },
+    {
+      name: 'IPAYMU',
+      fields: {
+        IPAYMU_BASE_URL: env.IPAYMU_BASE_URL,
+        IPAYMU_VA: env.IPAYMU_VA,
+        IPAYMU_API_KEY: env.IPAYMU_API_KEY,
+        IPAYMU_WEBHOOK_SECRET: env.IPAYMU_WEBHOOK_SECRET,
+      },
+    },
+    {
+      name: 'NICEPAY',
+      fields: {
+        NICEPAY_BASE_URL: env.NICEPAY_BASE_URL,
+        NICEPAY_MERCHANT_ID: env.NICEPAY_MERCHANT_ID,
+        NICEPAY_MERCHANT_KEY: env.NICEPAY_MERCHANT_KEY,
+        NICEPAY_WEBHOOK_SECRET: env.NICEPAY_WEBHOOK_SECRET,
+      },
+    },
+  ]
+
+  const configured = gateways.filter(({ fields }) => Object.values(fields).some(Boolean))
+  const invalid = configured.flatMap(({ name, fields }) => {
+    const missing = Object.entries(fields).filter(([, value]) => !value).map(([key]) => key)
+    return missing.length ? [`${name}: missing ${missing.join(', ')}`] : []
+  })
+
+  if (configured.length === 0) {
+    invalid.push('No payment gateway is configured')
+  }
+
+  if (invalid.length > 0) {
+    throw new Error(`PAYMENT_MODE=live configuration is invalid. ${invalid.join('; ')}`)
+  }
+}
+
+validateLivePaymentConfig()
 
 export type Env = z.infer<typeof envSchema>;

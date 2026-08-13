@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { units, properties } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { requireSession } from '@/lib/auth'
+import { validateMutationCsrf } from '@/lib/api-auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 import { updateUnitSchema } from '@/lib/zod'
 import type { Role } from '@/lib/auth'
@@ -12,6 +13,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession(['owner', 'staff', 'admin'] as Role[])
     const { id: unitId } = await params
     const body = updateUnitSchema.parse(await req.json())
@@ -60,6 +63,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession(['owner', 'staff', 'admin'] as Role[])
     const { id: unitId } = await params
 

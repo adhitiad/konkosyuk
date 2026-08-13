@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/db'
 import { ownerBankAccounts, users } from '@/db/schema'
 import { requireSession } from '@/lib/auth'
+import { validateMutationCsrf } from '@/lib/api-auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 import { eq, and } from 'drizzle-orm'
 import { logError } from '@/lib/logger'
@@ -11,6 +12,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession(['owner'] as any)
     const { id } = await params
 
@@ -36,6 +39,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession(['owner'] as any)
     const { id } = await params
     const body = await req.json()

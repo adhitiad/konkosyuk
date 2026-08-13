@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { properties, units, bookings } from '@/db/schema'
 import { eq, and, or, sql, desc, gte, lte } from 'drizzle-orm'
 import { requireSession } from '@/lib/auth'
+import { validateMutationCsrf } from '@/lib/api-auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 import { createPropertySchema, updatePropertySchema, propertyQuerySchema } from '@/lib/zod'
 import type { Role } from '@/lib/auth'
@@ -196,6 +197,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession(['owner', 'staff', 'admin'] as Role[])
     const body = createPropertySchema.parse(await req.json())
 

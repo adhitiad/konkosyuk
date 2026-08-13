@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { favorites, properties } from '@/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { requireSession } from '@/lib/auth'
+import { validateMutationCsrf } from '@/lib/api-auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 
 export async function GET(req: NextRequest) {
@@ -32,6 +33,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession()
     const body = await req.json()
     const { propertyId } = body

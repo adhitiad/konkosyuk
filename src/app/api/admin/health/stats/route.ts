@@ -5,6 +5,7 @@ import { eq, desc, sql, and, gte, lt } from 'drizzle-orm'
 import { requireSession } from '@/lib/auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 import type { Role } from '@/lib/auth'
+import { getMetricsSnapshot } from '@/lib/monitoring'
 
 export async function GET(req: NextRequest) {
   try {
@@ -45,8 +46,10 @@ export async function GET(req: NextRequest) {
       .where(gte(generalLedger.createdAt, last24h))
       .limit(100)
 
-    const avgResponseTime = ledgerEntries.length > 0
-      ? Math.floor(Math.random() * 100) + 50
+    const metrics = getMetricsSnapshot()
+    const metricValues = Object.values(metrics)
+    const avgResponseTime = metricValues.length > 0
+      ? Math.round(metricValues.reduce((sum, metric) => sum + metric.averageLatencyMs, 0) / metricValues.length)
       : 0
 
     return ok({
@@ -56,6 +59,7 @@ export async function GET(req: NextRequest) {
       totalUsers: Number(totalUsers),
       totalWebhooks24h: Number(totalWebhooks24h),
       failedWebhooks24h: Number(failedWebhooks24h),
+      metrics,
     })
   } catch (error) {
     return handleApiError(error, 'GET /api/admin/health/stats')

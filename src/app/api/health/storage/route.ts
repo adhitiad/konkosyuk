@@ -1,14 +1,39 @@
 import { NextResponse } from 'next/server'
+import { env } from '@/lib/env'
+import { checkCloudinaryConnection } from '@/lib/cloudinary'
+import { monitor, recordMetric } from '@/lib/monitoring'
+import { UTApi } from 'uploadthing/server'
+
+export const dynamic = 'force-dynamic'
+
+async function checkUploadthing() {
+  if (!env.UPLOADTHING_TOKEN) throw new Error('UploadThing token is not configured')
+  await new UTApi().listFiles({ limit: 1 })
+}
+
+async function checkProvider(name: string, check: () => Promise<void>, configured: boolean) {
+  if (!configured) return { name, status: 'not_configured' as const, latency: 0 }
+  const started = performance.now()
+  try {
+    await check()
+    return { name, status: 'healthy' as const, latency: Math.round(performance.now() - started) }
+  } catch (error) {
+    recordMetric(`health.storage.${name.toLowerCase()}`, Math.round(performance.now() - started), error)
+    return { name, status: 'down' as const, latency: Math.round(performance.now() - started), error: error instanceof Error ? error.message : 'Connection failed' }
+  }
+}
 
 export async function GET() {
-  const storageProviders = [
-    { name: 'Uploadthing', status: 'healthy' as const },
-    { name: 'Cloudinary', status: 'healthy' as const },
-  ]
+  const storageProviders = await Promise.all([
+    monitor('health.storage.uploadthing', () => checkProvider('UploadThing', checkUploadthing, Boolean(env.UPLOADTHING_TOKEN))),
+    monitor('health.storage.cloudinary', () => checkProvider('Cloudinary', checkCloudinaryConnection, Boolean(env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET))),
+  ])
+  const configured = storageProviders.filter((provider) => provider.status !== 'not_configured')
+  const status = configured.some((provider) => provider.status === 'down') ? 'down' : 'healthy'
 
   return NextResponse.json({
-    status: 'healthy',
+    status,
     providers: storageProviders,
-    message: 'All storage providers operational',
-  })
+    message: configured.length ? 'Storage connectivity checked' : 'No storage provider configured',
+  }, { status: status === 'down' ? 503 : 200 })
 }

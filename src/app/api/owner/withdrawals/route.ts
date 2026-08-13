@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { db } from '@/db'
 import { users, ownerBankAccounts, withdrawals } from '@/db/schema'
 import { requireSession } from '@/lib/auth'
+import { validateMutationCsrf } from '@/lib/api-auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 import { eq, desc, and, sql } from 'drizzle-orm'
 import { createWithdrawalSchema } from '@/lib/zod'
@@ -9,6 +10,8 @@ import { logError } from '@/lib/logger'
 
 export async function POST(req: NextRequest) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession(['owner'] as any)
     const body = createWithdrawalSchema.parse(await req.json())
 

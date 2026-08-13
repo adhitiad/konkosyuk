@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { favorites } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { requireSession } from '@/lib/auth'
+import { validateMutationCsrf } from '@/lib/api-auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 
 export async function DELETE(
@@ -10,6 +11,8 @@ export async function DELETE(
   { params }: { params: Promise<{ propertyId: string }> },
 ) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession()
     const { propertyId } = await params
 

@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { requireSession } from '@/lib/auth'
+import { validateMutationCsrf } from '@/lib/api-auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 import { z } from 'zod'
 
@@ -17,6 +18,8 @@ const updateProfileSchema = z.object({
 
 export async function PATCH(req: NextRequest) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession()
     const body = updateProfileSchema.parse(await req.json())
 

@@ -9,6 +9,7 @@ import { Camera01Icon, Delete01Icon, Upload01Icon, InformationCircleIcon } from 
 import { HugeiconsIcon } from '@hugeicons/react'
 import { showToastSuccess, showToastError } from '@/lib/use-toast-custom'
 import { apiClient } from '@/lib/axios'
+import { csrfFetch } from '@/lib/axios'
 
 export function KYCUploadForm({ onSuccess }: { onSuccess?: () => void }) {
   const [ktpNumber, setKtpNumber] = useState('')
@@ -39,7 +40,7 @@ export function KYCUploadForm({ onSuccess }: { onSuccess?: () => void }) {
       formData.append('file', file)
       formData.append('type', 'ktp')
 
-      const res = await fetch('/api/upload', {
+      const res = await csrfFetch('/api/upload', {
         method: 'POST',
         body: formData,
       })

@@ -15,6 +15,9 @@ export interface RateLimitDeviceInput {
   deviceName?: string
 }
 
+import type { NextRequest } from 'next/server'
+import { getDeviceInfoFromRequest } from '@/lib/device'
+
 import { getRedis } from '@/lib/redis'
 
 export function rateLimit(
@@ -61,3 +64,16 @@ export const adminRateLimit = rateLimit({
   max: 20,
   key: "admin",
 })
+
+export async function enforceRateLimit(
+  req: NextRequest,
+  limiter: (input: RateLimitDeviceInput) => Promise<RateLimitResult>,
+) {
+  const result = await limiter(getDeviceInfoFromRequest(req))
+  if (result.success) return null
+
+  return Response.json(
+    { success: false, error: 'Too many requests. Please try again later.' },
+    { status: 429, headers: { 'Retry-After': Math.ceil((result.resetAt.getTime() - Date.now()) / 1000).toString() } },
+  )
+}

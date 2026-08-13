@@ -3,6 +3,8 @@ import { db } from '@/db'
 import { bookings, units, properties, payments, users } from '@/db/schema'
 import { eq, and, or, gte, lte, sql, desc, inArray } from 'drizzle-orm'
 import { requireSession } from '@/lib/auth'
+import { bookingRateLimit, enforceRateLimit } from '@/lib/rate-limit'
+import { validateMutationCsrf } from '@/lib/api-auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 import { createBookingSchema, bookingQuerySchema } from '@/lib/zod'
 import type { Role } from '@/lib/auth'
@@ -86,6 +88,10 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
+    const limited = await enforceRateLimit(req, bookingRateLimit)
+    if (limited) return limited
     const session = await requireSession(['cust'] as Role[])
     const body = createBookingSchema.parse(await req.json())
 

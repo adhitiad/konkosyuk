@@ -3,8 +3,12 @@ import { db } from '@/db'
 import { properties } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 
+export const revalidate = 3600
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://konkosyuk.com'
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://konkosyuk.com').replace(/\/+$/, '')
+  const locale = 'id'
+  const generatedAt = new Date()
 
   const activeProperties = await db
     .select({
@@ -15,21 +19,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .where(eq(properties.status, 'aktif'))
 
   const propertyUrls = activeProperties.map((property) => ({
-    url: `${baseUrl}/properties/${property.id}`,
+    url: `${baseUrl}/${locale}/properties/${property.id}`,
     lastModified: property.updatedAt,
     changeFrequency: 'weekly' as const,
   }))
 
   return [
     {
-      url: baseUrl,
-      lastModified: new Date(),
+      url: `${baseUrl}/${locale}`,
+      lastModified: generatedAt,
       changeFrequency: 'daily',
       priority: 1,
     },
     {
-      url: `${baseUrl}/properties`,
-      lastModified: new Date(),
+      url: `${baseUrl}/${locale}/properties`,
+      lastModified: generatedAt,
       changeFrequency: 'daily',
       priority: 0.9,
     },

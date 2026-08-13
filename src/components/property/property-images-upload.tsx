@@ -7,6 +7,7 @@ import { toast } from "@/components/ui/toast";
 import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { csrfFetch } from "@/lib/axios";
 
 interface PropertyImagesUploadProps {
   initialImages?: string[];
@@ -86,7 +87,7 @@ export function PropertyImagesUpload({
           formData.append("file", file);
           formData.append("type", "property");
 
-          const response = await fetch("/api/upload", {
+          const response = await csrfFetch("/api/upload", {
             method: "POST",
             body: formData,
           });

@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { uploadFile } from '@/lib/storage-manager'
 import { requireSession } from '@/lib/auth'
 import { handleApiError } from '@/lib/api'
+import { validateMutationCsrf } from '@/lib/api-auth'
 
 const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp'])
 const maxFileSize = 5 * 1024 * 1024
 
 export async function POST(req: NextRequest) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession()
     const formData = await req.formData()
     const file = formData.get('file') as File | null

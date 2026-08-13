@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { reviews, users, properties } from '@/db/schema'
 import { eq, and, desc, sql } from 'drizzle-orm'
 import { requireSession } from '@/lib/auth'
+import { validateMutationCsrf } from '@/lib/api-auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 
 export async function GET(
@@ -10,6 +11,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession()
     const { id } = await params
 

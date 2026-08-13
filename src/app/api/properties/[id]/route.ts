@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { properties, bookings } from '@/db/schema'
 import { eq, and, or, sql } from 'drizzle-orm'
 import { requireSession } from '@/lib/auth'
+import { validateMutationCsrf } from '@/lib/api-auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 import { updatePropertySchema } from '@/lib/zod'
 import type { Role } from '@/lib/auth'
@@ -99,6 +100,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession(['owner', 'staff', 'admin'] as Role[])
     const { id: propertyId } = await params
     const body = updatePropertySchema.parse(await req.json())
@@ -150,6 +153,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession(['owner', 'staff', 'admin'] as Role[])
     const { id: propertyId } = await params
 

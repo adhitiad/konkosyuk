@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { maintenanceTickets, units, properties } from '@/db/schema'
 import { eq, and, desc, sql } from 'drizzle-orm'
 import { requireSession } from '@/lib/auth'
+import { validateMutationCsrf } from '@/lib/api-auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 import { z } from 'zod'
 
@@ -61,6 +62,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession(['owner', 'admin'] as any[])
     const { id } = await params
     const body = updateTicketSchema.parse(await req.json())

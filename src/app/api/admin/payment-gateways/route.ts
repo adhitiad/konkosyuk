@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/db'
 import { paymentGatewayConfigs } from '@/db/schema'
 import { eq } from 'drizzle-orm'
+import { validateAdminOnlyRequest } from '@/lib/api-auth'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
-import { withAdminRateLimit } from '@/lib/admin-rate-limit'
-import { validateCsrfToken } from '@/lib/csrf'
 import { ok, fail, handleApiError } from '@/lib/api'
 import { z } from 'zod'
 import { createAuditLog } from '@/lib/audit-log'
@@ -80,18 +79,9 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() })
-    if (!session || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
-    const rateLimitResult = await withAdminRateLimit(req)
-    if (rateLimitResult) return rateLimitResult
-
-    const csrfResult = validateCsrfToken(req)
-    if (!csrfResult.success) {
-      return csrfResult.error as NextResponse
-    }
+    const authResult = await validateAdminOnlyRequest(req)
+    if (authResult instanceof Response) return authResult
+    const { session } = authResult
 
     const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
     const userAgent = req.headers.get('user-agent') || 'unknown'
@@ -159,18 +149,9 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() })
-    if (!session || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
-    const rateLimitResult = await withAdminRateLimit(req)
-    if (rateLimitResult) return rateLimitResult
-
-    const csrfResult = validateCsrfToken(req)
-    if (!csrfResult.success) {
-      return csrfResult.error as NextResponse
-    }
+    const authResult = await validateAdminOnlyRequest(req)
+    if (authResult instanceof Response) return authResult
+    const { session } = authResult
 
     const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
     const userAgent = req.headers.get('user-agent') || 'unknown'

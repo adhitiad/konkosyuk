@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { db } from '@/db'
 import { maintenanceReports, notifications, properties, users } from '@/db/schema'
 import { requireSession, type Role } from '@/lib/auth'
+import { validateMutationCsrf } from '@/lib/api-auth'
 import { fail, handleApiError, ok } from '@/lib/api'
 import { sendMaintenanceReportUpdatedEmail } from '@/lib/notifications/email'
 import { sendMaintenanceWhatsApp } from '@/lib/notifications/whatsapp'
@@ -15,6 +16,8 @@ const updateSchema = z.object({
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession(['owner', 'admin'] as Role[])
     const { id } = await params
     const body = updateSchema.parse(await req.json())

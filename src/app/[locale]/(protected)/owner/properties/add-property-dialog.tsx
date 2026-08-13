@@ -33,6 +33,7 @@ const PropertyMapPicker = dynamic(() => import('@/components/property/map-picker
 });
 import PackageForm from '@/components/owner/package-form';
 import type { PropertyPackages } from '@/lib/types/property-packages';
+import { csrfFetch } from '@/lib/axios';
 
 const propertyTypeOptions = [
   { value: 'kost', label: 'Kost' },
@@ -127,7 +128,7 @@ export default function AddPropertyDialog() {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/owner/properties', {
+      const res = await csrfFetch('/api/owner/properties', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(result.data),

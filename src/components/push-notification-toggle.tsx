@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useSession } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
+import { csrfFetch } from "@/lib/axios"
 
 function urlBase64ToUint8Array(value: string) {
   const padding = "=".repeat((4 - (value.length % 4)) % 4)
@@ -33,7 +34,7 @@ export function PushNotificationToggle() {
         applicationServerKey: urlBase64ToUint8Array(publicKey),
       })
       const json = subscription.toJSON()
-      const response = await fetch("/api/push/subscribe", {
+      const response = await csrfFetch("/api/push/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

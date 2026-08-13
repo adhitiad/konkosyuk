@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { requireSession } from '@/lib/auth'
+import { validateMutationCsrf } from '@/lib/api-auth'
 import { db } from '@/db'
 import { pushSubscriptions } from '@/db/schema'
 import { z } from 'zod'
@@ -11,8 +12,10 @@ const subscriptionSchema = z.object({
   auth: z.string().min(1).max(512),
 })
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession()
     const { endpoint, p256dh, auth } = subscriptionSchema.parse(await req.json())
 

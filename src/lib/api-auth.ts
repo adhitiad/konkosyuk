@@ -5,6 +5,11 @@ import { validateCsrfToken, getCsrfToken } from '@/lib/csrf'
 import { withAdminRateLimit } from '@/lib/admin-rate-limit'
 import { createAuditLog } from '@/lib/audit-log'
 
+export function validateMutationCsrf(req: NextRequest) {
+  const result = validateCsrfToken(req)
+  return result.success ? null : result.error as NextResponse
+}
+
 export async function requireSession(allowedRoles?: string[]) {
   const session = await auth.api.getSession({
     headers: await headers(),

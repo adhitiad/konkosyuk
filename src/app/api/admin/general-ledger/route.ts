@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { generalLedger, chartOfAccounts } from '@/db/schema'
 import { eq, desc, between, sql, and } from 'drizzle-orm'
 import { requireSession } from '@/lib/auth'
+import { validateAdminOnlyRequest } from '@/lib/api-auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 import type { Role } from '@/lib/auth'
 import { z } from 'zod'
@@ -83,7 +84,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requireSession(['admin'] as Role[])
+    const authResult = await validateAdminOnlyRequest(req)
+    if (authResult instanceof Response) return authResult
+    const { session } = authResult
     const body = createLedgerEntrySchema.parse(await req.json())
 
     const [account] = await db

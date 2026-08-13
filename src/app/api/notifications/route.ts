@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { notifications } from '@/db/schema'
 import { and, eq, desc } from 'drizzle-orm'
 import { requireSession } from '@/lib/auth'
+import { validateMutationCsrf } from '@/lib/api-auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 
 export async function GET(req: NextRequest) {
@@ -24,6 +25,8 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession()
     const body = await req.json()
     const { notificationId } = body

@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { db } from '@/db'
 import { bookings, maintenanceReports, notifications, properties, units, users, maintenanceReportCategory, maintenanceReportStatus } from '@/db/schema'
 import { requireSession, type Role } from '@/lib/auth'
+import { validateMutationCsrf } from '@/lib/api-auth'
 import { fail, handleApiError, ok } from '@/lib/api'
 import { sendMaintenanceReportCreatedEmail } from '@/lib/notifications/email'
 import { sendMaintenanceWhatsApp } from '@/lib/notifications/whatsapp'
@@ -18,6 +19,8 @@ const createReportSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
     const session = await requireSession(['cust'] as Role[])
     const body = createReportSchema.parse(await req.json())
     const now = new Date()

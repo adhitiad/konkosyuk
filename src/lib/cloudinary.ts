@@ -31,3 +31,10 @@ export async function uploadToCloudinary(
     uploadStream.end(fileBuffer)
   })
 }
+
+export async function checkCloudinaryConnection(): Promise<void> {
+  if (!env.CLOUDINARY_CLOUD_NAME || !env.CLOUDINARY_API_KEY || !env.CLOUDINARY_API_SECRET) {
+    throw new Error('Cloudinary credentials are not configured')
+  }
+  await cloudinary.api.ping()
+}

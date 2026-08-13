@@ -3,6 +3,8 @@ import { db } from '@/db'
 import { bookingRequests, units, properties, bookings, payments, users, notifications } from '@/db/schema'
 import { eq, and, desc, or } from 'drizzle-orm'
 import { requireSession } from '@/lib/auth'
+import { validateMutationCsrf } from '@/lib/api-auth'
+import { bookingRateLimit, enforceRateLimit } from '@/lib/rate-limit'
 import { ok, fail, handleApiError } from '@/lib/api'
 import { z } from 'zod'
 import type { Role } from '@/lib/auth'
@@ -23,6 +25,10 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const csrfError = validateMutationCsrf(req)
+    if (csrfError) return csrfError
+    const limited = await enforceRateLimit(req, bookingRateLimit)
+    if (limited) return limited
     const session = await requireSession(['owner'] as Role[])
     const body = reviewBookingRequestSchema.parse(await req.json())
     const { id: requestId } = await params
