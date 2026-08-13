@@ -33,13 +33,14 @@ export default function NotificationBell() {
     if (!session?.user?.id) return
     const source = new EventSource('/api/notifications/stream')
     eventSourceRef.current = source
-    source.onmessage = (event) => {
+    const handleNotification = (event: MessageEvent<string>) => {
       try {
         const notification = JSON.parse(event.data) as Notification
         queryClient.setQueryData(['notifications'], (old: { data?: { data?: Notification[] } } | undefined) => ({ data: { data: [notification, ...(old?.data?.data ?? [])] } }))
       } catch { /* Ignore malformed events. */ }
     }
-    return () => { source.close(); eventSourceRef.current = null }
+    source.addEventListener('notification', handleNotification)
+    return () => { source.removeEventListener('notification', handleNotification); source.close(); eventSourceRef.current = null }
   }, [session?.user?.id, queryClient])
 
   if (!mounted || !session) return null

@@ -9,6 +9,14 @@ export const routing = defineRouting({
   localePrefix: "always",
 });
 
+// Keep the proxy limited to locale-aware UI requests. API handlers, metadata,
+// service workers, and static assets must execute in their native runtimes.
+export const config = {
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|sw.js|.*\\..*).*)',
+  ],
+};
+
 const intlMiddleware = createMiddleware(routing);
 
 export async function proxy(request: NextRequest) {
