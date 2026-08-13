@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { db } from '@/db'
 import { notifications } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { requireSession } from '@/lib/auth'
 import { ok, fail, handleApiError } from '@/lib/api'
 
@@ -16,7 +16,7 @@ export async function PATCH(
     await db
       .update(notifications)
       .set({ isRead: true })
-      .where(eq(notifications.id, id))
+      .where(and(eq(notifications.id, id), eq(notifications.userId, session.user.id)))
 
     return ok({ success: true })
   } catch (error) {

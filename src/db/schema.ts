@@ -6,6 +6,7 @@ import {
   jsonb,
   boolean,
   index,
+  uniqueIndex,
   unique,
   numeric,
   integer,
@@ -585,7 +586,7 @@ export const pushSubscriptions = pgTable(
   },
   (table) => ({
     userIdIdx: index("push_subscriptions_user_id_idx").on(table.userId),
-    endpointIdx: index("push_subscriptions_endpoint_idx").on(table.endpoint),
+    endpointIdx: uniqueIndex("push_subscriptions_endpoint_idx").on(table.endpoint),
   }),
 );
 

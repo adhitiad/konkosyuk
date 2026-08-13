@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   creator: 'KonkosYuk Team',
   publisher: 'KonkosYuk',
   formatDetection: { email: false, telephone: false },
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
   openGraph: {
     type: 'website',
     locale: 'id_ID',

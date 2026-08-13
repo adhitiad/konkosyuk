@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@/lib/auth-client';
@@ -26,7 +27,10 @@ import { BreadcrumbNav } from '@/components/ui/breadcrumb-nav';
 import { toast } from '@/components/ui/toast';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { PropertyImagesUpload } from '@/components/property/property-images-upload';
-import PropertyMapPicker from '@/components/property/map-picker';
+const PropertyMapPicker = dynamic(() => import('@/components/property/map-picker'), {
+  ssr: false,
+  loading: () => <div className="h-[320px] animate-pulse rounded-lg border bg-muted" />,
+});
 import PackageForm from '@/components/owner/package-form';
 import type { PropertyPackages } from '@/lib/types/property-packages';
 

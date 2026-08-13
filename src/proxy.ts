@@ -51,6 +51,16 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Service workers must be served directly. A redirect (for example, to a
+  // locale-prefixed URL) is forbidden when registering a service worker.
+  if (path === "/sw.js") {
+    return NextResponse.next();
+  }
+
+  if (path.endsWith("/manifest.webmanifest") || path === "/manifest.webmanifest") {
+    return NextResponse.next();
+  }
+
   // Skip static assets from internationalization
   const staticAssetExtensions = [
     ".svg",
@@ -65,6 +75,7 @@ export async function proxy(request: NextRequest) {
     ".ttf",
     ".eot",
     ".geojson",
+    ".js",
   ];
   if (staticAssetExtensions.some((ext) => path.endsWith(ext))) {
     return NextResponse.next();

@@ -4,6 +4,7 @@ import { useSession, signOut } from "@/lib/auth-client";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import NotificationBell from "@/components/notification-bell";
+import { PushNotificationToggle } from "@/components/push-notification-toggle";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +50,7 @@ export function AppNavbar() {
         <ThemeSwitcher />
         <LanguageSwitcher />
         <NotificationBell />
+        <PushNotificationToggle />
         <DropdownMenu>
           <Button render={<DropdownMenuTrigger />} variant="ghost" className="relative h-9 w-9 rounded-full">
             <Avatar className="h-9 w-9">

@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { usePaymentPolling } from '@/hooks/use-payment-polling'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,7 +11,7 @@ import Link from 'next/link'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { AlertCircleIcon, CheckmarkCircle02Icon, Clock01Icon } from '@hugeicons/core-free-icons'
 
-export default function PaymentResultPage() {
+function PaymentResultContent() {
   const searchParams = useSearchParams()
   const provider = searchParams.get('provider')
   const invoiceNumber = searchParams.get('bookingId')
@@ -126,5 +127,13 @@ export default function PaymentResultPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function PaymentResultPage() {
+  return (
+    <Suspense fallback={<div className="container py-12 text-center">Memuat...</div>}>
+      <PaymentResultContent />
+    </Suspense>
   )
 }
