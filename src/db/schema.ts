@@ -883,6 +883,19 @@ export const paymentGatewayConfigs = pgTable("payment_gateway_configs", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const paymentGatewayCredentials = pgTable("payment_gateway_credentials", {
+  id: text("id").primaryKey(),
+  gatewayId: text("gateway_id")
+    .notNull()
+    .references(() => paymentGatewayConfigs.id, { onDelete: "cascade" })
+    .unique(),
+  encryptedConfig: jsonb("encrypted_config")
+    .$type<Record<string, unknown>>()
+    .notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+});
+
 export const paymentTransactions = pgTable("payment_transactions", {
   id: text("id").primaryKey(),
   invoiceNumber: text("invoice_number").notNull().unique(),
@@ -932,10 +945,21 @@ export const generalLedger = pgTable("general_ledger", {
 
 export const paymentGatewayConfigsRelations = relations(
   paymentGatewayConfigs,
-  ({ many }) => ({
+  ({ one, many }) => ({
+    credentials: one(paymentGatewayCredentials, {
+      fields: [paymentGatewayConfigs.id],
+      references: [paymentGatewayCredentials.gatewayId],
+    }),
     transactions: many(paymentTransactions),
   }),
 );
+
+export const paymentGatewayCredentialsRelations = relations(paymentGatewayCredentials, ({ one }) => ({
+  gateway: one(paymentGatewayConfigs, {
+    fields: [paymentGatewayCredentials.gatewayId],
+    references: [paymentGatewayConfigs.id],
+  }),
+}));
 
 export const paymentTransactionsRelations = relations(
   paymentTransactions,

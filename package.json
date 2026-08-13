@@ -14,6 +14,8 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed.ts",
+    "db:encrypt-payment-secrets": "tsx scripts/encrypt-payment-gateway-configs.ts",
+    "db:baseline": "tsx scripts/baseline-drizzle.ts",
     "cron:cleanup": "CRON_SECRET=$CRON_SECRET tsx src/scripts/run-cron.ts"
   },
   "dependencies": {
@@ -73,7 +75,7 @@
     "@vitejs/plugin-react": "^6.0.5",
     "@vitest/ui": "^4.1.10",
     "drizzle-kit": "^0.31.10",
-    "eslint": "^9",
+    "eslint": "^10.8.1",
     "eslint-config-next": "16.3.0",
     "jsdom": "^30.0.1",
     "tailwindcss": "^4",

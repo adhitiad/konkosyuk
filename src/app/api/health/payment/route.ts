@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { env } from '@/lib/env'
 import { monitor } from '@/lib/monitoring'
+import { getDokuConfig, getNicepayConfig, getIpaymuConfig } from '@/lib/payments/config'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,10 +28,16 @@ async function probeGateway(name: string, baseUrl: string | undefined) {
 }
 
 export async function GET() {
+  const [dokuConfig, nicepayConfig, ipaymuConfig] = await Promise.all([
+    getDokuConfig(),
+    getNicepayConfig(),
+    getIpaymuConfig(),
+  ])
+
   const providers = await Promise.all([
-    monitor('health.payment.doku', () => probeGateway('Doku', env.DOKU_BASE_URL)),
-    monitor('health.payment.ipaymu', () => probeGateway('iPaymu', env.IPAYMU_BASE_URL)),
-    monitor('health.payment.nicepay', () => probeGateway('NicePay', env.NICEPAY_BASE_URL)),
+    monitor('health.payment.doku', () => probeGateway('Doku', String(dokuConfig.baseUrl ?? ''))),
+    monitor('health.payment.ipaymu', () => probeGateway('iPaymu', String(ipaymuConfig.baseUrl ?? ''))),
+    monitor('health.payment.nicepay', () => probeGateway('NicePay', String(nicepayConfig.baseUrl ?? ''))),
   ])
   const configured = providers.filter((provider) => provider.status !== 'not_configured')
   const status = configured.some((provider) => provider.status === 'down')

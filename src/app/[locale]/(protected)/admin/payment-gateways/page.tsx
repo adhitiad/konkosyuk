@@ -197,7 +197,7 @@ function AdminPaymentGatewaysPage() {
   };
 
   const handleSave = () => {
-    if (!formConfig.clientId || !formConfig.secretKey) {
+    if (!formConfig.clientId || ((!editTarget || editTarget.id === "new") && !formConfig.secretKey)) {
       toast({
         title: "Gagal",
         description: "Client ID dan Secret Key wajib diisi.",

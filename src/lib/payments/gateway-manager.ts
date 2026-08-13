@@ -1,5 +1,6 @@
 import type { PaymentGatewayConfig } from "@/db/schema"
 import { getAxiosInstance } from "@/lib/api"
+import { decryptPaymentConfig } from '@/lib/payment-config-crypto'
 
 export type GatewayProvider = "doku" | "ipaymu" | "nicepay"
 
@@ -93,12 +94,13 @@ export class PaymentGatewayError extends Error {
 }
 
 function resolveConfig(config: PaymentGatewayConfig): GatewayConfig {
+  const values = decryptPaymentConfig(config.config)
   return {
-    clientId: (config.config?.clientId as string | undefined) ?? undefined,
-    secretKey: (config.config?.secretKey as string | undefined) ?? undefined,
-    webhookSecret: (config.config?.webhookSecret as string | undefined) ?? undefined,
-    merchantCode: (config.config?.merchantCode as string | undefined) ?? undefined,
-    baseUrl: (config.config?.baseUrl as string | undefined) ?? undefined,
+    clientId: (values.clientId as string | undefined) ?? undefined,
+    secretKey: (values.secretKey as string | undefined) ?? undefined,
+    webhookSecret: (values.webhookSecret as string | undefined) ?? undefined,
+    merchantCode: (values.merchantCode as string | undefined) ?? undefined,
+    baseUrl: (values.baseUrl as string | undefined) ?? undefined,
   }
 }
 

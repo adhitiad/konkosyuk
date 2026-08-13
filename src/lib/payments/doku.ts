@@ -8,40 +8,50 @@ import type {
   NormalizedWebhook,
   PaymentProviderAdapter,
 } from './types'
-import { env } from '@/lib/env'
 import type { WebhookPaymentStatus } from './types'
+import { getDokuConfig } from './config'
 
 function toIntegerAmount(amount: number): number {
   return Math.round(amount)
 }
 
+async function getConfig() {
+  const config = await getDokuConfig()
+  return {
+    baseUrl: String(config.baseUrl ?? ''),
+    clientId: String(config.clientId ?? ''),
+    secretKey: String(config.secretKey ?? ''),
+    webhookSecret: config.webhookSecret ? String(config.webhookSecret) : '',
+  }
+}
+
 export const dokuAdapter: PaymentProviderAdapter = {
   async createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult> {
-    const baseUrl = env.DOKU_BASE_URL
-    if (!baseUrl || !env.DOKU_CLIENT_ID || !env.DOKU_SECRET_KEY) {
+    const { baseUrl, clientId, secretKey } = await getConfig()
+    if (!baseUrl || !clientId || !secretKey) {
       throw new Error('Doku credentials not configured')
     }
 
     const invoiceNumber = input.bookingId
     const integerAmount = toIntegerAmount(input.amount)
     const signature = generateSha256Signature(
-      `${env.DOKU_CLIENT_ID}${invoiceNumber}${integerAmount}${env.DOKU_SECRET_KEY}`,
-      env.DOKU_SECRET_KEY,
+      `${clientId}${invoiceNumber}${integerAmount}${secretKey}`,
+      secretKey,
     )
 
     const response = await axios.post(`${baseUrl}/api/v1/payment/create`, {
-        clientId: env.DOKU_CLIENT_ID,
+        clientId,
         invoiceNumber,
         amount: integerAmount,
         customerName: input.metadata?.customerName ?? 'Customer',
         email: input.metadata?.email ?? '',
-        callbackUrl: `${env.NEXT_PUBLIC_APP_URL1}/api/webhooks/doku`,
-        returnUrl: `${env.NEXT_PUBLIC_APP_URL1}/payment/result?provider=doku&bookingId=${invoiceNumber}`,
+        callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL1 || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhooks/doku`,
+        returnUrl: `${process.env.NEXT_PUBLIC_APP_URL1 || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/payment/result?provider=doku&bookingId=${invoiceNumber}`,
         expiredIn: input.expiresIn ? String(input.expiresIn) : undefined,
       }, {
         headers: {
           'Content-Type': 'application/json',
-          'X-Doku-Client-Id': env.DOKU_CLIENT_ID,
+          'X-Doku-Client-Id': clientId,
           'X-Doku-Signature': signature,
         },
       })
@@ -64,20 +74,20 @@ export const dokuAdapter: PaymentProviderAdapter = {
   },
 
   async getPaymentStatus(transactionId: string): Promise<WebhookPaymentStatus> {
-    const baseUrl = env.DOKU_BASE_URL
-    if (!baseUrl || !env.DOKU_CLIENT_ID || !env.DOKU_SECRET_KEY) {
+    const { baseUrl, clientId, secretKey } = await getConfig()
+    if (!baseUrl || !clientId || !secretKey) {
       throw new Error('Doku credentials not configured')
     }
 
     const signature = generateSha256Signature(
-      `${env.DOKU_CLIENT_ID}${transactionId}${env.DOKU_SECRET_KEY}`,
-      env.DOKU_SECRET_KEY,
+      `${clientId}${transactionId}${secretKey}`,
+      secretKey,
     )
 
     const response = await axios.get(`${baseUrl}/api/v1/payment/${encodeURIComponent(transactionId)}`, {
       headers: {
         'Content-Type': 'application/json',
-        'X-Doku-Client-Id': env.DOKU_CLIENT_ID,
+        'X-Doku-Client-Id': clientId,
         'X-Doku-Signature': signature,
       },
     })
@@ -93,11 +103,11 @@ export const dokuAdapter: PaymentProviderAdapter = {
   },
 
   async verifyWebhookSignature(context: WebhookContext): Promise<boolean> {
-    const secret = env.DOKU_WEBHOOK_SECRET
-    if (!secret) return false
+    const { webhookSecret } = await getConfig()
+    if (!webhookSecret) return false
 
     const signature = context.headers.get('x-doku-signature')
-    return verifySignature(context.rawBody, signature, secret)
+    return verifySignature(context.rawBody, signature, webhookSecret)
   },
 
   async normalizeWebhook(context: WebhookContext): Promise<NormalizedWebhook> {

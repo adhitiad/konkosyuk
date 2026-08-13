@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/db'
-import { paymentGatewayConfigs } from '@/db/schema'
+import { paymentGatewayConfigs, paymentGatewayCredentials } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { validateAdminOnlyRequest } from '@/lib/api-auth'
 import { auth } from '@/lib/auth'
@@ -8,6 +8,7 @@ import { headers } from 'next/headers'
 import { ok, fail, handleApiError } from '@/lib/api'
 import { z } from 'zod'
 import { createAuditLog } from '@/lib/audit-log'
+import { decryptPaymentConfig, encryptPaymentConfig, mergePaymentConfig, sanitizePaymentConfig, splitPaymentConfig } from '@/lib/payment-config-crypto'
 
 const dokuConfigSchema = z.object({
   merchantCode: z.string().min(1, 'Merchant code wajib diisi'),
@@ -39,20 +40,6 @@ const upsertGatewaySchema = z.object({
   config: z.record(z.string(), z.any()),
   environment: z.enum(['sandbox', 'production']).default('sandbox'),
   isActive: z.boolean().default(false),
-}).superRefine((data, ctx) => {
-  const schema = providerConfigSchemas[data.provider]
-  if (!schema) return
-
-  const result = schema.safeParse(data.config)
-  if (!result.success) {
-    result.error.issues.forEach((issue) => {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['config', issue.path.join('.')],
-        message: issue.message,
-      })
-    })
-  }
 })
 
 export async function GET() {
@@ -62,15 +49,23 @@ export async function GET() {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const data = await db.select().from(paymentGatewayConfigs)
-    const sanitized = data.map((config) => ({
+    const [data, credentials] = await Promise.all([
+      db.select().from(paymentGatewayConfigs),
+      db.select().from(paymentGatewayCredentials),
+    ])
+    const credentialByGateway = new Map(credentials.map((credential) => [credential.gatewayId, credential]))
+    const sanitized = data.map((config) => {
+      const legacyConfig = decryptPaymentConfig(config.config)
+      const credential = credentialByGateway.get(config.id)
+      const secretConfig = credential ? decryptPaymentConfig(credential.encryptedConfig) : legacyConfig
+      const merged = { ...legacyConfig, ...secretConfig }
+      return ({
       ...config,
-      config: {
-        ...config.config,
-        secretKey: config.config.secretKey ? '••••••••' : undefined,
-        webhookSecret: config.config.webhookSecret ? '••••••••' : undefined,
-      },
-    }))
+        config: {
+          ...sanitizePaymentConfig(merged),
+        },
+      })
+    })
     return ok({ data: sanitized })
   } catch (error) {
     return handleApiError(error, 'GET /api/admin/payment-gateways')
@@ -96,36 +91,48 @@ export async function POST(req: NextRequest) {
       .where(eq(paymentGatewayConfigs.id, body.provider))
       .limit(1)
 
-    const mergedConfig = existing
-      ? { ...(existing.config as Record<string, unknown>), ...providerConfig }
-      : providerConfig
+    const [existingCredential] = await db
+      .select()
+      .from(paymentGatewayCredentials)
+      .where(eq(paymentGatewayCredentials.gatewayId, body.provider))
+      .limit(1)
 
-    const [config] = await db
-      .insert(paymentGatewayConfigs)
-      .values({
-        id: body.provider,
-        provider: body.provider,
-        config: mergedConfig,
-        environment: body.environment,
-        isActive: body.isActive,
-      })
-      .onConflictDoUpdate({
-        target: paymentGatewayConfigs.id,
-        set: {
-          config: mergedConfig,
+    const legacyConfig = existing ? decryptPaymentConfig(existing.config) : {}
+    const existingSecrets = existingCredential ? decryptPaymentConfig(existingCredential.encryptedConfig) : {}
+    const existingConfig = { ...legacyConfig, ...existingSecrets }
+    const mergedConfig = mergePaymentConfig(existingConfig, providerConfig)
+    const validation = providerConfigSchemas[body.provider].safeParse(mergedConfig)
+    if (!validation.success) return fail(validation.error.issues[0]?.message ?? 'Invalid gateway configuration', 400)
+    const { publicConfig, secretConfig } = splitPaymentConfig(mergedConfig)
+    const encryptedSecretConfig = encryptPaymentConfig(secretConfig)
+
+    const [config] = await db.transaction(async (tx) => {
+      const [savedConfig] = await tx
+        .insert(paymentGatewayConfigs)
+        .values({
+          id: body.provider,
+          provider: body.provider,
+          config: publicConfig,
           environment: body.environment,
           isActive: body.isActive,
-          updatedAt: new Date(),
-        },
-      })
-      .returning()
+        })
+        .onConflictDoUpdate({
+          target: paymentGatewayConfigs.id,
+          set: { config: publicConfig, environment: body.environment, isActive: body.isActive, updatedAt: new Date() },
+        })
+        .returning()
+
+      await tx
+        .insert(paymentGatewayCredentials)
+        .values({ id: existingCredential?.id ?? crypto.randomUUID(), gatewayId: body.provider, encryptedConfig: encryptedSecretConfig })
+        .onConflictDoUpdate({ target: paymentGatewayCredentials.gatewayId, set: { encryptedConfig: encryptedSecretConfig, updatedAt: new Date() } })
+      return [savedConfig]
+    })
 
     const safeConfig = {
       ...config,
       config: {
-        ...config.config,
-        secretKey: config.config.secretKey ? '••••••••' : undefined,
-        webhookSecret: config.config.webhookSecret ? '••••••••' : undefined,
+        ...sanitizePaymentConfig(mergedConfig),
       },
     }
 

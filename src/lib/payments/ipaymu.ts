@@ -8,8 +8,8 @@ import type {
   NormalizedWebhook,
   PaymentProviderAdapter,
 } from './types'
-import { env } from '@/lib/env'
 import type { WebhookPaymentStatus } from './types'
+import { getIpaymuConfig } from './config'
 
 function toIntegerAmount(amount: number): number {
   return Math.round(amount)
@@ -24,10 +24,20 @@ function buildIpaymuStringToSign(
   return `${userAgent}${va}${requestBody}${apiKey}`
 }
 
+async function getConfig() {
+  const config = await getIpaymuConfig()
+  return {
+    baseUrl: String(config.baseUrl ?? ''),
+    va: String(config.clientId ?? ''),
+    apiKey: String(config.secretKey ?? ''),
+    webhookSecret: config.webhookSecret ? String(config.webhookSecret) : '',
+  }
+}
+
 export const ipaymuAdapter: PaymentProviderAdapter = {
   async createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult> {
-    const baseUrl = env.IPAYMU_BASE_URL
-    if (!baseUrl || !env.IPAYMU_VA || !env.IPAYMU_API_KEY) {
+    const { baseUrl, va, apiKey } = await getConfig()
+    if (!baseUrl || !va || !apiKey) {
       throw new Error('iPaymu credentials not configured')
     }
 
@@ -35,10 +45,10 @@ export const ipaymuAdapter: PaymentProviderAdapter = {
     const integerAmount = toIntegerAmount(input.amount)
 
     const payload = {
-      va: env.IPAYMU_VA,
+      va,
       amount: integerAmount,
-      notifyUrl: `${env.NEXT_PUBLIC_APP_URL1}/api/webhooks/ipaymu`,
-      returnUrl: `${env.NEXT_PUBLIC_APP_URL1}/payment/result?provider=ipaymu&bookingId=${referenceId}`,
+      notifyUrl: `${process.env.NEXT_PUBLIC_APP_URL1 || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhooks/ipaymu`,
+      returnUrl: `${process.env.NEXT_PUBLIC_APP_URL1 || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/payment/result?provider=ipaymu&bookingId=${referenceId}`,
       referenceId,
       name: input.metadata?.customerName ?? 'Customer',
       phone: input.metadata?.phone ?? '',
@@ -48,13 +58,13 @@ export const ipaymuAdapter: PaymentProviderAdapter = {
 
     const requestBody = JSON.stringify(payload)
     const userAgent = 'KonkosYuk'
-    const stringToSign = buildIpaymuStringToSign(userAgent, env.IPAYMU_VA, requestBody, env.IPAYMU_API_KEY)
+    const stringToSign = buildIpaymuStringToSign(userAgent, va, requestBody, apiKey)
     const signature = generateMd5Signature(stringToSign)
 
     const response = await axios.post(`${baseUrl}/api/v2/transaction`, payload, {
       headers: {
         'Content-Type': 'application/json',
-        va: env.IPAYMU_VA,
+        va,
         signature,
         timestamp: new Date().toISOString(),
       },
@@ -78,25 +88,25 @@ export const ipaymuAdapter: PaymentProviderAdapter = {
   },
 
   async getPaymentStatus(transactionId: string): Promise<WebhookPaymentStatus> {
-    const baseUrl = env.IPAYMU_BASE_URL
-    if (!baseUrl || !env.IPAYMU_VA || !env.IPAYMU_API_KEY) {
+    const { baseUrl, va, apiKey } = await getConfig()
+    if (!baseUrl || !va || !apiKey) {
       throw new Error('iPaymu credentials not configured')
     }
 
     const payload = {
-      va: env.IPAYMU_VA,
+      va,
       transactionId,
     }
 
     const requestBody = JSON.stringify(payload)
     const userAgent = 'KonkosYuk'
-    const stringToSign = buildIpaymuStringToSign(userAgent, env.IPAYMU_VA, requestBody, env.IPAYMU_API_KEY)
+    const stringToSign = buildIpaymuStringToSign(userAgent, va, requestBody, apiKey)
     const signature = generateMd5Signature(stringToSign)
 
     const response = await axios.get(`${baseUrl}/api/v2/transaction/${encodeURIComponent(transactionId)}`, {
       headers: {
         'Content-Type': 'application/json',
-        va: env.IPAYMU_VA,
+        va,
         signature,
         timestamp: new Date().toISOString(),
       },
@@ -113,20 +123,19 @@ export const ipaymuAdapter: PaymentProviderAdapter = {
   },
 
   async verifyWebhookSignature(context: WebhookContext): Promise<boolean> {
-    const secret = env.IPAYMU_WEBHOOK_SECRET
-    if (!secret) return false
+    const { webhookSecret, va } = await getConfig()
+    if (!webhookSecret) return false
 
     const signature = context.headers.get('x-ipaymu-signature') ?? context.headers.get('signature')
     if (!signature) return false
 
-    const raw = JSON.parse(context.rawBody) as Record<string, unknown>
     const userAgent = context.headers.get('user-agent') ?? 'KonkosYuk'
     const requestBody = context.rawBody
     const stringToSign = buildIpaymuStringToSign(
       userAgent,
-      env.IPAYMU_VA ?? '',
+      va,
       requestBody,
-      secret,
+      webhookSecret,
     )
     const expectedSignature = generateMd5Signature(stringToSign)
 

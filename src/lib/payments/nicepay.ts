@@ -8,39 +8,49 @@ import type {
   NormalizedWebhook,
   PaymentProviderAdapter,
 } from './types'
-import { env } from '@/lib/env'
 import type { WebhookPaymentStatus } from './types'
+import { getNicepayConfig } from './config'
 
 function toIntegerAmount(amount: number): number {
   return Math.round(amount)
 }
 
+async function getConfig() {
+  const config = await getNicepayConfig()
+  return {
+    baseUrl: String(config.baseUrl ?? ''),
+    merchantId: String(config.clientId ?? ''),
+    merchantKey: String(config.secretKey ?? ''),
+    webhookSecret: config.webhookSecret ? String(config.webhookSecret) : '',
+  }
+}
+
 export const nicepayAdapter: PaymentProviderAdapter = {
   async createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult> {
-    const baseUrl = env.NICEPAY_BASE_URL
-    if (!baseUrl || !env.NICEPAY_MERCHANT_ID || !env.NICEPAY_MERCHANT_KEY) {
+    const { baseUrl, merchantId, merchantKey } = await getConfig()
+    if (!baseUrl || !merchantId || !merchantKey) {
       throw new Error('Nicepay credentials not configured')
     }
 
     const orderId = input.bookingId
     const integerAmount = toIntegerAmount(input.amount)
     const signature = generateSha256Signature(
-      `${env.NICEPAY_MERCHANT_ID}${orderId}${integerAmount}${env.NICEPAY_MERCHANT_KEY}`,
-      env.NICEPAY_MERCHANT_KEY,
+      `${merchantId}${orderId}${integerAmount}${merchantKey}`,
+      merchantKey,
     )
 
     const response = await axios.post(`${baseUrl}/api/v1/payment`, {
-        merchantId: env.NICEPAY_MERCHANT_ID,
+        merchantId,
         orderId,
         amount: integerAmount,
         paymentMethod: input.metadata?.paymentMethod as string | undefined,
-        callbackUrl: `${env.NEXT_PUBLIC_APP_URL1}/api/webhooks/nicepay`,
-        returnUrl: `${env.NEXT_PUBLIC_APP_URL1}/payment/result?provider=nicepay&bookingId=${orderId}`,
+        callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL1 || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhooks/nicepay`,
+        returnUrl: `${process.env.NEXT_PUBLIC_APP_URL1 || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/payment/result?provider=nicepay&bookingId=${orderId}`,
         expiredIn: input.expiresIn ? String(input.expiresIn) : undefined,
       }, {
         headers: {
           'Content-Type': 'application/json',
-          'X-Nicepay-Merchant-Id': env.NICEPAY_MERCHANT_ID,
+          'X-Nicepay-Merchant-Id': merchantId,
           'X-Nicepay-Signature': signature,
         },
       })
@@ -63,26 +73,23 @@ export const nicepayAdapter: PaymentProviderAdapter = {
   },
 
   async getPaymentStatus(transactionId: string): Promise<WebhookPaymentStatus> {
-    const baseUrl = env.NICEPAY_BASE_URL
-    if (!baseUrl || !env.NICEPAY_MERCHANT_ID || !env.NICEPAY_MERCHANT_KEY) {
+    const { baseUrl, merchantId, merchantKey } = await getConfig()
+    if (!baseUrl || !merchantId || !merchantKey) {
       throw new Error('Nicepay credentials not configured')
     }
 
     const signature = generateSha256Signature(
-      `${env.NICEPAY_MERCHANT_ID}${transactionId}${env.NICEPAY_MERCHANT_KEY}`,
-      env.NICEPAY_MERCHANT_KEY,
+      `${merchantId}${transactionId}${merchantKey}`,
+      merchantKey,
     )
 
-const response = await axios.get(
-      `${baseUrl}/api/v1/payment/${encodeURIComponent(transactionId)}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Nicepay-Merchant-Id': env.NICEPAY_MERCHANT_ID,
-          'X-Nicepay-Signature': signature,
-        },
-      }
-    )
+    const response = await axios.get(`${baseUrl}/api/v1/payment/${encodeURIComponent(transactionId)}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Nicepay-Merchant-Id': merchantId,
+        'X-Nicepay-Signature': signature,
+      },
+    })
 
     if (response.status >= 400) {
       throw new Error(`Nicepay status check failed: ${response.status}`)
@@ -95,26 +102,22 @@ const response = await axios.get(
   },
 
   async verifyWebhookSignature(context: WebhookContext): Promise<boolean> {
-    const secret = env.NICEPAY_WEBHOOK_SECRET
-    if (!secret) return false
+    const { webhookSecret } = await getConfig()
+    if (!webhookSecret) return false
 
     const signature = context.headers.get('x-nicepay-signature')
-    return verifySignature(context.rawBody, signature, secret)
+    return verifySignature(context.rawBody, signature, webhookSecret)
   },
 
   async normalizeWebhook(context: WebhookContext): Promise<NormalizedWebhook> {
     const raw = JSON.parse(context.rawBody) as Record<string, unknown>
-    const rawStatus = String(raw.status ?? raw.transaction_status ?? 'pending')
-    const status = normalizeGatewayStatus(rawStatus)
-
-    const isSuccessCode = rawStatus === '00' || rawStatus === 'Success'
-    const normalizedStatus: WebhookPaymentStatus = isSuccessCode ? 'success' : status
+    const status = normalizeGatewayStatus(String(raw.status ?? raw.transaction_status ?? 'pending'))
 
     return {
       provider: 'nicepay',
       eventId: context.eventId ?? crypto.randomUUID(),
-      transactionId: String(raw.transaction_id ?? raw.orderId ?? raw.order_id ?? ''),
-      status: normalizedStatus,
+      transactionId: String(raw.transaction_id ?? raw.orderId ?? ''),
+      status,
       amount: typeof raw.amount === 'number' ? raw.amount : parseFloat(String(raw.amount ?? 0)),
       currency: String(raw.currency ?? 'IDR'),
       paidAt: raw.payment_time ? new Date(raw.payment_time as string) : undefined,
