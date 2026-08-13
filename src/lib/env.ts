@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+const optionalUrl = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  z.string().url().optional(),
+).catch(undefined);
+
 const envSchema = z.object({
   // Database Configuration
   DATABASE_URL: z.string().url(),
@@ -14,15 +19,15 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
 
   // Payment Gateway Configuration
-  DOKU_BASE_URL: z.string().url().optional(),
+  DOKU_BASE_URL: optionalUrl,
   DOKU_CLIENT_ID: z.string().optional(),
   DOKU_SECRET_KEY: z.string().optional(),
   DOKU_WEBHOOK_SECRET: z.string().optional(),
-  IPAYMU_BASE_URL: z.string().url().optional(),
+  IPAYMU_BASE_URL: optionalUrl,
   IPAYMU_VA: z.string().optional(),
   IPAYMU_API_KEY: z.string().optional(),
   IPAYMU_WEBHOOK_SECRET: z.string().optional(),
-  NICEPAY_BASE_URL: z.string().url().optional(),
+  NICEPAY_BASE_URL: optionalUrl,
   NICEPAY_MERCHANT_ID: z.string().optional(),
   NICEPAY_MERCHANT_KEY: z.string().optional(),
   NICEPAY_WEBHOOK_SECRET: z.string().optional(),
@@ -45,7 +50,7 @@ const envSchema = z.object({
   META_MAINTENANCE_UPDATED_TEMPLATE: z.string().default("maintenance_report_updated"),
 
   // Redis: prioritas Upstash -> Redis Cloud -> lokal
-  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+  UPSTASH_REDIS_REST_URL: optionalUrl,
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
   REDIS_CLOUD_URL: z.string().optional(),
   REDIS_URL: z.string().default("redis://localhost:6379"),
