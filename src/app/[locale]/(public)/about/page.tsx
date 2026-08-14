@@ -1,13 +1,13 @@
-import { StaticPageLayout } from '@/components/static-page-layout'
+import { StaticPageLayout } from "@/components/static-page-layout";
 
 export default function AboutPage() {
   return (
     <StaticPageLayout title="Tentang KonkosYuk">
       <p>
         KonkosYuk adalah platform digital yang menghubungkan pencari kost &
-        kontrakan dengan pemilik properti terpercaya di seluruh Indonesia.
-        Kami percaya bahwa mencari hunian tidak harus penuh drama, dan
-        meminjamkan properti bisa dilakukan dengan aman serta transparan.
+        kontrakan dengan pemilik properti terpercaya di seluruh Indonesia. Kami
+        percaya bahwa mencari hunian tidak harus penuh drama, dan meminjamkan
+        properti bisa dilakukan dengan aman serta transparan.
       </p>
 
       <h2>Misi Kami</h2>
@@ -19,13 +19,13 @@ export default function AboutPage() {
         </li>
         <li>
           <strong>Transparansi harga</strong> — Tidak ada biaya tersembunyi.
-          Semua paket harga, aturan pembayaran, dan ketentuan ditampilkan
-          secara jelas sebelum Anda melakukan booking.
+          Semua paket harga, aturan pembayaran, dan ketentuan ditampilkan secara
+          jelas sebelum Anda melakukan booking.
         </li>
         <li>
           <strong>Memudahkan Owner</strong> — Alat manajemen properti yang
-          sederhana sehingga owner bisa fokus menyiapkan hunian, bukan
-          ribet mengelola administrasi.
+          sederhana sehingga owner bisa fokus menyiapkan hunian, bukan ribet
+          mengelola administrasi.
         </li>
       </ul>
 
@@ -36,18 +36,17 @@ export default function AboutPage() {
       </p>
       <ul>
         <li>
-          <strong>Sistem DP 35%</strong> — Hanya cukup bayar 35% untuk
-          menjamin booking, dan pelunasan 65% dilakukan sebelum check-in.
-          Model ini mengurangi risiko bagi tenant sekaligus menjaga
-          komitmen pemilik properti.
+          <strong>Sistem DP 35%</strong> — Hanya cukup bayar 35% untuk menjamin
+          booking, dan pelunasan 65% dilakukan sebelum check-in. Model ini
+          mengurangi risiko bagi tenant sekaligus menjaga komitmen pemilik
+          properti.
         </li>
         <li>
-          <strong>Tenant Scoring</strong> — Setiap tenant mendapatkan skor
-          based on riwayat booking dan reputasi. Pemilik bisa melihat skor
-          ini untuk membantu memutuskan apakah huniannya cocok untuk calon
-          penyewa.
+          <strong>Tenant Scoring</strong> — Setiap tenant mendapatkan skor based
+          on riwayat booking dan reputasi. Pemilik bisa melihat skor ini untuk
+          membantu memutuskan apakah huniannya cocok untuk calon penyewa.
         </li>
       </ul>
     </StaticPageLayout>
-  )
+  );
 }

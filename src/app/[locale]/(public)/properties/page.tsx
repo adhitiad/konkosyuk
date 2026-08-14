@@ -1,63 +1,64 @@
-"use client"
+"use client";
 
-import { useQuery } from "@tanstack/react-query"
-import { useSearchParams, useRouter } from "next/navigation"
-import Link from "next/link"
-import { useState, useMemo, useEffect, useCallback } from "react"
-import dynamic from "next/dynamic"
-import { EmptyState } from "@/components/ui/empty-state"
-import { ErrorState } from "@/components/ui/error-state"
-import { SearchX } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { useQuery } from "@tanstack/react-query";
+import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/components/ui/error-state";
+import { SearchX } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Pagination } from "@/components/ui/pagination";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Card,
-  CardContent,
-} from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Badge } from "@/components/ui/badge"
-import { Pagination } from "@/components/ui/pagination"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { Search01Icon, MapsIcon, ViewAgendaIcon } from "@hugeicons/core-free-icons"
-import LocationFinder from "@/components/location-finder"
-import { PropertyCard } from "@/components/property-card"
+  Search01Icon,
+  MapsIcon,
+  ViewAgendaIcon,
+} from "@hugeicons/core-free-icons";
+import LocationFinder from "@/components/location-finder";
+import { PropertyCard } from "@/components/property-card";
 
-const MapView = dynamic(() => import("@/components/map-view"), { ssr: false })
+const MapView = dynamic(() => import("@/components/map-view"), { ssr: false });
 
 interface PropertyItem {
-  id: string
-  name: string
-  description: string | null
-  address: string
-  type: "kost" | "kontrakan"
-  metadata: Record<string, unknown>
-  images: string[]
-  basePrice: string | null
-  amenities: string[]
-  latitude?: number | null
-  longitude?: number | null
-  distance?: number | null
-  createdAt: string
-  updatedAt: string
+  id: string;
+  name: string;
+  description: string | null;
+  address: string;
+  type: "kost" | "kontrakan";
+  metadata: Record<string, unknown>;
+  images: string[];
+  basePrice: string | null;
+  amenities: string[];
+  latitude?: number | null;
+  longitude?: number | null;
+  distance?: number | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface PropertyMeta {
-  page: number
-  limit: number
-  total: number
-  totalPages: number
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
 }
 
 interface PropertyResponse {
-  data: PropertyItem[]
-  meta: PropertyMeta
+  data: PropertyItem[];
+  meta: PropertyMeta;
 }
 
 const COMMON_AMENITIES = [
@@ -69,53 +70,58 @@ const COMMON_AMENITIES = [
   "Dapur",
   "Kamar Mandi Dalam",
   "Balcony",
-]
+];
 
 function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState(value)
+  const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedValue(value), delay)
-    return () => clearTimeout(timer)
-  }, [value, delay])
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
 
-  return debouncedValue
+  return debouncedValue;
 }
 
 export default function PropertiesPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const [page, setPage] = useState(1)
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
-  const [radius, setRadius] = useState(5)
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000000])
-  const limit = 12
+  const [page, setPage] = useState(1);
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [radius, setRadius] = useState(5);
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000000]);
+  const limit = 12;
 
-  const search = searchParams.get("search") || ""
-  const city = searchParams.get("city") || ""
-  const type = searchParams.get("type") || "all"
-  const maxPriceParam = searchParams.get("maxPrice") || ""
-  const minPriceParam = searchParams.get("minPrice") || ""
-  const amenitiesParam = searchParams.get("amenities") || ""
+  const search = searchParams.get("search") || "";
+  const city = searchParams.get("city") || "";
+  const type = searchParams.get("type") || "all";
+  const maxPriceParam = searchParams.get("maxPrice") || "";
+  const minPriceParam = searchParams.get("minPrice") || "";
+  const amenitiesParam = searchParams.get("amenities") || "";
 
-  const debouncedSearch = useDebounce(search, 500)
+  const debouncedSearch = useDebounce(search, 500);
 
   useEffect(() => {
-    const amenitiesArray = amenitiesParam ? amenitiesParam.split(",").filter(Boolean) : []
-    setSelectedAmenities(amenitiesArray)
-  }, [amenitiesParam])
+    const amenitiesArray = amenitiesParam
+      ? amenitiesParam.split(",").filter(Boolean)
+      : [];
+    setSelectedAmenities(amenitiesArray);
+  }, [amenitiesParam]);
 
   useEffect(() => {
     if (minPriceParam || maxPriceParam) {
       setPriceRange([
         Number(minPriceParam) || 0,
         Number(maxPriceParam) || 10000000,
-      ])
+      ]);
     }
-  }, [minPriceParam, maxPriceParam])
+  }, [minPriceParam, maxPriceParam]);
 
   const params = useMemo(
     () => ({
@@ -131,79 +137,113 @@ export default function PropertiesPage() {
       radius: userLocation ? radius : undefined,
       amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
     }),
-    [page, limit, debouncedSearch, type, city, minPriceParam, maxPriceParam, userLocation, radius, selectedAmenities]
-  )
+    [
+      page,
+      limit,
+      debouncedSearch,
+      type,
+      city,
+      minPriceParam,
+      maxPriceParam,
+      userLocation,
+      radius,
+      selectedAmenities,
+    ],
+  );
 
-  const { data, isLoading, isError, error, refetch } = useQuery<PropertyResponse>({
-    queryKey: ["properties", { search: debouncedSearch, city, type, minPrice: minPriceParam, maxPrice: maxPriceParam, page, userLocation, radius, amenities: selectedAmenities }],
-    queryFn: async () => {
-      const res = await fetch(
-        `/api/properties?${new URLSearchParams(
-          Object.entries(params)
-            .filter(([, v]) => v !== undefined && v !== "")
-            .reduce(
-              (acc, [k, v]) => {
-                if (Array.isArray(v)) {
-                  acc[k] = v.join(",")
-                } else {
-                  acc[k] = String(v)
-                }
-                return acc
-              },
-              {} as Record<string, string>
-            )
-        )}`
-      )
-      if (!res.ok) throw new Error("Failed to fetch properties")
-      const json = await res.json()
-      return json.data as PropertyResponse
+  const { data, isLoading, isError, error, refetch } =
+    useQuery<PropertyResponse>({
+      queryKey: [
+        "properties",
+        {
+          search: debouncedSearch,
+          city,
+          type,
+          minPrice: minPriceParam,
+          maxPrice: maxPriceParam,
+          page,
+          userLocation,
+          radius,
+          amenities: selectedAmenities,
+        },
+      ],
+      queryFn: async () => {
+        const res = await fetch(
+          `/api/properties?${new URLSearchParams(
+            Object.entries(params)
+              .filter(([, v]) => v !== undefined && v !== "")
+              .reduce(
+                (acc, [k, v]) => {
+                  if (Array.isArray(v)) {
+                    acc[k] = v.join(",");
+                  } else {
+                    acc[k] = String(v);
+                  }
+                  return acc;
+                },
+                {} as Record<string, string>,
+              ),
+          )}`,
+        );
+        if (!res.ok) throw new Error("Failed to fetch properties");
+        const json = await res.json();
+        return json.data as PropertyResponse;
+      },
+      staleTime: 30000,
+    });
+
+  const updateFilter = useCallback(
+    (key: string, value: string) => {
+      const newParams = new URLSearchParams(searchParams.toString());
+      if (value) {
+        newParams.set(key, value);
+      } else {
+        newParams.delete(key);
+      }
+      setPage(1);
+      router.push(`/properties?${newParams.toString()}`);
     },
-    staleTime: 30000,
-  })
+    [router, searchParams],
+  );
 
-  const updateFilter = useCallback((key: string, value: string) => {
-    const newParams = new URLSearchParams(searchParams.toString())
-    if (value) {
-      newParams.set(key, value)
-    } else {
-      newParams.delete(key)
-    }
-    setPage(1)
-    router.push(`/properties?${newParams.toString()}`)
-  }, [router, searchParams])
+  const toggleAmenity = useCallback(
+    (amenity: string) => {
+      const newAmenities = selectedAmenities.includes(amenity)
+        ? selectedAmenities.filter((a) => a !== amenity)
+        : [...selectedAmenities, amenity];
 
-  const toggleAmenity = useCallback((amenity: string) => {
-    const newAmenities = selectedAmenities.includes(amenity)
-      ? selectedAmenities.filter((a) => a !== amenity)
-      : [...selectedAmenities, amenity]
-    
-    const newParams = new URLSearchParams(searchParams.toString())
-    if (newAmenities.length > 0) {
-      newParams.set("amenities", newAmenities.join(","))
-    } else {
-      newParams.delete("amenities")
-    }
-    setPage(1)
-    router.push(`/properties?${newParams.toString()}`)
-  }, [router, searchParams, selectedAmenities])
+      const newParams = new URLSearchParams(searchParams.toString());
+      if (newAmenities.length > 0) {
+        newParams.set("amenities", newAmenities.join(","));
+      } else {
+        newParams.delete("amenities");
+      }
+      setPage(1);
+      router.push(`/properties?${newParams.toString()}`);
+    },
+    [router, searchParams, selectedAmenities],
+  );
 
   const resetFilters = useCallback(() => {
-    setPage(1)
-    setUserLocation(null)
-    setRadius(5)
-    setSelectedAmenities([])
-    setPriceRange([0, 10000000])
-    router.push("/properties")
-  }, [router])
+    setPage(1);
+    setUserLocation(null);
+    setRadius(5);
+    setSelectedAmenities([]);
+    setPriceRange([0, 10000000]);
+    router.push("/properties");
+  }, [router]);
 
-  const handleLocationFound = useCallback((lat: number, lng: number, radiusKm: number) => {
-    setUserLocation({ lat, lng })
-    setRadius(radiusKm)
-  }, [])
+  const handleLocationFound = useCallback(
+    (lat: number, lng: number, radiusKm: number) => {
+      setUserLocation({ lat, lng });
+      setRadius(radiusKm);
+    },
+    [],
+  );
 
-  const items = data?.data ?? []
-  const total = data?.meta?.total ?? 0
-  const totalPages = data?.meta?.totalPages ?? 1
+  const items = data?.data ?? [];
+  const total = data?.meta?.total ?? 0;
+  const totalPages = data?.meta?.totalPages ?? 1;
 
   const mapMarkers = useMemo(
     () =>
@@ -216,32 +256,34 @@ export default function PropertiesPage() {
           title: item.name,
           popup: item.address,
         })),
-    [items]
-  )
+    [items],
+  );
 
   const sortedItems = useMemo(() => {
-    if (!userLocation) return items
+    if (!userLocation) return items;
     return [...items].sort((a, b) => {
-      const distA = a.distance ?? Infinity
-      const distB = b.distance ?? Infinity
-      return distA - distB
-    })
-  }, [items, userLocation])
+      const distA = a.distance ?? Infinity;
+      const distB = b.distance ?? Infinity;
+      return distA - distB;
+    });
+  }, [items, userLocation]);
 
   const formatPrice = (value: number) => {
     if (value >= 1000000) {
-      return `${value / 1000000}jt`
+      return `${value / 1000000}jt`;
     }
     if (value >= 1000) {
-      return `${value / 1000}k`
+      return `${value / 1000}k`;
     }
-    return value.toString()
-  }
+    return value.toString();
+  };
 
   return (
     <main className="max-w-screen-xl mx-auto px-4 lg:px-0 py-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Cari Kost & Kontrakan</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Cari Kost & Kontrakan
+        </h1>
         <p className="mt-2 text-muted-foreground">
           Temukan tempat tinggal yang sesuai dengan kebutuhanmu
         </p>
@@ -251,7 +293,11 @@ export default function PropertiesPage() {
         <CardContent className="p-4 space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
             <div className="lg:col-span-2 relative">
-              <HugeiconsIcon icon={Search01Icon} strokeWidth={2} className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <HugeiconsIcon
+                icon={Search01Icon}
+                strokeWidth={2}
+                className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
+              />
               <Input
                 placeholder="Cari lokasi, nama, atau deskripsi..."
                 value={search}
@@ -293,7 +339,9 @@ export default function PropertiesPage() {
                 <Button
                   key={amenity}
                   type="button"
-                  variant={selectedAmenities.includes(amenity) ? "default" : "outline"}
+                  variant={
+                    selectedAmenities.includes(amenity) ? "default" : "outline"
+                  }
                   size="sm"
                   onClick={() => toggleAmenity(amenity)}
                 >
@@ -316,9 +364,9 @@ export default function PropertiesPage() {
                 placeholder="Min"
                 value={priceRange[0] || ""}
                 onChange={(e) => {
-                  const val = Number(e.target.value)
-                  setPriceRange([val, priceRange[1]])
-                  updateFilter("minPrice", val > 0 ? String(val) : "")
+                  const val = Number(e.target.value);
+                  setPriceRange([val, priceRange[1]]);
+                  updateFilter("minPrice", val > 0 ? String(val) : "");
                 }}
                 min={0}
               />
@@ -328,9 +376,9 @@ export default function PropertiesPage() {
                 placeholder="Max"
                 value={priceRange[1] || ""}
                 onChange={(e) => {
-                  const val = Number(e.target.value)
-                  setPriceRange([priceRange[0], val])
-                  updateFilter("maxPrice", val > 0 ? String(val) : "")
+                  const val = Number(e.target.value);
+                  setPriceRange([priceRange[0], val]);
+                  updateFilter("maxPrice", val > 0 ? String(val) : "");
                 }}
                 min={0}
               />
@@ -353,7 +401,14 @@ export default function PropertiesPage() {
                 </select>
               )}
               {userLocation && (
-                <Button variant="ghost" size="sm" onClick={() => { setUserLocation(null); setRadius(5) }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setUserLocation(null);
+                    setRadius(5);
+                  }}
+                >
                   Reset Lokasi
                 </Button>
               )}
@@ -361,18 +416,26 @@ export default function PropertiesPage() {
             <div className="flex items-center gap-2">
               <div className="flex rounded-4xl border p-1">
                 <Button
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  variant={viewMode === "list" ? "default" : "ghost"}
                   size="icon-sm"
-                  onClick={() => setViewMode('list')}
+                  onClick={() => setViewMode("list")}
                 >
-                  <HugeiconsIcon icon={ViewAgendaIcon} strokeWidth={2} className="size-4" />
+                  <HugeiconsIcon
+                    icon={ViewAgendaIcon}
+                    strokeWidth={2}
+                    className="size-4"
+                  />
                 </Button>
                 <Button
-                  variant={viewMode === 'map' ? 'default' : 'ghost'}
+                  variant={viewMode === "map" ? "default" : "ghost"}
                   size="icon-sm"
-                  onClick={() => setViewMode('map')}
+                  onClick={() => setViewMode("map")}
                 >
-                  <HugeiconsIcon icon={MapsIcon} strokeWidth={2} className="size-4" />
+                  <HugeiconsIcon
+                    icon={MapsIcon}
+                    strokeWidth={2}
+                    className="size-4"
+                  />
                 </Button>
               </div>
               <Button variant="outline" onClick={resetFilters}>
@@ -405,7 +468,11 @@ export default function PropertiesPage() {
       {isError && (
         <ErrorState
           title="Gagal Memuat Properti"
-          description={error instanceof Error ? error.message : "Gagal memuat data properti. Silakan coba lagi."}
+          description={
+            error instanceof Error
+              ? error.message
+              : "Gagal memuat data properti. Silakan coba lagi."
+          }
           onRetry={() => refetch()}
         />
       )}
@@ -416,15 +483,19 @@ export default function PropertiesPage() {
           title="Tidak Ditemukan"
           description="Coba ubah filter lokasi, harga, atau fasilitas Anda."
           actionLabel="Reset Filter"
-          onAction={() => router.push('/properties')}
+          onAction={() => router.push("/properties")}
         />
       )}
 
-      {!isLoading && !isError && items.length > 0 && viewMode === 'map' ? (
+      {!isLoading && !isError && items.length > 0 && viewMode === "map" ? (
         <Card className="mt-8">
           <CardContent className="p-4">
             <MapView
-              center={userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : undefined}
+              center={
+                userLocation
+                  ? { lat: userLocation.lat, lng: userLocation.lng }
+                  : undefined
+              }
               markers={mapMarkers}
               height="500px"
             />
@@ -432,7 +503,7 @@ export default function PropertiesPage() {
         </Card>
       ) : null}
 
-      {!isLoading && !isError && items.length > 0 && viewMode === 'list' && (
+      {!isLoading && !isError && items.length > 0 && viewMode === "list" && (
         <>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mt-8">
             {sortedItems.map((item) => (
@@ -449,5 +520,5 @@ export default function PropertiesPage() {
         </>
       )}
     </main>
-  )
+  );
 }

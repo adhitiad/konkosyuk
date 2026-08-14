@@ -72,13 +72,16 @@ export default function LoginPage() {
     setGoogleLoading(true);
     try {
       const callbackURL = `${window.location.origin}${window.location.pathname}?oauth=success`;
-      const result = await authClient.signIn.social({ provider: 'google', callbackURL });
+      const result = await authClient.signIn.social({
+        provider: "google",
+        callbackURL,
+      });
       if (result.error) {
-        setError(result.error.message || 'Login dengan Google gagal');
+        setError(result.error.message || "Login dengan Google gagal");
         setGoogleLoading(false);
       }
     } catch {
-      setError('Login dengan Google gagal. Periksa konfigurasi OAuth Google.');
+      setError("Login dengan Google gagal. Periksa konfigurasi OAuth Google.");
       setGoogleLoading(false);
     }
   };
@@ -100,9 +103,7 @@ export default function LoginPage() {
         <CardTitle className="text-2xl font-bold">
           Selamat Datang Kembali
         </CardTitle>
-        <CardDescription>
-          Masuk ke akun KonkosYuk Anda
-        </CardDescription>
+        <CardDescription>Masuk ke akun KonkosYuk Anda</CardDescription>
       </CardHeader>
       <CardContent className="px-0 sm:px-6">
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -112,9 +113,18 @@ export default function LoginPage() {
             </Alert>
           )}
 
-          <Button type="button" variant="outline" className="w-full" size="default" onClick={handleGoogleLogin} disabled={loading || googleLoading}>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            size="default"
+            onClick={handleGoogleLogin}
+            disabled={loading || googleLoading}
+          >
             <Globe className="mr-2 h-4 w-4" />
-            {googleLoading ? 'Menghubungkan ke Google...' : 'Lanjut dengan Google'}
+            {googleLoading
+              ? "Menghubungkan ke Google..."
+              : "Lanjut dengan Google"}
           </Button>
 
           <div className="relative my-4">
@@ -168,7 +178,9 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                aria-label={
+                  showPassword ? "Sembunyikan password" : "Tampilkan password"
+                }
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4" />
@@ -185,7 +197,10 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-muted-foreground">
             Belum punya akun?{" "}
-            <Link href="/register" className="text-primary hover:underline font-medium">
+            <Link
+              href="/register"
+              className="text-primary hover:underline font-medium"
+            >
               Daftar sekarang
             </Link>
           </p>

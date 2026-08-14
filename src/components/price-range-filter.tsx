@@ -1,15 +1,20 @@
-'use client'
+"use client";
 
-import { Input } from '@/components/ui/input'
+import { Input } from "@/components/ui/input";
 
 interface PriceRangeFilterProps {
-  minPrice: string
-  maxPrice: string
-  onMinChange: (value: string) => void
-  onMaxChange: (value: string) => void
+  minPrice: string;
+  maxPrice: string;
+  onMinChange: (value: string) => void;
+  onMaxChange: (value: string) => void;
 }
 
-export default function PriceRangeFilter({ minPrice, maxPrice, onMinChange, onMaxChange }: PriceRangeFilterProps) {
+export default function PriceRangeFilter({
+  minPrice,
+  maxPrice,
+  onMinChange,
+  onMaxChange,
+}: PriceRangeFilterProps) {
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium">Rentang Harga</label>
@@ -31,5 +36,5 @@ export default function PriceRangeFilter({ minPrice, maxPrice, onMinChange, onMa
         />
       </div>
     </div>
-  )
+  );
 }

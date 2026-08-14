@@ -1,0 +1,156 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  REDIS_URL: ${{ secrets.REDIS_URL }}
+  BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+  BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
+  NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+  NODE_ENV: production
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun run lint
+
+  typecheck:
+    name: TypeScript Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun x tsc --noEmit
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun run test -- --run --coverage
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bunx playwright install --with-deps chromium
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: bunx playwright test --project=chromium
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun audit || true
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, unit-tests, security]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: .next/
+          retention-days: 7
+
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, unit-tests, build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - run: bun install
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: bun run db:push
+
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v3
+        with:
+          publish-dir: "./.next"
+          production-branch: main
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          netlify-auth-token: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          netlify-site-id: ${{ secrets.NETLIFY_SITE_ID }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+          PAYMENT_MODE: ${{ secrets.PAYMENT_MODE }}
+          DOKU_CLIENT_ID: ${{ secrets.DOKU_CLIENT_ID }}
+          DOKU_SECRET_KEY: ${{ secrets.DOKU_SECRET_KEY }}
+          DOKU_WEBHOOK_SECRET: ${{ secrets.DOKU_WEBHOOK_SECRET }}
+          IPAYMU_API_KEY: ${{ secrets.IPAYMU_API_KEY }}
+          IPAYMU_SECRET_KEY: ${{ secrets.IPAYMU_SECRET_KEY }}
+          IPAYMU_WEBHOOK_SECRET: ${{ secrets.IPAYMU_WEBHOOK_SECRET }}
+          NICEPAY_CLIENT_ID: ${{ secrets.NICEPAY_CLIENT_ID }}
+          NICEPAY_SECRET_KEY: ${{ secrets.NICEPAY_SECRET_KEY }}
+          NICEPAY_WEBHOOK_SECRET: ${{ secrets.NICEPAY_WEBHOOK_SECRET }}
+          UPLOADTHING_TOKEN: ${{ secrets.UPLOADTHING_TOKEN }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
+        continue-on-error: false

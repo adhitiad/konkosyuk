@@ -1,16 +1,16 @@
-import { MetadataRoute } from 'next'
+import { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://konkosyuk.com'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://konkosyuk.com";
 
   return {
     rules: [
       {
-        userAgent: '*',
-        allow: '/',
-        disallow: ['/api/*', '/dashboard/*', '/owner/*', '/admin/*'],
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/api/*", "/dashboard/*", "/owner/*", "/admin/*"],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
-  }
+  };
 }

@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { ReactNode } from 'react'
+import { ReactNode } from "react";
 
 interface StaticPageLayoutProps {
-  title: string
-  lastUpdated?: string
-  children: ReactNode
+  title: string;
+  lastUpdated?: string;
+  children: ReactNode;
 }
 
 export function StaticPageLayout({
@@ -32,5 +32,5 @@ export function StaticPageLayout({
         </main>
       </div>
     </div>
-  )
+  );
 }

@@ -1,49 +1,49 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { createUnitSchema, type CreateUnitInput } from '@/lib/zod'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { createUnitSchema, type CreateUnitInput } from "@/lib/zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { AlertCircleIcon } from '@hugeicons/core-free-icons'
-import { DialogClose } from '@/components/ui/dialog'
-import { apiClient } from '@/lib/axios'
+} from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AlertCircleIcon } from "@hugeicons/core-free-icons";
+import { DialogClose } from "@/components/ui/dialog";
+import { apiClient } from "@/lib/axios";
 
 interface AddUnitDialogProps {
-  propertyId: string
+  propertyId: string;
 }
 
 const unitStatusOptions = [
-  { value: 'available', label: 'Available' },
-  { value: 'booked', label: 'Booked' },
-  { value: 'maintenance', label: 'Maintenance' },
-]
+  { value: "available", label: "Available" },
+  { value: "booked", label: "Booked" },
+  { value: "maintenance", label: "Maintenance" },
+];
 
 export default function AddUnitDialog({ propertyId }: AddUnitDialogProps) {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [price, setPrice] = useState('')
-  const [capacity, setCapacity] = useState('')
-  const [size, setSize] = useState('')
-  const [status, setStatus] = useState<CreateUnitInput['status']>('available')
-  const [error, setError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [capacity, setCapacity] = useState("");
+  const [size, setSize] = useState("");
+  const [status, setStatus] = useState<CreateUnitInput["status"]>("available");
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
+    e.preventDefault();
+    setError(null);
 
     const payload: CreateUnitInput = {
       propertyId,
@@ -53,48 +53,60 @@ export default function AddUnitDialog({ propertyId }: AddUnitDialogProps) {
       capacity: capacity || undefined,
       size: size || undefined,
       status,
-    }
+    };
 
-    const result = createUnitSchema.safeParse(payload)
+    const result = createUnitSchema.safeParse(payload);
     if (!result.success) {
-      setError(result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', '))
-      return
+      setError(
+        result.error.issues
+          .map((i) => `${i.path.join(".")}: ${i.message}`)
+          .join(", "),
+      );
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      const res = await apiClient.post('/api/units', result.data)
+      const res = await apiClient.post("/api/units", result.data);
 
       if (res.status >= 400) {
-        const text = res.data
-        throw new Error(text || 'Gagal menambahkan unit.')
+        const text = res.data;
+        throw new Error(text || "Gagal menambahkan unit.");
       }
 
-      queryClient.invalidateQueries({ queryKey: ['units', propertyId] })
-      resetForm()
-      ;(document.querySelector('[data-slot="dialog-close"]') as HTMLElement | null)?.click()
+      queryClient.invalidateQueries({ queryKey: ["units", propertyId] });
+      resetForm();
+      (
+        document.querySelector(
+          '[data-slot="dialog-close"]',
+        ) as HTMLElement | null
+      )?.click();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal menambahkan unit.')
+      setError(err instanceof Error ? err.message : "Gagal menambahkan unit.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const resetForm = () => {
-    setName('')
-    setDescription('')
-    setPrice('')
-    setCapacity('')
-    setSize('')
-    setStatus('available')
-    setError(null)
-  }
+    setName("");
+    setDescription("");
+    setPrice("");
+    setCapacity("");
+    setSize("");
+    setStatus("available");
+    setError(null);
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
         <Alert variant="destructive">
-          <HugeiconsIcon icon={AlertCircleIcon} strokeWidth={2} className="size-4" />
+          <HugeiconsIcon
+            icon={AlertCircleIcon}
+            strokeWidth={2}
+            className="size-4"
+          />
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
@@ -148,7 +160,10 @@ export default function AddUnitDialog({ propertyId }: AddUnitDialogProps) {
 
       <div className="space-y-2">
         <Label htmlFor="status">Status</Label>
-        <Select value={status} onValueChange={(v) => setStatus(v as CreateUnitInput['status'])}>
+        <Select
+          value={status}
+          onValueChange={(v) => setStatus(v as CreateUnitInput["status"])}
+        >
           <SelectTrigger id="status">
             <SelectValue placeholder="Pilih status" />
           </SelectTrigger>
@@ -174,13 +189,17 @@ export default function AddUnitDialog({ propertyId }: AddUnitDialogProps) {
       </div>
 
       <div className="flex justify-end gap-2">
-        <DialogClose render={
-          <Button type="button" variant="outline">Batal</Button>
-        } />
+        <DialogClose
+          render={
+            <Button type="button" variant="outline">
+              Batal
+            </Button>
+          }
+        />
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Menyimpan...' : 'Simpan'}
+          {isSubmitting ? "Menyimpan..." : "Simpan"}
         </Button>
       </div>
     </form>
-  )
+  );
 }

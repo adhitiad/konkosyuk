@@ -52,7 +52,11 @@ export function AppNavbar() {
         <NotificationBell />
         <PushNotificationToggle />
         <DropdownMenu>
-          <Button render={<DropdownMenuTrigger />} variant="ghost" className="relative h-9 w-9 rounded-full">
+          <Button
+            render={<DropdownMenuTrigger />}
+            variant="ghost"
+            className="relative h-9 w-9 rounded-full"
+          >
             <Avatar className="h-9 w-9">
               <AvatarImage
                 src={user?.image ?? undefined}
@@ -91,8 +95,8 @@ export function AppNavbar() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={async () => {
-                  await signOut()
-                  window.location.href = '/login'
+                  await signOut();
+                  window.location.href = "/login";
                 }}
               >
                 <HugeiconsIcon

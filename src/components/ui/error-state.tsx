@@ -1,12 +1,12 @@
-import { AlertCircle } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface ErrorStateProps {
-  title: string
-  description: string
-  onRetry: () => void
-  className?: string
+  title: string;
+  description: string;
+  onRetry: () => void;
+  className?: string;
 }
 
 export function ErrorState({
@@ -16,7 +16,12 @@ export function ErrorState({
   className,
 }: ErrorStateProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-4 py-12 text-center", className)}>
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-4 py-12 text-center",
+        className,
+      )}
+    >
       <AlertCircle className="h-12 w-12 text-destructive" />
       <h3 className="text-xl font-semibold">{title}</h3>
       <p className="text-muted-foreground max-w-md">{description}</p>
@@ -24,5 +29,5 @@ export function ErrorState({
         Coba Lagi
       </Button>
     </div>
-  )
+  );
 }

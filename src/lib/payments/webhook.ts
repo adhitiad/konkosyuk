@@ -1,25 +1,51 @@
-import { db } from '@/db'
-import { payments, bookings, units, properties, webhookEvents, bookingRequests } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
-import { getPaymentProvider } from './index'
-import type { WebhookContext, NormalizedWebhook } from './types'
+import { db } from "@/db";
+import {
+  payments,
+  bookings,
+  units,
+  properties,
+  webhookEvents,
+  bookingRequests,
+} from "@/db/schema";
+import { eq, and } from "drizzle-orm";
+import { getPaymentProvider } from "./index";
+import type { WebhookContext, NormalizedWebhook } from "./types";
+import crypto from "node:crypto";
 
-export async function handleWebhookRequest(providerName: string, ctx: WebhookContext) {
-  const adapter = getPaymentProvider(providerName)
+export async function handleWebhookRequest(
+  providerName: string,
+  ctx: WebhookContext,
+) {
+  const adapter = getPaymentProvider(providerName);
   if (!adapter) {
-    return new Response('Unknown provider', { status: 400 })
+    return new Response("Unknown provider", { status: 400 });
   }
 
-  const isValid = await adapter.verifyWebhookSignature(ctx)
+  const isValid = await adapter.verifyWebhookSignature(ctx);
   if (!isValid) {
-    return new Response('Invalid signature', { status: 401 })
+    return new Response("Invalid signature", { status: 401 });
   }
 
-  let normalized: NormalizedWebhook
+  let normalized: NormalizedWebhook;
   try {
-    normalized = await adapter.normalizeWebhook(ctx)
+    normalized = await adapter.normalizeWebhook(ctx);
   } catch (error) {
-    return new Response('Invalid webhook payload', { status: 400 })
+    return new Response("Invalid webhook payload", { status: 400 });
+  }
+
+  const webhookHash = crypto
+    .createHash("sha256")
+    .update(ctx.rawBody)
+    .digest("hex");
+
+  const [existingByHash] = await db
+    .select()
+    .from(webhookEvents)
+    .where(eq(webhookEvents.payloadHash, webhookHash))
+    .limit(1);
+
+  if (existingByHash) {
+    return new Response("Duplicate webhook payload detected", { status: 200 });
   }
 
   const [event] = await db
@@ -28,37 +54,67 @@ export async function handleWebhookRequest(providerName: string, ctx: WebhookCon
       provider: normalized.provider,
       eventId: normalized.eventId,
       payload: Object.fromEntries(ctx.headers.entries()),
+      payloadHash: webhookHash,
+      signatureValid: true,
     })
     .onConflictDoNothing({
       target: [webhookEvents.provider, webhookEvents.eventId],
     })
-    .returning()
+    .returning();
 
   if (!event) {
-    return new Response('Event already processed', { status: 200 })
+    return new Response("Event already processed", { status: 200 });
   }
 
-  const newStatus = normalized.status === 'success' ? 'success' : normalized.status === 'failed' ? 'failed' : normalized.status === 'expired' ? 'expired' : 'pending'
+  const newStatus =
+    normalized.status === "success"
+      ? "success"
+      : normalized.status === "failed"
+        ? "failed"
+        : normalized.status === "expired"
+          ? "expired"
+          : "pending";
 
   await db.transaction(async (tx) => {
     const [payment] = await tx
       .select()
       .from(payments)
       .where(eq(payments.transactionId, normalized.transactionId))
-      .for('update')
-      .limit(1)
+      .for("update")
+      .limit(1);
 
     if (!payment) {
-      return new Response('Payment not found', { status: 404 })
+      return new Response("Payment not found", { status: 404 });
     }
 
-    if (payment.status === 'success') {
+    if (payment.status === "success") {
       await tx
         .update(webhookEvents)
         .set({ processedAt: new Date() })
-        .where(eq(webhookEvents.id, event.id))
+        .where(eq(webhookEvents.id, event.id));
 
-      return new Response('Already processed', { status: 200 })
+      return new Response("Already processed", { status: 200 });
+    }
+
+    const expectedAmount = Number(payment.amount);
+    const receivedAmount = Number(normalized.amount);
+
+    if (Math.abs(expectedAmount - receivedAmount) > 100) {
+      await tx
+        .update(webhookEvents)
+        .set({
+          processedAt: new Date(),
+          details: {
+            amountMismatch: true,
+            expected: expectedAmount,
+            received: receivedAmount,
+          } as Record<string, unknown>,
+        })
+        .where(eq(webhookEvents.id, event.id));
+
+      return new Response("Amount mismatch - manual review required", {
+        status: 400,
+      });
     }
 
     await tx
@@ -69,12 +125,12 @@ export async function handleWebhookRequest(providerName: string, ctx: WebhookCon
         rawResponse: normalized.metadata,
         updatedAt: new Date(),
       })
-      .where(eq(payments.id, payment.id))
+      .where(eq(payments.id, payment.id));
 
-    if (newStatus === 'success') {
-      if (payment.purpose === 'featured_listing' && payment.propertyId) {
-        const featuredUntil = new Date()
-        featuredUntil.setDate(featuredUntil.getDate() + 30)
+    if (newStatus === "success") {
+      if (payment.purpose === "featured_listing" && payment.propertyId) {
+        const featuredUntil = new Date();
+        featuredUntil.setDate(featuredUntil.getDate() + 30);
 
         await tx
           .update(properties)
@@ -83,62 +139,62 @@ export async function handleWebhookRequest(providerName: string, ctx: WebhookCon
             featuredUntil,
             updatedAt: new Date(),
           })
-          .where(eq(properties.id, payment.propertyId))
-      } else if (payment.purpose === 'full_payment') {
+          .where(eq(properties.id, payment.propertyId));
+      } else if (payment.purpose === "full_payment") {
         const [booking] = await tx
           .select()
           .from(bookings)
           .where(eq(bookings.id, payment.bookingId))
-          .for('update')
-          .limit(1)
+          .for("update")
+          .limit(1);
 
-        if (!booking) return
+        if (!booking) return;
 
         await tx
           .update(bookings)
-          .set({ status: 'confirmed', updatedAt: new Date() })
-          .where(eq(bookings.id, booking.id))
+          .set({ status: "confirmed", updatedAt: new Date() })
+          .where(eq(bookings.id, booking.id));
 
         await tx
           .update(units)
-          .set({ status: 'booked', updatedAt: new Date() })
-          .where(eq(units.id, booking.unitId))
-      } else if (payment.purpose === 'dp') {
+          .set({ status: "booked", updatedAt: new Date() })
+          .where(eq(units.id, booking.unitId));
+      } else if (payment.purpose === "dp") {
         const [booking] = await tx
           .select()
           .from(bookings)
           .where(eq(bookings.id, payment.bookingId))
-          .for('update')
-          .limit(1)
+          .for("update")
+          .limit(1);
 
-        if (!booking) return
+        if (!booking) return;
 
         const nextStatus =
-          booking.bookingType === 'request'
-            ? 'awaiting_owner_approval'
-            : 'awaiting_full_payment'
+          booking.bookingType === "request"
+            ? "awaiting_owner_approval"
+            : "awaiting_full_payment";
 
         await tx
           .update(bookings)
           .set({ status: nextStatus, updatedAt: new Date() })
-          .where(eq(bookings.id, booking.id))
+          .where(eq(bookings.id, booking.id));
       }
     }
 
-    if (newStatus === 'failed' || newStatus === 'expired') {
-      if (payment.purpose !== 'featured_listing') {
+    if (newStatus === "failed" || newStatus === "expired") {
+      if (payment.purpose !== "featured_listing") {
         const [booking] = await tx
           .select()
           .from(bookings)
           .where(eq(bookings.id, payment.bookingId))
-          .for('update')
-          .limit(1)
+          .for("update")
+          .limit(1);
 
         if (booking) {
           await tx
             .update(bookings)
-            .set({ status: 'cancelled', updatedAt: new Date() })
-            .where(eq(bookings.id, booking.id))
+            .set({ status: "cancelled", updatedAt: new Date() })
+            .where(eq(bookings.id, booking.id));
 
           const [bookingRequest] = await tx
             .select()
@@ -148,22 +204,22 @@ export async function handleWebhookRequest(providerName: string, ctx: WebhookCon
                 eq(bookingRequests.tenantId, booking.userId),
                 eq(bookingRequests.unitId, booking.unitId),
                 eq(bookingRequests.propertyId, booking.propertyId),
-                eq(bookingRequests.status, 'approved'),
+                eq(bookingRequests.status, "approved"),
               ),
             )
-            .for('update')
-            .limit(1)
+            .for("update")
+            .limit(1);
 
           if (bookingRequest) {
             await tx
               .update(bookingRequests)
-              .set({ status: 'cancelled', updatedAt: new Date() })
-              .where(eq(bookingRequests.id, bookingRequest.id))
+              .set({ status: "cancelled", updatedAt: new Date() })
+              .where(eq(bookingRequests.id, bookingRequest.id));
 
             await tx
               .update(units)
-              .set({ status: 'available', updatedAt: new Date() })
-              .where(eq(units.id, booking.unitId))
+              .set({ status: "available", updatedAt: new Date() })
+              .where(eq(units.id, booking.unitId));
           }
         }
       }
@@ -172,8 +228,8 @@ export async function handleWebhookRequest(providerName: string, ctx: WebhookCon
     await tx
       .update(webhookEvents)
       .set({ processedAt: new Date() })
-      .where(eq(webhookEvents.id, event.id))
-  })
+      .where(eq(webhookEvents.id, event.id));
+  });
 
-  return new Response('Webhook processed', { status: 200 })
+  return new Response("Webhook processed", { status: 200 });
 }

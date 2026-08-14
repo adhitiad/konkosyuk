@@ -103,9 +103,7 @@ function OwnerReportsPage() {
             <div className="text-2xl font-bold">
               {formatCurrency(stats.totalRevenue)}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Semua waktu
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">Semua waktu</p>
           </CardContent>
         </Card>
 
@@ -121,7 +119,10 @@ function OwnerReportsPage() {
               {formatCurrency(stats.monthlyRevenue)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {new Date().toLocaleString("id-ID", { month: "long", year: "numeric" })}
+              {new Date().toLocaleString("id-ID", {
+                month: "long",
+                year: "numeric",
+              })}
             </p>
           </CardContent>
         </Card>
@@ -134,9 +135,7 @@ function OwnerReportsPage() {
             <Home className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.occupancyRate}%
-            </div>
+            <div className="text-2xl font-bold">{stats.occupancyRate}%</div>
             <p className="text-xs text-muted-foreground mt-1">
               {stats.occupiedUnits} dari {stats.totalUnits} unit terisi
             </p>
@@ -151,9 +150,7 @@ function OwnerReportsPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.totalBookings}
-            </div>
+            <div className="text-2xl font-bold">{stats.totalBookings}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {stats.pendingBookings} pending
             </p>

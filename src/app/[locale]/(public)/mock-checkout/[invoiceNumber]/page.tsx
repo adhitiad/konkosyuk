@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -14,110 +14,112 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { showToastSuccess, showToastError } from '@/lib/use-toast-custom'
-import { apiClient } from '@/lib/axios'
+} from "@/components/ui/dialog";
+import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
+import { apiClient } from "@/lib/axios";
 
 function formatIDR(amount: string): string {
-  const num = parseFloat(amount)
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
+  const num = parseFloat(amount);
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
     minimumFractionDigits: 0,
-  }).format(num)
+  }).format(num);
 }
 
 function getStatusBadge(status: string) {
   switch (status) {
-    case 'success':
-      return <Badge variant="default">Berhasil</Badge>
-    case 'failed':
-      return <Badge variant="destructive">Gagal</Badge>
-    case 'expired':
-      return <Badge variant="secondary">Kadaluarsa</Badge>
+    case "success":
+      return <Badge variant="default">Berhasil</Badge>;
+    case "failed":
+      return <Badge variant="destructive">Gagal</Badge>;
+    case "expired":
+      return <Badge variant="secondary">Kadaluarsa</Badge>;
     default:
-      return <Badge variant="outline">Menunggu</Badge>
+      return <Badge variant="outline">Menunggu</Badge>;
   }
 }
 
 export default function MockCheckoutPage({
   params,
 }: {
-  params: { invoiceNumber: string }
+  params: { invoiceNumber: string };
 }) {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [payment, setPayment] = useState<{
-    id: string
-    bookingId: string
-    propertyId: string | null
-    provider: string
-    purpose: string
-    amount: string
-    currency: string
-    status: string
-    transactionId: string | null
-    paidAt: string | null
-    createdAt: string
-    bookingStatus: string | null
-    bookingType: string | null
-  } | null>(null)
-  const [fetching, setFetching] = useState(true)
+    id: string;
+    bookingId: string;
+    propertyId: string | null;
+    provider: string;
+    purpose: string;
+    amount: string;
+    currency: string;
+    status: string;
+    transactionId: string | null;
+    paidAt: string | null;
+    createdAt: string;
+    bookingStatus: string | null;
+    bookingType: string | null;
+  } | null>(null);
+  const [fetching, setFetching] = useState(true);
 
   const fetchPayment = async () => {
     try {
-      setFetching(true)
-      const { data } = await apiClient.get('/api/payments', {
+      setFetching(true);
+      const { data } = await apiClient.get("/api/payments", {
         params: { invoiceNumber: params.invoiceNumber },
-      })
+      });
       if (data.error) {
-        throw new Error(data.error ?? 'Gagal mengambil data pembayaran')
+        throw new Error(data.error ?? "Gagal mengambil data pembayaran");
       }
-      setPayment(data.data)
+      setPayment(data.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
+      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
-      setFetching(false)
+      setFetching(false);
     }
-  }
+  };
 
-  const handleSimulate = async (status: 'success' | 'failed' | 'expired') => {
-    setLoading(true)
-    setError(null)
+  const handleSimulate = async (status: "success" | "failed" | "expired") => {
+    setLoading(true);
+    setError(null);
     try {
-      const res = await apiClient.post('/api/webhooks/mock', {
+      const res = await apiClient.post("/api/webhooks/mock", {
         invoiceNumber: params.invoiceNumber,
         status,
-      })
-      const data = res.data
+      });
+      const data = res.data;
       if (res.status >= 400) {
-        throw new Error(data.error ?? 'Gagal memproses simulasi')
+        throw new Error(data.error ?? "Gagal memproses simulasi");
       }
 
-      if (status === 'success') {
-        if (payment?.purpose === 'featured_listing') {
-          showToastSuccess('Pembayaran berhasil! Properti Anda sekarang Featured.')
+      if (status === "success") {
+        if (payment?.purpose === "featured_listing") {
+          showToastSuccess(
+            "Pembayaran berhasil! Properti Anda sekarang Featured.",
+          );
         } else {
-          showToastSuccess('Pembayaran berhasil! Status booking diperbarui.')
+          showToastSuccess("Pembayaran berhasil! Status booking diperbarui.");
         }
       } else {
-        showToastError('Pembayaran gagal atau kedaluwarsa.')
+        showToastError("Pembayaran gagal atau kedaluwarsa.");
       }
       setTimeout(() => {
-        if (payment?.purpose === 'featured_listing') {
-          router.push('/owner/properties')
+        if (payment?.purpose === "featured_listing") {
+          router.push("/owner/properties");
         } else {
-          router.push('/dashboard/bookings')
+          router.push("/dashboard/bookings");
         }
-      }, 1500)
+      }, 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
-      showToastError(err instanceof Error ? err.message : 'Terjadi kesalahan')
+      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
+      showToastError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (fetching) {
     return (
@@ -125,7 +127,7 @@ export default function MockCheckoutPage({
         <Skeleton className="h-8 w-48 mb-4" />
         <Skeleton className="h-32 w-full" />
       </div>
-    )
+    );
   }
 
   if (error && !payment) {
@@ -140,7 +142,7 @@ export default function MockCheckoutPage({
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (!payment) {
@@ -152,7 +154,7 @@ export default function MockCheckoutPage({
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -173,7 +175,11 @@ export default function MockCheckoutPage({
           <div className="flex justify-between">
             <span className="text-muted-foreground">Tujuan</span>
             <span>
-              {payment.purpose === 'dp' ? 'DP' : payment.purpose === 'featured_listing' ? 'Featured Listing' : 'Pelunasan'}
+              {payment.purpose === "dp"
+                ? "DP"
+                : payment.purpose === "featured_listing"
+                  ? "Featured Listing"
+                  : "Pelunasan"}
             </span>
           </div>
           <div className="flex justify-between">
@@ -205,10 +211,10 @@ export default function MockCheckoutPage({
                 <DialogFooter>
                   <Button variant="outline">Batal</Button>
                   <Button
-                    onClick={() => handleSimulate('success')}
+                    onClick={() => handleSimulate("success")}
                     disabled={loading}
                   >
-                    {loading ? 'Memproses...' : 'Ya, Simulasi Sukses'}
+                    {loading ? "Memproses..." : "Ya, Simulasi Sukses"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -232,10 +238,10 @@ export default function MockCheckoutPage({
                   <Button variant="outline">Batal</Button>
                   <Button
                     variant="destructive"
-                    onClick={() => handleSimulate('failed')}
+                    onClick={() => handleSimulate("failed")}
                     disabled={loading}
                   >
-                    {loading ? 'Memproses...' : 'Ya, Simulasi Gagal'}
+                    {loading ? "Memproses..." : "Ya, Simulasi Gagal"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -259,10 +265,10 @@ export default function MockCheckoutPage({
                   <Button variant="outline">Batal</Button>
                   <Button
                     variant="secondary"
-                    onClick={() => handleSimulate('expired')}
+                    onClick={() => handleSimulate("expired")}
                     disabled={loading}
                   >
-                    {loading ? 'Memproses...' : 'Ya, Simulasi Expired'}
+                    {loading ? "Memproses..." : "Ya, Simulasi Expired"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -271,5 +277,5 @@ export default function MockCheckoutPage({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

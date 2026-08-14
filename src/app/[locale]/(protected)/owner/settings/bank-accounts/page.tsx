@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useSession } from '@/lib/auth-client'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useState, useEffect } from "react";
+import { useSession } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -14,77 +14,87 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { KYCBankForm } from '@/components/owner/kyc-bank-form'
-import type { OwnerBankAccount } from '@/db/schema'
-import { apiClient } from '@/lib/axios'
+} from "@/components/ui/dialog";
+import { KYCBankForm } from "@/components/owner/kyc-bank-form";
+import type { OwnerBankAccount } from "@/db/schema";
+import { apiClient } from "@/lib/axios";
 
-const KYC_STATUS_LABEL: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  none: { label: 'Belum Verifikasi', variant: 'outline' },
-  pending: { label: 'Menunggu Verifikasi', variant: 'secondary' },
-  verified: { label: 'Terverifikasi', variant: 'default' },
-  rejected: { label: 'Ditolak', variant: 'destructive' },
-}
+const KYC_STATUS_LABEL: Record<
+  string,
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+  }
+> = {
+  none: { label: "Belum Verifikasi", variant: "outline" },
+  pending: { label: "Menunggu Verifikasi", variant: "secondary" },
+  verified: { label: "Terverifikasi", variant: "default" },
+  rejected: { label: "Ditolak", variant: "destructive" },
+};
 
 export default function BankAccountsPage() {
-  const { data: session } = useSession()
-  const [accounts, setAccounts] = useState<OwnerBankAccount[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
-  const [deleteLoading, setDeleteLoading] = useState(false)
+  const { data: session } = useSession();
+  const [accounts, setAccounts] = useState<OwnerBankAccount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const fetchAccounts = async () => {
     try {
-      const res = await apiClient.get('/api/owner/bank-accounts')
-      const data = res.data
-      if (res.status >= 400) throw new Error(data.error || 'Gagal memuat data')
-      setAccounts(data.data)
+      const res = await apiClient.get("/api/owner/bank-accounts");
+      const data = res.data;
+      if (res.status >= 400) throw new Error(data.error || "Gagal memuat data");
+      setAccounts(data.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
+      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchAccounts()
-  }, [])
+    fetchAccounts();
+  }, []);
 
   const handleDelete = async (id: string) => {
-    setDeleteLoading(true)
+    setDeleteLoading(true);
     try {
-      const res = await apiClient.delete(`/api/owner/bank-accounts/${id}`)
-      const data = res.data
-      if (res.status >= 400) throw new Error(data.error || 'Gagal menghapus rekening')
-      setAccounts((prev) => prev.filter((acc) => acc.id !== id))
-      setDeleteTargetId(null)
+      const res = await apiClient.delete(`/api/owner/bank-accounts/${id}`);
+      const data = res.data;
+      if (res.status >= 400)
+        throw new Error(data.error || "Gagal menghapus rekening");
+      setAccounts((prev) => prev.filter((acc) => acc.id !== id));
+      setDeleteTargetId(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
+      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
-      setDeleteLoading(false)
+      setDeleteLoading(false);
     }
-  }
+  };
 
   const handleSetPrimary = async (id: string) => {
     try {
-      const res = await apiClient.patch(`/api/owner/bank-accounts/${id}`, { is_primary: true })
-      const data = res.data
-      if (res.status >= 400) throw new Error(data.error || 'Gagal mengubah rekening utama')
+      const res = await apiClient.patch(`/api/owner/bank-accounts/${id}`, {
+        is_primary: true,
+      });
+      const data = res.data;
+      if (res.status >= 400)
+        throw new Error(data.error || "Gagal mengubah rekening utama");
       setAccounts((prev) =>
         prev.map((acc) => ({
           ...acc,
           isPrimary: acc.id === id,
         })),
-      )
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
+      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     }
-  }
+  };
 
-  const kycStatus = (session?.user as any)?.kycStatus || 'none'
-  const kycInfo = KYC_STATUS_LABEL[kycStatus] || KYC_STATUS_LABEL.none
+  const kycStatus = (session?.user as any)?.kycStatus || "none";
+  const kycInfo = KYC_STATUS_LABEL[kycStatus] || KYC_STATUS_LABEL.none;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
@@ -116,7 +126,9 @@ export default function BankAccountsPage() {
             {loading ? (
               <p className="text-sm text-muted-foreground">Memuat...</p>
             ) : accounts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Belum ada rekening yang ditambahkan.</p>
+              <p className="text-sm text-muted-foreground">
+                Belum ada rekening yang ditambahkan.
+              </p>
             ) : (
               <div className="space-y-4">
                 {accounts.map((account) => (
@@ -127,9 +139,12 @@ export default function BankAccountsPage() {
                     <div>
                       <p className="font-medium">{account.providerName}</p>
                       <p className="text-sm text-muted-foreground">
-                        {account.accountType === 'bank' ? 'Bank' : 'E-Wallet'} • {account.accountNumber}
+                        {account.accountType === "bank" ? "Bank" : "E-Wallet"} •{" "}
+                        {account.accountNumber}
                       </p>
-                      <p className="text-sm text-muted-foreground">{account.accountName}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {account.accountName}
+                      </p>
                       {account.isPrimary && (
                         <Badge variant="secondary" className="mt-1">
                           Utama
@@ -147,23 +162,50 @@ export default function BankAccountsPage() {
                         </Button>
                       )}
                       {!account.isPrimary && (
-                      <Dialog open={deleteTargetId === account.id} onOpenChange={(open) => !open && setDeleteTargetId(null)}>
-                        <DialogTrigger render={<Button variant="destructive" size="sm" onClick={() => setDeleteTargetId(account.id)} disabled={account.isPrimary} />}>
-                          Hapus
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Hapus Rekening</DialogTitle>
-                            <DialogDescription>
-                              Apakah Anda yakin ingin menghapus rekening ini? Aksi ini tidak dapat dibatalkan.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <DialogFooter>
-                            <Button variant="outline" onClick={() => setDeleteTargetId(null)} disabled={deleteLoading}>Batal</Button>
-                            <Button variant="destructive" onClick={() => handleDelete(account.id)} disabled={deleteLoading}>Hapus</Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
+                        <Dialog
+                          open={deleteTargetId === account.id}
+                          onOpenChange={(open) =>
+                            !open && setDeleteTargetId(null)
+                          }
+                        >
+                          <DialogTrigger
+                            render={
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => setDeleteTargetId(account.id)}
+                                disabled={account.isPrimary}
+                              />
+                            }
+                          >
+                            Hapus
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Hapus Rekening</DialogTitle>
+                              <DialogDescription>
+                                Apakah Anda yakin ingin menghapus rekening ini?
+                                Aksi ini tidak dapat dibatalkan.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                              <Button
+                                variant="outline"
+                                onClick={() => setDeleteTargetId(null)}
+                                disabled={deleteLoading}
+                              >
+                                Batal
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                onClick={() => handleDelete(account.id)}
+                                disabled={deleteLoading}
+                              >
+                                Hapus
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
                       )}
                     </div>
                   </div>
@@ -175,15 +217,17 @@ export default function BankAccountsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{showForm ? 'Tambah Rekening Baru' : 'Tambah Rekening'}</CardTitle>
+            <CardTitle>
+              {showForm ? "Tambah Rekening Baru" : "Tambah Rekening"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {showForm ? (
               <KYCBankForm
-                userName={session?.user?.name || ''}
+                userName={session?.user?.name || ""}
                 onSuccess={() => {
-                  setShowForm(false)
-                  fetchAccounts()
+                  setShowForm(false);
+                  fetchAccounts();
                 }}
               />
             ) : (
@@ -193,5 +237,5 @@ export default function BankAccountsPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

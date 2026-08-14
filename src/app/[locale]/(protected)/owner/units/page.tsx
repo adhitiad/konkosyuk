@@ -95,7 +95,10 @@ function OwnerUnitsPage() {
               : "Kelola semua unit dari seluruh properti Anda"}
           </p>
         </div>
-        <Button render={<Link href="/owner/units/add">Tambah Unit</Link>} nativeButton={false}>
+        <Button
+          render={<Link href="/owner/units/add">Tambah Unit</Link>}
+          nativeButton={false}
+        >
           <Plus className="mr-2 h-4 w-4" />
         </Button>
       </div>
@@ -120,7 +123,10 @@ function OwnerUnitsPage() {
             <p className="text-muted-foreground mb-4">
               Mulai tambahkan kamar/unit untuk properti Anda
             </p>
-            <Button render={<Link href="/owner/units/add">Tambah Unit Pertama</Link>} nativeButton={false}>
+            <Button
+              render={<Link href="/owner/units/add">Tambah Unit Pertama</Link>}
+              nativeButton={false}
+            >
               <Plus className="mr-2 h-4 w-4" />
             </Button>
           </CardContent>
@@ -183,9 +189,7 @@ function OwnerUnitsPage() {
                   </Button>
                   <Button
                     render={
-                      <Link href={`/owner/units/${unit.id}/edit`}>
-                        Edit
-                      </Link>
+                      <Link href={`/owner/units/${unit.id}/edit`}>Edit</Link>
                     }
                     variant="ghost"
                     size="sm"

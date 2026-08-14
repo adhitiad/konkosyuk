@@ -1,7 +1,7 @@
-import { db } from "@/db"
-import { generalLedger, platformSettings } from "@/db/schema"
-import { eq } from "drizzle-orm"
-import type { PaymentTransaction } from "@/db/schema"
+import { db } from "@/db";
+import { generalLedger, platformSettings } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import type { PaymentTransaction } from "@/db/schema";
 
 export const ACCOUNTS = {
   CASH: "1000",
@@ -10,27 +10,29 @@ export const ACCOUNTS = {
   PAYMENT_FEES: "5000",
   REFUNDS: "5100",
   OWNER_PAYOUTS: "5200",
-} as const
+} as const;
 
-export type AccountCode = (typeof ACCOUNTS)[keyof typeof ACCOUNTS]
+export type AccountCode = (typeof ACCOUNTS)[keyof typeof ACCOUNTS];
 
 function generateId() {
-  return crypto.randomUUID()
+  return crypto.randomUUID();
 }
 
 export async function createPaymentLedgerEntry(payment: PaymentTransaction) {
-  const amount = Number(payment.amount)
-  
+  const amount = Number(payment.amount);
+
   const [settings] = await db
     .select()
     .from(platformSettings)
-    .where(eq(platformSettings.id, 'default'))
-    .limit(1)
+    .where(eq(platformSettings.id, "default"))
+    .limit(1);
 
-  const platformFeePercent = settings ? Number(settings.platformFeePercent) / 100 : 0.018
-  const platformFee = amount * platformFeePercent
-  const ownerAmount = amount - platformFee
-  const date = payment.paidAt ? new Date(payment.paidAt) : new Date()
+  const platformFeePercent = settings
+    ? Number(settings.platformFeePercent) / 100
+    : 0.018;
+  const platformFee = amount * platformFeePercent;
+  const ownerAmount = amount - platformFee;
+  const date = payment.paidAt ? new Date(payment.paidAt) : new Date();
 
   const entries = [
     {
@@ -66,19 +68,19 @@ export async function createPaymentLedgerEntry(payment: PaymentTransaction) {
       debit: "0",
       credit: ownerAmount.toFixed(2),
     },
-  ]
+  ];
 
-  await db.insert(generalLedger).values(entries)
+  await db.insert(generalLedger).values(entries);
 }
 
 export async function createRefundLedgerEntry(refund: {
-  id: string
-  invoiceNumber: string
-  amount: number
-  paidAt?: string | null
+  id: string;
+  invoiceNumber: string;
+  amount: number;
+  paidAt?: string | null;
 }) {
-  const amount = Number(refund.amount)
-  const date = refund.paidAt ? new Date(refund.paidAt) : new Date()
+  const amount = Number(refund.amount);
+  const date = refund.paidAt ? new Date(refund.paidAt) : new Date();
 
   const entries = [
     {
@@ -103,18 +105,18 @@ export async function createRefundLedgerEntry(refund: {
       debit: "0",
       credit: amount.toString(),
     },
-  ]
+  ];
 
-  await db.insert(generalLedger).values(entries)
+  await db.insert(generalLedger).values(entries);
 }
 
 export async function createWithdrawalLedgerEntry(withdrawal: {
-  id: string
-  amount: number
-  createdAt: string
-  userId: string
+  id: string;
+  amount: number;
+  createdAt: string;
+  userId: string;
 }) {
-  const amount = Number(withdrawal.amount)
+  const amount = Number(withdrawal.amount);
 
   await db.insert(generalLedger).values({
     id: generateId(),
@@ -126,16 +128,16 @@ export async function createWithdrawalLedgerEntry(withdrawal: {
     referenceId: withdrawal.id,
     debit: amount.toString(),
     credit: "0",
-  })
+  });
 }
 
 export async function createPlatformFeeLedgerEntry(fee: {
-  id: string
-  amount: number
-  createdAt: string
-  description: string
+  id: string;
+  amount: number;
+  createdAt: string;
+  description: string;
 }) {
-  const amount = Number(fee.amount)
+  const amount = Number(fee.amount);
 
   await db.insert(generalLedger).values({
     id: generateId(),
@@ -147,5 +149,5 @@ export async function createPlatformFeeLedgerEntry(fee: {
     referenceId: fee.id,
     debit: "0",
     credit: amount.toFixed(2),
-  })
+  });
 }

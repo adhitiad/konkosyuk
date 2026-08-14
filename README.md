@@ -1,33 +1,272 @@
-# 🏠 KonkosYuk - Platform Booking Kost & Kontrakan
+# KonkosYuk
 
-**Deskripsi Singkat:**
-KonkosYuk adalah platform web modern yang menjembatani pencari hunian (Tenant) dengan pemilik properti (Owner). Dilengkapi dengan sistem pembayaran aman (DP 35%), verifikasi KYC ketat, dan dukungan multi-bahasa.
+<!-- BADGES_START -->
+<!-- BADGES_END -->
 
-## ✨ Fitur Utama
-- **Pencarian Cerdas:** Filter lokasi, harga, dan fasilitas dengan Peta Interaktif.
-- 🛡️ **Keamanan Transaksi:** Sistem DP 35% & Pelunasan 65% via Doku, iPaymu, dan Nicepay.
-- 🌍 **Multi-Bahasa:** Mendukung ID, EN, MY, TH, VI, KO, ZH, RU.
-- 📸 **Smart Upload:** Kompresi gambar otomatis & Hybrid Cloud Storage (Uploadthing + Cloudinary).
-- 🤖 **AI Assistant:** Chatbot rekomendasi properti berbasis OpenRouter.
-- 👑 **Dashboard Owner & Admin:** Manajemen properti, KYC, dan Analitik Keuntungan.
+> Platform booking kost & kontrakan modern dengan pembayaran aman, verifikasi KYC, dan multi-bahasa.
 
-## ️ Tech Stack
-- **Framework:** Next.js 14 (App Router), React 18, TypeScript
-- **Styling:** Tailwind CSS, shadcn/ui
-- **Database:** PostgreSQL, Drizzle ORM
-- **Auth:** Better Auth (Email & Google OAuth)
-- **Payment:** Doku, iPaymu, Nicepay
-- **Media:** Cloudinary, Uploadthing, browser-image-compression
+[Demo](#) • [Dokumentasi](#) • [Pelaporan Bug](#) • [Diskusi](#)
 
-## 🚀 Cara Menjalankan di Lokal
-1. Clone repository ini.
-2. Install dependencies: `bun install` atau `npm install`.
-3. Salin `.env.example` menjadi `.env` dan isi variabel environment yang diperlukan.
-4. Jalankan database migration: `bunx drizzle-kit push`.
-5. Start server: `bun dev`.
+---
 
-## 📸 Screenshots
-*(Tambahkan screenshot halaman Landing Page, Dashboard Admin, dan Halaman Properti di sini nanti)*
+## 📋 Deskripsi
 
-## ‍💻 Author
-Dibuat dengan ❤️ oleh **Adhitia Dwima** github @adhitiad
+**KonkosYuk** adalah platform web yang menjembatani pencari hunian (Tenant) dengan pemilik properti (Owner). Dilengkapi dengan sistem pembayaran bertahap (DP 35%), verifikasi KYC ketat, dukungan multi-bahasa, dan AI Assistant untuk rekomendasi properti.
+
+## ✨ Fitur Lengkap
+
+### 🏠 Pencarian & Penemuan
+
+- **Pencarian Cerdas:** Full-text search PostgreSQL dengan dukungan bahasa Indonesia
+- **Peta Interaktif:** Leaflet + OpenStreetMap dengan filter radius
+- **Filter Dinamis:** Harga, tipe (kost/kontrakan), fasilitas, dan jarak
+- **Privacy by Design:** Koordinat di-jitter untuk properti yang belum dibooking
+
+### 💰 Booking & Pembayaran
+
+- **Sistem Paket Dinamis:** Sewa per jam, harian, bulanan, hingga tahunan
+- **Pembayaran Bertahap:** DP 35% untuk mengunci, pelunasan 65% sebelum check-in
+- **Multi-Gateway:** Doku, iPaymu, Nicepay dengan webhook signature verification
+- **Booking Request:** Pre-order untuk masa depan dengan persetujuan owner
+
+### 👑 Manajemen Owner
+
+- **CRUD Properti & Unit:** Hierarkis (gedung → kamar/unit)
+- **KYC Verification:** Verifikasi identitas pemilik properti
+- **Dashboard Analitik:** Tingkat hunian, pendapatan, dan statistik
+- **Maintenance Ticketing:** Pelaporan kerusakan dari tenant
+
+### 🔐 Keamanan & Kepercayaan
+
+- **Better Auth:** Session-based dengan HttpOnly cookies
+- **RBAC:** Role-Based Access Control (cust | owner | admin | staff)
+- **Webhook Security:** HMAC-SHA256 signature verification
+- **CSRF Protection:** Double-submit cookie pattern
+- **Rate Limiting:** Redis-backed rate limiting untuk API
+- **Audit Logging:** Immutable audit trail untuk aksi sensitif
+
+### 🤖 AI & Notifikasi
+
+- **AI Assistant:** Chatbot rekomendasi properti (OpenRouter)
+- **Notifikasi Real-time:** In-app + Web Push Notification
+- **Multi-Bahasa:** ID, EN, MY, TH, VI, KO, ZH, RU
+
+## 🛠️ Tech Stack
+
+| Layer         | Teknologi                                       |
+| ------------- | ----------------------------------------------- |
+| **Framework** | Next.js 16 (App Router), React 19, TypeScript 7 |
+| **Styling**   | Tailwind CSS v4, shadcn/ui                      |
+| **Database**  | PostgreSQL, Drizzle ORM                         |
+| **Auth**      | Better Auth (Email + Google OAuth)              |
+| **Payment**   | Doku, iPaymu, Nicepay                           |
+| **State**     | TanStack Query v5, Zustand                      |
+| **Maps**      | Leaflet, OpenStreetMap                          |
+| **Media**     | Cloudinary, Uploadthing                         |
+| **Testing**   | Vitest, React Testing Library, Playwright       |
+
+## 📋 Prasyarat
+
+Sebelum memulai, pastikan Anda telah menginstal:
+
+- [Node.js](https://nodejs.org/) >= 18.18.0
+- [Bun](https://bun.sh/) >= 1.3.14
+- [PostgreSQL](https://www.postgresql.org/) >= 14
+- [Redis](https://redis.io/) (untuk rate limiting & notifications)
+- [Git](https://git-scm.com/)
+
+## 🚀 Panduan Instalasi Lokal
+
+### 1. Clone Repository
+
+```bash
+git clone https://github.com/adhitiadwima/konkosyuk.git
+cd konkosyuk
+```
+
+### 2. Install Dependencies
+
+```bash
+bun install
+```
+
+### 3. Setup Environment Variables
+
+Salin file `.env.example` menjadi `.env.local`:
+
+```bash
+cp .env.example .env.local
+```
+
+Isi variabel environment yang diperlukan:
+
+```env
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/konkosyuk
+
+# Better Auth
+BETTER_AUTH_SECRET=your-secret-key-min-32-chars
+BETTER_AUTH_URL=http://localhost:3000
+
+# Google OAuth (opsional)
+AUTH_GOOGLE_ID=your-google-client-id
+AUTH_GOOGLE_SECRET=your-google-client-secret
+
+# Payment Gateways
+DOKU_CLIENT_ID=your-doku-client-id
+DOKU_SECRET_KEY=your-doku-secret-key
+DOKU_WEBHOOK_SECRET=your-doku-webhook-secret
+
+IPAYMU_API_KEY=your-ipaymu-api-key
+IPAYMU_SECRET_KEY=your-ipaymu-secret-key
+
+NICEPAY_CLIENT_ID=your-nicepay-client-id
+NICEPAY_SECRET_KEY=your-nicepay-secret-key
+
+# Storage
+UPLOADTHING_SECRET=your-uploadthing-secret
+UPLOADTHING_APP_ID=your-uploadthing-app-id
+CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
+CLOUDINARY_API_KEY=your-cloudinary-api-key
+CLOUDINARY_API_SECRET=your-cloudinary-api-secret
+
+# Redis (untuk rate limiting)
+UPSTASH_REDIS_REST_URL=your-redis-url
+UPSTASH_REDIS_REST_TOKEN=your-redis-token
+
+# AI (opsional)
+OPENROUTER_API_KEY=your-openrouter-api-key
+
+# Email (opsional)
+RESEND_API_KEY=your-resend-api-key
+```
+
+### 4. Setup Database
+
+Jalankan Drizzle push untuk membuat tabel:
+
+```bash
+bun run db:push
+```
+
+### 5. Seed Data (Opsional)
+
+Isi database dengan data contoh:
+
+```bash
+bun run db:seed
+```
+
+### 6. Jalankan Development Server
+
+```bash
+bun run dev
+```
+
+Buka [http://localhost:3000](http://localhost:3000) di browser.
+
+## 📂 Struktur Folder
+
+```
+konkosyuk/
+├── src/
+│   ├── app/
+│   │   ├── [locale]/              # i18n routing (ID, EN, MY, TH, VI, KO, ZH, RU)
+│   │   │   ├── (auth)/            # Login, signup, forgot password
+│   │   │   ├── (protected)/       # Halaman yang butuh login
+│   │   │   │   ├── customer/      # Dashboard tenant
+│   │   │   │   ├── owner/         # Dashboard owner
+│   │   │   │   ├── admin/         # Dashboard admin
+│   │   │   │   └── ...
+│   │   │   ├── properties/        # Pencarian & detail properti
+│   │   │   ├── bookings/          # Manajemen booking
+│   │   │   └── ...
+│   │   └── api/                   # API Route Handlers
+│   │       ├── auth/[...all]/     # Better Auth endpoints
+│   │       ├── properties/        # CRUD properti
+│   │       ├── bookings/          # CRUD booking
+│   │       ├── payments/          # Payment gateway integration
+│   │       ├── admin/             # Admin-only endpoints
+│   │       └── ...
+│   ├── components/
+│   │   ├── ui/                    # Shadcn UI components
+│   │   ├── features/              # Feature-specific components
+│   │   └── layouts/               # Layout components
+│   ├── lib/
+│   │   ├── auth.ts                # Better Auth server config
+│   │   ├── auth-client.ts         # Better Auth client config
+│   │   ├── db/                    # Database connection & schema
+│   │   ├── payments/              # Payment gateway adapters
+│   │   ├── utils/                 # Helper functions
+│   │   └── ...
+│   ├── i18n/                      # Terjemahan (next-intl)
+│   └── __tests__/                 # Test setup
+├── public/                        # Static assets
+├── e2e/                           # Playwright E2E tests
+├── docs/                          # Dokumentasi internal
+├── .github/                       # GitHub Actions workflows
+├── package.json
+├── tsconfig.json
+├── next.config.ts
+├── drizzle.config.ts
+└── vitest.config.ts
+```
+
+## 🧪 Testing
+
+```bash
+# Unit tests (watch mode)
+bun run test
+
+# Unit tests (CI mode)
+bun run test -- --run
+
+# Coverage report
+bun run test:coverage
+
+# E2E tests
+bun run test:e2e
+```
+
+## 🔧 Scripts yang Tersedia
+
+| Script                  | Deskripsi                         |
+| ----------------------- | --------------------------------- |
+| `bun run dev`           | Jalankan development server       |
+| `bun run build`         | Build untuk production            |
+| `bun run start`         | Jalankan production server        |
+| `bun run lint`          | Jalankan ESLint                   |
+| `bun run test`          | Jalankan unit tests (watch mode)  |
+| `bun run test:coverage` | Jalankan tests dengan coverage    |
+| `bun run test:e2e`      | Jalankan E2E tests                |
+| `bun run db:push`       | Push schema ke database (Drizzle) |
+| `bun run db:seed`       | Seed database dengan data contoh  |
+| `bun x tsc --noEmit`    | Type check                        |
+
+## 🤝 Kontribusi
+
+Kontribusi sangat diterima! Silakan baca [CONTRIBUTING.md](CONTRIBUTING.md) untuk pedoman kontribusi.
+
+## 📄 Lisensi
+
+Proyek ini dilisensikan under MIT License - lihat file [LICENSE](LICENSE) untuk detail.
+
+## 👨‍💻 Author
+
+**Adhitia Dwima**
+
+- GitHub: [@adhitiadwima](https://github.com/adhitiad)
+
+## 🙏 Ucapan Terima Kasih
+
+- [Next.js](https://nextjs.org/)
+- [Better Auth](https://better-auth.com/)
+- [Drizzle ORM](https://orm.drizzle.team/)
+- [shadcn/ui](https://ui.shadcn.com/)
+- [Leaflet](https://leafletjs.com/)
+
+---
+
+<p align="center">
+  Dibuat dengan ❤️ oleh Adhitia Dwima
+</p>

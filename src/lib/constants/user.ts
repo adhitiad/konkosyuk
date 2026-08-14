@@ -7,7 +7,9 @@ export const ROLE_OPTIONS = [
 
 export type RoleOption = (typeof ROLE_OPTIONS)[number];
 
-export function getRoleBadgeVariant(role: string): "default" | "secondary" | "destructive" | "outline" {
+export function getRoleBadgeVariant(
+  role: string,
+): "default" | "secondary" | "destructive" | "outline" {
   switch (role) {
     case "admin":
       return "destructive";

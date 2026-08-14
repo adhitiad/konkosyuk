@@ -1,44 +1,48 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { getCurrentPosition, calculateDistance } from '@/lib/geolocation'
-import { Button } from '@/components/ui/button'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { MapPinIcon, LoaderPinwheelIcon } from '@hugeicons/core-free-icons'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { useState } from "react";
+import { getCurrentPosition, calculateDistance } from "@/lib/geolocation";
+import { Button } from "@/components/ui/button";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { MapPinIcon, LoaderPinwheelIcon } from "@hugeicons/core-free-icons";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface LocationFinderProps {
-  onLocationFound: (lat: number, lng: number, radiusKm: number) => void
-  onError?: (message: string) => void
+  onLocationFound: (lat: number, lng: number, radiusKm: number) => void;
+  onError?: (message: string) => void;
 }
 
 const radiusOptions = [
-  { value: '1', label: '1 km' },
-  { value: '5', label: '5 km' },
-  { value: '10', label: '10 km' },
-  { value: '25', label: '25 km' },
-]
+  { value: "1", label: "1 km" },
+  { value: "5", label: "5 km" },
+  { value: "10", label: "10 km" },
+  { value: "25", label: "25 km" },
+];
 
-export default function LocationFinder({ onLocationFound, onError }: LocationFinderProps) {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [radius, setRadius] = useState('5')
+export default function LocationFinder({
+  onLocationFound,
+  onError,
+}: LocationFinderProps) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [radius, setRadius] = useState("5");
 
   const handleFindLocation = async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
-      const position = await getCurrentPosition()
-      onLocationFound(position.lat, position.lng, Number(radius))
+      const position = await getCurrentPosition();
+      onLocationFound(position.lat, position.lng, Number(radius));
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Gagal mendapatkan lokasi.'
-      setError(message)
-      onError?.(message)
+      const message =
+        err instanceof Error ? err.message : "Gagal mendapatkan lokasi.";
+      setError(message);
+      onError?.(message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-2">
@@ -51,11 +55,19 @@ export default function LocationFinder({ onLocationFound, onError }: LocationFin
           disabled={loading}
         >
           {loading ? (
-            <HugeiconsIcon icon={LoaderPinwheelIcon} strokeWidth={2} className="size-4 animate-spin" />
+            <HugeiconsIcon
+              icon={LoaderPinwheelIcon}
+              strokeWidth={2}
+              className="size-4 animate-spin"
+            />
           ) : (
-            <HugeiconsIcon icon={MapPinIcon} strokeWidth={2} className="size-4" />
+            <HugeiconsIcon
+              icon={MapPinIcon}
+              strokeWidth={2}
+              className="size-4"
+            />
           )}
-          {loading ? 'Mencari...' : 'Lokasi Saya'}
+          {loading ? "Mencari..." : "Lokasi Saya"}
         </Button>
         <select
           value={radius}
@@ -75,5 +87,5 @@ export default function LocationFinder({ onLocationFound, onError }: LocationFin
         </Alert>
       )}
     </div>
-  )
+  );
 }

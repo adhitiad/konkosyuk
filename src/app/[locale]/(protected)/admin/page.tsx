@@ -6,9 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  CheckmarkCircle02Icon,
-} from "@hugeicons/core-free-icons";
+import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { toast } from "@/components/ui/toast";
 import { apiClient } from "@/lib/axios";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
@@ -24,7 +22,11 @@ import {
   YAxis,
 } from "recharts";
 
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 interface AdminStats {
   totalUsers: number;
@@ -59,10 +61,10 @@ interface AdminBooking {
 
 function unwrapApiResponse<T>(response: unknown): T {
   if (typeof response === "object" && response !== null && "data" in response) {
-    const candidate = (response as { data?: T }).data
-    if (candidate !== undefined) return candidate
+    const candidate = (response as { data?: T }).data;
+    if (candidate !== undefined) return candidate;
   }
-  return response as T
+  return response as T;
 }
 
 export default withAdminAuth(AdminDashboardPage);
@@ -70,7 +72,11 @@ export default withAdminAuth(AdminDashboardPage);
 function AdminDashboardPage() {
   const queryClient = useQueryClient();
 
-  const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery<AdminStats>({
+  const {
+    data: stats,
+    isLoading: statsLoading,
+    isError: statsError,
+  } = useQuery<AdminStats>({
     queryKey: ["admin-stats"],
     queryFn: async () => {
       const [usersRes, propertiesRes, bookingsRes] = await Promise.all([
@@ -81,15 +87,17 @@ function AdminDashboardPage() {
 
       const usersList: unknown[] = Array.isArray(usersRes.data)
         ? usersRes.data
-        : ((unwrapApiResponse<{ data?: unknown[] }>(usersRes.data).data ?? []))
+        : (unwrapApiResponse<{ data?: unknown[] }>(usersRes.data).data ?? []);
 
       const propertiesList: unknown[] = Array.isArray(propertiesRes.data)
         ? propertiesRes.data
-        : ((unwrapApiResponse<{ data?: unknown[] }>(propertiesRes.data).data ?? []))
+        : (unwrapApiResponse<{ data?: unknown[] }>(propertiesRes.data).data ??
+          []);
 
       const bookingsList: AdminBooking[] = Array.isArray(bookingsRes.data)
         ? (bookingsRes.data as AdminBooking[])
-        : ((unwrapApiResponse<{ data?: unknown[] }>(bookingsRes.data).data ?? []) as AdminBooking[])
+        : ((unwrapApiResponse<{ data?: unknown[] }>(bookingsRes.data).data ??
+            []) as AdminBooking[]);
 
       const today = new Date().toISOString().split("T")[0];
       const bookingsToday = bookingsList.filter((b) =>
@@ -125,7 +133,7 @@ function AdminDashboardPage() {
     queryKey: ["admin-pending-properties"],
     queryFn: async () => {
       const { data: json } = await apiClient.get("/api/properties");
-      const payload = unwrapApiResponse<{ data?: AdminProperty[] }>(json)
+      const payload = unwrapApiResponse<{ data?: AdminProperty[] }>(json);
       return (payload.data ?? []).filter((p: AdminProperty) => !p.isActive);
     },
     staleTime: 30000,
@@ -137,7 +145,7 @@ function AdminDashboardPage() {
     queryKey: ["admin-problematic-bookings"],
     queryFn: async () => {
       const { data: json } = await apiClient.get("/api/bookings");
-      const payload = unwrapApiResponse<{ data?: AdminBooking[] }>(json)
+      const payload = unwrapApiResponse<{ data?: AdminBooking[] }>(json);
       const bookingsList = Array.isArray(payload.data) ? payload.data : [];
       return bookingsList.filter((b: AdminBooking) =>
         ["rejected", "cancelled"].includes(b.status),
@@ -146,7 +154,11 @@ function AdminDashboardPage() {
     staleTime: 30000,
   });
 
-  const { data: monthlyRevenue, isLoading: monthlyLoading, isError: monthlyError } = useQuery<{
+  const {
+    data: monthlyRevenue,
+    isLoading: monthlyLoading,
+    isError: monthlyError,
+  } = useQuery<{
     chartData: {
       month: string;
       totalGMV: number;
@@ -162,12 +174,16 @@ function AdminDashboardPage() {
       const { data: json } = await apiClient.get(
         "/api/admin/analytics/revenue-trend?months=12",
       );
-      return unwrapApiResponse(json)
+      return unwrapApiResponse(json);
     },
     staleTime: 30000,
   });
 
-  const { data: platformRevenue, isLoading: platformLoading, isError: platformError } = useQuery<{
+  const {
+    data: platformRevenue,
+    isLoading: platformLoading,
+    isError: platformError,
+  } = useQuery<{
     chartData: { platform: string; revenue: number; count: number }[];
     period: { startDate: string; endDate: string };
   }>({
@@ -176,7 +192,7 @@ function AdminDashboardPage() {
       const { data: json } = await apiClient.get(
         "/api/admin/analytics/revenue-by-platform?months=12",
       );
-      return unwrapApiResponse(json)
+      return unwrapApiResponse(json);
     },
     staleTime: 30000,
   });
@@ -388,7 +404,10 @@ function AdminDashboardPage() {
               </p>
             ) : Array.isArray(monthlyRevenue?.chartData) &&
               monthlyRevenue.chartData.length > 0 ? (
-              <ChartContainer config={monthlyChartConfig} className="h-80 w-full">
+              <ChartContainer
+                config={monthlyChartConfig}
+                className="h-80 w-full"
+              >
                 <AreaChart data={monthlyRevenue.chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
@@ -424,7 +443,10 @@ function AdminDashboardPage() {
               </p>
             ) : Array.isArray(platformRevenue?.chartData) &&
               platformRevenue.chartData.length > 0 ? (
-              <ChartContainer config={platformChartConfig} className="h-80 w-full">
+              <ChartContainer
+                config={platformChartConfig}
+                className="h-80 w-full"
+              >
                 <BarChart data={platformRevenue.chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="platform" />

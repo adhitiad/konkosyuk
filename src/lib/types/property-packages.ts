@@ -1,4 +1,4 @@
-export type DurationUnit = 'hours' | 'days' | 'months' | 'years';
+export type DurationUnit = "hours" | "days" | "months" | "years";
 
 export interface PackageItem {
   id: string;

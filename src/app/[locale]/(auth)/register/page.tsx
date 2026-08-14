@@ -95,13 +95,18 @@ export default function RegisterPage() {
     setGoogleLoading(true);
     try {
       const callbackURL = `${window.location.origin}${window.location.pathname}?oauth=success`;
-      const result = await authClient.signIn.social({ provider: 'google', callbackURL });
+      const result = await authClient.signIn.social({
+        provider: "google",
+        callbackURL,
+      });
       if (result.error) {
-        setError(result.error.message || 'Pendaftaran dengan Google gagal');
+        setError(result.error.message || "Pendaftaran dengan Google gagal");
         setGoogleLoading(false);
       }
     } catch {
-      setError('Pendaftaran dengan Google gagal. Periksa konfigurasi OAuth Google.');
+      setError(
+        "Pendaftaran dengan Google gagal. Periksa konfigurasi OAuth Google.",
+      );
       setGoogleLoading(false);
     }
   };
@@ -135,9 +140,18 @@ export default function RegisterPage() {
             </Alert>
           )}
 
-          <Button type="button" variant="outline" className="w-full" size="default" onClick={handleGoogleRegister} disabled={loading || googleLoading}>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            size="default"
+            onClick={handleGoogleRegister}
+            disabled={loading || googleLoading}
+          >
             <Globe className="mr-2 h-4 w-4" />
-            {googleLoading ? 'Menghubungkan ke Google...' : 'Daftar dengan Google'}
+            {googleLoading
+              ? "Menghubungkan ke Google..."
+              : "Daftar dengan Google"}
           </Button>
 
           <div className="relative">
@@ -185,7 +199,10 @@ export default function RegisterPage() {
 
           <div className="space-y-2">
             <Label htmlFor="role">Daftar sebagai</Label>
-            <Select value={role} onValueChange={(value) => setRole(value as "cust" | "owner")}>
+            <Select
+              value={role}
+              onValueChange={(value) => setRole(value as "cust" | "owner")}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Pilih peran" />
               </SelectTrigger>
@@ -214,7 +231,9 @@ export default function RegisterPage() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                aria-label={
+                  showPassword ? "Sembunyikan password" : "Tampilkan password"
+                }
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4" />
@@ -243,7 +262,11 @@ export default function RegisterPage() {
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label={showConfirmPassword ? "Sembunyikan password" : "Tampilkan password"}
+                aria-label={
+                  showConfirmPassword
+                    ? "Sembunyikan password"
+                    : "Tampilkan password"
+                }
               >
                 {showConfirmPassword ? (
                   <EyeOff className="h-4 w-4" />
@@ -260,7 +283,10 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-muted-foreground">
             Sudah punya akun?{" "}
-            <Link href="/login" className="text-primary hover:underline font-medium">
+            <Link
+              href="/login"
+              className="text-primary hover:underline font-medium"
+            >
               Masuk di sini
             </Link>
           </p>

@@ -90,15 +90,27 @@ function AddUnitPage() {
     e.preventDefault();
 
     if (!formData.propertyId) {
-      toast({ title: "Error", description: "Pilih properti terlebih dahulu", type: "error" });
+      toast({
+        title: "Error",
+        description: "Pilih properti terlebih dahulu",
+        type: "error",
+      });
       return;
     }
     if (!formData.name.trim()) {
-      toast({ title: "Error", description: "Nama unit wajib diisi", type: "error" });
+      toast({
+        title: "Error",
+        description: "Nama unit wajib diisi",
+        type: "error",
+      });
       return;
     }
     if (!formData.price || Number(formData.price) <= 0) {
-      toast({ title: "Error", description: "Harga harus lebih dari 0", type: "error" });
+      toast({
+        title: "Error",
+        description: "Harga harus lebih dari 0",
+        type: "error",
+      });
       return;
     }
 
@@ -127,10 +139,20 @@ function AddUnitPage() {
           ]}
         />
         <div className="flex items-center gap-4 mt-2">
-          <Button variant="ghost" size="icon" render={<Link href="/owner/units"><ArrowLeft className="h-4 w-4" /></Link>} nativeButton={false}>
-          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            render={
+              <Link href="/owner/units">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            }
+            nativeButton={false}
+          ></Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Tambah Unit Baru</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Tambah Unit Baru
+            </h1>
             <p className="text-muted-foreground">
               Tambahkan kamar atau unit baru ke properti Anda
             </p>
@@ -150,7 +172,9 @@ function AddUnitPage() {
                 <Label htmlFor="propertyId">Properti *</Label>
                 <Select
                   value={formData.propertyId}
-                  onValueChange={(v) => v && setFormData({ ...formData, propertyId: v })}
+                  onValueChange={(v) =>
+                    v && setFormData({ ...formData, propertyId: v })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih properti..." />
@@ -172,7 +196,9 @@ function AddUnitPage() {
                   id="name"
                   placeholder="Contoh: Kamar 101, Kamar Deluxe A"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                 />
               </div>
 
@@ -181,7 +207,9 @@ function AddUnitPage() {
                 <Label htmlFor="type">Tipe Unit *</Label>
                 <Select
                   value={formData.type}
-                  onValueChange={(v) => v && setFormData({ ...formData, type: v })}
+                  onValueChange={(v) =>
+                    v && setFormData({ ...formData, type: v })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -203,7 +231,9 @@ function AddUnitPage() {
                   type="number"
                   placeholder="500000"
                   value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, price: e.target.value })
+                  }
                 />
               </div>
 
@@ -215,7 +245,9 @@ function AddUnitPage() {
                   type="number"
                   placeholder="1"
                   value={formData.capacity}
-                  onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, capacity: e.target.value })
+                  }
                 />
               </div>
 
@@ -224,7 +256,9 @@ function AddUnitPage() {
                 <Label htmlFor="status">Status *</Label>
                 <Select
                   value={formData.status}
-                  onValueChange={(v) => v && setFormData({ ...formData, status: v })}
+                  onValueChange={(v) =>
+                    v && setFormData({ ...formData, status: v })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -239,12 +273,16 @@ function AddUnitPage() {
 
               {/* Fasilitas */}
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="facilities">Fasilitas (pisahkan dengan koma)</Label>
+                <Label htmlFor="facilities">
+                  Fasilitas (pisahkan dengan koma)
+                </Label>
                 <Input
                   id="facilities"
                   placeholder="AC, WiFi, Kamar Mandi Dalam, Lemari"
                   value={formData.facilities}
-                  onChange={(e) => setFormData({ ...formData, facilities: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, facilities: e.target.value })
+                  }
                 />
                 <p className="text-xs text-muted-foreground">
                   Contoh: AC, WiFi, Kamar Mandi Dalam, Lemari, Meja Belajar
@@ -258,14 +296,21 @@ function AddUnitPage() {
                   id="description"
                   placeholder="Deskripsi singkat tentang unit ini..."
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   rows={4}
                 />
               </div>
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t">
-              <Button type="button" variant="outline" render={<Link href="/owner/units">Batal</Link>} nativeButton={false}>
+              <Button
+                type="button"
+                variant="outline"
+                render={<Link href="/owner/units">Batal</Link>}
+                nativeButton={false}
+              >
                 Batal
               </Button>
               <Button type="submit" disabled={addMutation.isPending}>

@@ -1,13 +1,13 @@
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
-import { notFound } from 'next/navigation';
-import { locales } from '@/config';
-import { Providers } from '@/app/providers';
-import { ThemeProvider } from '@/components/theme-provider';
-import { LanguageProvider } from '@/components/language-provider';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
+import { notFound } from "next/navigation";
+import { locales } from "@/config";
+import { Providers } from "@/app/providers";
+import { ThemeProvider } from "@/components/theme-provider";
+import { LanguageProvider } from "@/components/language-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));

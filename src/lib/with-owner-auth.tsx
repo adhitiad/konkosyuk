@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useSession } from '@/lib/auth-client';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
-import type { Role } from '@/lib/auth';
+import { useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
+import type { Role } from "@/lib/auth";
 
 export function withOwnerAuth<P extends object>(
   WrappedComponent: React.ComponentType<P>,
-  allowedRoles: Role[] = ['owner']
+  allowedRoles: Role[] = ["owner"],
 ) {
   return function OwnerProtectedComponent(props: P) {
     const { data: session, isPending } = useSession();
@@ -19,9 +19,9 @@ export function withOwnerAuth<P extends object>(
     useEffect(() => {
       if (!isPending) {
         if (!session) {
-          router.push('/login');
+          router.push("/login");
         } else if (!userRole || !allowedRoles.includes(userRole as Role)) {
-          router.push('/dashboard');
+          router.push("/dashboard");
         }
       }
     }, [session, isPending, router, allowedRoles, userRole]);

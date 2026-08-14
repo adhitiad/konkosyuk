@@ -1,1 +1,1 @@
-declare module 'pdf-lib'
+declare module "pdf-lib";

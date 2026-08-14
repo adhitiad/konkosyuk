@@ -1,25 +1,31 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useSession } from '@/lib/auth-client';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useState, useEffect } from "react";
+import { useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { User, Upload, AlertTriangle } from 'lucide-react';
-import imageCompression from 'browser-image-compression';
-import { apiClient } from '@/lib/axios';
-import { apiGet } from '@/lib/api.client';
+} from "@/components/ui/select";
+import { User, Upload, AlertTriangle } from "lucide-react";
+import imageCompression from "browser-image-compression";
+import { apiClient } from "@/lib/axios";
+import { apiGet } from "@/lib/api.client";
 
 interface RegionOption {
   id: string;
@@ -30,11 +36,11 @@ export default function ProfileSettingsPage() {
   const { data: session, isPending, error } = useSession();
   const router = useRouter();
 
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [province, setProvince] = useState('');
-  const [city, setCity] = useState('');
-  const [district, setDistrict] = useState('');
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [province, setProvince] = useState("");
+  const [city, setCity] = useState("");
+  const [district, setDistrict] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -49,20 +55,20 @@ export default function ProfileSettingsPage() {
 
   useEffect(() => {
     if (error) {
-      setFormError('Gagal memuat sesi. Silakan login kembali.');
+      setFormError("Gagal memuat sesi. Silakan login kembali.");
       return;
     }
 
     if (!isPending && !session) {
-      router.push('/login');
+      router.push("/login");
     }
     if (session?.user) {
       const user = session.user as any;
-      setName(user.name || '');
-      setPhone(user.phone || '');
-      setProvince(user.province || '');
-      setCity(user.city || '');
-      setDistrict(user.district || '');
+      setName(user.name || "");
+      setPhone(user.phone || "");
+      setProvince(user.province || "");
+      setCity(user.city || "");
+      setDistrict(user.district || "");
       setImagePreview(user.image || null);
     }
   }, [session, isPending, error, router]);
@@ -71,10 +77,12 @@ export default function ProfileSettingsPage() {
     const fetchProvinces = async () => {
       setLoadingProvinces(true);
       try {
-        const data = await apiGet<RegionOption[]>('/api/proxy/wilayah/provinces.json');
+        const data = await apiGet<RegionOption[]>(
+          "/api/proxy/wilayah/provinces.json",
+        );
         setProvinces(data);
       } catch (err) {
-        console.error('Gagal fetch provinsi', err);
+        console.error("Gagal fetch provinsi", err);
       } finally {
         setLoadingProvinces(false);
       }
@@ -85,9 +93,9 @@ export default function ProfileSettingsPage() {
   useEffect(() => {
     if (!province) {
       setCities([]);
-      setCity('');
+      setCity("");
       setDistricts([]);
-      setDistrict('');
+      setDistrict("");
       return;
     }
     const selectedProvince = provinces.find((p) => p.name === province);
@@ -96,10 +104,12 @@ export default function ProfileSettingsPage() {
     const fetchCities = async () => {
       setLoadingCities(true);
       try {
-        const data = await apiGet<RegionOption[]>(`/api/proxy/wilayah/regencies/${selectedProvince.id}.json`);
+        const data = await apiGet<RegionOption[]>(
+          `/api/proxy/wilayah/regencies/${selectedProvince.id}.json`,
+        );
         setCities(data);
       } catch (err) {
-        console.error('Gagal fetch kota', err);
+        console.error("Gagal fetch kota", err);
       } finally {
         setLoadingCities(false);
       }
@@ -110,7 +120,7 @@ export default function ProfileSettingsPage() {
   useEffect(() => {
     if (!city) {
       setDistricts([]);
-      setDistrict('');
+      setDistrict("");
       return;
     }
     const selectedCity = cities.find((c) => c.name === city);
@@ -119,10 +129,12 @@ export default function ProfileSettingsPage() {
     const fetchDistricts = async () => {
       setLoadingDistricts(true);
       try {
-        const data = await apiGet<RegionOption[]>(`/api/proxy/wilayah/districts/${selectedCity.id}.json`);
+        const data = await apiGet<RegionOption[]>(
+          `/api/proxy/wilayah/districts/${selectedCity.id}.json`,
+        );
         setDistricts(data);
       } catch (err) {
-        console.error('Gagal fetch kecamatan', err);
+        console.error("Gagal fetch kecamatan", err);
       } finally {
         setLoadingDistricts(false);
       }
@@ -143,14 +155,16 @@ export default function ProfileSettingsPage() {
         maxWidthOrHeight: 800,
         useWebWorker: true,
       };
-      
+
       const compressedFile = await imageCompression(file, options);
-      
+
       setImageFile(compressedFile);
       setImagePreview(URL.createObjectURL(compressedFile));
-      console.log(`Ukuran asli: ${(file.size / 1024 / 1024).toFixed(2)} MB -> Terkompresi: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
+      console.log(
+        `Ukuran asli: ${(file.size / 1024 / 1024).toFixed(2)} MB -> Terkompresi: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`,
+      );
     } catch (err) {
-      setFormError('Gagal mengompres gambar.');
+      setFormError("Gagal mengompres gambar.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -164,45 +178,60 @@ export default function ProfileSettingsPage() {
 
     try {
       let imageUrl = session?.user.image || null;
-      
+
       if (imageFile) {
         const formData = new FormData();
-        formData.append('file', imageFile);
-        
-        const { data: uploadData } = await apiClient.post('/api/user/upload-avatar', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
+        formData.append("file", imageFile);
+
+        const { data: uploadData } = await apiClient.post(
+          "/api/user/upload-avatar",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
           },
-        });
-        
-        if (uploadData.error) throw new Error(uploadData.error || 'Gagal upload');
+        );
+
+        if (uploadData.error)
+          throw new Error(uploadData.error || "Gagal upload");
         imageUrl = uploadData.url;
       }
 
-      const res = await apiClient.patch('/api/user/profile', { 
-        name, 
-        phone, 
+      const res = await apiClient.patch("/api/user/profile", {
+        name,
+        phone,
         image: imageUrl,
         province,
         city,
         district,
-      })
+      });
 
-      if (res.status >= 400) throw new Error('Gagal update profil');
+      if (res.status >= 400) throw new Error("Gagal update profil");
 
       router.refresh();
-      alert('Profil berhasil diperbarui!');
+      alert("Profil berhasil diperbarui!");
     } catch (err: any) {
-      setFormError(err.message || 'Terjadi kesalahan');
+      setFormError(err.message || "Terjadi kesalahan");
     } finally {
       setLoading(false);
     }
   };
 
-  if (isPending) return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  if (isPending)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
   if (!session) return null;
 
-  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const initials = name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
@@ -214,7 +243,9 @@ export default function ProfileSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Foto Profil</CardTitle>
-          <CardDescription>Otomatis dikompresi menjadi maksimal 500KB</CardDescription>
+          <CardDescription>
+            Otomatis dikompresi menjadi maksimal 500KB
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
           <Avatar className="h-24 w-24 border-2 border-primary/20">
@@ -223,7 +254,7 @@ export default function ProfileSettingsPage() {
               {initials}
             </AvatarFallback>
           </Avatar>
-          
+
           <div className="flex items-center gap-2">
             <Input
               id="avatar"
@@ -236,11 +267,11 @@ export default function ProfileSettingsPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => document.getElementById('avatar')?.click()}
+              onClick={() => document.getElementById("avatar")?.click()}
               disabled={loading}
             >
               <Upload className="mr-2 h-4 w-4" />
-              {imagePreview ? 'Ganti Foto' : 'Upload Foto'}
+              {imagePreview ? "Ganti Foto" : "Upload Foto"}
             </Button>
             {imageFile && (
               <span className="text-xs text-muted-foreground">
@@ -273,16 +304,22 @@ export default function ProfileSettingsPage() {
                 required
                 disabled={loading}
               />
-              {(session.user as any).role === 'owner' && (
+              {(session.user as any).role === "owner" && (
                 <p className="text-xs text-amber-600 font-medium">
-                  ⚠️ Nama HARUS sama dengan KTP/Buku Tabungan untuk pencairan dana
+                  ⚠️ Nama HARUS sama dengan KTP/Buku Tabungan untuk pencairan
+                  dana
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" value={session.user.email || ''} disabled className="bg-muted" />
+              <Input
+                id="email"
+                value={session.user.email || ""}
+                disabled
+                className="bg-muted"
+              />
             </div>
 
             <div className="space-y-2">
@@ -303,18 +340,24 @@ export default function ProfileSettingsPage() {
               <Select
                 value={province}
                 onValueChange={(value) => {
-                  setProvince(value ?? '');
-                  setCity('');
-                  setDistrict('');
+                  setProvince(value ?? "");
+                  setCity("");
+                  setDistrict("");
                 }}
                 disabled={loadingProvinces || loading}
               >
                 <SelectTrigger id="province">
-                  <SelectValue placeholder={loadingProvinces ? 'Memuat provinsi...' : 'Pilih Provinsi'} />
+                  <SelectValue
+                    placeholder={
+                      loadingProvinces ? "Memuat provinsi..." : "Pilih Provinsi"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {provinces.map((prov) => (
-                    <SelectItem key={prov.id} value={prov.name}>{prov.name}</SelectItem>
+                    <SelectItem key={prov.id} value={prov.name}>
+                      {prov.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -325,17 +368,27 @@ export default function ProfileSettingsPage() {
               <Select
                 value={city}
                 onValueChange={(value) => {
-                  setCity(value ?? '');
-                  setDistrict('');
+                  setCity(value ?? "");
+                  setDistrict("");
                 }}
                 disabled={!province || loadingCities || loading}
               >
                 <SelectTrigger id="city">
-                  <SelectValue placeholder={loadingCities ? 'Memuat kota...' : (!province ? 'Pilih provinsi dahulu' : 'Pilih Kota/Kabupaten')} />
+                  <SelectValue
+                    placeholder={
+                      loadingCities
+                        ? "Memuat kota..."
+                        : !province
+                          ? "Pilih provinsi dahulu"
+                          : "Pilih Kota/Kabupaten"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {cities.map((c) => (
-                    <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                    <SelectItem key={c.id} value={c.name}>
+                      {c.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -345,22 +398,32 @@ export default function ProfileSettingsPage() {
               <Label htmlFor="district">Kecamatan</Label>
               <Select
                 value={district}
-                onValueChange={(value) => setDistrict(value ?? '')}
+                onValueChange={(value) => setDistrict(value ?? "")}
                 disabled={!city || loadingDistricts || loading}
               >
                 <SelectTrigger id="district">
-                  <SelectValue placeholder={loadingDistricts ? 'Memuat kecamatan...' : (!city ? 'Pilih kota dahulu' : 'Pilih Kecamatan')} />
+                  <SelectValue
+                    placeholder={
+                      loadingDistricts
+                        ? "Memuat kecamatan..."
+                        : !city
+                          ? "Pilih kota dahulu"
+                          : "Pilih Kecamatan"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {districts.map((d) => (
-                    <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>
+                    <SelectItem key={d.id} value={d.name}>
+                      {d.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
+              {loading ? "Menyimpan..." : "Simpan Perubahan"}
             </Button>
           </CardContent>
         </Card>

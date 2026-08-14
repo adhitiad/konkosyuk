@@ -1,23 +1,23 @@
-import { NextRequest } from 'next/server'
-import { db } from '@/db'
-import { bookingRequests, units, properties, users } from '@/db/schema'
-import { eq, desc, and, sql, inArray } from 'drizzle-orm'
-import { requireSession } from '@/lib/auth'
-import { ok, fail, handleApiError } from '@/lib/api'
-import type { Role } from '@/lib/auth'
+import { NextRequest } from "next/server";
+import { db } from "@/db";
+import { bookingRequests, units, properties, users } from "@/db/schema";
+import { eq, desc, and, sql, inArray } from "drizzle-orm";
+import { requireSession } from "@/lib/auth";
+import { ok, fail, handleApiError } from "@/lib/api";
+import type { Role } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await requireSession(['owner'] as Role[])
+    const session = await requireSession(["owner"] as Role[]);
 
     const ownerProperties = await db
       .select({ id: properties.id })
       .from(properties)
-      .where(eq(properties.ownerId, session.user.id))
+      .where(eq(properties.ownerId, session.user.id));
 
-    const propertyIds = ownerProperties.map((p) => p.id)
+    const propertyIds = ownerProperties.map((p) => p.id);
     if (propertyIds.length === 0) {
-      return ok({ data: [] })
+      return ok({ data: [] });
     }
 
     const data = await db
@@ -46,10 +46,10 @@ export async function GET(req: NextRequest) {
       .leftJoin(units, eq(bookingRequests.unitId, units.id))
       .leftJoin(properties, eq(bookingRequests.propertyId, properties.id))
       .where(inArray(bookingRequests.propertyId, propertyIds))
-      .orderBy(desc(bookingRequests.createdAt))
+      .orderBy(desc(bookingRequests.createdAt));
 
-    return ok({ data })
+    return ok({ data });
   } catch (error) {
-    return handleApiError(error)
+    return handleApiError(error);
   }
 }

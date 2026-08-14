@@ -35,7 +35,7 @@ export function PropertyImagesUpload({
       url,
       isUploading: false,
       progress: 100,
-    }))
+    })),
   );
   const [dragActive, setDragActive] = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
@@ -45,7 +45,7 @@ export function PropertyImagesUpload({
   const handleFiles = useCallback(
     async (files: FileList | File[]) => {
       const validFiles = Array.from(files).filter((file) =>
-        file.type.startsWith("image/")
+        file.type.startsWith("image/"),
       );
 
       const remainingSlots = maxImages - images.length;
@@ -102,8 +102,8 @@ export function PropertyImagesUpload({
             prev.map((img) =>
               img.id === imageId
                 ? { ...img, url: result.url, isUploading: false, progress: 100 }
-                : img
-            )
+                : img,
+            ),
           );
 
           setImages((currentImages) => {
@@ -124,7 +124,7 @@ export function PropertyImagesUpload({
         }
       }
     },
-    [images.length, maxImages, onImagesChange]
+    [images.length, maxImages, onImagesChange],
   );
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -147,7 +147,7 @@ export function PropertyImagesUpload({
         handleFiles(e.dataTransfer.files);
       }
     },
-    [handleFiles]
+    [handleFiles],
   );
 
   const handleDragStart = useCallback((index: number) => {
@@ -161,7 +161,11 @@ export function PropertyImagesUpload({
   }, []);
 
   const handleDragEnd = useCallback(() => {
-    if (dragIndex !== null && dragOverIndex !== null && dragIndex !== dragOverIndex) {
+    if (
+      dragIndex !== null &&
+      dragOverIndex !== null &&
+      dragIndex !== dragOverIndex
+    ) {
       setImages((prev) => {
         const newImages = [...prev];
         const [movedImage] = newImages.splice(dragIndex, 1);
@@ -189,7 +193,7 @@ export function PropertyImagesUpload({
         return newImages;
       });
     },
-    [onImagesChange]
+    [onImagesChange],
   );
 
   const canUpload = images.length < maxImages;
@@ -216,7 +220,7 @@ export function PropertyImagesUpload({
             "relative border-2 border-dashed rounded-lg p-6 transition-colors",
             dragActive
               ? "border-primary bg-primary/5"
-              : "border-muted-foreground/25 hover:border-primary/50"
+              : "border-muted-foreground/25 hover:border-primary/50",
           )}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -270,7 +274,10 @@ export function PropertyImagesUpload({
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="font-medium">💡 Tips:</span>
-            <span>Drag gambar untuk mengubah urutan. Gambar pertama akan menjadi cover/hero image.</span>
+            <span>
+              Drag gambar untuk mengubah urutan. Gambar pertama akan menjadi
+              cover/hero image.
+            </span>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -281,7 +288,8 @@ export function PropertyImagesUpload({
                   "relative overflow-hidden group transition-all duration-200",
                   image.isUploading && "opacity-75",
                   dragIndex === index && "opacity-50 scale-95",
-                  dragOverIndex === index && "ring-2 ring-primary ring-offset-2"
+                  dragOverIndex === index &&
+                    "ring-2 ring-primary ring-offset-2",
                 )}
                 draggable={!image.isUploading}
                 onDragStart={() => handleDragStart(index)}

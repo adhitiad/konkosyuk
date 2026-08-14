@@ -1,29 +1,29 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { AlertCircleIcon, StarIcon } from '@hugeicons/core-free-icons'
-import { reviewType } from '@/db/schema'
-import { apiClient } from '@/lib/axios'
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AlertCircleIcon, StarIcon } from "@hugeicons/core-free-icons";
+import { reviewType } from "@/db/schema";
+import { apiClient } from "@/lib/axios";
 
 interface ReviewFormProps {
-  bookingId: string
-  type: typeof reviewType[number]
-  targetId: string
-  targetName: string
-  onSuccess?: () => void
+  bookingId: string;
+  type: (typeof reviewType)[number];
+  targetId: string;
+  targetName: string;
+  onSuccess?: () => void;
 }
 
 function StarRating({
   rating,
   onRatingChange,
 }: {
-  rating: number
-  onRatingChange: (rating: number) => void
+  rating: number;
+  onRatingChange: (rating: number) => void;
 }) {
   return (
     <div className="flex gap-1">
@@ -39,14 +39,14 @@ function StarRating({
             strokeWidth={2}
             className={`size-6 ${
               star <= rating
-                ? 'fill-yellow-400 text-yellow-400'
-                : 'text-gray-300'
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-gray-300"
             }`}
           />
         </button>
       ))}
     </div>
-  )
+  );
 }
 
 export default function ReviewForm({
@@ -56,64 +56,68 @@ export default function ReviewForm({
   targetName,
   onSuccess,
 }: ReviewFormProps) {
-  const [rating, setRating] = useState(0)
-  const [comment, setComment] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setSuccess(false)
+    e.preventDefault();
+    setError(null);
+    setSuccess(false);
 
     if (rating === 0) {
-      setError('Pilih rating terlebih dahulu')
-      return
+      setError("Pilih rating terlebih dahulu");
+      return;
     }
 
     if (!comment.trim()) {
-      setError('Tulis komentar terlebih dahulu')
-      return
+      setError("Tulis komentar terlebih dahulu");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
       const body: Record<string, unknown> = {
         type,
         rating,
         comment: comment.trim(),
         bookingId,
-      }
+      };
 
-      if (type === 'tenant') {
-        body.reviewedUserId = targetId
+      if (type === "tenant") {
+        body.reviewedUserId = targetId;
       } else {
-        body.propertyId = targetId
+        body.propertyId = targetId;
       }
 
-      const res = await apiClient.post('/api/reviews', body)
-      const json = res.data
+      const res = await apiClient.post("/api/reviews", body);
+      const json = res.data;
       if (res.status >= 400) {
-        throw new Error(json.error || 'Gagal mengirim review')
+        throw new Error(json.error || "Gagal mengirim review");
       }
 
-      setSuccess(true)
-      setRating(0)
-      setComment('')
-      onSuccess?.()
+      setSuccess(true);
+      setRating(0);
+      setComment("");
+      onSuccess?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
+      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
         <Alert variant="destructive">
-          <HugeiconsIcon icon={AlertCircleIcon} strokeWidth={2} className="size-4" />
+          <HugeiconsIcon
+            icon={AlertCircleIcon}
+            strokeWidth={2}
+            className="size-4"
+          />
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
@@ -150,8 +154,8 @@ export default function ReviewForm({
       </div>
 
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Mengirim...' : 'Kirim Review'}
+        {loading ? "Mengirim..." : "Kirim Review"}
       </Button>
     </form>
-  )
+  );
 }

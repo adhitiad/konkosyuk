@@ -1,21 +1,23 @@
-import { auth } from '@/lib/auth'
-import type { NextRequest } from 'next/server'
-import type { Role } from '@/lib/auth'
+import { auth } from "@/lib/auth";
+import type { NextRequest } from "next/server";
+import type { Role } from "@/lib/auth";
 
 export interface SessionUser {
-  id: string
-  email: string
-  name: string
-  role: Role
+  id: string;
+  email: string;
+  name: string;
+  role: Role;
 }
 
 export async function verifySession(request: NextRequest) {
-  const session = await auth.api.getSession({
+  const session = (await auth.api.getSession({
     headers: request.headers,
-  })
+  })) as {
+    user: { id: string; email: string; name: string; role: string };
+  } | null;
 
   if (!session) {
-    return { user: null as SessionUser | null }
+    return { user: null as SessionUser | null };
   }
 
   return {
@@ -25,5 +27,5 @@ export async function verifySession(request: NextRequest) {
       name: session.user.name,
       role: session.user.role as Role,
     },
-  }
+  };
 }

@@ -1,11 +1,11 @@
-import { v2 as cloudinary } from 'cloudinary'
-import { env } from '@/lib/env'
+import { v2 as cloudinary } from "cloudinary";
+import { env } from "@/lib/env";
 
 cloudinary.config({
   cloud_name: env.CLOUDINARY_CLOUD_NAME,
   api_key: env.CLOUDINARY_API_KEY,
   api_secret: env.CLOUDINARY_API_SECRET,
-})
+});
 
 export async function uploadToCloudinary(
   fileBuffer: Buffer,
@@ -15,26 +15,30 @@ export async function uploadToCloudinary(
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: folderName,
-        resource_type: 'image',
+        resource_type: "image",
       },
       (error, result) => {
         if (error) {
-          reject(error)
+          reject(error);
         } else if (result) {
-          resolve({ secure_url: result.secure_url })
+          resolve({ secure_url: result.secure_url });
         } else {
-          reject(new Error('Cloudinary upload failed'))
+          reject(new Error("Cloudinary upload failed"));
         }
       },
-    )
+    );
 
-    uploadStream.end(fileBuffer)
-  })
+    uploadStream.end(fileBuffer);
+  });
 }
 
 export async function checkCloudinaryConnection(): Promise<void> {
-  if (!env.CLOUDINARY_CLOUD_NAME || !env.CLOUDINARY_API_KEY || !env.CLOUDINARY_API_SECRET) {
-    throw new Error('Cloudinary credentials are not configured')
+  if (
+    !env.CLOUDINARY_CLOUD_NAME ||
+    !env.CLOUDINARY_API_KEY ||
+    !env.CLOUDINARY_API_SECRET
+  ) {
+    throw new Error("Cloudinary credentials are not configured");
   }
-  await cloudinary.api.ping()
+  await cloudinary.api.ping();
 }

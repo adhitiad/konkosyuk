@@ -6,13 +6,12 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-export default function Error({
-  error,
-  reset,
-}: {
+interface AppErrorProps {
   error: Error & { digest?: string };
   reset: () => void;
-}) {
+}
+
+export default function Error({ error, reset }: AppErrorProps) {
   useEffect(() => {
     console.error("Page error:", error);
   }, [error]);

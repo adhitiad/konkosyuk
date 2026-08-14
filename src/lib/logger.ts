@@ -1,4 +1,4 @@
-import winston from 'winston'
+import pino from 'pino'
 
 export interface LogMetadata {
   [key: string]: unknown
@@ -55,52 +55,100 @@ function sanitizeMetadata(metadata?: LogMetadata): LogMetadata | undefined {
   return sanitizeObject(metadata)
 }
 
-const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-  format: winston.format.combine(
-    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    winston.format.errors({ stack: true }),
-    winston.format.printf(({ timestamp, level, message, stack, ...meta }) => {
-      const sanitizedMeta = sanitizeObject(meta as Record<string, unknown>)
-      const metaStr = Object.keys(sanitizedMeta).length > 0 ? JSON.stringify(sanitizedMeta) : ''
-      return `[${timestamp}] ${level.toUpperCase()}: ${message}${stack ? `\n${stack}` : ''}${metaStr ? `\n${metaStr}` : ''}`
-    })
-  ),
-  transports: [
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        winston.format.printf(({ timestamp, level, message, stack, ...meta }) => {
-          const sanitizedMeta = sanitizeObject(meta as Record<string, unknown>)
-          const metaStr = Object.keys(sanitizedMeta).length > 0 ? JSON.stringify(sanitizedMeta) : ''
-          return `[${timestamp}] ${level.toUpperCase()}: ${message}${stack ? `\n${stack}` : ''}${metaStr ? `\n${metaStr}` : ''}`
-        })
-      ),
-    }),
-  ],
-})
+const isProduction = process.env.NODE_ENV === 'production'
+
+export const logger = pino(
+  {
+    level: isProduction ? 'info' : 'debug',
+    formatter: (log) => {
+      const sanitizedMeta = sanitizeObject(log as Record<string, unknown>)
+      return {
+        timestamp: new Date().toISOString(),
+        level: log.level,
+        message: log.msg,
+        ...sanitizedMeta,
+      }
+    },
+    transport: isProduction
+      ? undefined
+      : {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            translateTime: 'SYS:standard',
+            ignore: 'pid,hostname',
+          },
+        },
+  }
+)
 
 export function logError(error: unknown, context: string, metadata?: LogMetadata) {
   const errorObj = error instanceof Error ? error : new Error(String(error))
   
-  logger.error(`[${context}] ${errorObj.message}`, {
-    stack: errorObj.stack,
-    name: errorObj.name,
-    ...sanitizeMetadata(metadata),
-  })
+  logger.error(
+    {
+      context,
+      error: {
+        message: errorObj.message,
+        stack: errorObj.stack,
+        name: errorObj.name,
+      },
+      ...sanitizeMetadata(metadata),
+    },
+    errorObj.message
+  )
 }
 
 export function logInfo(message: string, metadata?: LogMetadata) {
-  logger.info(message, sanitizeMetadata(metadata))
+  logger.info({ ...sanitizeMetadata(metadata) }, message)
 }
 
 export function logWarn(message: string, metadata?: LogMetadata) {
-  logger.warn(message, sanitizeMetadata(metadata))
+  logger.warn({ ...sanitizeMetadata(metadata) }, message)
 }
 
 export function logDebug(message: string, metadata?: LogMetadata) {
-  logger.debug(message, sanitizeMetadata(metadata))
+  logger.debug({ ...sanitizeMetadata(metadata) }, message)
 }
 
-export default logger
+export function logSecurityEvent(event: string, metadata?: LogMetadata) {
+  logger.warn(
+    {
+      category: 'security',
+      event,
+      ...sanitizeMetadata(metadata),
+    },
+    `[SECURITY] ${event}`
+  )
+}
+
+export function logApiRequest(method: string, path: string, statusCode: number, duration: number, userId?: string) {
+  logger.info(
+    {
+      category: 'api',
+      method,
+      path,
+      statusCode,
+      duration,
+      userId,
+    },
+    `${method} ${path} ${statusCode} ${duration}ms`
+  )
+}
+
+export function logDatabaseQuery(query: string, duration: number, rowsAffected?: number) {
+  logger.debug(
+    {
+      category: 'database',
+      query,
+      duration,
+      rowsAffected,
+    },
+    `DB Query: ${duration}ms`
+  )
+}
+
+export function logPaymentEvent(event: string, provider: string, bookingId?: string, metadata?: LogMetadata) {
+  logger.info(
+    {
+      cat

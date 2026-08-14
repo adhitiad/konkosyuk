@@ -1,0 +1,64 @@
+import { NextRequest } from "next/server";
+
+const ALLOWED_WEBHOOK_IPS: Record<string, string[]> = {
+  doku: ["103.28.36.0/24", "103.28.37.0/24", "103.28.38.0/24"],
+  ipaymu: ["103.28.36.0/24", "103.28.37.0/24"],
+  nicepay: ["103.28.36.0/24", "103.28.37.0/24", "103.28.38.0/24"],
+};
+
+function ipToNumber(ip: string): number {
+  const parts = ip.split(".").map(Number);
+  if (parts.length !== 4 || parts.some((p) => isNaN(p) || p < 0 || p > 255)) {
+    return -1;
+  }
+  return (parts[0] << 24) + (parts[1] << 16) + (parts[2] << 8) + parts[3];
+}
+
+function cidrRange(network: string): { start: number; end: number } {
+  const [prefix, lengthStr] = network.split("/");
+  const length = parseInt(lengthStr || "32", 10);
+  const ipNum = ipToNumber(prefix);
+  if (ipNum === -1) {
+    return { start: -1, end: -1 };
+  }
+  const mask = length === 0 ? 0 : (~0 << (32 - length)) >>> 0;
+  const start = (ipNum & mask) >>> 0;
+  const end = (start | (~mask >>> 0)) >>> 0;
+  return { start, end };
+}
+
+function isIpInCidr(ip: string, cidr: string): boolean {
+  const ipNum = ipToNumber(ip);
+  if (ipNum === -1) return false;
+  const { start, end } = cidrRange(cidr);
+  return ipNum >= start && ipNum <= end;
+}
+
+export function isWebhookIpAllowed(
+  provider: string,
+  req: NextRequest,
+): boolean {
+  const allowedIps = ALLOWED_WEBHOOK_IPS[provider];
+  if (!allowedIps || allowedIps.length === 0) {
+    return true;
+  }
+
+  const clientIp =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "";
+
+  if (!clientIp) {
+    return false;
+  }
+
+  return allowedIps.some((cidr) => isIpInCidr(clientIp, cidr));
+}
+
+export function getClientIp(req: NextRequest): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}

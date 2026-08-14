@@ -27,8 +27,8 @@ export function FeaturesSection() {
           Mengapa Memilih <span className="text-primary">KonkosYuk</span>?
         </h2>
         <p className="mx-auto mt-4 max-w-2xl text-center text-muted-foreground">
-          Kami menggabungkan teknologi dan keamanan untuk membuat pengguna sewa-menyewa
-          menjadi lebih mudah, aman, dan transparan.
+          Kami menggabungkan teknologi dan keamanan untuk membuat pengguna
+          sewa-menyewa menjadi lebih mudah, aman, dan transparan.
         </p>
 
         <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">

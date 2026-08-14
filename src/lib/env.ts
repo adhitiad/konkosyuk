@@ -1,9 +1,12 @@
 import { z } from "zod";
 
-const optionalUrl = z.preprocess(
-  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
-  z.string().url().optional(),
-).catch(undefined);
+const optionalUrl = z
+  .preprocess(
+    (value) =>
+      typeof value === "string" && value.trim() === "" ? undefined : value,
+    z.string().url().optional(),
+  )
+  .catch(undefined);
 
 const envSchema = z.object({
   // Database Configuration
@@ -36,8 +39,12 @@ const envSchema = z.object({
   RESEND_FROM_EMAIL: z.string().optional(),
   META_ACCESS_TOKEN: z.string().optional(),
   META_PHONE_NUMBER_ID: z.string().optional(),
-  META_MAINTENANCE_CREATED_TEMPLATE: z.string().default("maintenance_report_created"),
-  META_MAINTENANCE_UPDATED_TEMPLATE: z.string().default("maintenance_report_updated"),
+  META_MAINTENANCE_CREATED_TEMPLATE: z
+    .string()
+    .default("maintenance_report_created"),
+  META_MAINTENANCE_UPDATED_TEMPLATE: z
+    .string()
+    .default("maintenance_report_updated"),
 
   // Redis: prioritas Upstash -> Redis Cloud -> lokal
   UPSTASH_REDIS_REST_URL: optionalUrl,
@@ -48,8 +55,11 @@ const envSchema = z.object({
 
 export const env = envSchema.parse(process.env);
 
-if (process.env.NODE_ENV === 'production' && !env.PAYMENT_CONFIG_ENCRYPTION_KEY) {
-  throw new Error('PAYMENT_CONFIG_ENCRYPTION_KEY is required in production')
+if (
+  process.env.NODE_ENV === "production" &&
+  !env.PAYMENT_CONFIG_ENCRYPTION_KEY
+) {
+  throw new Error("PAYMENT_CONFIG_ENCRYPTION_KEY is required in production");
 }
 
 export type Env = z.infer<typeof envSchema>;

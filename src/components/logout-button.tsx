@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import { signOut } from '@/lib/auth-client'
-import { Button } from '@/components/ui/button'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { ArrowRight01Icon } from '@hugeicons/core-free-icons'
+import { signOut } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
 export function LogoutButton() {
   async function handleLogout() {
-    await signOut()
-    window.location.href = '/login'
+    await signOut();
+    window.location.href = "/login";
   }
 
   return (
@@ -20,5 +20,5 @@ export function LogoutButton() {
       <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
       <span>Logout</span>
     </Button>
-  )
+  );
 }

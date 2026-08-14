@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
-import { Button } from '@/components/ui/button'
-import { ErrorState } from '@/components/ui/error-state'
+import { Button } from "@/components/ui/button";
+import { ErrorState } from "@/components/ui/error-state";
 
 export default function AdminError({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   return (
     <div className="container py-12">
       <ErrorState
         title="Terjadi Kesalahan"
-        description={error.message || 'Gagal memuat halaman admin.'}
+        description={error.message || "Gagal memuat halaman admin."}
         onRetry={reset}
       />
     </div>
-  )
+  );
 }

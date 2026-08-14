@@ -2,7 +2,9 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: "https",
@@ -42,14 +44,10 @@ const nextConfig: NextConfig = {
             key: "X-DNS-Prefetch-Control",
             value: "on",
           },
-          ...(isProd
-            ? [
-                {
-                  key: "Strict-Transport-Security",
-                  value: "max-age=63072000; includeSubDomains; preload",
-                } as const,
-              ]
-            : []),
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
           {
             key: "X-Content-Type-Options",
             value: "nosniff",
@@ -63,6 +61,22 @@ const nextConfig: NextConfig = {
             value: "1; mode=block",
           },
           {
+            key: "X-Permitted-Cross-Domain-Policies",
+            value: "none",
+          },
+          {
+            key: "X-Download-Options",
+            value: "noopen",
+          },
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin",
+          },
+          {
+            key: "Cross-Origin-Embedder-Policy",
+            value: "require-corp",
+          },
+          {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
           },
@@ -74,7 +88,9 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              `script-src 'self' 'unsafe-inline'${isProd ? "" : " 'unsafe-eval'"} https://translate.google.com`,
+              isProd
+                ? "script-src 'self' https://translate.google.com"
+                : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://translate.google.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: blob: https://*.uploadthing.com https://utfs.io https://res.cloudinary.com https://*.placehold.co https://via.placeholder.com https://images.unsplash.com https://cdn.jsdelivr.net",
               "font-src 'self' data: https://fonts.gstatic.com",

@@ -1,25 +1,25 @@
-import { NextRequest } from 'next/server'
-import { db } from '@/db'
-import { users, withdrawals, ownerBankAccounts } from '@/db/schema'
-import { validateAdminRequest, validateAdminOnlyRequest } from '@/lib/api-auth'
-import { ok, fail, handleApiError } from '@/lib/api'
-import { eq, desc, and, sql } from 'drizzle-orm'
-import { z } from 'zod'
-import { logError } from '@/lib/logger'
-import type { Role } from '@/lib/auth'
-import { createAuditLog } from '@/lib/audit-log'
+import { NextRequest } from "next/server";
+import { db } from "@/db";
+import { users, withdrawals, ownerBankAccounts } from "@/db/schema";
+import { validateAdminRequest, validateAdminOnlyRequest } from "@/lib/api-auth";
+import { ok, fail, handleApiError } from "@/lib/api";
+import { eq, desc, and, sql } from "drizzle-orm";
+import { z } from "zod";
+import { logError } from "@/lib/logger";
+import type { Role } from "@/lib/auth";
+import { createAuditLog } from "@/lib/audit-log";
 
 const processWithdrawalSchema = z.object({
   id: z.string().uuid(),
-  action: z.enum(['success', 'rejected']),
+  action: z.enum(["success", "rejected"]),
   adminNote: z.string().optional(),
-})
+});
 
 export async function GET(req: NextRequest) {
   try {
-    const authResult = await validateAdminRequest(req)
-    if (authResult instanceof Response) return authResult
-    const { session } = authResult
+    const authResult = await validateAdminRequest(req);
+    if (authResult instanceof Response) return authResult;
+    const { session } = authResult;
 
     const data = await db
       .select({
@@ -44,40 +44,43 @@ export async function GET(req: NextRequest) {
       })
       .from(withdrawals)
       .leftJoin(users, eq(users.id, withdrawals.ownerId))
-      .leftJoin(ownerBankAccounts, eq(ownerBankAccounts.id, withdrawals.bankAccountId))
-      .where(eq(withdrawals.status, 'pending'))
-      .orderBy(desc(withdrawals.createdAt))
+      .leftJoin(
+        ownerBankAccounts,
+        eq(ownerBankAccounts.id, withdrawals.bankAccountId),
+      )
+      .where(eq(withdrawals.status, "pending"))
+      .orderBy(desc(withdrawals.createdAt));
 
-    return ok({ data })
+    return ok({ data });
   } catch (error) {
-    logError(error, 'GET /api/admin/withdrawals')
-    return handleApiError(error)
+    logError(error, "GET /api/admin/withdrawals");
+    return handleApiError(error);
   }
 }
 
 export async function PATCH(req: NextRequest) {
   try {
-    const authResult = await validateAdminOnlyRequest(req)
-    if (authResult instanceof Response) return authResult
-    const { session, ipAddress, userAgent } = authResult
-    const body = processWithdrawalSchema.parse(await req.json())
+    const authResult = await validateAdminOnlyRequest(req);
+    if (authResult instanceof Response) return authResult;
+    const { session, ipAddress, userAgent } = authResult;
+    const body = processWithdrawalSchema.parse(await req.json());
 
     const [withdrawal] = await db
       .select()
       .from(withdrawals)
       .where(eq(withdrawals.id, body.id))
-      .limit(1)
+      .limit(1);
 
     if (!withdrawal) {
-      return fail('Withdrawal not found', 404)
+      return fail("Withdrawal not found", 404);
     }
 
-    if (withdrawal.status !== 'pending') {
-      return fail('Withdrawal sudah diproses', 400)
+    if (withdrawal.status !== "pending") {
+      return fail("Withdrawal sudah diproses", 400);
     }
 
-    if (body.action === 'rejected' && !body.adminNote?.trim()) {
-      return fail('Alasan penolakan wajib diisi', 400)
+    if (body.action === "rejected" && !body.adminNote?.trim()) {
+      return fail("Alasan penolakan wajib diisi", 400);
     }
 
     await db.transaction(async (tx) => {
@@ -88,22 +91,22 @@ export async function PATCH(req: NextRequest) {
           adminNote: body.adminNote?.trim() || null,
           updatedAt: new Date(),
         })
-        .where(eq(withdrawals.id, body.id))
+        .where(eq(withdrawals.id, body.id));
 
-      if (body.action === 'rejected') {
+      if (body.action === "rejected") {
         await tx
           .update(users)
           .set({
             balance: sql`${users.balance} + ${withdrawal.amount}`,
             updatedAt: new Date(),
           })
-          .where(eq(users.id, withdrawal.ownerId))
+          .where(eq(users.id, withdrawal.ownerId));
       }
-    })
+    });
 
     await createAuditLog({
-      action: body.action === 'success' ? 'approve' : 'reject',
-      targetType: 'withdrawal',
+      action: body.action === "success" ? "approve" : "reject",
+      targetType: "withdrawal",
       targetId: withdrawal.id,
       adminId: session.user.id,
       details: {
@@ -111,11 +114,14 @@ export async function PATCH(req: NextRequest) {
         amount: withdrawal.amount,
         adminNote: body.adminNote,
       },
-    })
+    });
 
-    return ok({ success: true, message: `Withdrawal ${body.action === 'success' ? 'disetujui' : 'ditolak'}.` })
+    return ok({
+      success: true,
+      message: `Withdrawal ${body.action === "success" ? "disetujui" : "ditolak"}.`,
+    });
   } catch (error) {
-    logError(error, 'PATCH /api/admin/withdrawals')
-    return handleApiError(error)
+    logError(error, "PATCH /api/admin/withdrawals");
+    return handleApiError(error);
   }
 }

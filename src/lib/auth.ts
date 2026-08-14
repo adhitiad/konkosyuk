@@ -2,17 +2,21 @@ import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { createAuthMiddleware, APIError } from "better-auth/api";
+import { twoFactor } from "better-auth/plugins/two-factor";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import { logSecurityEvent } from "@/lib/logger";
 
 export const auth = betterAuth({
   trustedOrigins: [
     "http://localhost:3000",
     "http://localhost:3001",
-  ],
+    process.env.NEXT_PUBLIC_APP_URL1,
+    process.env.NEXT_PUBLIC_APP_URL2,
+  ].filter((origin): origin is string => Boolean(origin)),
   database: drizzleAdapter(db, {
     provider: "pg",
     usePlural: true,
@@ -20,19 +24,21 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: true,
+    minPasswordLength: 8,
   },
   socialProviders: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-      prompt: 'select_account' as const,
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      prompt: "select_account" as const,
     },
   },
   account: {
     accountLinking: {
       enabled: true,
-      trustedProviders: ['google'],
-      requireLocalEmailVerified: false,
+      trustedProviders: ["google"],
+      requireLocalEmailVerified: true,
     },
   },
   user: {
@@ -53,7 +59,7 @@ export const auth = betterAuth({
   },
   advanced: {
     database: {
-      generateId: 'uuid',
+      generateId: "uuid",
     },
     cookies: {
       sessionToken: {
@@ -67,7 +73,25 @@ export const auth = betterAuth({
       },
     },
   },
-  plugins: [nextCookies()],
+  session: {
+    expiresIn: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
+  },
+  plugins: [
+    nextCookies(),
+    twoFactor({
+      issuer: "KonkosYuk",
+      totpOptions: {
+        digits: 6,
+        period: 30,
+      },
+      accountLockout: {
+        enabled: true,
+        maxFailedAttempts: 5,
+        durationSeconds: 900,
+      },
+    }),
+  ],
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
       if (ctx.path === "/sign-in/email") {
@@ -103,10 +127,16 @@ export async function requireSession(allowedRoles?: Role[]) {
   });
 
   if (!session) {
+    logSecurityEvent("auth_failed", { reason: "no_session" });
     throw new Error("Unauthorized");
   }
 
   if (allowedRoles && !allowedRoles.includes(session.user.role as Role)) {
+    logSecurityEvent("authz_failed", {
+      userId: session.user.id,
+      role: session.user.role,
+      requiredRoles: allowedRoles,
+    });
     throw new Error("Forbidden");
   }
 

@@ -92,7 +92,9 @@ function AdminPropertiesPage() {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(
     null,
   );
-  const [gpsVerifyProperty, setGpsVerifyProperty] = useState<Property | null>(null);
+  const [gpsVerifyProperty, setGpsVerifyProperty] = useState<Property | null>(
+    null,
+  );
   const [editName, setEditName] = useState("");
   const [editBasePrice, setEditBasePrice] = useState("");
   const [editIsActive, setEditIsActive] = useState(false);
@@ -242,7 +244,9 @@ function AdminPropertiesPage() {
       toast({
         title: "Gagal",
         description:
-          err instanceof Error ? err.message : "Gagal membatalkan verifikasi GPS.",
+          err instanceof Error
+            ? err.message
+            : "Gagal membatalkan verifikasi GPS.",
         type: "error",
       });
     },
@@ -434,7 +438,7 @@ function AdminPropertiesPage() {
                           {property.gpsVerified ? "Terverifikasi" : "Belum"}
                         </Badge>
                       </TableCell>
-                       <TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-2">
                           {property.gpsVerified ? (
                             <Button
@@ -454,9 +458,7 @@ function AdminPropertiesPage() {
                               size="sm"
                               variant="outline"
                               disabled={verifyGpsMutation.isPending}
-                              onClick={() =>
-                                setGpsVerifyProperty(property)
-                              }
+                              onClick={() => setGpsVerifyProperty(property)}
                             >
                               {verifyGpsMutation.isPending
                                 ? "Memverifikasi..."

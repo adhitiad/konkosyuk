@@ -1,45 +1,55 @@
-import type { PackageItem, PropertyPackages, DurationUnit } from '@/lib/types/property-packages'
+import type {
+  PackageItem,
+  PropertyPackages,
+  DurationUnit,
+} from "@/lib/types/property-packages";
 
 export function calculatePackageFinalPrice(
   basePrice: number,
   discountPercent: number,
   ppnPercent: number,
-  appFeePercent: number
+  appFeePercent: number,
 ): number {
-  const discounted = basePrice - (basePrice * discountPercent / 100)
-  const final = discounted + (discounted * ppnPercent / 100) + (discounted * appFeePercent / 100)
-  return Math.round(final)
+  const discounted = basePrice - (basePrice * discountPercent) / 100;
+  const final =
+    discounted +
+    (discounted * ppnPercent) / 100 +
+    (discounted * appFeePercent) / 100;
+  return Math.round(final);
 }
 
 export function calculatePackageEndDate(
   startDate: string | Date,
   unit: DurationUnit,
-  value: number
+  value: number,
 ): Date {
-  const date = new Date(startDate)
+  const date = new Date(startDate);
   switch (unit) {
-    case 'hours':
-      date.setHours(date.getHours() + value)
-      break
-    case 'days':
-      date.setDate(date.getDate() + value)
-      break
-    case 'months':
-      date.setMonth(date.getMonth() + value)
-      break
-    case 'years':
-      date.setFullYear(date.getFullYear() + value)
-      break
+    case "hours":
+      date.setHours(date.getHours() + value);
+      break;
+    case "days":
+      date.setDate(date.getDate() + value);
+      break;
+    case "months":
+      date.setMonth(date.getMonth() + value);
+      break;
+    case "years":
+      date.setFullYear(date.getFullYear() + value);
+      break;
   }
-  return date
+  return date;
 }
 
-export function getPackageById(packages: PropertyPackages, packageId: string): PackageItem | null {
-  const found = packages.predefined.find((p) => p.id === packageId)
-  if (found) return found
-  if (packageId === 'custom' && packages.custom.enabled) {
+export function getPackageById(
+  packages: PropertyPackages,
+  packageId: string,
+): PackageItem | null {
+  const found = packages.predefined.find((p) => p.id === packageId);
+  if (found) return found;
+  if (packageId === "custom" && packages.custom.enabled) {
     return {
-      id: 'custom',
+      id: "custom",
       label: packages.custom.label,
       unit: packages.custom.unit,
       value: 0,
@@ -49,44 +59,43 @@ export function getPackageById(packages: PropertyPackages, packageId: string): P
       appFeePercent: 0.63,
       finalPrice: packages.custom.pricePerUnit,
       isAvailable: true,
-    }
+    };
   }
-  return null
+  return null;
 }
 
 export function validateBookingPackage(
   packages: PropertyPackages,
   packageId: string,
-  customDuration?: number
+  customDuration?: number,
 ): { valid: boolean; error?: string } {
-  const pkg = getPackageById(packages, packageId)
+  const pkg = getPackageById(packages, packageId);
   if (!pkg) {
-    return { valid: false, error: 'Paket tidak ditemukan' }
+    return { valid: false, error: "Paket tidak ditemukan" };
   }
   if (!pkg.isAvailable) {
-    return { valid: false, error: 'Paket tidak tersedia' }
+    return { valid: false, error: "Paket tidak tersedia" };
   }
-  if (packageId === 'custom' && packages.custom.enabled) {
-    if (!customDuration || customDuration < packages.custom.minDuration || customDuration > packages.custom.maxDuration) {
+  if (packageId === "custom" && packages.custom.enabled) {
+    if (
+      !customDuration ||
+      customDuration < packages.custom.minDuration ||
+      customDuration > packages.custom.maxDuration
+    ) {
       return {
         valid: false,
         error: `Durasi custom harus antara ${packages.custom.minDuration} - ${packages.custom.maxDuration} ${packages.custom.unit}`,
-      }
+      };
     }
   }
-  return { valid: true }
+  return { valid: true };
 }
 
 export function calculateCustomPrice(
   packages: PropertyPackages,
-  customDuration: number
+  customDuration: number,
 ): { basePrice: number; finalPrice: number } {
-  const basePrice = packages.custom.pricePerUnit * customDuration
-  const finalPrice = calculatePackageFinalPrice(
-    basePrice,
-    0,
-    11,
-    0.63
-  )
-  return { basePrice, finalPrice }
+  const basePrice = packages.custom.pricePerUnit * customDuration;
+  const finalPrice = calculatePackageFinalPrice(basePrice, 0, 11, 0.63);
+  return { basePrice, finalPrice };
 }

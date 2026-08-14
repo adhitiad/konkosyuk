@@ -62,12 +62,14 @@ const typeLabel: Record<string, string> = {
 
 function PropertyCard({ property }: { property: Property }) {
   const packages = (property.packages ?? {}) as PropertyPackages;
-  const availablePackages = packages.predefined?.filter((p) => p.isAvailable) ?? [];
+  const availablePackages =
+    packages.predefined?.filter((p) => p.isAvailable) ?? [];
   const customEnabled = packages.custom?.enabled ?? false;
   const totalPackages = availablePackages.length + (customEnabled ? 1 : 0);
-  const minPrice = availablePackages.length > 0
-    ? Math.min(...availablePackages.map((p) => p.finalPrice))
-    : null;
+  const minPrice =
+    availablePackages.length > 0
+      ? Math.min(...availablePackages.map((p) => p.finalPrice))
+      : null;
 
   return (
     <Card className="h-full">
@@ -84,7 +86,11 @@ function PropertyCard({ property }: { property: Property }) {
           </Badge>
         </div>
         <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-          <HugeiconsIcon icon={MapPinIcon} strokeWidth={2} className="size-3.5 shrink-0" />
+          <HugeiconsIcon
+            icon={MapPinIcon}
+            strokeWidth={2}
+            className="size-3.5 shrink-0"
+          />
           <span className="truncate">
             {property.city || property.address || "-"}
           </span>
@@ -101,8 +107,15 @@ function PropertyCard({ property }: { property: Property }) {
             </Badge>
           )}
           {property.images && property.images.length > 0 && (
-            <Badge variant="secondary" className="text-xs flex items-center gap-1">
-              <HugeiconsIcon icon={Image01Icon} strokeWidth={2} className="size-3" />
+            <Badge
+              variant="secondary"
+              className="text-xs flex items-center gap-1"
+            >
+              <HugeiconsIcon
+                icon={Image01Icon}
+                strokeWidth={2}
+                className="size-3"
+              />
               {property.images.length}
             </Badge>
           )}
@@ -111,12 +124,19 @@ function PropertyCard({ property }: { property: Property }) {
         {minPrice !== null && (
           <p className="text-sm font-semibold text-primary">
             {formatCurrency(minPrice)}
-            <span className="text-xs font-normal text-muted-foreground"> / bulan</span>
+            <span className="text-xs font-normal text-muted-foreground">
+              {" "}
+              / bulan
+            </span>
           </p>
         )}
 
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <HugeiconsIcon icon={Calendar03Icon} strokeWidth={2} className="size-3.5" />
+          <HugeiconsIcon
+            icon={Calendar03Icon}
+            strokeWidth={2}
+            className="size-3.5"
+          />
           <span>
             {new Date(property.createdAt).toLocaleDateString("id-ID", {
               day: "numeric",
@@ -128,9 +148,7 @@ function PropertyCard({ property }: { property: Property }) {
 
         <div className="flex items-center gap-2 pt-2">
           <Button
-            render={
-              <Link href={`/owner/properties/${property.id}`} />
-            }
+            render={<Link href={`/owner/properties/${property.id}`} />}
             size="sm"
             variant="outline"
             className="flex-1"
@@ -143,14 +161,23 @@ function PropertyCard({ property }: { property: Property }) {
             />
             Edit
           </Button>
-          <DeletePropertyButton propertyId={property.id} propertyName={property.name} />
+          <DeletePropertyButton
+            propertyId={property.id}
+            propertyName={property.name}
+          />
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function DeletePropertyButton({ propertyId, propertyName }: { propertyId: string; propertyName: string }) {
+function DeletePropertyButton({
+  propertyId,
+  propertyName,
+}: {
+  propertyId: string;
+  propertyName: string;
+}) {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
@@ -165,12 +192,10 @@ function DeletePropertyButton({ propertyId, propertyName }: { propertyId: string
 
   return (
     <Dialog>
-      <DialogTrigger render={<Button size="sm" variant="destructive" className="flex-1" />}>
-        <HugeiconsIcon
-          icon={Delete01Icon}
-          strokeWidth={2}
-          className="size-3"
-        />
+      <DialogTrigger
+        render={<Button size="sm" variant="destructive" className="flex-1" />}
+      >
+        <HugeiconsIcon icon={Delete01Icon} strokeWidth={2} className="size-3" />
         Hapus
       </DialogTrigger>
       <DialogContent>
@@ -178,7 +203,8 @@ function DeletePropertyButton({ propertyId, propertyName }: { propertyId: string
           <DialogTitle>Konfirmasi Hapus</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Apakah Anda yakin ingin menghapus properti &quot;{propertyName}&quot;? Tindakan ini tidak dapat dibatalkan.
+          Apakah Anda yakin ingin menghapus properti &quot;{propertyName}&quot;?
+          Tindakan ini tidak dapat dibatalkan.
         </p>
         <div className="flex justify-end gap-2">
           <DialogTrigger render={<Button variant="outline" />}>
@@ -204,20 +230,25 @@ export default function PropertiesPage() {
   const { data, isLoading, isError, error } = useQuery<PropertyResponse>({
     queryKey: ["owner-properties-v2"],
     queryFn: async () => {
-      const response = await apiClient.get("/api/owner/properties")
-      const body = response.data as any
+      const response = await apiClient.get("/api/owner/properties");
+      const body = response.data as any;
       const items = Array.isArray(body?.data)
         ? body.data
         : Array.isArray(body?.data?.data)
           ? body.data.data
-          : []
-      return { data: items, meta: { page: 1, limit: 10, total: 0, totalPages: 1 } }
+          : [];
+      return {
+        data: items,
+        meta: { page: 1, limit: 10, total: 0, totalPages: 1 },
+      };
     },
     staleTime: 30000,
     enabled: !!session?.user?.id,
   });
 
-  const rawProperties = Array.isArray(data?.data) ? data.data : (data as any)?.data?.data;
+  const rawProperties = Array.isArray(data?.data)
+    ? data.data
+    : (data as any)?.data?.data;
   const properties = Array.isArray(rawProperties) ? rawProperties : [];
 
   return (
@@ -229,12 +260,14 @@ export default function PropertiesPage() {
             Kelola daftar properti kost dan kontrakan Anda
           </p>
         </div>
-        <Button render={<Link href="/owner/properties/add">Tambah Properti Baru</Link>} nativeButton={false} className="w-full sm:w-auto">
-          <HugeiconsIcon
-            icon={Add01Icon}
-            strokeWidth={2}
-            className="size-4"
-          />
+        <Button
+          render={
+            <Link href="/owner/properties/add">Tambah Properti Baru</Link>
+          }
+          nativeButton={false}
+          className="w-full sm:w-auto"
+        >
+          <HugeiconsIcon icon={Add01Icon} strokeWidth={2} className="size-4" />
           Tambah Properti Baru
         </Button>
       </div>
@@ -296,10 +329,13 @@ export default function PropertiesPage() {
                   {properties.map((property) => {
                     const city = property.city ?? "-";
                     const status = property.status;
-                    const packages = (property.packages ?? {}) as PropertyPackages;
-                    const availablePackages = packages.predefined?.filter((p) => p.isAvailable) ?? [];
+                    const packages = (property.packages ??
+                      {}) as PropertyPackages;
+                    const availablePackages =
+                      packages.predefined?.filter((p) => p.isAvailable) ?? [];
                     const customEnabled = packages.custom?.enabled ?? false;
-                    const totalPackages = availablePackages.length + (customEnabled ? 1 : 0);
+                    const totalPackages =
+                      availablePackages.length + (customEnabled ? 1 : 0);
 
                     return (
                       <TableRow key={property.id}>
@@ -319,11 +355,20 @@ export default function PropertiesPage() {
                                 {totalPackages} paket aktif
                               </span>
                               <span className="text-xs text-muted-foreground">
-                                Mulai dari {formatCurrency(Math.min(...availablePackages.map(p => p.finalPrice)))}
+                                Mulai dari{" "}
+                                {formatCurrency(
+                                  Math.min(
+                                    ...availablePackages.map(
+                                      (p) => p.finalPrice,
+                                    ),
+                                  ),
+                                )}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-sm text-muted-foreground">Belum ada paket</span>
+                            <span className="text-sm text-muted-foreground">
+                              Belum ada paket
+                            </span>
                           )}
                         </TableCell>
                         <TableCell>
@@ -339,7 +384,9 @@ export default function PropertiesPage() {
                           <div className="flex items-center justify-end gap-2">
                             <Button
                               render={
-                                <Link href={`/owner/properties/${property.id}`} />
+                                <Link
+                                  href={`/owner/properties/${property.id}`}
+                                />
                               }
                               size="sm"
                               variant="outline"
@@ -352,7 +399,10 @@ export default function PropertiesPage() {
                               />
                               Edit
                             </Button>
-                            <DeletePropertyButton propertyId={property.id} propertyName={property.name} />
+                            <DeletePropertyButton
+                              propertyId={property.id}
+                              propertyName={property.name}
+                            />
                           </div>
                         </TableCell>
                       </TableRow>

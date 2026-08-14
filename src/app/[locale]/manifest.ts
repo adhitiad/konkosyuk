@@ -1,17 +1,19 @@
-import type { MetadataRoute } from "next"
-import { locales, type Locale } from "@/config"
+import type { MetadataRoute } from "next";
+import { locales, type Locale } from "@/config";
 
 export function generateStaticParams() {
-  return locales.map((locale) => ({ locale }))
+  return locales.map((locale) => ({ locale }));
 }
 
 export default async function manifest({
   params,
 }: {
-  params: Promise<{ locale: string }>
+  params: Promise<{ locale: string }>;
 }): Promise<MetadataRoute.Manifest> {
-  const { locale: rawLocale } = await params
-  const locale = locales.includes(rawLocale as Locale) ? (rawLocale as Locale) : "id"
+  const { locale: rawLocale } = await params;
+  const locale = locales.includes(rawLocale as Locale)
+    ? (rawLocale as Locale)
+    : "id";
 
   return {
     name: "KonkosYuk",
@@ -23,7 +25,12 @@ export default async function manifest({
     theme_color: "#0f766e",
     orientation: "portrait-primary",
     icons: [
-      { src: "/logo.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      {
+        src: "/logo.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
     ],
-  }
+  };
 }

@@ -1,4 +1,4 @@
-import { StaticPageLayout } from '@/components/static-page-layout'
+import { StaticPageLayout } from "@/components/static-page-layout";
 
 export default function TermsPage() {
   return (
@@ -12,16 +12,22 @@ export default function TermsPage() {
 
       <h2>2. Akun Pengguna</h2>
       <p>
-        Anda bertanggung jawab untuk menjaga kerahasiaan akun dan password
-        Anda. Dilarang membuat akun palsu, menggunakan identitas orang lain,
-        atau menyalahgunakan layanan untuk kegiatan ilegal.
+        Anda bertanggung jawab untuk menjaga kerahasiaan akun dan password Anda.
+        Dilarang membuat akun palsu, menggunakan identitas orang lain, atau
+        menyalahgunakan layanan untuk kegiatan ilegal.
       </p>
 
       <h2>3. Aturan Booking & Pembayaran</h2>
       <ul>
-        <li>Tenant wajib melakukan pembayaran DP sebesar 35% untuk menjamin booking.</li>
+        <li>
+          Tenant wajib melakukan pembayaran DP sebesar 35% untuk menjamin
+          booking.
+        </li>
         <li>Pelunasan 65% harus dilakukan sebelum tanggal check-in.</li>
-        <li>Dilarang melakukan penipuan, chargeback tanpa alasan yang sah, atau memanipulasi data booking.</li>
+        <li>
+          Dilarang melakukan penipuan, chargeback tanpa alasan yang sah, atau
+          memanipulasi data booking.
+        </li>
       </ul>
 
       <h2>4. Peran KonkosYuk</h2>
@@ -36,9 +42,8 @@ export default function TermsPage() {
       <p>
         Kami tidak bertanggung jawab atas kerugian tidak langsung yang timbul
         dari penggunaan layanan. KonkosYuk tidak menjamin ketersediaan unit
-        properti 100% karena ketergantungan pada data yang diberikan oleh
-        owner.
+        properti 100% karena ketergantungan pada data yang diberikan oleh owner.
       </p>
     </StaticPageLayout>
-  )
+  );
 }

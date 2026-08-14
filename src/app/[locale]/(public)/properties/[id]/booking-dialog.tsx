@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useState, useMemo } from "react"
-import { useSession } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
+import { useState, useMemo } from "react";
+import { useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -11,46 +11,50 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { AlertCircleIcon } from "@hugeicons/core-free-icons"
-import { showToastSuccess, showToastError } from "@/lib/use-toast-custom"
-import type { PropertyPackages, PackageItem, DurationUnit } from "@/lib/types/property-packages"
-import { apiClient } from "@/lib/axios"
+} from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AlertCircleIcon } from "@hugeicons/core-free-icons";
+import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
+import type {
+  PropertyPackages,
+  PackageItem,
+  DurationUnit,
+} from "@/lib/types/property-packages";
+import { apiClient } from "@/lib/axios";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
-  }).format(value)
+  }).format(value);
 
 const formatDuration = (value: number, unit: DurationUnit) => {
   const unitLabels: Record<DurationUnit, string> = {
-    hours: 'Jam',
-    days: 'Hari',
-    months: 'Bulan',
-    years: 'Tahun',
-  }
-  return `${value} ${unitLabels[unit]}`
-}
+    hours: "Jam",
+    days: "Hari",
+    months: "Bulan",
+    years: "Tahun",
+  };
+  return `${value} ${unitLabels[unit]}`;
+};
 
 interface BookingDialogClientProps {
-  unitId: string
-  unitName: string
-  propertyId: string
-  packages: PropertyPackages
-  children: React.ReactNode
+  unitId: string;
+  unitName: string;
+  propertyId: string;
+  packages: PropertyPackages;
+  children: React.ReactNode;
 }
 
 export default function BookingDialogClient({
@@ -60,71 +64,75 @@ export default function BookingDialogClient({
   packages,
   children,
 }: BookingDialogClientProps) {
-  const router = useRouter()
-  const { data: session } = useSession()
+  const router = useRouter();
+  const { data: session } = useSession();
 
-  const [open, setOpen] = useState(false)
-  const [selectedPackageId, setSelectedPackageId] = useState<string>("")
-  const [customDuration, setCustomDuration] = useState<number>(1)
-  const [startDate, setStartDate] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [open, setOpen] = useState(false);
+  const [selectedPackageId, setSelectedPackageId] = useState<string>("");
+  const [customDuration, setCustomDuration] = useState<number>(1);
+  const [startDate, setStartDate] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const today = useMemo(() => {
-    const d = new Date()
-    const year = d.getFullYear()
-    const month = String(d.getMonth() + 1).padStart(2, "0")
-    const day = String(d.getDate()).padStart(2, "0")
-    return `${year}-${month}-${day}`
-  }, [])
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }, []);
 
   const availablePackages = useMemo(
     () => packages.predefined.filter((p) => p.isAvailable),
-    [packages.predefined]
-  )
+    [packages.predefined],
+  );
 
   const selectedPackage = useMemo(
     () => availablePackages.find((p) => p.id === selectedPackageId) ?? null,
-    [availablePackages, selectedPackageId]
-  )
+    [availablePackages, selectedPackageId],
+  );
 
   const totalPrice = useMemo(() => {
-    if (!selectedPackage) return 0
+    if (!selectedPackage) return 0;
     if (selectedPackageId === "custom" && packages.custom.enabled) {
-      return packages.custom.pricePerUnit * customDuration
+      return packages.custom.pricePerUnit * customDuration;
     }
-    return selectedPackage.finalPrice
-  }, [selectedPackage, selectedPackageId, customDuration, packages.custom])
+    return selectedPackage.finalPrice;
+  }, [selectedPackage, selectedPackageId, customDuration, packages.custom]);
 
   const { dpAmount, remainingAmount } = useMemo(() => {
-    const dpRatio = 0.35
-    const dp = Math.round(totalPrice * dpRatio)
-    return { dpAmount: dp, remainingAmount: totalPrice - dp }
-  }, [totalPrice])
+    const dpRatio = 0.35;
+    const dp = Math.round(totalPrice * dpRatio);
+    return { dpAmount: dp, remainingAmount: totalPrice - dp };
+  }, [totalPrice]);
 
   const isStartDateValid =
-    startDate === "" || new Date(startDate) >= new Date(today.slice(0, 10))
+    startDate === "" || new Date(startDate) >= new Date(today.slice(0, 10));
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
+    e.preventDefault();
+    setError(null);
 
     if (!session?.user) {
-      router.push(`/login?redirect=/properties/${propertyId}`)
-      return
+      router.push(`/login?redirect=/properties/${propertyId}`);
+      return;
     }
 
     if (!selectedPackageId) {
-      setError("Pilih paket terlebih dahulu")
-      return
+      setError("Pilih paket terlebih dahulu");
+      return;
     }
 
-    if (selectedPackageId === "custom" && packages.custom.enabled && !customDuration) {
-      setError("Masukkan durasi custom")
-      return
+    if (
+      selectedPackageId === "custom" &&
+      packages.custom.enabled &&
+      !customDuration
+    ) {
+      setError("Masukkan durasi custom");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
       const body: Record<string, unknown> = {
         propertyId,
@@ -133,33 +141,35 @@ export default function BookingDialogClient({
         bookingType: "instant",
         startDate: new Date(startDate).toISOString(),
         metadata: {},
-      }
+      };
 
       if (selectedPackageId === "custom" && packages.custom.enabled) {
-        body.customDuration = customDuration
+        body.customDuration = customDuration;
       }
 
-      const res = await apiClient.post("/api/bookings", body)
+      const res = await apiClient.post("/api/bookings", body);
 
-      const json = res.data
+      const json = res.data;
       if (res.status >= 400) {
-        showToastError(json.error ?? "Gagal membuat booking")
-        throw new Error(json.error ?? "Gagal membuat booking")
+        showToastError(json.error ?? "Gagal membuat booking");
+        throw new Error(json.error ?? "Gagal membuat booking");
       }
 
-      showToastSuccess("Booking berhasil! Silakan bayar DP 35% untuk mengunci kamar.")
-      setOpen(false)
-      router.push("/dashboard/bookings")
+      showToastSuccess(
+        "Booking berhasil! Silakan bayar DP 35% untuk mengunci kamar.",
+      );
+      setOpen(false);
+      router.push("/dashboard/bookings");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan")
+      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger render={children as React.ReactElement} />
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={children as React.ReactElement} />
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Booking {unitName}</DialogTitle>
@@ -171,7 +181,11 @@ export default function BookingDialogClient({
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <Alert variant="destructive">
-              <HugeiconsIcon icon={AlertCircleIcon} strokeWidth={2} className="size-4" />
+              <HugeiconsIcon
+                icon={AlertCircleIcon}
+                strokeWidth={2}
+                className="size-4"
+              />
               <AlertTitle>Error</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
@@ -179,14 +193,18 @@ export default function BookingDialogClient({
 
           <div className="space-y-2">
             <Label htmlFor="package">Paket</Label>
-            <Select<string> value={selectedPackageId} onValueChange={(v) => v && setSelectedPackageId(v)}>
+            <Select<string>
+              value={selectedPackageId}
+              onValueChange={(v) => v && setSelectedPackageId(v)}
+            >
               <SelectTrigger id="package">
                 <SelectValue placeholder="Pilih paket" />
               </SelectTrigger>
               <SelectContent>
                 {availablePackages.map((pkg) => (
                   <SelectItem key={pkg.id} value={pkg.id}>
-                    {pkg.label} ({formatDuration(pkg.value, pkg.unit)}) - {formatCurrency(pkg.finalPrice)}
+                    {pkg.label} ({formatDuration(pkg.value, pkg.unit)}) -{" "}
+                    {formatCurrency(pkg.finalPrice)}
                   </SelectItem>
                 ))}
                 {packages.custom.enabled && (
@@ -200,7 +218,9 @@ export default function BookingDialogClient({
 
           {selectedPackageId === "custom" && packages.custom.enabled && (
             <div className="space-y-2">
-              <Label htmlFor="customDuration">Durasi ({packages.custom.unit})</Label>
+              <Label htmlFor="customDuration">
+                Durasi ({packages.custom.unit})
+              </Label>
               <Input
                 id="customDuration"
                 type="number"
@@ -211,7 +231,8 @@ export default function BookingDialogClient({
                 required
               />
               <p className="text-xs text-muted-foreground">
-                Rentang: {packages.custom.minDuration} - {packages.custom.maxDuration} {packages.custom.unit}
+                Rentang: {packages.custom.minDuration} -{" "}
+                {packages.custom.maxDuration} {packages.custom.unit}
               </p>
             </div>
           )}
@@ -228,7 +249,10 @@ export default function BookingDialogClient({
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">PPN + App Fee</span>
-                <span>+{selectedPackage.ppnPercent}% + {selectedPackage.appFeePercent}%</span>
+                <span>
+                  +{selectedPackage.ppnPercent}% +{" "}
+                  {selectedPackage.appFeePercent}%
+                </span>
               </div>
               <div className="flex justify-between font-semibold">
                 <span>Harga Final</span>
@@ -272,12 +296,15 @@ export default function BookingDialogClient({
           )}
 
           <DialogFooter>
-            <Button type="submit" disabled={loading || !selectedPackageId || !startDate}>
+            <Button
+              type="submit"
+              disabled={loading || !selectedPackageId || !startDate}
+            >
               {loading ? "Memproses..." : "Booking Sekarang"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

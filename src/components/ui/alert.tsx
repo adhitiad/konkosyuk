@@ -11,10 +11,8 @@ const alertVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "bg-input/30 text-foreground",
-        destructive:
-          "bg-destructive/10 text-destructive ring-destructive/20",
+        default: "bg-input/30 text-foreground",
+        destructive: "bg-destructive/10 text-destructive ring-destructive/20",
       },
     },
     defaultVariants: {
@@ -47,7 +45,10 @@ function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function AlertDescription({ className, ...props }: React.ComponentProps<"div">) {
+function AlertDescription({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="alert-description"

@@ -1,37 +1,44 @@
-import { NextRequest } from 'next/server'
-import { db } from '@/db'
-import { payments, bookings, units, properties, users } from '@/db/schema'
-import { eq, desc, sql, and, inArray } from 'drizzle-orm'
-import { requireSession } from '@/lib/auth'
-import { validateAdminRequest } from '@/lib/api-auth'
-import { ok, fail, handleApiError } from '@/lib/api'
-import { z } from 'zod'
-import type { Role } from '@/lib/auth'
-import { createAuditLog } from '@/lib/audit-log'
+import { NextRequest } from "next/server";
+import { db } from "@/db";
+import { payments, bookings, units, properties, users } from "@/db/schema";
+import { eq, desc, sql, and, inArray } from "drizzle-orm";
+import { requireSession } from "@/lib/auth";
+import { validateAdminRequest } from "@/lib/api-auth";
+import { ok, fail, handleApiError } from "@/lib/api";
+import { z } from "zod";
+import type { Role } from "@/lib/auth";
+import { createAuditLog } from "@/lib/audit-log";
 
 const createManualPaymentSchema = z.object({
   userId: z.string().uuid(),
   bookingId: z.string().uuid(),
-  amount: z.string().regex(/^\d+(\.\d{1,2})?$/).refine(
-    (val) => {
-      const num = Number(val)
-      return num > 0 && num < 1e12
-    },
-    { message: 'Amount must be a valid positive number less than 1 trillion' }
-  ),
-  provider: z.enum(['doku', 'ipaymu', 'nicepay']),
-  purpose: z.enum(['dp', 'full_payment']),
+  amount: z
+    .string()
+    .regex(/^\d+(\.\d{1,2})?$/)
+    .refine(
+      (val) => {
+        const num = Number(val);
+        return num > 0 && num < 1e12;
+      },
+      {
+        message: "Amount must be a valid positive number less than 1 trillion",
+      },
+    ),
+  provider: z.enum(["doku", "ipaymu", "nicepay"]),
+  purpose: z.enum(["dp", "full_payment"]),
   transactionId: z.string().optional(),
-  status: z.enum(['pending', 'success', 'failed', 'expired', 'refunded']).default('pending'),
-})
+  status: z
+    .enum(["pending", "success", "failed", "expired", "refunded"])
+    .default("pending"),
+});
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await requireSession(['admin', 'staff'] as Role[])
-    const { searchParams } = new URL(req.url)
-    const status = searchParams.get('status')
+    const session = await requireSession(["admin", "staff"] as Role[]);
+    const { searchParams } = new URL(req.url);
+    const status = searchParams.get("status");
 
-    const statusValue = typeof status === 'string' ? status : undefined
+    const statusValue = typeof status === "string" ? status : undefined;
 
     const data = await db
       .select({
@@ -59,33 +66,33 @@ export async function GET(req: NextRequest) {
       .leftJoin(users, eq(bookings.userId, users.id))
       .where(statusValue ? eq(payments.status, statusValue as any) : undefined)
       .orderBy(desc(payments.createdAt))
-      .limit(100)
+      .limit(100);
 
-    return ok({ data, meta: { total: data.length } })
+    return ok({ data, meta: { total: data.length } });
   } catch (error) {
-    return handleApiError(error)
+    return handleApiError(error);
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await validateAdminRequest(req)
-    if (authResult instanceof Response) return authResult
-    const { session, ipAddress, userAgent } = authResult
-    const body = createManualPaymentSchema.parse(await req.json())
+    const authResult = await validateAdminRequest(req);
+    if (authResult instanceof Response) return authResult;
+    const { session, ipAddress, userAgent } = authResult;
+    const body = createManualPaymentSchema.parse(await req.json());
 
     const [booking] = await db
       .select()
       .from(bookings)
       .where(eq(bookings.id, body.bookingId))
-      .limit(1)
+      .limit(1);
 
     if (!booking) {
-      return fail('Booking not found', 404)
+      return fail("Booking not found", 404);
     }
 
     if (booking.userId !== body.userId) {
-      return fail('User does not match booking', 400)
+      return fail("User does not match booking", 400);
     }
 
     const [payment] = await db
@@ -95,46 +102,46 @@ export async function POST(req: NextRequest) {
         provider: body.provider,
         purpose: body.purpose,
         amount: body.amount,
-        currency: 'IDR',
+        currency: "IDR",
         status: body.status,
         transactionId: body.transactionId,
-        paidAt: body.status === 'success' ? new Date() : null,
+        paidAt: body.status === "success" ? new Date() : null,
         metadata: {
           manual: true,
           createdBy: session.user.id,
         },
       })
-      .returning()
+      .returning();
 
-    if (body.status === 'success') {
-      if (body.purpose === 'dp') {
+    if (body.status === "success") {
+      if (body.purpose === "dp") {
         const nextStatus =
-          booking.bookingType === 'request'
-            ? 'awaiting_owner_approval'
-            : 'awaiting_full_payment'
+          booking.bookingType === "request"
+            ? "awaiting_owner_approval"
+            : "awaiting_full_payment";
 
         await db
           .update(bookings)
           .set({ status: nextStatus, updatedAt: new Date() })
-          .where(eq(bookings.id, booking.id))
-      } else if (body.purpose === 'full_payment') {
+          .where(eq(bookings.id, booking.id));
+      } else if (body.purpose === "full_payment") {
         await db.transaction(async (tx) => {
           await tx
             .update(bookings)
-            .set({ status: 'confirmed', updatedAt: new Date() })
-            .where(eq(bookings.id, booking.id))
+            .set({ status: "confirmed", updatedAt: new Date() })
+            .where(eq(bookings.id, booking.id));
 
           await tx
             .update(units)
-            .set({ status: 'booked', updatedAt: new Date() })
-            .where(eq(units.id, booking.unitId))
-        })
+            .set({ status: "booked", updatedAt: new Date() })
+            .where(eq(units.id, booking.unitId));
+        });
       }
     }
 
     await createAuditLog({
-      action: 'create',
-      targetType: 'payment',
+      action: "create",
+      targetType: "payment",
       targetId: payment.id,
       adminId: session.user.id,
       details: {
@@ -144,11 +151,10 @@ export async function POST(req: NextRequest) {
         purpose: body.purpose,
         status: body.status,
       },
-    })
+    });
 
-    return ok(payment, 201)
+    return ok(payment, 201);
   } catch (error) {
-    return handleApiError(error, 'POST /api/admin/payments')
+    return handleApiError(error, "POST /api/admin/payments");
   }
 }
-

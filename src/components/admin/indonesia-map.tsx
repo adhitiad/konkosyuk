@@ -1,46 +1,62 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import Map, { Source, Layer, Popup, NavigationControl } from 'react-map-gl/maplibre';
-import 'maplibre-gl/dist/maplibre-gl.css';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { useEffect, useState, useCallback } from "react";
+import Map, {
+  Source,
+  Layer,
+  Popup,
+  NavigationControl,
+} from "react-map-gl/maplibre";
+import "maplibre-gl/dist/maplibre-gl.css";
+import { Loader2, AlertCircle } from "lucide-react";
 
 // --- TIPE DATA ---
 interface GeoJSONFeature {
-  type: 'Feature';
+  type: "Feature";
   properties: { name: string; [key: string]: any };
-  geometry: { type: 'Polygon' | 'MultiPolygon'; coordinates: number[][][] };
+  geometry: { type: "Polygon" | "MultiPolygon"; coordinates: number[][][] };
 }
-interface GeoJSONData { type: 'FeatureCollection'; features: GeoJSONFeature[]; }
-interface RegionData { province?: string; city?: string; district?: string; count: number; }
-interface IndonesiaMapProps { data: RegionData[]; filterType: 'user' | 'owner'; }
+interface GeoJSONData {
+  type: "FeatureCollection";
+  features: GeoJSONFeature[];
+}
+interface RegionData {
+  province?: string;
+  city?: string;
+  district?: string;
+  count: number;
+}
+interface IndonesiaMapProps {
+  data: RegionData[];
+  filterType: "user" | "owner";
+}
 
 // --- OPENSTREETMAP RASTER TILES STYLE ---
 // Ini adalah style sederhana yang menggunakan gambar tiles langsung dari OSM
 const OSM_STYLE = {
   version: 8,
   sources: {
-    'osm-tiles': {
-      type: 'raster',
+    "osm-tiles": {
+      type: "raster",
       tiles: [
-        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+        "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png",
       ],
       tileSize: 256,
-      attribution: '© OpenStreetMap contributors',
-      maxzoom: 19
-    }
+      attribution: "© OpenStreetMap contributors",
+      maxzoom: 19,
+    },
   },
   layers: [
     {
-      id: 'osm-layer',
-      type: 'raster',
-      source: 'osm-tiles',
+      id: "osm-layer",
+      type: "raster",
+      source: "osm-tiles",
       minzoom: 0,
-      maxzoom: 19
-    }
-  ]
+      maxzoom: 19,
+    },
+  ],
 } as const;
 
 export default function IndonesiaMap({ data, filterType }: IndonesiaMapProps) {
@@ -55,15 +71,19 @@ export default function IndonesiaMap({ data, filterType }: IndonesiaMapProps) {
     const loadGeoJSON = async () => {
       try {
         setLoading(true);
-        console.log('[Map] 🔄 Loading GeoJSON...');
-        const response = await fetch('/geojson/indonesia.geojson');
+        console.log("[Map] 🔄 Loading GeoJSON...");
+        const response = await fetch("/geojson/indonesia.geojson");
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const jsonData = await response.json();
-        console.log('[Map] ✅ GeoJSON loaded:', jsonData.features?.length, 'features');
+        console.log(
+          "[Map] ✅ GeoJSON loaded:",
+          jsonData.features?.length,
+          "features",
+        );
         setGeoJsonData(jsonData);
       } catch (err) {
-        console.error('[Map] ❌ GeoJSON error:', err);
-        setError('Gagal memuat data wilayah.');
+        console.error("[Map] ❌ GeoJSON error:", err);
+        setError("Gagal memuat data wilayah.");
       } finally {
         setLoading(false);
       }
@@ -75,20 +95,25 @@ export default function IndonesiaMap({ data, filterType }: IndonesiaMapProps) {
   const mergedGeoJSON = useCallback((): GeoJSONData | null => {
     if (!geoJsonData) return null;
     const regionMap: Record<string, number> = {};
-    data.forEach(region => {
-      const key = (region.province || region.city || region.district || '').toLowerCase();
+    data.forEach((region) => {
+      const key = (
+        region.province ||
+        region.city ||
+        region.district ||
+        ""
+      ).toLowerCase();
       regionMap[key] = region.count;
     });
 
     return {
       ...geoJsonData,
-      features: geoJsonData.features.map(feature => ({
+      features: geoJsonData.features.map((feature) => ({
         ...feature,
         properties: {
           ...feature.properties,
-          count: regionMap[(feature.properties.name || '').toLowerCase()] || 0
-        }
-      }))
+          count: regionMap[(feature.properties.name || "").toLowerCase()] || 0,
+        },
+      })),
     };
   }, [geoJsonData, data]);
 
@@ -96,7 +121,11 @@ export default function IndonesiaMap({ data, filterType }: IndonesiaMapProps) {
   const handleFeatureClick = useCallback((event: any) => {
     const feature = event.features?.[0];
     if (feature) {
-      setPopupInfo({ longitude: event.lngLat.lng, latitude: event.lngLat.lat, feature });
+      setPopupInfo({
+        longitude: event.lngLat.lng,
+        latitude: event.lngLat.lat,
+        feature,
+      });
     }
   }, []);
 
@@ -123,35 +152,46 @@ export default function IndonesiaMap({ data, filterType }: IndonesiaMapProps) {
       {finalGeoJSON && !loading && (
         <Map
           initialViewState={{ longitude: 118, latitude: -2, zoom: 4 }}
-          style={{ width: '100%', height: '100%' }}
+          style={{ width: "100%", height: "100%" }}
           mapStyle={OSM_STYLE as any}
           onLoad={(e) => {
-            console.log('[Map] ✅ Map instance ready');
+            console.log("[Map] ✅ Map instance ready");
             setMapLoaded(true);
           }}
           onError={(e) => {
-            console.error('[Map] ❌ Map error:', e.error);
+            console.error("[Map] ❌ Map error:", e.error);
           }}
-          interactiveLayerIds={['region-fill']}
+          interactiveLayerIds={["region-fill"]}
           onClick={handleFeatureClick}
         >
           <NavigationControl position="top-right" showCompass={false} />
-          
-          <Source id="indonesia-regions" type="geojson" data={finalGeoJSON as any}>
+
+          <Source
+            id="indonesia-regions"
+            type="geojson"
+            data={finalGeoJSON as any}
+          >
             <Layer
               id="region-fill"
               type="fill"
               paint={{
-                'fill-color': [
-                  'interpolate', ['linear'], ['get', 'count'],
-                  0, '#e5e7eb',
-                  10, '#93c5fd',
-                  50, '#3b82f6',
-                  100, '#1d4ed8',
-                  500, '#1e3a8a'
+                "fill-color": [
+                  "interpolate",
+                  ["linear"],
+                  ["get", "count"],
+                  0,
+                  "#e5e7eb",
+                  10,
+                  "#93c5fd",
+                  50,
+                  "#3b82f6",
+                  100,
+                  "#1d4ed8",
+                  500,
+                  "#1e3a8a",
                 ],
-                'fill-opacity': 0.6,
-                'fill-outline-color': '#ffffff'
+                "fill-opacity": 0.6,
+                "fill-outline-color": "#ffffff",
               }}
             />
           </Source>
@@ -165,9 +205,14 @@ export default function IndonesiaMap({ data, filterType }: IndonesiaMapProps) {
               className="z-30"
             >
               <div className="p-2">
-                <h3 className="font-bold text-sm">{popupInfo.feature.properties.name}</h3>
+                <h3 className="font-bold text-sm">
+                  {popupInfo.feature.properties.name}
+                </h3>
                 <p className="text-xs text-gray-600">
-                  Total: <span className="font-bold text-primary">{popupInfo.feature.properties.count || 0}</span>
+                  Total:{" "}
+                  <span className="font-bold text-primary">
+                    {popupInfo.feature.properties.count || 0}
+                  </span>
                 </p>
               </div>
             </Popup>
@@ -178,7 +223,7 @@ export default function IndonesiaMap({ data, filterType }: IndonesiaMapProps) {
       {/* Legend */}
       <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur p-3 rounded-lg shadow-lg border border-gray-200 z-10">
         <h4 className="text-xs font-bold text-gray-700 mb-2">
-          Jumlah {filterType === 'user' ? 'User' : 'Owner'}
+          Jumlah {filterType === "user" ? "User" : "Owner"}
         </h4>
         <div className="space-y-1">
           <div className="flex items-center gap-2">

@@ -1,39 +1,45 @@
-import { NextResponse } from 'next/server'
-import { authRateLimit, bookingRateLimit, generalRateLimit } from '@/lib/rate-limit'
-import { getOrCreateDeviceId, getDeviceName } from '@/lib/device'
+import { NextResponse } from "next/server";
+import {
+  authRateLimit,
+  bookingRateLimit,
+  generalRateLimit,
+} from "@/lib/rate-limit";
+import { getOrCreateDeviceId, getDeviceName } from "@/lib/device";
 
 export function withRateLimit(
   handler: (req: Request) => Promise<NextResponse>,
-  options: { type?: 'auth' | 'booking' | 'general' } = {}
+  options: { type?: "auth" | "booking" | "general" } = {},
 ) {
   return async (req: Request): Promise<NextResponse> => {
-    const deviceId = await getOrCreateDeviceId()
-    const deviceName = await getDeviceName()
+    const deviceId = await getOrCreateDeviceId();
+    const deviceName = await getDeviceName();
 
-    let result
+    let result;
     switch (options.type) {
-      case 'auth':
-        result = await authRateLimit({ deviceId, deviceName })
-        break
-      case 'booking':
-        result = await bookingRateLimit({ deviceId, deviceName })
-        break
+      case "auth":
+        result = await authRateLimit({ deviceId, deviceName });
+        break;
+      case "booking":
+        result = await bookingRateLimit({ deviceId, deviceName });
+        break;
       default:
-        result = await generalRateLimit({ deviceId, deviceName })
+        result = await generalRateLimit({ deviceId, deviceName });
     }
 
     if (!result.success) {
       return NextResponse.json(
-        { success: false, error: 'Too many requests. Please try again later.' },
+        { success: false, error: "Too many requests. Please try again later." },
         {
           status: 429,
           headers: {
-            'Retry-After': Math.ceil((result.resetAt.getTime() - Date.now()) / 1000).toString(),
+            "Retry-After": Math.ceil(
+              (result.resetAt.getTime() - Date.now()) / 1000,
+            ).toString(),
           },
-        }
-      )
+        },
+      );
     }
 
-    return handler(req)
-  }
+    return handler(req);
+  };
 }

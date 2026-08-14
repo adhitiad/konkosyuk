@@ -1,16 +1,16 @@
-export type Theme = 'light' | 'dark' | 'aurora'
+export type Theme = "light" | "dark" | "aurora";
 
 export const themes: Record<Theme, { name: string; class: string }> = {
   light: {
-    name: 'Light',
-    class: 'light',
+    name: "Light",
+    class: "light",
   },
   dark: {
-    name: 'Dark',
-    class: 'dark',
+    name: "Dark",
+    class: "dark",
   },
   aurora: {
-    name: 'Aurora',
-    class: 'aurora',
+    name: "Aurora",
+    class: "aurora",
   },
-}
+};

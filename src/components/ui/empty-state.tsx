@@ -1,13 +1,13 @@
-import { type ElementType } from "react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { type ElementType } from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface EmptyStateProps {
-  icon?: ElementType
-  title: string
-  description: string
-  actionLabel?: string
-  onAction?: () => void
+  icon?: ElementType;
+  title: string;
+  description: string;
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
 export function EmptyState({
@@ -26,5 +26,5 @@ export function EmptyState({
         <Button onClick={onAction}>{actionLabel}</Button>
       )}
     </div>
-  )
+  );
 }

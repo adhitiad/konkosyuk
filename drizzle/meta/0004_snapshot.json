@@ -107,12 +107,8 @@
           "name": "accounts_user_id_users_id_fk",
           "tableFrom": "accounts",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -272,12 +268,8 @@
           "name": "bookings_user_id_users_id_fk",
           "tableFrom": "bookings",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -285,12 +277,8 @@
           "name": "bookings_property_id_properties_id_fk",
           "tableFrom": "bookings",
           "tableTo": "properties",
-          "columnsFrom": [
-            "property_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["property_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -298,12 +286,8 @@
           "name": "bookings_unit_id_units_id_fk",
           "tableFrom": "bookings",
           "tableTo": "units",
-          "columnsFrom": [
-            "unit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["unit_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -382,12 +366,8 @@
           "name": "favorites_user_id_users_id_fk",
           "tableFrom": "favorites",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -395,12 +375,8 @@
           "name": "favorites_property_id_properties_id_fk",
           "tableFrom": "favorites",
           "tableTo": "properties",
-          "columnsFrom": [
-            "property_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["property_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -410,10 +386,7 @@
         "favorites_user_property_unique": {
           "name": "favorites_user_property_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id",
-            "property_id"
-          ]
+          "columns": ["user_id", "property_id"]
         }
       },
       "policies": {},
@@ -507,12 +480,8 @@
           "name": "notifications_user_id_users_id_fk",
           "tableFrom": "notifications",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -665,12 +634,8 @@
           "name": "payments_booking_id_bookings_id_fk",
           "tableFrom": "payments",
           "tableTo": "bookings",
-          "columnsFrom": [
-            "booking_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["booking_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -871,12 +836,8 @@
           "name": "properties_owner_id_users_id_fk",
           "tableFrom": "properties",
           "tableTo": "users",
-          "columnsFrom": [
-            "owner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owner_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -967,12 +928,8 @@
           "name": "push_subscriptions_user_id_users_id_fk",
           "tableFrom": "push_subscriptions",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1091,12 +1048,8 @@
           "name": "reviews_property_id_properties_id_fk",
           "tableFrom": "reviews",
           "tableTo": "properties",
-          "columnsFrom": [
-            "property_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["property_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1104,12 +1057,8 @@
           "name": "reviews_user_id_users_id_fk",
           "tableFrom": "reviews",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1117,12 +1066,8 @@
           "name": "reviews_booking_id_bookings_id_fk",
           "tableFrom": "reviews",
           "tableTo": "bookings",
-          "columnsFrom": [
-            "booking_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["booking_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1132,10 +1077,7 @@
         "reviews_property_user_unique": {
           "name": "reviews_property_user_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "property_id",
-            "user_id"
-          ]
+          "columns": ["property_id", "user_id"]
         }
       },
       "policies": {},
@@ -1200,12 +1142,8 @@
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1329,12 +1267,8 @@
           "name": "units_property_id_properties_id_fk",
           "tableFrom": "units",
           "tableTo": "properties",
-          "columnsFrom": [
-            "property_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["property_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1344,10 +1278,7 @@
         "units_property_id_name_unique": {
           "name": "units_property_id_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "property_id",
-            "name"
-          ]
+          "columns": ["property_id", "name"]
         }
       },
       "policies": {},
@@ -1441,9 +1372,7 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -1583,10 +1512,7 @@
         "webhook_events_provider_event_id_unique": {
           "name": "webhook_events_provider_event_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "provider",
-            "event_id"
-          ]
+          "columns": ["provider", "event_id"]
         }
       },
       "policies": {},

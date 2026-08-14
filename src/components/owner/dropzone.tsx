@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
 interface DropzoneProps {
   onFilesChange: (files: File[]) => void;
@@ -9,53 +9,73 @@ interface DropzoneProps {
   currentFiles: File[];
 }
 
-export function Dropzone({ onFilesChange, maxFiles, minFiles, currentFiles }: DropzoneProps) {
+export function Dropzone({
+  onFilesChange,
+  maxFiles,
+  minFiles,
+  currentFiles,
+}: DropzoneProps) {
   const [dragActive, setDragActive] = useState(false);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
+    if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
-    } else if (e.type === 'dragleave') {
+    } else if (e.type === "dragleave") {
       setDragActive(false);
     }
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragActive(false);
 
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const newFiles = Array.from(e.dataTransfer.files).filter((f) =>
-        f.type.startsWith('image/'),
-      );
-      const total = currentFiles.length + newFiles.length;
-      const allowed = newFiles.slice(0, Math.max(0, maxFiles - currentFiles.length));
-      if (allowed.length > 0) {
-        onFilesChange([...currentFiles, ...allowed]);
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const newFiles = Array.from(e.dataTransfer.files).filter((f) =>
+          f.type.startsWith("image/"),
+        );
+        const total = currentFiles.length + newFiles.length;
+        const allowed = newFiles.slice(
+          0,
+          Math.max(0, maxFiles - currentFiles.length),
+        );
+        if (allowed.length > 0) {
+          onFilesChange([...currentFiles, ...allowed]);
+        }
       }
-    }
-  }, [currentFiles, maxFiles, onFilesChange]);
+    },
+    [currentFiles, maxFiles, onFilesChange],
+  );
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const newFiles = Array.from(e.target.files).filter((f) =>
-        f.type.startsWith('image/'),
-      );
-      const total = currentFiles.length + newFiles.length;
-      const allowed = newFiles.slice(0, Math.max(0, maxFiles - currentFiles.length));
-      if (allowed.length > 0) {
-        onFilesChange([...currentFiles, ...allowed]);
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files.length > 0) {
+        const newFiles = Array.from(e.target.files).filter((f) =>
+          f.type.startsWith("image/"),
+        );
+        const total = currentFiles.length + newFiles.length;
+        const allowed = newFiles.slice(
+          0,
+          Math.max(0, maxFiles - currentFiles.length),
+        );
+        if (allowed.length > 0) {
+          onFilesChange([...currentFiles, ...allowed]);
+        }
       }
-    }
-  }, [currentFiles, maxFiles, onFilesChange]);
+    },
+    [currentFiles, maxFiles, onFilesChange],
+  );
 
-  const removeFile = useCallback((index: number) => {
-    const updated = currentFiles.filter((_, i) => i !== index);
-    onFilesChange(updated);
-  }, [currentFiles, onFilesChange]);
+  const removeFile = useCallback(
+    (index: number) => {
+      const updated = currentFiles.filter((_, i) => i !== index);
+      onFilesChange(updated);
+    },
+    [currentFiles, onFilesChange],
+  );
 
   const remainingSlots = maxFiles - currentFiles.length;
   const canAddMore = remainingSlots > 0;
@@ -70,9 +90,9 @@ export function Dropzone({ onFilesChange, maxFiles, minFiles, currentFiles }: Dr
         onDrop={handleDrop}
         className={`relative rounded-4xl border-2 border-dashed p-6 text-center transition-colors ${
           dragActive
-            ? 'border-primary bg-primary/5'
-            : 'border-muted-foreground/25 hover:border-primary/50'
-        } ${!canAddMore ? 'opacity-50' : ''}`}
+            ? "border-primary bg-primary/5"
+            : "border-muted-foreground/25 hover:border-primary/50"
+        } ${!canAddMore ? "opacity-50" : ""}`}
       >
         <input
           id="property-images"
@@ -85,7 +105,7 @@ export function Dropzone({ onFilesChange, maxFiles, minFiles, currentFiles }: Dr
         />
         <label
           htmlFor="property-images"
-          className={`flex cursor-pointer flex-col items-center gap-2 ${!canAddMore ? 'cursor-not-allowed' : ''}`}
+          className={`flex cursor-pointer flex-col items-center gap-2 ${!canAddMore ? "cursor-not-allowed" : ""}`}
         >
           <div className="rounded-full bg-primary/10 p-3">
             <svg
@@ -107,7 +127,9 @@ export function Dropzone({ onFilesChange, maxFiles, minFiles, currentFiles }: Dr
           </div>
           <div>
             <p className="text-sm font-medium">
-              {canAddMore ? 'Klik atau seret gambar ke sini' : 'Maksimal 5 gambar'}
+              {canAddMore
+                ? "Klik atau seret gambar ke sini"
+                : "Maksimal 5 gambar"}
             </p>
             <p className="text-xs text-muted-foreground">
               PNG, JPG, WEBP maksimal 2MB per file
@@ -117,8 +139,13 @@ export function Dropzone({ onFilesChange, maxFiles, minFiles, currentFiles }: Dr
       </div>
 
       <div className="flex items-center justify-between text-xs">
-        <span className={belowMin ? 'text-red-500 font-medium' : 'text-muted-foreground'}>
-          {currentFiles.length}/{maxFiles} gambar {belowMin && `(Minimal ${minFiles})`}
+        <span
+          className={
+            belowMin ? "text-red-500 font-medium" : "text-muted-foreground"
+          }
+        >
+          {currentFiles.length}/{maxFiles} gambar{" "}
+          {belowMin && `(Minimal ${minFiles})`}
         </span>
         {belowMin && (
           <span className="text-red-500">
@@ -130,7 +157,10 @@ export function Dropzone({ onFilesChange, maxFiles, minFiles, currentFiles }: Dr
       {currentFiles.length > 0 && (
         <div className="grid grid-cols-5 gap-2">
           {currentFiles.map((file, index) => (
-            <div key={index} className="relative aspect-square rounded-lg border overflow-hidden">
+            <div
+              key={index}
+              className="relative aspect-square rounded-lg border overflow-hidden"
+            >
               <img
                 src={URL.createObjectURL(file)}
                 alt={`Preview ${index + 1}`}

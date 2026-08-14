@@ -60,15 +60,29 @@ export function Navbar() {
           <LanguageSwitcher />
           {!user ? (
             <>
-              <Button render={<Link href="/login">Masuk</Link>} variant="outline" nativeButton={false} />
-              <Button render={<Link href="/register">Daftar</Link>} variant="default" nativeButton={false} />
+              <Button
+                render={<Link href="/login">Masuk</Link>}
+                variant="outline"
+                nativeButton={false}
+              />
+              <Button
+                render={<Link href="/register">Daftar</Link>}
+                variant="default"
+                nativeButton={false}
+              />
             </>
           ) : (
             <DropdownMenu>
-              <Button render={<DropdownMenuTrigger />} variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Button
+                render={<DropdownMenuTrigger />}
+                variant="ghost"
+                className="relative h-8 w-8 rounded-full"
+              >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={user.image ?? undefined} alt={user.name} />
-                  <AvatarFallback>{user.name?.charAt(0)?.toUpperCase()}</AvatarFallback>
+                  <AvatarFallback>
+                    {user.name?.charAt(0)?.toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
               <DropdownMenuContent align="end" className="w-56">
@@ -81,8 +95,8 @@ export function Navbar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onSelect={async () => {
-                    await signOut()
-                    window.location.href = '/login'
+                    await signOut();
+                    window.location.href = "/login";
                   }}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
@@ -95,7 +109,12 @@ export function Navbar() {
 
         <div className="md:hidden">
           <Sheet>
-            <Button render={<SheetTrigger />} variant="ghost" size="icon" aria-label="Menu navigasi">
+            <Button
+              render={<SheetTrigger />}
+              variant="ghost"
+              size="icon"
+              aria-label="Menu navigasi"
+            >
               <Menu className="h-5 w-5" />
             </Button>
             <SheetContent side="right" className="w-[300px] sm:w-[400px]">
@@ -106,26 +125,48 @@ export function Navbar() {
               {!user ? (
                 <div className="flex flex-col gap-2 mt-6">
                   <SheetClose>
-                    <Button render={<Link href="/login">Masuk</Link>} variant="outline" nativeButton={false} className="w-full" />
+                    <Button
+                      render={<Link href="/login">Masuk</Link>}
+                      variant="outline"
+                      nativeButton={false}
+                      className="w-full"
+                    />
                   </SheetClose>
                   <SheetClose>
-                    <Button render={<Link href="/register">Daftar</Link>} variant="default" nativeButton={false} className="w-full" />
+                    <Button
+                      render={<Link href="/register">Daftar</Link>}
+                      variant="default"
+                      nativeButton={false}
+                      className="w-full"
+                    />
                   </SheetClose>
                 </div>
               ) : (
                 <div className="flex flex-col gap-3 mt-6">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.image ?? undefined} alt={user.name} />
-                      <AvatarFallback>{user.name?.charAt(0)?.toUpperCase()}</AvatarFallback>
+                      <AvatarImage
+                        src={user.image ?? undefined}
+                        alt={user.name}
+                      />
+                      <AvatarFallback>
+                        {user.name?.charAt(0)?.toUpperCase()}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">{user.name}</span>
-                      <span className="text-xs text-muted-foreground">{user.email}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {user.email}
+                      </span>
                     </div>
                   </div>
                   <SheetClose>
-                    <Button render={<Link href="/dashboard">Dashboard</Link>} variant="default" nativeButton={false} className="w-full" />
+                    <Button
+                      render={<Link href="/dashboard">Dashboard</Link>}
+                      variant="default"
+                      nativeButton={false}
+                      className="w-full"
+                    />
                   </SheetClose>
                   <SheetClose>
                     <Button
@@ -133,8 +174,8 @@ export function Navbar() {
                       nativeButton={false}
                       className="w-full"
                       onClick={async () => {
-                        await signOut()
-                        window.location.href = '/login'
+                        await signOut();
+                        window.location.href = "/login";
                       }}
                     >
                       <LogOut className="mr-2 h-4 w-4" />

@@ -14,7 +14,7 @@ export const ourFileRouter = {
     .middleware(async () => {
       const session = await auth.api.getSession({
         headers: await headers(),
-      })
+      });
 
       if (!session?.user) {
         throw new Error("Unauthorized");
@@ -37,7 +37,7 @@ export const ourFileRouter = {
     .middleware(async () => {
       const session = await auth.api.getSession({
         headers: await headers(),
-      })
+      });
 
       if (!session?.user) {
         throw new Error("Unauthorized");
@@ -58,14 +58,14 @@ export const ourFileRouter = {
     },
   })
     .middleware(async () => {
-      const session = await auth.api.getSession({
+      const session = (await auth.api.getSession({
         headers: await headers(),
-      })
+      })) as { user: { id: string; role: string } } | null;
 
       if (!session?.user || session.user.role !== "owner") {
-        throw new Error("Unauthorized")
+        throw new Error("Unauthorized");
       }
-      return { userId: session.user.id }
+      return { userId: session.user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => ({
       uploadedBy: metadata.userId,

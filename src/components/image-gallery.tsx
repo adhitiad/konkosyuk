@@ -1,30 +1,40 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { MultiplicationSignIcon, ChevronLeftIcon, ChevronRightIcon, Maximize01Icon } from '@hugeicons/core-free-icons'
+import { useState } from "react";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  MultiplicationSignIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  Maximize01Icon,
+} from "@hugeicons/core-free-icons";
 
 interface ImageGalleryProps {
-  images: string[]
-  alt?: string
+  images: string[];
+  alt?: string;
 }
 
-export default function ImageGallery({ images, alt = 'Gallery' }: ImageGalleryProps) {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [isFullscreen, setIsFullscreen] = useState(false)
+export default function ImageGallery({
+  images,
+  alt = "Gallery",
+}: ImageGalleryProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   if (images.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center rounded-4xl bg-muted text-muted-foreground">
         <span className="text-sm">Tidak ada gambar</span>
       </div>
-    )
+    );
   }
 
-  const goToPrevious = () => setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
-  const goToNext = () => setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
+  const goToPrevious = () =>
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  const goToNext = () =>
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
 
   return (
     <>
@@ -47,7 +57,11 @@ export default function ImageGallery({ images, alt = 'Gallery' }: ImageGalleryPr
               className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur"
               onClick={goToPrevious}
             >
-              <HugeiconsIcon icon={ChevronLeftIcon} strokeWidth={2} className="size-4" />
+              <HugeiconsIcon
+                icon={ChevronLeftIcon}
+                strokeWidth={2}
+                className="size-4"
+              />
             </Button>
             <Button
               type="button"
@@ -56,7 +70,11 @@ export default function ImageGallery({ images, alt = 'Gallery' }: ImageGalleryPr
               className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur"
               onClick={goToNext}
             >
-              <HugeiconsIcon icon={ChevronRightIcon} strokeWidth={2} className="size-4" />
+              <HugeiconsIcon
+                icon={ChevronRightIcon}
+                strokeWidth={2}
+                className="size-4"
+              />
             </Button>
           </>
         )}
@@ -68,7 +86,11 @@ export default function ImageGallery({ images, alt = 'Gallery' }: ImageGalleryPr
             className="bg-background/80 backdrop-blur"
             onClick={() => setIsFullscreen(true)}
           >
-            <HugeiconsIcon icon={Maximize01Icon} strokeWidth={2} className="size-4" />
+            <HugeiconsIcon
+              icon={Maximize01Icon}
+              strokeWidth={2}
+              className="size-4"
+            />
           </Button>
         </div>
       </div>
@@ -80,7 +102,7 @@ export default function ImageGallery({ images, alt = 'Gallery' }: ImageGalleryPr
               type="button"
               onClick={() => setCurrentIndex(idx)}
               className={`relative h-16 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-colors ${
-                idx === currentIndex ? 'border-primary' : 'border-transparent'
+                idx === currentIndex ? "border-primary" : "border-transparent"
               }`}
             >
               <Image
@@ -96,7 +118,10 @@ export default function ImageGallery({ images, alt = 'Gallery' }: ImageGalleryPr
       )}
 
       {isFullscreen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90" onClick={() => setIsFullscreen(false)}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+          onClick={() => setIsFullscreen(false)}
+        >
           <Button
             type="button"
             variant="outline"
@@ -104,7 +129,11 @@ export default function ImageGallery({ images, alt = 'Gallery' }: ImageGalleryPr
             className="absolute right-4 top-4 bg-background/20 text-white hover:bg-background/40"
             onClick={() => setIsFullscreen(false)}
           >
-            <HugeiconsIcon icon={MultiplicationSignIcon} strokeWidth={2} className="size-4" />
+            <HugeiconsIcon
+              icon={MultiplicationSignIcon}
+              strokeWidth={2}
+              className="size-4"
+            />
           </Button>
           {images.length > 1 && (
             <>
@@ -113,18 +142,32 @@ export default function ImageGallery({ images, alt = 'Gallery' }: ImageGalleryPr
                 variant="outline"
                 size="icon"
                 className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/20 text-white hover:bg-background/40"
-                onClick={(e) => { e.stopPropagation(); goToPrevious() }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToPrevious();
+                }}
               >
-                <HugeiconsIcon icon={ChevronLeftIcon} strokeWidth={2} className="size-4" />
+                <HugeiconsIcon
+                  icon={ChevronLeftIcon}
+                  strokeWidth={2}
+                  className="size-4"
+                />
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
                 className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/20 text-white hover:bg-background/40"
-                onClick={(e) => { e.stopPropagation(); goToNext() }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToNext();
+                }}
               >
-                <HugeiconsIcon icon={ChevronRightIcon} strokeWidth={2} className="size-4" />
+                <HugeiconsIcon
+                  icon={ChevronRightIcon}
+                  strokeWidth={2}
+                  className="size-4"
+                />
               </Button>
             </>
           )}
@@ -141,5 +184,5 @@ export default function ImageGallery({ images, alt = 'Gallery' }: ImageGalleryPr
         </div>
       )}
     </>
-  )
+  );
 }

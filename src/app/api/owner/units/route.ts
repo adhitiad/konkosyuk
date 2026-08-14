@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { units, properties } from "@/db/schema";
 import { eq, and, desc, inArray } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
-import { validateMutationCsrf } from '@/lib/api-auth';
+import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import type { Role } from "@/lib/auth";
 import { logError } from "@/lib/logger";
@@ -40,8 +40,7 @@ export async function GET(req: NextRequest) {
       conditions.push(inArray(units.propertyId, effectivePropertyIds));
     }
 
-    const whereClause =
-      conditions.length > 0 ? and(...conditions) : undefined;
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
     const unitList = await db
       .select({
@@ -73,8 +72,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const csrfError = validateMutationCsrf(req)
-    if (csrfError) return csrfError
+    const csrfError = validateMutationCsrf(req);
+    if (csrfError) return csrfError;
     const session = await requireSession(["owner", "admin"] as Role[]);
     const body = await req.json();
 

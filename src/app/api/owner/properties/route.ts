@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { properties } from "@/db/schema";
 import { eq, desc, and, or, sql, gte, lte, like } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
-import { validateMutationCsrf } from '@/lib/api-auth';
+import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { createPropertySchema } from "@/lib/zod";
 import type { Role } from "@/lib/auth";
@@ -102,8 +102,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const csrfError = validateMutationCsrf(req)
-    if (csrfError) return csrfError
+    const csrfError = validateMutationCsrf(req);
+    if (csrfError) return csrfError;
     const session = await requireSession(["owner", "admin", "staff"] as Role[]);
     const body = createPropertySchema.parse(await req.json());
 
@@ -148,7 +148,9 @@ export async function POST(req: NextRequest) {
         isActive: body.isActive ?? false,
         isFeatured: body.isFeatured ?? false,
         gpsVerified: body.gpsVerified ?? false,
-        featuredUntil: body.featuredUntil ? new Date(body.featuredUntil) : undefined,
+        featuredUntil: body.featuredUntil
+          ? new Date(body.featuredUntil)
+          : undefined,
         icalExportToken: body.icalExportToken,
         icalImportUrl: body.icalImportUrl,
       } as any)

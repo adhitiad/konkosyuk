@@ -1,17 +1,21 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface PaginationProps {
-  currentPage: number
-  totalPages: number
-  onPageChange: (page: number) => void
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
-function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
-  if (totalPages <= 1) return null
+function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: PaginationProps) {
+  if (totalPages <= 1) return null;
 
   return (
     <nav
@@ -40,7 +44,7 @@ function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) 
         <span aria-hidden="true">&raquo;</span>
       </Button>
     </nav>
-  )
+  );
 }
 
-export { Pagination }
+export { Pagination };

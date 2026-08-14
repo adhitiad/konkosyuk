@@ -1,23 +1,58 @@
-import { getAxiosInstance } from '@/lib/api'
+import { getAxiosInstance } from "@/lib/api";
 
-type WhatsAppTemplateParameter = { type: 'text'; text: string }
+type WhatsAppTemplateParameter = { type: "text"; text: string };
 
-export async function sendMaintenanceWhatsApp(to: string, templateName: string, parameters: string[]): Promise<void> {
-  const phoneNumberId = process.env.META_PHONE_NUMBER_ID
-  const accessToken = process.env.META_ACCESS_TOKEN
+export async function sendMaintenanceWhatsApp(
+  to: string,
+  templateName: string,
+  parameters: string[],
+): Promise<void> {
+  const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
+  const accessToken = process.env.META_ACCESS_TOKEN;
   if (!phoneNumberId || !accessToken) {
-    console.warn('WhatsApp credentials belum dikonfigurasi, notifikasi maintenance dilewati')
-    return
+    console.warn(
+      "WhatsApp credentials belum dikonfigurasi, notifikasi maintenance dilewati",
+    );
+    return;
   }
-  const formattedPhone = to.replace(/\D/g, '').replace(/^0/, '62')
+  const formattedPhone = to.replace(/\D/g, "").replace(/^0/, "62");
   try {
-    await getAxiosInstance().post(`https://graph.facebook.com/v18.0/${phoneNumberId}/messages`, {
-      messaging_product: 'whatsapp', to: formattedPhone, type: 'template',
-      template: { name: templateName, language: { code: 'id' }, components: [{ type: 'body', parameters: parameters.map((text): WhatsAppTemplateParameter => ({ type: 'text', text })) }] },
-    }, { headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' } })
+    await getAxiosInstance().post(
+      `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`,
+      {
+        messaging_product: "whatsapp",
+        to: formattedPhone,
+        type: "template",
+        template: {
+          name: templateName,
+          language: { code: "id" },
+          components: [
+            {
+              type: "body",
+              parameters: parameters.map((text): WhatsAppTemplateParameter => ({
+                type: "text",
+                text,
+              })),
+            },
+          ],
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
   } catch (error) {
-    const response = (error as { response?: { status?: number; data?: unknown } }).response
-    console.error('WhatsApp maintenance API error:', response?.status, response?.data ?? error)
+    const response = (
+      error as { response?: { status?: number; data?: unknown } }
+    ).response;
+    console.error(
+      "WhatsApp maintenance API error:",
+      response?.status,
+      response?.data ?? error,
+    );
   }
 }
 
@@ -29,37 +64,39 @@ export async function sendApprovalWhatsApp(
   invoiceUrl: string,
 ): Promise<void> {
   try {
-    const phoneNumberId = process.env.META_PHONE_NUMBER_ID
-    const accessToken = process.env.META_ACCESS_TOKEN
-    const axios = getAxiosInstance()
+    const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
+    const accessToken = process.env.META_ACCESS_TOKEN;
+    const axios = getAxiosInstance();
 
     if (!phoneNumberId || !accessToken) {
-      console.warn('WhatsApp credentials not configured, skipping WhatsApp notification')
-      return
+      console.warn(
+        "WhatsApp credentials not configured, skipping WhatsApp notification",
+      );
+      return;
     }
 
-    const formattedPhone = tenantPhone.startsWith('0')
+    const formattedPhone = tenantPhone.startsWith("0")
       ? `62${tenantPhone.slice(1)}`
-      : tenantPhone
+      : tenantPhone;
 
     try {
       await axios.post(
         `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`,
         {
-          messaging_product: 'whatsapp',
+          messaging_product: "whatsapp",
           to: formattedPhone,
-          type: 'template',
+          type: "template",
           template: {
-            name: 'booking_approved',
-            language: { code: 'id' },
+            name: "booking_approved",
+            language: { code: "id" },
             components: [
               {
-                type: 'body',
+                type: "body",
                 parameters: [
-                  { type: 'text', text: tenantName },
-                  { type: 'text', text: propertyName },
-                  { type: 'text', text: dpAmount.toString() },
-                  { type: 'text', text: invoiceUrl },
+                  { type: "text", text: tenantName },
+                  { type: "text", text: propertyName },
+                  { type: "text", text: dpAmount.toString() },
+                  { type: "text", text: invoiceUrl },
                 ],
               },
             ],
@@ -68,16 +105,16 @@ export async function sendApprovalWhatsApp(
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         },
-      )
+      );
     } catch (error) {
-      const status = (error as any)?.response?.status
-      const text = (error as any)?.response?.data
-      console.error('WhatsApp API error:', status, text)
+      const status = (error as any)?.response?.status;
+      const text = (error as any)?.response?.data;
+      console.error("WhatsApp API error:", status, text);
     }
   } catch (error) {
-    console.error('Failed to send approval WhatsApp:', error)
+    console.error("Failed to send approval WhatsApp:", error);
   }
 }

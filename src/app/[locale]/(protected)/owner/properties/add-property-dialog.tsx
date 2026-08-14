@@ -1,54 +1,59 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
-import Link from 'next/link';
-import { useQueryClient } from '@tanstack/react-query';
-import { useSession } from '@/lib/auth-client';
-import { createPropertySchema, type CreatePropertyInput } from '@/lib/zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
+import { useSession } from "@/lib/auth-client";
+import { createPropertySchema, type CreatePropertyInput } from "@/lib/zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { AlertCircleIcon } from '@hugeicons/core-free-icons';
-import { BreadcrumbNav } from '@/components/ui/breadcrumb-nav';
-import { toast } from '@/components/ui/toast';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { PropertyImagesUpload } from '@/components/property/property-images-upload';
-const PropertyMapPicker = dynamic(() => import('@/components/property/map-picker'), {
-  ssr: false,
-  loading: () => <div className="h-[320px] animate-pulse rounded-lg border bg-muted" />,
-});
-import PackageForm from '@/components/owner/package-form';
-import type { PropertyPackages } from '@/lib/types/property-packages';
-import { csrfFetch } from '@/lib/axios';
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AlertCircleIcon } from "@hugeicons/core-free-icons";
+import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
+import { toast } from "@/components/ui/toast";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { PropertyImagesUpload } from "@/components/property/property-images-upload";
+const PropertyMapPicker = dynamic(
+  () => import("@/components/property/map-picker"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[320px] animate-pulse rounded-lg border bg-muted" />
+    ),
+  },
+);
+import PackageForm from "@/components/owner/package-form";
+import type { PropertyPackages } from "@/lib/types/property-packages";
+import { csrfFetch } from "@/lib/axios";
 
 const propertyTypeOptions = [
-  { value: 'kost', label: 'Kost' },
-  { value: 'kontrakan', label: 'Kontrakan' },
+  { value: "kost", label: "Kost" },
+  { value: "kontrakan", label: "Kontrakan" },
 ];
 
 const commonAmenities = [
-  'WiFi',
-  'AC',
-  'Laundry',
-  'Parkir Motor',
-  'Parkir Mobil',
-  'Dapur',
-  'Kamar Mandi Dalam',
-  'Balcony',
+  "WiFi",
+  "AC",
+  "Laundry",
+  "Parkir Motor",
+  "Parkir Mobil",
+  "Dapur",
+  "Kamar Mandi Dalam",
+  "Balcony",
 ];
 
 export default function AddPropertyDialog() {
@@ -56,22 +61,22 @@ export default function AddPropertyDialog() {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
 
-  const [title, setTitle] = useState('');
-  const [type, setType] = useState<CreatePropertyInput['type']>('kost');
-  const [province, setProvince] = useState('');
-  const [city, setCity] = useState('');
-  const [address, setAddress] = useState('');
-  const [district, setDistrict] = useState('');
+  const [title, setTitle] = useState("");
+  const [type, setType] = useState<CreatePropertyInput["type"]>("kost");
+  const [province, setProvince] = useState("");
+  const [city, setCity] = useState("");
+  const [address, setAddress] = useState("");
+  const [district, setDistrict] = useState("");
   const [propertyImages, setPropertyImages] = useState<string[]>([]);
-  const [basePrice, setBasePrice] = useState('');
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
+  const [basePrice, setBasePrice] = useState("");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
   const [isActive, setIsActive] = useState(false);
-  const [icalImportUrl, setIcalImportUrl] = useState('');
+  const [icalImportUrl, setIcalImportUrl] = useState("");
   const [packages, setPackages] = useState<PropertyPackages | null>(null);
   const [amenities, setAmenities] = useState<string[]>([]);
-  const [amenityInput, setAmenityInput] = useState('');
-  const [description, setDescription] = useState('');
+  const [amenityInput, setAmenityInput] = useState("");
+  const [description, setDescription] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -80,7 +85,7 @@ export default function AddPropertyDialog() {
     if (trimmed && !amenities.includes(trimmed)) {
       setAmenities([...amenities, trimmed]);
     }
-    setAmenityInput('');
+    setAmenityInput("");
   };
 
   const removeAmenity = (value: string) => {
@@ -92,7 +97,7 @@ export default function AddPropertyDialog() {
     setError(null);
 
     if (propertyImages.length < 3) {
-      setError('Upload minimal 3 foto properti.');
+      setError("Upload minimal 3 foto properti.");
       return;
     }
 
@@ -107,7 +112,7 @@ export default function AddPropertyDialog() {
       basePrice: basePrice || undefined,
       packages: packages || undefined,
       amenities,
-      status: 'aktif',
+      status: "aktif",
       images: propertyImages,
       metadata: undefined,
       latitude: latitude ? Number(latitude) : undefined,
@@ -120,34 +125,36 @@ export default function AddPropertyDialog() {
     if (!result.success) {
       setError(
         result.error.issues
-          .map((i) => `${i.path.join('.')}: ${i.message}`)
-          .join(', ')
+          .map((i) => `${i.path.join(".")}: ${i.message}`)
+          .join(", "),
       );
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const res = await csrfFetch('/api/owner/properties', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await csrfFetch("/api/owner/properties", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(result.data),
       });
 
       if (!res.ok) {
         const text = await res.text();
-        throw new Error(text || 'Gagal menambahkan properti.');
+        throw new Error(text || "Gagal menambahkan properti.");
       }
 
-      queryClient.invalidateQueries({ queryKey: ['owner-properties-v2'] });
+      queryClient.invalidateQueries({ queryKey: ["owner-properties-v2"] });
       toast({
-        title: 'Berhasil',
-        description: 'Properti berhasil ditambahkan.',
-        type: 'success',
+        title: "Berhasil",
+        description: "Properti berhasil ditambahkan.",
+        type: "success",
       });
-      router.push('/owner/properties');
+      router.push("/owner/properties");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal menambahkan properti.');
+      setError(
+        err instanceof Error ? err.message : "Gagal menambahkan properti.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -157,9 +164,9 @@ export default function AddPropertyDialog() {
     <div className="container py-6 space-y-6 max-w-5xl">
       <BreadcrumbNav
         items={[
-          { label: 'Dashboard', href: '/owner' },
-          { label: 'Properti', href: '/owner/properties' },
-          { label: 'Tambah Properti Baru' },
+          { label: "Dashboard", href: "/owner" },
+          { label: "Properti", href: "/owner/properties" },
+          { label: "Tambah Properti Baru" },
         ]}
       />
 
@@ -175,7 +182,9 @@ export default function AddPropertyDialog() {
           nativeButton={false}
         />
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Tambah Properti Baru</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Tambah Properti Baru
+          </h1>
           <p className="text-muted-foreground">
             Isi detail properti kost atau kontrakan Anda
           </p>
@@ -184,7 +193,11 @@ export default function AddPropertyDialog() {
 
       {error && (
         <Alert variant="destructive">
-          <HugeiconsIcon icon={AlertCircleIcon} strokeWidth={2} className="size-4" />
+          <HugeiconsIcon
+            icon={AlertCircleIcon}
+            strokeWidth={2}
+            className="size-4"
+          />
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
@@ -211,7 +224,9 @@ export default function AddPropertyDialog() {
                 <Label htmlFor="type">Tipe *</Label>
                 <Select
                   value={type}
-                  onValueChange={(v) => setType(v as CreatePropertyInput['type'])}
+                  onValueChange={(v) =>
+                    setType(v as CreatePropertyInput["type"])
+                  }
                 >
                   <SelectTrigger id="type">
                     <SelectValue placeholder="Pilih tipe" />
@@ -370,7 +385,7 @@ export default function AddPropertyDialog() {
                 value={amenityInput}
                 onChange={(e) => setAmenityInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     e.preventDefault();
                     addAmenity(amenityInput);
                   }
@@ -428,7 +443,8 @@ export default function AddPropertyDialog() {
               />
               <span>Aktif</span>
               <span className="text-xs text-muted-foreground">
-                Properti akan ditampilkan secara publik setelah diverifikasi admin.
+                Properti akan ditampilkan secara publik setelah diverifikasi
+                admin.
               </span>
             </div>
             <div className="space-y-2">
@@ -440,7 +456,8 @@ export default function AddPropertyDialog() {
                 placeholder="https://example.com/calendar.ics"
               />
               <p className="text-xs text-muted-foreground">
-                Import kalender eksternal untuk sinkronisasi ketersediaan tanggal.
+                Import kalender eksternal untuk sinkronisasi ketersediaan
+                tanggal.
               </p>
             </div>
           </CardContent>
@@ -450,11 +467,7 @@ export default function AddPropertyDialog() {
           <Button
             type="button"
             variant="outline"
-            render={
-              <Link href="/owner/properties">
-                Batal
-              </Link>
-            }
+            render={<Link href="/owner/properties">Batal</Link>}
             nativeButton={false}
           >
             Batal
@@ -466,7 +479,7 @@ export default function AddPropertyDialog() {
                 Menyimpan...
               </>
             ) : (
-              'Simpan'
+              "Simpan"
             )}
           </Button>
         </div>

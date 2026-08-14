@@ -4,17 +4,20 @@ const steps = [
   {
     icon: UserPlus,
     title: "Daftar & Verifikasi KTP",
-    description: "Buat akun dan verifikasi identitas Anda dengan KTP untuk keamanan bersama.",
+    description:
+      "Buat akun dan verifikasi identitas Anda dengan KTP untuk keamanan bersama.",
   },
   {
     icon: Upload,
     title: "Upload Foto & Setel Harga",
-    description: "Unggah foto properti, atur harga sewa, dan kelola ketersediaan kamar.",
+    description:
+      "Unggah foto properti, atur harga sewa, dan kelola ketersediaan kamar.",
   },
   {
     icon: Wallet,
     title: "Terima Pembayaran Otomatis",
-    description: "Pembayaran DP dan cicilan otomatis masuk ke rekening Anda tanpa ribet.",
+    description:
+      "Pembayaran DP dan cicilan otomatis masuk ke rekening Anda tanpa ribet.",
   },
 ];
 
@@ -26,8 +29,8 @@ export function HowItWorksSection() {
           Mulai Hanya dalam <span className="text-primary">3 Langkah</span>
         </h2>
         <p className="mx-auto mt-4 max-w-2xl text-center text-muted-foreground">
-          Proses pendaftaran dan pengelolaan properti di KonkosYuk dirancang sesederhana
-          mungkin.
+          Proses pendaftaran dan pengelolaan properti di KonkosYuk dirancang
+          sesederhana mungkin.
         </p>
 
         <div className="mt-16 grid gap-8 sm:grid-cols-3">
@@ -42,7 +45,9 @@ export function HowItWorksSection() {
                 <step.icon className="h-7 w-7" />
               </div>
               <h3 className="mt-4 text-lg font-semibold">{step.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{step.description}</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {step.description}
+              </p>
             </div>
           ))}
         </div>

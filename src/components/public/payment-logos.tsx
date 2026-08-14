@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 const paymentMethods = [
   {
@@ -55,13 +55,13 @@ const paymentMethods = [
     color: "#00AFF5",
     textColor: "#FFFFFF",
   },
-] as const
+] as const;
 
 interface PaymentLogoProps {
-  id: string
-  name: string
-  color: string
-  textColor: string
+  id: string;
+  name: string;
+  color: string;
+  textColor: string;
 }
 
 function PaymentLogo({ id, name, color, textColor }: PaymentLogoProps) {
@@ -71,93 +71,170 @@ function PaymentLogo({ id, name, color, textColor }: PaymentLogoProps) {
         return (
           <svg viewBox="0 0 48 48" className="w-full h-full">
             <rect width="48" height="48" rx="8" fill={color} />
-            <text x="24" y="30" textAnchor="middle" fill={textColor} fontSize="16" fontWeight="bold" fontFamily="sans-serif">
+            <text
+              x="24"
+              y="30"
+              textAnchor="middle"
+              fill={textColor}
+              fontSize="16"
+              fontWeight="bold"
+              fontFamily="sans-serif"
+            >
               {name}
             </text>
           </svg>
-        )
+        );
       case "mandiri":
         return (
           <svg viewBox="0 0 48 48" className="w-full h-full">
             <rect width="48" height="48" rx="8" fill={color} />
-            <text x="24" y="30" textAnchor="middle" fill={textColor} fontSize="14" fontWeight="bold" fontFamily="sans-serif">
+            <text
+              x="24"
+              y="30"
+              textAnchor="middle"
+              fill={textColor}
+              fontSize="14"
+              fontWeight="bold"
+              fontFamily="sans-serif"
+            >
               {name}
             </text>
           </svg>
-        )
+        );
       case "bri":
         return (
           <svg viewBox="0 0 48 48" className="w-full h-full">
             <rect width="48" height="48" rx="8" fill={color} />
-            <text x="24" y="30" textAnchor="middle" fill={textColor} fontSize="16" fontWeight="bold" fontFamily="sans-serif">
+            <text
+              x="24"
+              y="30"
+              textAnchor="middle"
+              fill={textColor}
+              fontSize="16"
+              fontWeight="bold"
+              fontFamily="sans-serif"
+            >
               {name}
             </text>
           </svg>
-        )
+        );
       case "bni":
         return (
           <svg viewBox="0 0 48 48" className="w-full h-full">
             <rect width="48" height="48" rx="8" fill={color} />
-            <text x="24" y="30" textAnchor="middle" fill={textColor} fontSize="16" fontWeight="bold" fontFamily="sans-serif">
+            <text
+              x="24"
+              y="30"
+              textAnchor="middle"
+              fill={textColor}
+              fontSize="16"
+              fontWeight="bold"
+              fontFamily="sans-serif"
+            >
               {name}
             </text>
           </svg>
-        )
+        );
       case "btn":
         return (
           <svg viewBox="0 0 48 48" className="w-full h-full">
             <rect width="48" height="48" rx="8" fill={color} />
-            <text x="24" y="30" textAnchor="middle" fill={textColor} fontSize="16" fontWeight="bold" fontFamily="sans-serif">
+            <text
+              x="24"
+              y="30"
+              textAnchor="middle"
+              fill={textColor}
+              fontSize="16"
+              fontWeight="bold"
+              fontFamily="sans-serif"
+            >
               {name}
             </text>
           </svg>
-        )
+        );
       case "qris":
         return (
           <svg viewBox="0 0 48 48" className="w-full h-full">
             <rect width="48" height="48" rx="8" fill={color} />
-            <g transform="translate(12, 12)" fill="none" stroke="white" strokeWidth="2">
+            <g
+              transform="translate(12, 12)"
+              fill="none"
+              stroke="white"
+              strokeWidth="2"
+            >
               <rect x="0" y="0" width="8" height="8" />
               <rect x="12" y="0" width="8" height="8" />
               <rect x="0" y="12" width="8" height="8" />
               <rect x="12" y="12" width="4" height="4" />
             </g>
-            <text x="24" y="40" textAnchor="middle" fill={textColor} fontSize="8" fontWeight="bold" fontFamily="sans-serif">
+            <text
+              x="24"
+              y="40"
+              textAnchor="middle"
+              fill={textColor}
+              fontSize="8"
+              fontWeight="bold"
+              fontFamily="sans-serif"
+            >
               QRIS
             </text>
           </svg>
-        )
+        );
       case "ovo":
         return (
           <svg viewBox="0 0 48 48" className="w-full h-full">
             <rect width="48" height="48" rx="8" fill={color} />
-            <text x="24" y="30" textAnchor="middle" fill={textColor} fontSize="16" fontWeight="bold" fontFamily="sans-serif">
+            <text
+              x="24"
+              y="30"
+              textAnchor="middle"
+              fill={textColor}
+              fontSize="16"
+              fontWeight="bold"
+              fontFamily="sans-serif"
+            >
               {name}
             </text>
           </svg>
-        )
+        );
       case "dana":
         return (
           <svg viewBox="0 0 48 48" className="w-full h-full">
             <rect width="48" height="48" rx="8" fill={color} />
-            <text x="24" y="30" textAnchor="middle" fill={textColor} fontSize="14" fontWeight="bold" fontFamily="sans-serif">
+            <text
+              x="24"
+              y="30"
+              textAnchor="middle"
+              fill={textColor}
+              fontSize="14"
+              fontWeight="bold"
+              fontFamily="sans-serif"
+            >
               {name}
             </text>
           </svg>
-        )
+        );
       case "gopay":
         return (
           <svg viewBox="0 0 48 48" className="w-full h-full">
             <rect width="48" height="48" rx="8" fill={color} />
-            <text x="24" y="30" textAnchor="middle" fill={textColor} fontSize="14" fontWeight="bold" fontFamily="sans-serif">
+            <text
+              x="24"
+              y="30"
+              textAnchor="middle"
+              fill={textColor}
+              fontSize="14"
+              fontWeight="bold"
+              fontFamily="sans-serif"
+            >
               {name}
             </text>
           </svg>
-        )
+        );
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <div className="flex items-center justify-center">
@@ -165,7 +242,7 @@ function PaymentLogo({ id, name, color, textColor }: PaymentLogoProps) {
         {renderIcon()}
       </div>
     </div>
-  )
+  );
 }
 
 export function PaymentLogos() {
@@ -181,5 +258,5 @@ export function PaymentLogos() {
         />
       ))}
     </div>
-  )
+  );
 }

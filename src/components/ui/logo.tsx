@@ -1,16 +1,16 @@
-'use client'
+"use client";
 
-import Image from 'next/image'
-import Link from 'next/link'
-import { cn } from '@/lib/utils'
+import Image from "next/image";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 interface LogoProps {
   /** Extra Tailwind classes for the outer wrapper */
-  className?: string
+  className?: string;
   /** Show the "KonkosYuk" text beside the logo (default: true) */
-  withText?: boolean
+  withText?: boolean;
   /** Override the link destination (default: "/") */
-  href?: string
+  href?: string;
 }
 
 /**
@@ -21,9 +21,9 @@ interface LogoProps {
  *
  * Always wrapped in a `<Link>` so clicking it navigates home.
  */
-export function Logo({ className, withText = true, href = '/' }: LogoProps) {
+export function Logo({ className, withText = true, href = "/" }: LogoProps) {
   return (
-    <Link href={href} className={cn('flex items-center gap-2', className)}>
+    <Link href={href} className={cn("flex items-center gap-2", className)}>
       <Image
         src="/logo-icon.svg"
         alt="KonkosYuk"
@@ -38,5 +38,5 @@ export function Logo({ className, withText = true, href = '/' }: LogoProps) {
         </span>
       )}
     </Link>
-  )
+  );
 }

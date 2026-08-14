@@ -12,9 +12,7 @@ export const routing = defineRouting({
 // Keep the proxy limited to locale-aware UI requests. API handlers, metadata,
 // service workers, and static assets must execute in their native runtimes.
 export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|sw.js|.*\\..*).*)',
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|sw.js|.*\\..*).*)"],
 };
 
 const intlMiddleware = createMiddleware(routing);
@@ -33,7 +31,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (path.endsWith("/manifest.webmanifest") || path === "/manifest.webmanifest") {
+  if (
+    path.endsWith("/manifest.webmanifest") ||
+    path === "/manifest.webmanifest"
+  ) {
     return NextResponse.next();
   }
 
@@ -60,7 +61,7 @@ export async function proxy(request: NextRequest) {
   // API routes must bypass next-intl. Authentication, rate limiting, and CSRF
   // validation are handled by the route handlers, not Edge middleware.
   if (path.startsWith("/api/")) {
-    return NextResponse.next()
+    return NextResponse.next();
   }
 
   return intlMiddleware(request);

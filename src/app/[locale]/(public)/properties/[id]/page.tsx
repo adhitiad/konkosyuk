@@ -1,6 +1,16 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { MapPin, Bed, Bath, Maximize, CheckCircle2, Wifi, Car, Wind, Droplets } from "lucide-react";
+import {
+  MapPin,
+  Bed,
+  Bath,
+  Maximize,
+  CheckCircle2,
+  Wifi,
+  Car,
+  Wind,
+  Droplets,
+} from "lucide-react";
 import { db } from "@/db";
 import { properties } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -16,7 +26,11 @@ const amenityIcons: Record<string, any> = {
   "kamar mandi dalam": Droplets,
 };
 
-export default async function PropertyDetailPage({ params }: { params: { id: string; locale: string } }) {
+export default async function PropertyDetailPage({
+  params,
+}: {
+  params: { id: string; locale: string };
+}) {
   const property = await db.query.properties.findFirst({
     where: eq(properties.id, params.id),
   });
@@ -25,9 +39,12 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
     notFound();
   }
 
-  const images = property.images && property.images.length > 0
-    ? property.images
-    : ["https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80"];
+  const images =
+    property.images && property.images.length > 0
+      ? property.images
+      : [
+          "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80",
+        ];
 
   const mainImage = images[0];
   const thumbnailImages = images.slice(1, 5);
@@ -44,7 +61,9 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
   return (
     <main className="container py-8 max-w-7xl mx-auto px-4 lg:px-8">
       <div className="mb-6">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{property.name}</h1>
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+          {property.name}
+        </h1>
         <div className="flex items-center gap-2 text-gray-600">
           <MapPin className="h-5 w-5" />
           <span className="text-lg">
@@ -83,7 +102,9 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition-colors">
-                <span className="text-white font-semibold text-lg">+{images.length - 5} Foto</span>
+                <span className="text-white font-semibold text-lg">
+                  +{images.length - 5} Foto
+                </span>
               </div>
             </div>
           )}
@@ -103,7 +124,8 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
                   <div className="flex items-center gap-2">
                     <Maximize className="h-5 w-5 text-primary" />
                     <span>
-                      Min. {property.packages.custom.minDuration} {property.packages.custom.unit}
+                      Min. {property.packages.custom.minDuration}{" "}
+                      {property.packages.custom.unit}
                     </span>
                   </div>
                 )}
@@ -111,7 +133,8 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
               <Separator className="my-4" />
               <h2 className="text-xl font-semibold mb-3">Deskripsi</h2>
               <p className="text-gray-600 leading-relaxed whitespace-pre-line">
-                {property.description || "Belum ada deskripsi untuk properti ini."}
+                {property.description ||
+                  "Belum ada deskripsi untuk properti ini."}
               </p>
             </CardContent>
           </Card>
@@ -122,9 +145,13 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
                 <h2 className="text-xl font-semibold mb-4">Fasilitas</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {property.amenities.map((amenity: string, idx: number) => {
-                    const Icon = amenityIcons[amenity.toLowerCase()] || CheckCircle2;
+                    const Icon =
+                      amenityIcons[amenity.toLowerCase()] || CheckCircle2;
                     return (
-                      <div key={idx} className="flex items-center gap-3 text-gray-700">
+                      <div
+                        key={idx}
+                        className="flex items-center gap-3 text-gray-700"
+                      >
                         <Icon className="h-5 w-5 text-primary" />
                         <span className="capitalize">{amenity}</span>
                       </div>
@@ -140,7 +167,9 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
           <Card className="sticky top-24 border shadow-lg">
             <CardContent className="p-6 space-y-4">
               <div>
-                <span className="text-3xl font-bold text-primary">{formatPrice(property.basePrice)}</span>
+                <span className="text-3xl font-bold text-primary">
+                  {formatPrice(property.basePrice)}
+                </span>
                 <span className="text-gray-500"> / bulan</span>
               </div>
               <Separator />

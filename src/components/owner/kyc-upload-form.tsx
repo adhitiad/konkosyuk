@@ -1,117 +1,132 @@
-'use client'
+"use client";
 
-import { useState, useRef } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Camera01Icon, Delete01Icon, Upload01Icon, InformationCircleIcon } from '@hugeicons/core-free-icons'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { showToastSuccess, showToastError } from '@/lib/use-toast-custom'
-import { apiClient } from '@/lib/axios'
-import { csrfFetch } from '@/lib/axios'
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Camera01Icon,
+  Delete01Icon,
+  Upload01Icon,
+  InformationCircleIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
+import { apiClient } from "@/lib/axios";
+import { csrfFetch } from "@/lib/axios";
 
 export function KYCUploadForm({ onSuccess }: { onSuccess?: () => void }) {
-  const [ktpNumber, setKtpNumber] = useState('')
-  const [ktpImageUrl, setKtpImageUrl] = useState('')
-  const [ktpFile, setKtpFile] = useState<File | null>(null)
-  const [ktpPreview, setKtpPreview] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [ktpNumber, setKtpNumber] = useState("");
+  const [ktpImageUrl, setKtpImageUrl] = useState("");
+  const [ktpFile, setKtpFile] = useState<File | null>(null);
+  const [ktpPreview, setKtpPreview] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      setError('File harus berupa gambar')
-      return
+    if (!file.type.startsWith("image/")) {
+      setError("File harus berupa gambar");
+      return;
     }
 
-    setKtpFile(file)
-    setKtpPreview(URL.createObjectURL(file))
-    setError(null)
+    setKtpFile(file);
+    setKtpPreview(URL.createObjectURL(file));
+    setError(null);
 
-    setUploading(true)
+    setUploading(true);
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('type', 'ktp')
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", "ktp");
 
-      const res = await csrfFetch('/api/upload', {
-        method: 'POST',
+      const res = await csrfFetch("/api/upload", {
+        method: "POST",
         body: formData,
-      })
+      });
 
       if (!res.ok) {
-        const text = await res.text()
-        throw new Error(text || 'Gagal mengunggah gambar')
+        const text = await res.text();
+        throw new Error(text || "Gagal mengunggah gambar");
       }
 
-      const data = await res.json()
-      setKtpImageUrl(data.url)
+      const data = await res.json();
+      setKtpImageUrl(data.url);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal mengunggah gambar')
-      setKtpFile(null)
-      setKtpPreview(null)
+      setError(err instanceof Error ? err.message : "Gagal mengunggah gambar");
+      setKtpFile(null);
+      setKtpPreview(null);
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
   const removeFile = () => {
-    setKtpFile(null)
-    setKtpPreview(null)
-    setKtpImageUrl('')
+    setKtpFile(null);
+    setKtpPreview(null);
+    setKtpImageUrl("");
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''
+      fileInputRef.current.value = "";
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
 
     try {
       if (!ktpImageUrl) {
-        setError('Upload foto KTP terlebih dahulu')
-        setLoading(false)
-        return
+        setError("Upload foto KTP terlebih dahulu");
+        setLoading(false);
+        return;
       }
 
-      const res = await apiClient.post('/api/owner/kyc/submit', { ktpNumber, ktpImageUrl })
+      const res = await apiClient.post("/api/owner/kyc/submit", {
+        ktpNumber,
+        ktpImageUrl,
+      });
 
-      const data = res.data
+      const data = res.data;
 
       if (res.status >= 400) {
-        setError(data.error || 'Gagal mengirim KYC')
-        showToastError('Gagal mengunggah dokumen. Coba lagi.')
-        return
+        setError(data.error || "Gagal mengirim KYC");
+        showToastError("Gagal mengunggah dokumen. Coba lagi.");
+        return;
       }
 
-      setKtpNumber('')
-      setKtpImageUrl('')
-      setKtpFile(null)
-      setKtpPreview(null)
-      showToastSuccess('Dokumen KYC terkirim! Admin akan memverifikasi dalam 5-25 menit.')
-      onSuccess?.()
+      setKtpNumber("");
+      setKtpImageUrl("");
+      setKtpFile(null);
+      setKtpPreview(null);
+      showToastSuccess(
+        "Dokumen KYC terkirim! Admin akan memverifikasi dalam 5-25 menit.",
+      );
+      onSuccess?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
-      showToastError('Gagal mengunggah dokumen. Coba lagi.')
+      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
+      showToastError("Gagal mengunggah dokumen. Coba lagi.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Alert>
-        <HugeiconsIcon icon={InformationCircleIcon} strokeWidth={2} className="size-4" />
+        <HugeiconsIcon
+          icon={InformationCircleIcon}
+          strokeWidth={2}
+          className="size-4"
+        />
         <AlertDescription>
-          Verifikasi akan diproses oleh Admin dalam waktu 5 - 25 menit pada jam kerja.
+          Verifikasi akan diproses oleh Admin dalam waktu 5 - 25 menit pada jam
+          kerja.
         </AlertDescription>
       </Alert>
 
@@ -120,7 +135,9 @@ export function KYCUploadForm({ onSuccess }: { onSuccess?: () => void }) {
         <Input
           id="ktpNumber"
           value={ktpNumber}
-          onChange={(e) => setKtpNumber(e.target.value.replace(/\D/g, '').slice(0, 16))}
+          onChange={(e) =>
+            setKtpNumber(e.target.value.replace(/\D/g, "").slice(0, 16))
+          }
           placeholder="Contoh: 3201010101010001"
           required
           maxLength={16}
@@ -153,9 +170,15 @@ export function KYCUploadForm({ onSuccess }: { onSuccess?: () => void }) {
               </>
             ) : (
               <>
-                <HugeiconsIcon icon={Camera01Icon} strokeWidth={2} className="size-6" />
+                <HugeiconsIcon
+                  icon={Camera01Icon}
+                  strokeWidth={2}
+                  className="size-6"
+                />
                 <span className="text-sm font-medium">Ambil Foto KTP</span>
-                <span className="text-xs text-muted-foreground">Klik untuk buka kamera atau pilih file</span>
+                <span className="text-xs text-muted-foreground">
+                  Klik untuk buka kamera atau pilih file
+                </span>
               </>
             )}
           </Button>
@@ -173,7 +196,11 @@ export function KYCUploadForm({ onSuccess }: { onSuccess?: () => void }) {
               className="absolute top-4 right-4 h-8 w-8"
               onClick={removeFile}
             >
-              <HugeiconsIcon icon={Delete01Icon} strokeWidth={2} className="size-4" />
+              <HugeiconsIcon
+                icon={Delete01Icon}
+                strokeWidth={2}
+                className="size-4"
+              />
             </Button>
           </div>
         )}
@@ -185,9 +212,13 @@ export function KYCUploadForm({ onSuccess }: { onSuccess?: () => void }) {
         )}
       </div>
 
-      <Button type="submit" className="w-full" disabled={loading || !ktpImageUrl}>
-        {loading ? 'Mengirim...' : 'Kirim untuk Verifikasi'}
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={loading || !ktpImageUrl}
+      >
+        {loading ? "Mengirim..." : "Kirim untuk Verifikasi"}
       </Button>
     </form>
-  )
+  );
 }

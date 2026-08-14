@@ -4,13 +4,13 @@ import type {
   WebhookContext,
   NormalizedWebhook,
   PaymentProviderAdapter,
-} from './types'
+} from "./types";
 
 export const mockAdapter: PaymentProviderAdapter = {
   async createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult> {
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const invoiceNumber = input.bookingId
+    const invoiceNumber = input.bookingId;
 
     return {
       paymentId: `mock-${Date.now()}`,
@@ -21,30 +21,33 @@ export const mockAdapter: PaymentProviderAdapter = {
         invoiceNumber,
         amount: input.amount,
       },
-    }
+    };
   },
 
   async getPaymentStatus(_transactionId: string) {
-    await new Promise((resolve) => setTimeout(resolve, 300))
-    return 'success'
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    return "success";
   },
 
   async verifyWebhookSignature(_context: WebhookContext): Promise<boolean> {
-    return true
+    return true;
   },
 
   async normalizeWebhook(context: WebhookContext): Promise<NormalizedWebhook> {
-    const body = JSON.parse(context.rawBody) as Record<string, unknown>
+    const body = JSON.parse(context.rawBody) as Record<string, unknown>;
 
     return {
-      provider: 'mock',
+      provider: "mock",
       eventId: context.eventId ?? `mock-event-${Date.now()}`,
-      transactionId: String(body.transactionId ?? body.invoiceNumber ?? ''),
-      status: (body.status as 'success' | 'failed' | 'expired') ?? 'pending',
-      amount: typeof body.amount === 'number' ? body.amount : parseFloat(String(body.amount ?? 0)),
-      currency: String(body.currency ?? 'IDR'),
+      transactionId: String(body.transactionId ?? body.invoiceNumber ?? ""),
+      status: (body.status as "success" | "failed" | "expired") ?? "pending",
+      amount:
+        typeof body.amount === "number"
+          ? body.amount
+          : parseFloat(String(body.amount ?? 0)),
+      currency: String(body.currency ?? "IDR"),
       paidAt: body.paidAt ? new Date(body.paidAt as string) : undefined,
       metadata: body,
-    }
+    };
   },
-}
+};

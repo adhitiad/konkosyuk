@@ -9,7 +9,9 @@ export function ProblemSolutionSection() {
           <Card className="border-destructive/20 bg-destructive/5 p-8">
             <div className="flex items-center gap-3 text-destructive">
               <AlertCircle className="h-6 w-6" />
-              <h3 className="text-xl font-semibold">Masalah yang Sering Dihadapi</h3>
+              <h3 className="text-xl font-semibold">
+                Masalah yang Sering Dihadapi
+              </h3>
             </div>
             <ul className="mt-6 space-y-4 text-muted-foreground">
               <li className="flex items-start gap-3">

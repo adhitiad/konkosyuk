@@ -73,9 +73,9 @@ export default function PropertyDetailPage() {
   } = useQuery<Property | undefined>({
     queryKey: ["property", id],
     queryFn: async () => {
-      const response = await apiClient.get(`/api/properties/${id}`)
-      const body = response.data as { data?: Property }
-      return body.data
+      const response = await apiClient.get(`/api/properties/${id}`);
+      const body = response.data as { data?: Property };
+      return body.data;
     },
     staleTime: 30000,
     enabled: !!id,
@@ -97,8 +97,8 @@ export default function PropertyDetailPage() {
 
   const updateMutation = useMutation({
     mutationFn: async (payload: UpdatePropertyInput) => {
-      const { data } = await apiClient.put(`/api/properties/${id}`, payload)
-      return data
+      const { data } = await apiClient.put(`/api/properties/${id}`, payload);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["properties"] });
@@ -108,8 +108,8 @@ export default function PropertyDetailPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      const { data } = await apiClient.delete(`/api/properties/${id}`)
-      return data
+      const { data } = await apiClient.delete(`/api/properties/${id}`);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["properties"] });

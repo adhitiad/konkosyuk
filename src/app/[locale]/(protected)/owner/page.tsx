@@ -9,7 +9,9 @@ function OwnerDashboardPage() {
     <div className="container py-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard Owner</h1>
-        <p className="text-muted-foreground">Kelola properti dan lihat performa Anda</p>
+        <p className="text-muted-foreground">
+          Kelola properti dan lihat performa Anda
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">

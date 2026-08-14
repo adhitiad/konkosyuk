@@ -1,30 +1,42 @@
-'use client'
+"use client";
 
-import { Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { usePaymentPolling } from '@/hooks/use-payment-polling'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/spinner'
-import Link from 'next/link'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { AlertCircleIcon, CheckmarkCircle02Icon, Clock01Icon } from '@hugeicons/core-free-icons'
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { usePaymentPolling } from "@/hooks/use-payment-polling";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import Link from "next/link";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  AlertCircleIcon,
+  CheckmarkCircle02Icon,
+  Clock01Icon,
+} from "@hugeicons/core-free-icons";
 
 function PaymentResultContent() {
-  const searchParams = useSearchParams()
-  const provider = searchParams.get('provider')
-  const invoiceNumber = searchParams.get('bookingId')
+  const searchParams = useSearchParams();
+  const provider = searchParams.get("provider");
+  const invoiceNumber = searchParams.get("bookingId");
 
-  const { isLoading, isSuccess, isTimeout, attempt, error } = usePaymentPolling({
-    invoiceNumber: invoiceNumber ?? undefined,
-    intervalMs: 5000,
-    maxAttempts: 60,
-  })
+  const { isLoading, isSuccess, isTimeout, attempt, error } = usePaymentPolling(
+    {
+      invoiceNumber: invoiceNumber ?? undefined,
+      intervalMs: 5000,
+      maxAttempts: 60,
+    },
+  );
 
-  const elapsedSeconds = attempt * 5
-  const elapsedMinutes = Math.floor(elapsedSeconds / 60)
-  const elapsedSecs = elapsedSeconds % 60
+  const elapsedSeconds = attempt * 5;
+  const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+  const elapsedSecs = elapsedSeconds % 60;
 
   if (isSuccess) {
     return (
@@ -32,21 +44,30 @@ function PaymentResultContent() {
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center space-y-4">
             <div className="mx-auto w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-              <HugeiconsIcon icon={CheckmarkCircle02Icon} strokeWidth={2} className="size-6 text-green-600" />
+              <HugeiconsIcon
+                icon={CheckmarkCircle02Icon}
+                strokeWidth={2}
+                className="size-6 text-green-600"
+              />
             </div>
             <div>
               <h2 className="text-xl font-semibold">Pembayaran Berhasil!</h2>
               <p className="text-muted-foreground mt-1">
-                Konfirmasi pembayaran telah diterima. Anda akan segera diarahkan ke dashboard.
+                Konfirmasi pembayaran telah diterima. Anda akan segera diarahkan
+                ke dashboard.
               </p>
             </div>
-            <Button render={<Link href="/dashboard" />} nativeButton={false} className="w-full">
+            <Button
+              render={<Link href="/dashboard" />}
+              nativeButton={false}
+              className="w-full"
+            >
               Ke Dashboard
             </Button>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (isTimeout) {
@@ -55,7 +76,11 @@ function PaymentResultContent() {
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center space-y-4">
             <div className="mx-auto w-12 h-12 rounded-full bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center">
-              <HugeiconsIcon icon={Clock01Icon} strokeWidth={2} className="size-6 text-yellow-600" />
+              <HugeiconsIcon
+                icon={Clock01Icon}
+                strokeWidth={2}
+                className="size-6 text-yellow-600"
+              />
             </div>
             <div>
               <h2 className="text-xl font-semibold">Menunggu Konfirmasi</h2>
@@ -64,24 +89,38 @@ function PaymentResultContent() {
               </p>
             </div>
             <Alert variant="destructive">
-              <HugeiconsIcon icon={AlertCircleIcon} strokeWidth={2} className="size-4" />
+              <HugeiconsIcon
+                icon={AlertCircleIcon}
+                strokeWidth={2}
+                className="size-4"
+              />
               <AlertTitle>Konfirmasi Belum Diterima</AlertTitle>
               <AlertDescription>
-                Silakan cek riwayat booking atau hubungi bantuan jika Anda sudah melakukan transfer.
+                Silakan cek riwayat booking atau hubungi bantuan jika Anda sudah
+                melakukan transfer.
               </AlertDescription>
             </Alert>
             <div className="flex gap-2">
-              <Button render={<Link href="/dashboard/bookings" />} nativeButton={false} variant="outline" className="flex-1">
+              <Button
+                render={<Link href="/dashboard/bookings" />}
+                nativeButton={false}
+                variant="outline"
+                className="flex-1"
+              >
                 Cek Riwayat Booking
               </Button>
-              <Button render={<Link href="/dashboard" />} nativeButton={false} className="flex-1">
+              <Button
+                render={<Link href="/dashboard" />}
+                nativeButton={false}
+                className="flex-1"
+              >
                 Ke Dashboard
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -94,7 +133,8 @@ function PaymentResultContent() {
           <div>
             <h2 className="text-xl font-semibold">Menunggu Pembayaran</h2>
             <p className="text-muted-foreground mt-1">
-              Silakan selesaikan pembayaran di halaman gateway. Halaman ini akan otomatis memperbarui status.
+              Silakan selesaikan pembayaran di halaman gateway. Halaman ini akan
+              otomatis memperbarui status.
             </p>
           </div>
 
@@ -121,19 +161,26 @@ function PaymentResultContent() {
             </Alert>
           )}
 
-          <Button render={<Link href="/dashboard/bookings" />} nativeButton={false} variant="outline" className="w-full">
+          <Button
+            render={<Link href="/dashboard/bookings" />}
+            nativeButton={false}
+            variant="outline"
+            className="w-full"
+          >
             Lihat Riwayat Booking
           </Button>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 export default function PaymentResultPage() {
   return (
-    <Suspense fallback={<div className="container py-12 text-center">Memuat...</div>}>
+    <Suspense
+      fallback={<div className="container py-12 text-center">Memuat...</div>}
+    >
       <PaymentResultContent />
     </Suspense>
-  )
+  );
 }

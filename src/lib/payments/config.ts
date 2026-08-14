@@ -1,45 +1,47 @@
-import { db } from '@/db'
-import { paymentGatewayConfigs, paymentGatewayCredentials } from '@/db/schema'
-import { eq } from 'drizzle-orm'
-import { decryptPaymentConfig } from '@/lib/payment-config-crypto'
+import { db } from "@/db";
+import { paymentGatewayConfigs, paymentGatewayCredentials } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { decryptPaymentConfig } from "@/lib/payment-config-crypto";
 
-export type PaymentGatewayConfigData = Record<string, unknown>
+export type PaymentGatewayConfigData = Record<string, unknown>;
 
-export async function getPaymentGatewayConfig(provider: string): Promise<PaymentGatewayConfigData> {
+export async function getPaymentGatewayConfig(
+  provider: string,
+): Promise<PaymentGatewayConfigData> {
   const [config] = await db
     .select()
     .from(paymentGatewayConfigs)
     .where(eq(paymentGatewayConfigs.provider, provider as any))
-    .limit(1)
+    .limit(1);
 
   if (!config) {
-    return {}
+    return {};
   }
 
-  let publicConfig = decryptPaymentConfig(config.config)
-  let secretConfig: Record<string, unknown> = {}
+  let publicConfig = decryptPaymentConfig(config.config);
+  let secretConfig: Record<string, unknown> = {};
 
   const [credential] = await db
     .select()
     .from(paymentGatewayCredentials)
     .where(eq(paymentGatewayCredentials.gatewayId, config.id))
-    .limit(1)
+    .limit(1);
 
   if (credential) {
-    secretConfig = decryptPaymentConfig(credential.encryptedConfig)
+    secretConfig = decryptPaymentConfig(credential.encryptedConfig);
   }
 
-  return { ...publicConfig, ...secretConfig }
+  return { ...publicConfig, ...secretConfig };
 }
 
 export async function getDokuConfig() {
-  return getPaymentGatewayConfig('doku')
+  return getPaymentGatewayConfig("doku");
 }
 
 export async function getNicepayConfig() {
-  return getPaymentGatewayConfig('nicepay')
+  return getPaymentGatewayConfig("nicepay");
 }
 
 export async function getIpaymuConfig() {
-  return getPaymentGatewayConfig('ipaymu')
+  return getPaymentGatewayConfig("ipaymu");
 }

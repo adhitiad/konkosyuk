@@ -50,12 +50,19 @@ export {
   MenubarPortal,
 } from "./menubar";
 export { ScrollArea } from "./scroll-area";
-export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel, SelectSeparator } from "./select";
+export {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectGroup,
+  SelectLabel,
+  SelectSeparator,
+} from "./select";
 export { Separator } from "./separator";
 export { Sheet, SheetContent, SheetTrigger } from "./sheet";
-export {
-  Pagination,
-} from "./pagination";
+export { Pagination } from "./pagination";
 export {
   Sidebar,
   SidebarContent,
@@ -72,6 +79,18 @@ export {
   SidebarProvider,
 } from "./sidebar";
 export { Skeleton } from "./skeleton";
-export { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./table";
+export {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./table";
 export { Toast, ToastAction, ToastDescription, ToastTitle } from "./toast";
-export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
+export {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./tooltip";

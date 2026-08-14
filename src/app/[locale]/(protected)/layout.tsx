@@ -1,22 +1,22 @@
-import { redirect } from "next/navigation"
-import { requireSession } from "@/lib/auth"
+import { redirect } from "next/navigation";
+import { requireSession } from "@/lib/auth";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 export default async function ProtectedLayout({
   children,
   params,
 }: {
-  children: React.ReactNode
-  params: Promise<{ locale: string }>
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params
+  const { locale } = await params;
 
   try {
-    await requireSession()
+    await requireSession();
   } catch {
-    redirect(`/${locale}/login`)
+    redirect(`/${locale}/login`);
   }
 
-  return children
+  return children;
 }

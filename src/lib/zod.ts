@@ -1,5 +1,9 @@
 import { z } from "zod";
-import type { PropertyPackages, PackageItem, DurationUnit } from "@/lib/types/property-packages";
+import type {
+  PropertyPackages,
+  PackageItem,
+  DurationUnit,
+} from "@/lib/types/property-packages";
 import { BANKS, E_WALLETS } from "@/lib/constants/indonesian-payments";
 
 const packageItemSchema: z.ZodType<PackageItem> = z.object({
@@ -17,21 +21,23 @@ const packageItemSchema: z.ZodType<PackageItem> = z.object({
 
 const propertyPackagesSchema: z.ZodType<PropertyPackages> = z.object({
   predefined: z.array(packageItemSchema).default([]),
-  custom: z.object({
-    enabled: z.boolean().default(false),
-    label: z.string().min(1).default("Custom Duration"),
-    unit: z.enum(["hours", "days", "months", "years"]).default("days"),
-    pricePerUnit: z.coerce.number().nonnegative().default(0),
-    minDuration: z.coerce.number().int().positive().default(1),
-    maxDuration: z.coerce.number().int().positive().default(365),
-  }).default({
-    enabled: false,
-    label: "Custom Duration",
-    unit: "days",
-    pricePerUnit: 0,
-    minDuration: 1,
-    maxDuration: 365,
-  }),
+  custom: z
+    .object({
+      enabled: z.boolean().default(false),
+      label: z.string().min(1).default("Custom Duration"),
+      unit: z.enum(["hours", "days", "months", "years"]).default("days"),
+      pricePerUnit: z.coerce.number().nonnegative().default(0),
+      minDuration: z.coerce.number().int().positive().default(1),
+      maxDuration: z.coerce.number().int().positive().default(365),
+    })
+    .default({
+      enabled: false,
+      label: "Custom Duration",
+      unit: "days",
+      pricePerUnit: 0,
+      minDuration: 1,
+      maxDuration: 365,
+    }),
 });
 
 export const propertyStatus = ["aktif", "nonaktif"] as const;
@@ -140,7 +146,11 @@ export const ipaymuWebhookSchema = z.object({
 export const addBankAccountSchema = z.object({
   account_type: z.enum(["bank", "ewallet"]),
   provider_name: z.string().min(1),
-  account_number: z.string().min(5).max(30).regex(/^\d+$/, "Nomor rekening hanya boleh angka"),
+  account_number: z
+    .string()
+    .min(5)
+    .max(30)
+    .regex(/^\d+$/, "Nomor rekening hanya boleh angka"),
   account_name: z.string().min(3).max(100),
 });
 
@@ -150,7 +160,10 @@ export const createWithdrawalSchema = z.object({
 });
 
 export const updateUserProfileSchema = z.object({
-  phone: z.string().min(10, "Nomor telepon minimal 10 digit").regex(/^[0-9+]+$/, "Nomor telepon hanya boleh angka dan tanda +"),
+  phone: z
+    .string()
+    .min(10, "Nomor telepon minimal 10 digit")
+    .regex(/^[0-9+]+$/, "Nomor telepon hanya boleh angka dan tanda +"),
   whatsapp: z.string().min(10, "WhatsApp minimal 10 digit"),
   telegram: z.string().min(5, "Telegram minimal 5 karakter"),
   email: z.string().email("Format email tidak valid"),

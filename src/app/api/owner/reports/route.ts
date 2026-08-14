@@ -61,15 +61,15 @@ export async function GET(req: NextRequest) {
       .select({
         total: sum(castAmount(payments.amount)),
         monthly: sum(
-          sql<number>`CASE WHEN ${payments.paidAt} >= ${startOfMonth} THEN ${castAmount(payments.amount)} ELSE 0 END`
+          sql<number>`CASE WHEN ${payments.paidAt} >= ${startOfMonth} THEN ${castAmount(payments.amount)} ELSE 0 END`,
         ),
       })
       .from(payments)
       .where(
         and(
           inArray(payments.propertyId, propertyIds),
-          eq(payments.status, "success")
-        )
+          eq(payments.status, "success"),
+        ),
       );
 
     const totalRevenue = Number(revenueStats?.total ?? 0);
@@ -77,7 +77,8 @@ export async function GET(req: NextRequest) {
     const totalUnits = Number(unitsStats[0]?.total ?? 0);
     const occupiedUnits = Number(unitsStats[0]?.occupied ?? 0);
     const availableUnits = Number(unitsStats[0]?.available ?? 0);
-    const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
+    const occupancyRate =
+      totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
 
     return ok({
       totalRevenue,

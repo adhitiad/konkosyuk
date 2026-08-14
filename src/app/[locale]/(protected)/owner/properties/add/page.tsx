@@ -1,5 +1,5 @@
-import AddPropertyDialog from '../add-property-dialog'
+import AddPropertyDialog from "../add-property-dialog";
 
 export default function AddPropertyPage() {
-  return <AddPropertyDialog />
+  return <AddPropertyDialog />;
 }

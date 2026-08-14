@@ -1,45 +1,45 @@
-'use client'
+"use client";
 
-import { useState, useMemo } from 'react'
-import { useSession } from '@/lib/auth-client'
+import { useState, useMemo } from "react";
+import { useSession } from "@/lib/auth-client";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { AlertCircleIcon } from '@hugeicons/core-free-icons'
-import { showToastSuccess, showToastError } from '@/lib/use-toast-custom'
-import { apiClient } from '@/lib/axios'
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AlertCircleIcon } from "@hugeicons/core-free-icons";
+import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
+import { apiClient } from "@/lib/axios";
 
 export interface PricingTier {
-  id: string
-  unitId: string
-  maxOccupants: number
-  price: number | string
-  createdAt: string
+  id: string;
+  unitId: string;
+  maxOccupants: number;
+  price: number | string;
+  createdAt: string;
 }
 
 interface RequestBookingFormProps {
-  unitId: string
-  propertyId: string
-  pricingTiers: PricingTier[]
-  unitCapacity?: number
-  children: React.ReactNode
+  unitId: string;
+  propertyId: string;
+  pricingTiers: PricingTier[];
+  unitCapacity?: number;
+  children: React.ReactNode;
 }
 
 const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-  }).format(value)
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+  }).format(value);
 
 export default function RequestBookingForm({
   unitId,
@@ -48,76 +48,92 @@ export default function RequestBookingForm({
   unitCapacity,
   children,
 }: RequestBookingFormProps) {
-  const { data: session } = useSession()
-  const [open, setOpen] = useState(false)
-  const [numOccupants, setNumOccupants] = useState(1)
-  const [startDate, setStartDate] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { data: session } = useSession();
+  const [open, setOpen] = useState(false);
+  const [numOccupants, setNumOccupants] = useState(1);
+  const [startDate, setStartDate] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const capacity = unitCapacity ?? (pricingTiers.length > 0 ? Math.max(...pricingTiers.map((t) => t.maxOccupants)) : 1)
-  const maxOccupants = Math.max(1, capacity)
+  const capacity =
+    unitCapacity ??
+    (pricingTiers.length > 0
+      ? Math.max(...pricingTiers.map((t) => t.maxOccupants))
+      : 1);
+  const maxOccupants = Math.max(1, capacity);
 
   const matchedTier = useMemo(() => {
-    return pricingTiers
-      .filter((t) => t.maxOccupants >= numOccupants)
-      .sort((a, b) => a.maxOccupants - b.maxOccupants)[0] ?? null
-  }, [pricingTiers, numOccupants])
+    return (
+      pricingTiers
+        .filter((t) => t.maxOccupants >= numOccupants)
+        .sort((a, b) => a.maxOccupants - b.maxOccupants)[0] ?? null
+    );
+  }, [pricingTiers, numOccupants]);
 
-  const estimatedPrice = matchedTier ? Number(matchedTier.price) : null
-  const isOverCapacity = numOccupants > capacity
+  const estimatedPrice = matchedTier ? Number(matchedTier.price) : null;
+  const isOverCapacity = numOccupants > capacity;
 
   const today = useMemo(() => {
-    const d = new Date()
-    const year = d.getFullYear()
-    const month = String(d.getMonth() + 1).padStart(2, '0')
-    const day = String(d.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }, [])
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
+    e.preventDefault();
+    setError(null);
 
     if (!startDate) {
-      setError('Tanggal mulai harus diisi')
-      return
+      setError("Tanggal mulai harus diisi");
+      return;
     }
 
     if (numOccupants < 1) {
-      setError('Jumlah penghuni minimal 1')
-      return
+      setError("Jumlah penghuni minimal 1");
+      return;
     }
 
     if (isOverCapacity) {
-      setError('Jumlah orang melebihi kapasitas kamar')
-      return
+      setError("Jumlah orang melebihi kapasitas kamar");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const res = await apiClient.post('/api/tenant/booking-requests', {
+      const res = await apiClient.post("/api/tenant/booking-requests", {
         unitId,
         propertyId,
         numOccupants,
         startDate: new Date(startDate).toISOString(),
-      })
+      });
 
       if (res.status >= 400) {
-        throw new Error(res.data?.error ?? 'Gagal mengirim permintaan booking')
+        throw new Error(res.data?.error ?? "Gagal mengirim permintaan booking");
       }
 
-      showToastSuccess('Permintaan booking berhasil dikirim. Silakan tunggu approval pemilik.')
-      setOpen(false)
-      setNumOccupants(1)
-      setStartDate('')
+      showToastSuccess(
+        "Permintaan booking berhasil dikirim. Silakan tunggu approval pemilik.",
+      );
+      setOpen(false);
+      setNumOccupants(1);
+      setStartDate("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal mengirim permintaan booking')
-      showToastError(err instanceof Error ? err.message : 'Gagal mengirim permintaan booking')
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Gagal mengirim permintaan booking",
+      );
+      showToastError(
+        err instanceof Error
+          ? err.message
+          : "Gagal mengirim permintaan booking",
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -130,7 +146,11 @@ export default function RequestBookingForm({
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <Alert variant="destructive">
-              <HugeiconsIcon icon={AlertCircleIcon} strokeWidth={2} className="size-4" />
+              <HugeiconsIcon
+                icon={AlertCircleIcon}
+                strokeWidth={2}
+                className="size-4"
+              />
               <AlertTitle>Error</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
@@ -168,23 +188,33 @@ export default function RequestBookingForm({
             <p className="text-sm text-muted-foreground">Estimasi Harga</p>
             {estimatedPrice !== null ? (
               <p className="text-lg font-semibold text-primary">
-                {formatCurrency(estimatedPrice)}<span className="text-xs text-muted-foreground">/bulan</span>
+                {formatCurrency(estimatedPrice)}
+                <span className="text-xs text-muted-foreground">/bulan</span>
               </p>
             ) : (
-              <Badge variant="destructive">Jumlah orang melebihi kapasitas kamar</Badge>
+              <Badge variant="destructive">
+                Jumlah orang melebihi kapasitas kamar
+              </Badge>
             )}
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               Batal
             </Button>
-            <Button type="submit" disabled={loading || isOverCapacity || estimatedPrice === null}>
-              {loading ? 'Mengirim...' : 'Kirim Permintaan Sewa'}
+            <Button
+              type="submit"
+              disabled={loading || isOverCapacity || estimatedPrice === null}
+            >
+              {loading ? "Mengirim..." : "Kirim Permintaan Sewa"}
             </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

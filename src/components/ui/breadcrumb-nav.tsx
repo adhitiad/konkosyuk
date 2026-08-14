@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import React from "react"
-import Link from "next/link"
+import React from "react";
+import Link from "next/link";
 import {
   Breadcrumb,
   BreadcrumbList,
   BreadcrumbItem,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+} from "@/components/ui/breadcrumb";
 
 interface BreadcrumbItem {
-  label: string
-  href?: string
+  label: string;
+  href?: string;
 }
 
 interface BreadcrumbNavProps {
-  items: BreadcrumbItem[]
+  items: BreadcrumbItem[];
 }
 
 export function BreadcrumbNav({ items }: BreadcrumbNavProps) {
@@ -24,7 +24,7 @@ export function BreadcrumbNav({ items }: BreadcrumbNavProps) {
     <Breadcrumb>
       <BreadcrumbList>
         {items.map((item, index) => {
-          const isLast = index === items.length - 1
+          const isLast = index === items.length - 1;
           return (
             <React.Fragment key={index}>
               <BreadcrumbItem>
@@ -41,9 +41,9 @@ export function BreadcrumbNav({ items }: BreadcrumbNavProps) {
               </BreadcrumbItem>
               {!isLast && <BreadcrumbSeparator />}
             </React.Fragment>
-          )
+          );
         })}
       </BreadcrumbList>
     </Breadcrumb>
-  )
+  );
 }

@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { AppSidebar } from '@/components/app-sidebar'
-import { AppNavbar } from '@/components/app-navbar'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Suspense } from 'react'
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+import { AppNavbar } from "@/components/app-navbar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Suspense } from "react";
 
 function PageSkeleton() {
   return (
@@ -20,10 +20,16 @@ function PageSkeleton() {
       </div>
       <Skeleton className="h-96" />
     </div>
-  )
+  );
 }
 
-export function AppLayout({ children, role }: { children: React.ReactNode; role?: 'cust' | 'owner' | 'admin' | 'staff' }) {
+export function AppLayout({
+  children,
+  role,
+}: {
+  children: React.ReactNode;
+  role?: "cust" | "owner" | "admin" | "staff";
+}) {
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -34,5 +40,5 @@ export function AppLayout({ children, role }: { children: React.ReactNode; role?
         </Suspense>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

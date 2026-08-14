@@ -1,8 +1,19 @@
 {
+  "buildCommand": "bun run build",
+  "devCommand": "bun run dev",
+  "installCommand": "bun install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "regions": ["iad1"],
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
   "crons": [
     {
       "path": "/api/cron/cleanup",
-      "schedule": "0 * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }

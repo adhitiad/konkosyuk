@@ -1,13 +1,13 @@
-import { db } from '@/db'
-import { auditLogs } from '@/db/schema'
-import type { NewAuditLog } from '@/db/schema'
+import { db } from "@/db";
+import { auditLogs } from "@/db/schema";
+import type { NewAuditLog } from "@/db/schema";
 
 export async function logAudit(
   adminId: string,
   action: string,
   targetType: string,
   targetId: string,
-  details?: any
+  details?: any,
 ) {
   const payload: NewAuditLog = {
     adminId,
@@ -15,8 +15,8 @@ export async function logAudit(
     targetType,
     targetId,
     details: details ?? {},
-  }
+  };
 
-  const [log] = await db.insert(auditLogs).values(payload).returning()
-  return log
+  const [log] = await db.insert(auditLogs).values(payload).returning();
+  return log;
 }

@@ -1,13 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/db'
-import { users } from '@/db/schema'
-import { requireSession } from '@/lib/auth'
-import { ok, handleApiError } from '@/lib/api'
-import { eq } from 'drizzle-orm'
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { requireSession } from "@/lib/auth";
+import { ok, handleApiError } from "@/lib/api";
+import { eq } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await requireSession(['cust', 'owner', 'admin', 'staff'] as any)
+    const session = await requireSession([
+      "cust",
+      "owner",
+      "admin",
+      "staff",
+    ] as any);
 
     const [user] = await db
       .select({
@@ -33,14 +38,14 @@ export async function GET(req: NextRequest) {
       })
       .from(users)
       .where(eq(users.id, session.user.id))
-      .limit(1)
+      .limit(1);
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return ok(user)
+    return ok(user);
   } catch (error) {
-    return handleApiError(error)
+    return handleApiError(error);
   }
 }

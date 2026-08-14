@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useSession } from '@/lib/auth-client';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
-import type { Role } from '@/lib/auth';
+import { useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
+import type { Role } from "@/lib/auth";
 
 export function withAdminAuth<P extends object>(
   WrappedComponent: React.ComponentType<P>,
-  allowedRoles: Role[] = ['admin', 'staff']
+  allowedRoles: Role[] = ["admin", "staff"],
 ) {
   return function AdminProtectedComponent(props: P) {
     const { data: session, isPending } = useSession();
@@ -19,9 +19,9 @@ export function withAdminAuth<P extends object>(
     useEffect(() => {
       if (!isPending) {
         if (!session) {
-          router.push('/login');
+          router.push("/login");
         } else if (!userRole || !allowedRoles.includes(userRole as Role)) {
-          router.push('/dashboard');
+          router.push("/dashboard");
         }
       }
     }, [session, isPending, router, allowedRoles, userRole]);
