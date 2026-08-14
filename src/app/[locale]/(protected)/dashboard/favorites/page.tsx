@@ -1,87 +1,63 @@
-"use client";
-
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth-client";
+import { db } from "@/db";
+import { favorites, properties } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import FavoriteButtonClient from "./favorite-button-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon } from "@hugeicons/core-free-icons";
-import { toast } from "@/components/ui/toast";
-import Link from "next/link";
-import FavoriteButton from "@/components/favorite-button";
-import { apiClient } from "@/lib/axios";
 
 interface FavoriteProperty {
   id: string;
   propertyId: string;
-  propertyName: string;
-  propertyAddress: string;
-  propertyType: string;
+  propertyName: string | null;
+  propertyAddress: string | null;
+  propertyType: string | null;
   propertyBasePrice: string | null;
 }
 
-interface FavoritesResponse {
-  data: FavoriteProperty[];
-  meta: { total: number };
+async function ambilFavorit(): Promise<FavoriteProperty[]> {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user?.id) {
+    return [];
+  }
+
+  const data = await db
+    .select({
+      id: favorites.id,
+      propertyId: favorites.propertyId,
+      propertyName: properties.name,
+      propertyAddress: properties.address,
+      propertyType: properties.type,
+      propertyBasePrice: properties.basePrice,
+    })
+    .from(favorites)
+    .leftJoin(properties, eq(favorites.propertyId, properties.id))
+    .where(eq(favorites.userId, session.user.id))
+    .orderBy(desc(favorites.createdAt));
+
+  return data;
 }
 
-export default function FavoritesPage() {
-  const { data: session } = useSession();
-  const queryClient = useQueryClient();
-
-  const { data, isLoading, isError, error } = useQuery<FavoritesResponse>({
-    queryKey: ["favorites"],
-    queryFn: async () => {
-      const { data } = await apiClient.get("/api/favorites");
-      return data;
-    },
-    staleTime: 30000,
-  });
-
-  const removeMutation = useMutation({
-    mutationFn: async (propertyId: string) => {
-      const { data } = await apiClient.delete(`/api/favorites/${propertyId}`);
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["favorites"] });
-      toast({ title: "Removed from favorites", type: "success" });
-    },
-  });
-
-  const favorites = data?.data ?? [];
+export default async function FavoritesPage() {
+  const favorites = await ambilFavorit();
 
   return (
     <div className="container py-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Favorites</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Favorit</h1>
         <p className="text-muted-foreground">Properti yang kamu simpan</p>
       </div>
 
-      {isError && (
-        <Alert variant="destructive" className="mb-6">
-          <HugeiconsIcon
-            icon={AlertCircleIcon}
-            strokeWidth={2}
-            className="size-4"
-          />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {error instanceof Error ? error.message : "Gagal memuat favorites."}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {isLoading ? (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-96 w-full" />
-          ))}
-        </div>
-      ) : favorites.length === 0 ? (
+      {favorites.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <p className="text-lg font-medium">Belum ada favorit</p>
           <p className="text-muted-foreground">
@@ -114,7 +90,7 @@ export default function FavoritesPage() {
                 <div className="mt-auto flex items-center justify-between">
                   <Badge variant="outline">{fav.propertyAddress}</Badge>
                   <div className="flex gap-2">
-                    <FavoriteButton
+                    <FavoriteButtonClient
                       propertyId={fav.propertyId}
                       initialFavorite
                     />

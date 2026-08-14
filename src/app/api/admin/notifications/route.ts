@@ -2,12 +2,9 @@ import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { notifications, users } from "@/db/schema";
 import { eq, desc, sql, and, or, ilike } from "drizzle-orm";
-import { requireSession } from "@/lib/auth";
 import { validateAdminRequest } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import type { Role } from "@/lib/auth";
-import { z } from "zod";
-import { createAuditLog } from "@/lib/audit-log";
 
 export async function GET(req: NextRequest) {
   try {
@@ -68,38 +65,5 @@ export async function GET(req: NextRequest) {
     return ok({ data, meta: { total: data.length } });
   } catch (error) {
     return handleApiError(error, "GET /api/admin/notifications");
-  }
-}
-
-const updateNotificationSchema = z.object({
-  notificationId: z.string().uuid(),
-  isRead: z.boolean(),
-});
-
-export async function PATCH(req: NextRequest) {
-  try {
-    const authResult = await validateAdminRequest(req);
-    if (authResult instanceof Response) return authResult;
-    const { session, ipAddress, userAgent } = authResult;
-    const body = updateNotificationSchema.parse(await req.json());
-
-    await db
-      .update(notifications)
-      .set({ isRead: body.isRead })
-      .where(eq(notifications.id, body.notificationId));
-
-    await createAuditLog({
-      action: "update",
-      targetType: "notification",
-      targetId: body.notificationId,
-      adminId: session.user.id,
-      details: {
-        isRead: body.isRead,
-      },
-    });
-
-    return ok({ success: true });
-  } catch (error) {
-    return handleApiError(error, "PATCH /api/admin/notifications");
   }
 }

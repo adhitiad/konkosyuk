@@ -27,10 +27,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toast";
-import { apiClient } from "@/lib/axios";
 import { ErrorState } from "@/components/ui/error-state";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
+import { apiClient } from "@/lib/axios";
 import { withAdminAuth } from "@/lib/with-admin-auth";
+import { upsertPaymentGatewayAction, deletePaymentGatewayAction } from "@/actions/admin/payment-gateways";
 
 interface PaymentGatewayConfig {
   id: string;
@@ -44,6 +45,8 @@ interface PaymentGatewayConfig {
 interface PaymentGatewayResponse {
   data: PaymentGatewayConfig[];
 }
+
+type PaymentGatewayCacheData = PaymentGatewayResponse | undefined;
 
 export default withAdminAuth(AdminPaymentGatewaysPage);
 
@@ -75,29 +78,43 @@ function AdminPaymentGatewaysPage() {
       environment: string;
       isActive: boolean;
     }) => {
-      const res = await apiClient.post("/api/admin/payment-gateways", payload);
-      return res.data;
+      const formData = new FormData();
+      formData.append("provider", payload.provider);
+      formData.append("config", JSON.stringify(payload.config));
+      formData.append("environment", payload.environment);
+      formData.append("isActive", String(payload.isActive));
+      
+      const result = await upsertPaymentGatewayAction(undefined, formData);
+      if (!result.success) {
+        throw new Error(result.error || "Gagal menyimpan konfigurasi");
+      }
+      return result.data;
     },
     onMutate: async (payload) => {
       await queryClient.cancelQueries({
         queryKey: ["payment-gateway-configs"],
       });
-      const previous = queryClient.getQueryData(["payment-gateway-configs"]);
-      queryClient.setQueryData(["payment-gateway-configs"], (old: any) => {
-        if (!old?.data) return old;
-        return {
-          ...old,
-          data: old.data.map((config: PaymentGatewayConfig) =>
-            config.provider === payload.provider
-              ? {
-                  ...config,
-                  isActive: payload.isActive,
-                  environment: payload.environment,
-                }
-              : config,
-          ),
-        };
-      });
+      const previous = queryClient.getQueryData<PaymentGatewayCacheData>([
+        "payment-gateway-configs",
+      ]);
+      queryClient.setQueryData<PaymentGatewayCacheData>(
+        ["payment-gateway-configs"],
+        (old) => {
+          if (!old?.data) return old;
+          return {
+            ...old,
+            data: old.data.map((config) =>
+              config.provider === payload.provider
+                ? {
+                    ...config,
+                    isActive: payload.isActive,
+                    environment: payload.environment,
+                  }
+                : config,
+            ),
+          };
+        },
+      );
       return { previous };
     },
     onError: (err, _variables, context) => {
@@ -109,7 +126,7 @@ function AdminPaymentGatewaysPage() {
         description:
           err instanceof Error ? err.message : "Gagal menyimpan konfigurasi.",
         type: "error",
-      }); // Pastikan toast Anda mendukung prop 'type' atau sesuaikan dengan shadcn toast standar
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payment-gateway-configs"] });
@@ -123,10 +140,14 @@ function AdminPaymentGatewaysPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (provider: string) => {
-      const res = await apiClient.delete(
-        `/api/admin/payment-gateways?provider=${encodeURIComponent(provider)}`,
-      );
-      return res.data;
+      const formData = new FormData();
+      formData.append("provider", provider);
+      
+      const result = await deletePaymentGatewayAction(undefined, formData);
+      if (!result.success) {
+        throw new Error(result.error || "Gagal menghapus konfigurasi");
+      }
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payment-gateway-configs"] });

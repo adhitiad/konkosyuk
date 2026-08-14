@@ -18,11 +18,11 @@ export async function requireSession(allowedRoles?: string[]) {
   } | null;
 
   if (!session) {
-    throw new Error("Unauthorized");
+    throw new Error("Tidak berwenang");
   }
 
   if (allowedRoles && !allowedRoles.includes(session.user.role)) {
-    throw new Error("Forbidden");
+    throw new Error("Dilarang");
   }
 
   return session;

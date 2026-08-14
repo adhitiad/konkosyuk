@@ -1,7 +1,5 @@
-"use client";
-
 import { useState, useEffect } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm, SubmitHandler, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createPropertySchema, type CreatePropertyInput } from "@/lib/zod";
 import { Button } from "@/components/ui/button";
@@ -27,6 +25,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon, Location02Icon } from "@hugeicons/core-free-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
+import type { SessionUserWithRole } from "@/lib/auth-client";
+import { useActionState } from "react";
 import {
   PROVINCES,
   CITIES_BY_PROVINCE,
@@ -35,6 +35,7 @@ import { Dropzone } from "@/components/owner/dropzone";
 import PackageForm from "@/components/owner/package-form";
 import type { PropertyPackages } from "@/lib/types/property-packages";
 import Link from "next/link";
+import { createPropertyAction, CreatePropertyState } from "@/actions/properties";
 import { apiClient } from "@/lib/axios";
 
 const propertyTypeOptions = [
@@ -58,10 +59,9 @@ export default function AddPropertyForm() {
   const queryClient = useQueryClient();
   const [files, setFiles] = useState<File[]>([]);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [contactMissing, setContactMissing] = useState<string[]>([]);
+  const [geolocationError, setGeolocationError] = useState<string | null>(null);
 
   const {
     register,
@@ -71,7 +71,7 @@ export default function AddPropertyForm() {
     reset,
     formState: { errors, isValid },
   } = useForm<CreatePropertyInput>({
-    resolver: zodResolver(createPropertySchema) as any,
+    resolver: zodResolver(createPropertySchema) as Resolver<CreatePropertyInput>,
     mode: "onChange",
     defaultValues: {
       title: "",
@@ -98,9 +98,34 @@ export default function AddPropertyForm() {
   const packages = watch("packages") as PropertyPackages | null;
 
   const availableCities = province ? CITIES_BY_PROVINCE[province] || [] : [];
-  const user = session?.user as any;
+  const user = session?.user as SessionUserWithRole | undefined;
   const imageCount = uploadedImages.length;
   const canSubmit = isValid && imageCount >= 3;
+
+  const [state, formAction, isPending] = useActionState<
+    CreatePropertyState | undefined,
+    FormData
+  >(createPropertyAction, undefined);
+
+  const handleActionSubmit: SubmitHandler<CreatePropertyInput> = (data) => {
+    const formData = new FormData();
+    formData.append("title", data.title);
+    formData.append("address", data.address || "");
+    if (data.description) formData.append("description", data.description);
+    if (data.province) formData.append("province", data.province);
+    if (data.city) formData.append("city", data.city);
+    formData.append("type", data.type);
+    if (data.basePrice) formData.append("basePrice", data.basePrice);
+    if (data.status) formData.append("status", data.status);
+    if (data.latitude !== undefined) formData.append("latitude", String(data.latitude));
+    if (data.longitude !== undefined) formData.append("longitude", String(data.longitude));
+    formData.append("images", JSON.stringify(uploadedImages));
+    formData.append("amenities", JSON.stringify(data.amenities || []));
+    if (data.packages) {
+      formData.append("packages", JSON.stringify(data.packages));
+    }
+    formAction(formData);
+  };
 
   const addAmenity = (value: string) => {
     const trimmed = value.trim();
@@ -118,7 +143,7 @@ export default function AddPropertyForm() {
 
   const handleGeolocation = () => {
     if (!navigator.geolocation) {
-      setError("Geolocation tidak didukung oleh browser ini.");
+      setGeolocationError("Geolocation tidak didukung oleh browser ini.");
       return;
     }
 
@@ -126,9 +151,10 @@ export default function AddPropertyForm() {
       (position) => {
         setValue("latitude", Number(position.coords.latitude.toFixed(6)));
         setValue("longitude", Number(position.coords.longitude.toFixed(6)));
+        setGeolocationError(null);
       },
       () => {
-        setError("Gagal mendapatkan lokasi. Izinkan akses lokasi di browser.");
+        setGeolocationError("Gagal mendapatkan lokasi. Izinkan akses lokasi di browser.");
       },
     );
   };
@@ -150,58 +176,6 @@ export default function AddPropertyForm() {
     return uploaded;
   };
 
-  const onSubmit: SubmitHandler<CreatePropertyInput> = async (data) => {
-    setError(null);
-
-    if (imageCount < 3) {
-      setError("Minimal 3 gambar properti harus diupload.");
-      return;
-    }
-
-    const ownerUser = session?.user as any;
-    if (ownerUser?.role === "owner") {
-      const missingContact: string[] = [];
-      if (!ownerUser.phone) missingContact.push("Nomor HP/WA");
-
-      if (missingContact.length > 0) {
-        setContactMissing(missingContact);
-        setShowContactModal(true);
-        return;
-      }
-    }
-
-    setIsSubmitting(true);
-    try {
-      const finalImages = imageCount > 0 ? uploadedImages : data.images;
-      const payload = {
-        ...data,
-        images: finalImages,
-      };
-
-      const res = await apiClient.post("/api/properties", payload);
-      if (res.status >= 400) {
-        const text = await res.data;
-        throw new Error(text || "Gagal menambahkan properti.");
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["properties"] });
-      reset();
-      setFiles([]);
-      setUploadedImages([]);
-      (
-        document.querySelector(
-          '[data-slot="dialog-close"]',
-        ) as HTMLElement | null
-      )?.click();
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Gagal menambahkan properti.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleFilesChange = (newFiles: File[]) => {
     setFiles(newFiles);
   };
@@ -210,14 +184,14 @@ export default function AddPropertyForm() {
     if (files.length > 0) {
       uploadImages()
         .then((urls) => setUploadedImages(urls))
-        .catch((err) => setError(err.message));
+        .catch((err) => setGeolocationError(err.message));
     }
   }, [files]);
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {error && (
+      <form onSubmit={handleSubmit(handleActionSubmit)} className="space-y-4">
+        {geolocationError && (
           <Alert variant="destructive">
             <HugeiconsIcon
               icon={AlertCircleIcon}
@@ -225,7 +199,26 @@ export default function AddPropertyForm() {
               className="size-4"
             />
             <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>{geolocationError}</AlertDescription>
+          </Alert>
+        )}
+
+        {state?.error && (
+          <Alert variant="destructive">
+            <HugeiconsIcon
+              icon={AlertCircleIcon}
+              strokeWidth={2}
+              className="size-4"
+            />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{state.error}</AlertDescription>
+          </Alert>
+        )}
+
+        {state?.success && (
+          <Alert variant="default">
+            <AlertTitle>Berhasil</AlertTitle>
+            <AlertDescription>Properti berhasil ditambahkan</AlertDescription>
           </Alert>
         )}
 
@@ -476,8 +469,8 @@ export default function AddPropertyForm() {
           <Button type="button" variant="outline" onClick={() => reset()}>
             Batal
           </Button>
-          <Button type="submit" disabled={isSubmitting || !canSubmit}>
-            {isSubmitting ? "Menyimpan..." : "Simpan"}
+          <Button type="submit" disabled={isPending || !canSubmit}>
+            {isPending ? "Menyimpan..." : "Simpan"}
           </Button>
         </div>
       </form>

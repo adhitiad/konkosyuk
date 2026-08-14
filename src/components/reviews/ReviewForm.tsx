@@ -1,24 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useActionState } from "react";
 import { StarRating } from "@/components/reviews/StarRating";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { createReviewSchema } from "@/lib/validations/reviews";
+import { createReviewAction } from "@/actions/reviews";
 
 interface ReviewFormProps {
   bookingId: string;
   propertyId: string;
   reviewedUserId?: string;
   type: "tenant" | "property";
-  onSubmit: (data: {
-    type: "tenant" | "property";
-    rating: number;
-    comment: string;
-    bookingId: string;
-    reviewedUserId?: string;
-    propertyId: string;
-  }) => Promise<void>;
   onCancel?: () => void;
 }
 
@@ -27,13 +19,14 @@ export function ReviewForm({
   propertyId,
   reviewedUserId,
   type,
-  onSubmit,
   onCancel,
 }: ReviewFormProps) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [state, formAction, isPending] = useActionState(
+    createReviewAction,
+    undefined
+  );
 
   const aspects = [
     { key: "cleanliness", label: "Kebersihan" },
@@ -43,35 +36,28 @@ export function ReviewForm({
     { key: "valueForMoney", label: "Nilai untuk Uang" },
   ] as const;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    try {
-      const data = createReviewSchema.parse({
-        type,
-        rating,
-        comment,
-        bookingId,
-        reviewedUserId,
-        propertyId,
-      });
-
-      setIsSubmitting(true);
-      await onSubmit(data);
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Terjadi kesalahan saat mengirim review");
-      }
-    } finally {
-      setIsSubmitting(false);
+  const handleSubmit = (formData: FormData) => {
+    formData.append("type", type);
+    formData.append("rating", rating.toString());
+    formData.append("comment", comment);
+    formData.append("bookingId", bookingId);
+    if (reviewedUserId) {
+      formData.append("reviewedUserId", reviewedUserId);
     }
+    formData.append("propertyId", propertyId);
+    formAction(formData);
   };
 
+  if (state?.success) {
+    return (
+      <div className="text-center py-4">
+        <p className="text-green-600 font-medium">Review berhasil dikirim!</p>
+      </div>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form action={handleSubmit} className="space-y-4">
       <div>
         <label className="mb-2 block text-sm font-medium">Rating</label>
         <StarRating
@@ -99,11 +85,11 @@ export function ReviewForm({
         </p>
       </div>
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {state?.error && <p className="text-sm text-red-500">{state.error}</p>}
 
       <div className="flex gap-2">
-        <Button type="submit" disabled={isSubmitting || rating === 0}>
-          {isSubmitting ? "Mengirim..." : "Kirim Review"}
+        <Button type="submit" disabled={isPending || rating === 0}>
+          {isPending ? "Mengirim..." : "Kirim Review"}
         </Button>
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel}>

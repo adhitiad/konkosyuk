@@ -17,7 +17,7 @@ export const ourFileRouter = {
       });
 
       if (!session?.user) {
-        throw new Error("Unauthorized");
+        throw new Error("Tidak berwenang");
       }
       return { userId: session.user.id };
     })
@@ -40,7 +40,7 @@ export const ourFileRouter = {
       });
 
       if (!session?.user) {
-        throw new Error("Unauthorized");
+        throw new Error("Tidak berwenang");
       }
       return { userId: session.user.id };
     })
@@ -63,7 +63,7 @@ export const ourFileRouter = {
       })) as { user: { id: string; role: string } } | null;
 
       if (!session?.user || session.user.role !== "owner") {
-        throw new Error("Unauthorized");
+        throw new Error("Tidak berwenang");
       }
       return { userId: session.user.id };
     })

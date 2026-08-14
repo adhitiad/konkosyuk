@@ -9,6 +9,17 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { logSecurityEvent } from "@/lib/logger";
+import type { Session, User } from "better-auth";
+
+interface SesiPengguna {
+  session: Session;
+  user: User & {
+    role: string;
+    phone: string | null | undefined;
+    twoFactorEnabled?: boolean | null;
+    [key: string]: unknown;
+  };
+}
 
 export const auth = betterAuth({
   trustedOrigins: [
@@ -122,13 +133,13 @@ export const auth = betterAuth({
 export type Role = "cust" | "owner" | "admin" | "staff";
 
 export async function requireSession(allowedRoles?: Role[]) {
-  const session: any = await auth.api.getSession({
+  const session: SesiPengguna | null = await auth.api.getSession({
     headers: await headers(),
   });
 
   if (!session) {
     logSecurityEvent("auth_failed", { reason: "no_session" });
-    throw new Error("Unauthorized");
+    throw new Error("Tidak berwenang");
   }
 
   if (allowedRoles && !allowedRoles.includes(session.user.role as Role)) {
@@ -137,7 +148,7 @@ export async function requireSession(allowedRoles?: Role[]) {
       role: session.user.role,
       requiredRoles: allowedRoles,
     });
-    throw new Error("Forbidden");
+    throw new Error("Dilarang");
   }
 
   return session;

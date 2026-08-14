@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { properties, bookings } from "@/db/schema";
+import type { NewProperty } from "@/db/schema";
+import type { PropertyPackages } from "@/lib/types/property-packages";
 import { eq, and, inArray } from "drizzle-orm";
 import { validateAdminOnlyRequest } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
@@ -14,7 +16,7 @@ const updatePropertySchema = z.object({
   type: z.enum(["kost", "kontrakan", "ruko"]).optional(),
   city: z.string().optional(),
   basePrice: z.string().optional(),
-  packages: z.any().optional(),
+  packages: z.custom<PropertyPackages>().optional(),
   status: z.enum(["aktif", "nonaktif"]).optional(),
   amenities: z.array(z.string()).optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
@@ -70,7 +72,7 @@ export async function PATCH(
 
     const [updated] = await db
       .update(properties)
-      .set(updateData as any)
+      .set(updateData as Partial<NewProperty>)
       .where(eq(properties.id, propertyId))
       .returning();
 

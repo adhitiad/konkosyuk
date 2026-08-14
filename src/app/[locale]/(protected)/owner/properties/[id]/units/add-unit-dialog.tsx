@@ -17,7 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { DialogClose } from "@/components/ui/dialog";
-import { apiClient } from "@/lib/axios";
+import { createUnitAction, CreateUnitState } from "@/actions/units";
 
 interface AddUnitDialogProps {
   propertyId: string;
@@ -66,14 +66,19 @@ export default function AddUnitDialog({ propertyId }: AddUnitDialogProps) {
     }
 
     setIsSubmitting(true);
-    try {
-      const res = await apiClient.post("/api/units", result.data);
 
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Gagal menambahkan unit.");
-      }
+    const formData = new FormData();
+    formData.append("propertyId", payload.propertyId);
+    formData.append("name", payload.name);
+    if (payload.description) formData.append("description", payload.description);
+    formData.append("price", payload.price);
+    if (payload.capacity) formData.append("capacity", payload.capacity);
+    if (payload.size) formData.append("size", payload.size);
+    formData.append("status", payload.status || "available");
 
+    const actionResult: CreateUnitState = await createUnitAction(undefined, formData);
+
+    if (actionResult.success) {
       queryClient.invalidateQueries({ queryKey: ["units", propertyId] });
       resetForm();
       (
@@ -81,11 +86,10 @@ export default function AddUnitDialog({ propertyId }: AddUnitDialogProps) {
           '[data-slot="dialog-close"]',
         ) as HTMLElement | null
       )?.click();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal menambahkan unit.");
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      setError(actionResult.error || "Gagal menambahkan unit.");
     }
+    setIsSubmitting(false);
   };
 
   const resetForm = () => {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "@/lib/auth-client";
+import type { SessionUserWithRole } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -19,6 +20,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiClient } from "@/lib/axios";
 import { withAdminAuth } from "@/lib/with-admin-auth";
+import { updatePlatformFeeAction } from "@/actions/admin/settings";
 
 interface PlatformSettings {
   platformFeePercent: string;
@@ -34,7 +36,8 @@ function MonetizationSettingsPage() {
   const [featuredPrice, setFeaturedPrice] = useState("50000");
 
   useEffect(() => {
-    if (!isPending && (!session || (session.user as any).role !== "admin")) {
+    const userRole = (session?.user as SessionUserWithRole | undefined)?.role;
+    if (!isPending && (!session || userRole !== "admin")) {
       router.push("/login");
     }
   }, [session, isPending, router]);
@@ -47,7 +50,7 @@ function MonetizationSettingsPage() {
       );
       return json.data;
     },
-    enabled: !!session && (session.user as any).role === "admin",
+    enabled: !!session && (session.user as SessionUserWithRole).role === "admin",
   });
 
   const mutation = useMutation({
@@ -55,15 +58,17 @@ function MonetizationSettingsPage() {
       platformFeePercent: number;
       featuredListingPrice?: number;
     }) => {
-      const res = await apiClient.patch(
-        "/api/admin/settings/platform-fee",
-        values,
-      );
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Failed to update settings");
+      const formData = new FormData();
+      formData.append("platformFeePercent", String(values.platformFeePercent));
+      if (values.featuredListingPrice !== undefined) {
+        formData.append("featuredListingPrice", String(values.featuredListingPrice));
       }
-      return res.data;
+      
+      const result = await updatePlatformFeeAction(undefined, formData);
+      if (!result.success) {
+        throw new Error(result.error || "Failed to update settings");
+      }
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["platform-settings"] });

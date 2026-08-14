@@ -22,10 +22,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon, ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { toast } from "@/components/ui/toast";
-import { apiClient } from "@/lib/axios";
 import { withAdminAuth } from "@/lib/with-admin-auth";
 import { ROLE_OPTIONS } from "@/lib/constants/user";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { apiClient } from "@/lib/axios";
+import { updateUserAction } from "@/actions/admin/users";
 
 interface UserDetail {
   id: string;
@@ -126,32 +127,33 @@ function UserEditPage() {
       city?: string | null;
       province?: string | null;
     }) => {
-      const res = await apiClient.patch(`/api/admin/users/${userId}`, {
-        name,
-        email,
-        role,
-        isActive,
-        isBanned,
-        image,
-        phone,
-        whatsapp,
-        telegram,
-        district,
-        city,
-        province,
-      });
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Failed to update user");
+      const formData = new FormData();
+      formData.append("id", userId);
+      if (name !== undefined) formData.append("name", name);
+      if (email !== undefined) formData.append("email", email);
+      if (role !== undefined) formData.append("role", role);
+      if (isActive !== undefined) formData.append("isActive", String(isActive));
+      if (isBanned !== undefined) formData.append("isBanned", String(isBanned));
+      if (image !== undefined) formData.append("image", image || "");
+      if (phone !== undefined) formData.append("phone", phone || "");
+      if (whatsapp !== undefined) formData.append("whatsapp", whatsapp || "");
+      if (telegram !== undefined) formData.append("telegram", telegram || "");
+      if (district !== undefined) formData.append("district", district || "");
+      if (city !== undefined) formData.append("city", city || "");
+      if (province !== undefined) formData.append("province", province || "");
+      
+      const result = await updateUserAction(undefined, formData);
+      if (!result.success) {
+        throw new Error(result.error || "Failed to update user");
       }
-      return res.data;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user", userId] });
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       toast({
-        title: "User updated",
-        description: "User data has been changed.",
+        title: "User diperbarui",
+        description: "Data user telah diubah.",
         type: "success",
       });
     },

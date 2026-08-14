@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "@/lib/auth-client";
+import type { SessionUserWithRole } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
@@ -22,7 +23,8 @@ function AdminSettingsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!isPending && (!session || (session.user as any).role !== "admin")) {
+    const userRole = (session?.user as SessionUserWithRole | undefined)?.role;
+    if (!isPending && (!session || userRole !== "admin")) {
       router.push("/login");
     }
   }, [session, isPending, router]);

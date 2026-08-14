@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useRef } from "react";
+import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,7 +24,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon, Add01Icon } from "@hugeicons/core-free-icons";
 import { useSession } from "@/lib/auth-client";
-import { apiClient } from "@/lib/axios";
+import { createMaintenanceTicketAction } from "@/actions/maintenance";
 
 interface MaintenanceTicketFormProps {
   onSuccess?: () => void;
@@ -44,12 +44,14 @@ export default function MaintenanceTicketForm({
   >("medium");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [imageInput, setImageInput] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [state, formAction, isPending] = useActionState(
+    createMaintenanceTicketAction,
+    undefined,
+  );
 
   const fetchUnits = async () => {
-    const { data: json } = await apiClient.get("/api/bookings");
+    const res = await fetch("/api/bookings");
+    const json = await res.json();
     const bookings = json.data ?? [];
 
     const activeUnits = new Map<string, string>();
@@ -76,8 +78,6 @@ export default function MaintenanceTicketForm({
       setPriority("medium");
       setImageUrls([]);
       setImageInput("");
-      setError(null);
-      setSuccess(false);
     }
     setOpen(newOpen);
   };
@@ -94,52 +94,21 @@ export default function MaintenanceTicketForm({
     setImageUrls(imageUrls.filter((u) => u !== url));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(false);
-
-    if (!selectedUnitId) {
-      setError("Pilih unit terlebih dahulu");
-      return;
-    }
-    if (!title.trim()) {
-      setError("Judul harus diisi");
-      return;
-    }
-    if (!description.trim()) {
-      setError("Deskripsi harus diisi");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { data: json } = await apiClient.post("/api/maintenance", {
-        unitId: selectedUnitId,
-        title: title.trim(),
-        description: description.trim(),
-        priority,
-        images: imageUrls,
-      });
-      if (json.error) {
-        throw new Error(json.error || "Gagal membuat tiket maintenance");
-      }
-
-      setSuccess(true);
-      setSelectedUnitId("");
-      setTitle("");
-      setDescription("");
-      setPriority("medium");
-      setImageUrls([]);
-      setImageInput("");
-      onSuccess?.();
-      setTimeout(() => setOpen(false), 1500);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
-    } finally {
-      setLoading(false);
-    }
+  const handleSubmit = (formData: FormData) => {
+    formData.append("images", JSON.stringify(imageUrls));
+    formAction(formData);
   };
+
+  if (state?.success) {
+    setSelectedUnitId("");
+    setTitle("");
+    setDescription("");
+    setPriority("medium");
+    setImageUrls([]);
+    setImageInput("");
+    onSuccess?.();
+    setTimeout(() => setOpen(false), 1500);
+  }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -159,8 +128,8 @@ export default function MaintenanceTicketForm({
         <DialogHeader>
           <DialogTitle>Buat Tiket Maintenance</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
+        <form action={handleSubmit} className="space-y-4">
+          {state?.error && (
             <Alert variant="destructive">
               <HugeiconsIcon
                 icon={AlertCircleIcon}
@@ -168,11 +137,11 @@ export default function MaintenanceTicketForm({
                 className="size-4"
               />
               <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>{state.error}</AlertDescription>
             </Alert>
           )}
 
-          {success && (
+          {state?.success && (
             <Alert variant="default">
               <AlertTitle>Berhasil</AlertTitle>
               <AlertDescription>
@@ -198,12 +167,14 @@ export default function MaintenanceTicketForm({
                 ))}
               </SelectContent>
             </Select>
+            <input type="hidden" name="unitId" value={selectedUnitId} />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="title">Judul</Label>
             <Input
               id="title"
+              name="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Contoh: AC tidak dingin"
@@ -216,6 +187,7 @@ export default function MaintenanceTicketForm({
             <Label htmlFor="description">Deskripsi</Label>
             <Textarea
               id="description"
+              name="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Jelaskan kerusakan yang terjadi..."
@@ -246,6 +218,7 @@ export default function MaintenanceTicketForm({
                 <SelectItem value="urgent">Urgent</SelectItem>
               </SelectContent>
             </Select>
+            <input type="hidden" name="priority" value={priority} />
           </div>
 
           <div className="space-y-2">
@@ -283,8 +256,8 @@ export default function MaintenanceTicketForm({
             )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Mengirim..." : "Buat Tiket"}
+          <Button type="submit" className="w-full" disabled={isPending}>
+            {isPending ? "Mengirim..." : "Buat Tiket"}
           </Button>
         </form>
       </DialogContent>

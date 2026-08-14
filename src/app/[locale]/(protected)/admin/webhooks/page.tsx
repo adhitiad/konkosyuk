@@ -17,9 +17,10 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon, Refresh01Icon } from "@hugeicons/core-free-icons";
 import { toast } from "@/components/ui/toast";
-import { apiClient } from "@/lib/axios";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import { withAdminAuth } from "@/lib/with-admin-auth";
+import { reprocessWebhookAction } from "@/actions/admin/webhooks";
+import { apiClient } from "@/lib/axios";
 
 interface WebhookEvent {
   id: string;
@@ -76,10 +77,11 @@ function AdminWebhooksPage() {
 
   const reprocessMutation = useMutation({
     mutationFn: async (webhookId: string) => {
-      const { data } = await apiClient.patch("/api/admin/webhooks", {
-        id: webhookId,
-      });
-      return data.data;
+      const formData = new FormData();
+      formData.append("webhookId", webhookId);
+      const result = await reprocessWebhookAction(undefined, formData);
+      if (result.error) throw new Error(result.error);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-webhooks"] });

@@ -31,7 +31,7 @@ export default function Error({ error, reset }: AppErrorProps) {
         />
         <AlertTitle>Terjadi kesalahan</AlertTitle>
         <AlertDescription>
-          Halaman ini mengalami masalah. Silakan coba lagi.
+          Terjadi kesalahan, tim kami telah diberi tahu. Silakan coba lagi.
         </AlertDescription>
       </Alert>
       <Button onClick={reset}>Coba Lagi</Button>

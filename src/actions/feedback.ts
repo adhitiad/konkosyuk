@@ -33,7 +33,7 @@ export async function submitFeedbackAction(
     });
 
     if (!session?.user?.id) {
-      return { error: "Unauthorized", success: false };
+      return { error: "Tidak berwenang", success: false };
     }
 
     await db.insert(feedbacks).values({
@@ -46,8 +46,8 @@ export async function submitFeedbackAction(
     return { success: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Invalid input", success: false };
+      return { error: error.issues[0]?.message || "Masukan tidak valid", success: false };
     }
-    return { error: "Failed to submit feedback", success: false };
+    return { error: "Gagal mengirim umpan balik", success: false };
   }
 }

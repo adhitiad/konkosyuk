@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { createAblyClient } from "@/lib/ably/client";
+import { sendMessageAction } from "@/actions/chat";
 
 export interface Message {
   id: string;
@@ -127,23 +128,21 @@ export function useChat({
       if (!roomId || !content.trim()) return;
 
       try {
-        const response = await fetch("/api/chat/messages", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ roomId, content: content.trim() }),
-        });
+        const formData = new FormData();
+        formData.append("roomId", roomId);
+        formData.append("content", content.trim());
 
-        if (!response.ok) {
-          throw new Error("Failed to send message");
+        const result = await sendMessageAction(undefined, formData);
+
+        if (result.success && result.data) {
+          setMessages((prev) => {
+            const exists = prev.some((m) => m.id === result.data?.id);
+            if (exists) return prev;
+            return [...prev, { ...result.data!, createdAt: result.data!.createdAt.toISOString() }];
+          });
+        } else {
+          console.error("[useChat] Error sending message:", result.error);
         }
-
-        const message = await response.json();
-
-        setMessages((prev) => {
-          const exists = prev.some((m) => m.id === message.id);
-          if (exists) return prev;
-          return [...prev, message];
-        });
       } catch (error) {
         console.error("[useChat] Error sending message:", error);
       }

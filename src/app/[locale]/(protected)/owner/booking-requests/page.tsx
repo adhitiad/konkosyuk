@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,8 +16,8 @@ import {
   CancelCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { useState } from "react";
-import { apiClient } from "@/lib/axios";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
+import { reviewBookingRequestAction } from "@/actions/booking-requests";
 
 interface BookingRequestWithDetails {
   id: string;
@@ -61,10 +61,8 @@ export default function OwnerBookingRequestsPage() {
   }>({
     queryKey: ["owner-booking-requests"],
     queryFn: async () => {
-      const response = await apiClient.get("/api/owner/booking-requests");
-      const body = response.data as {
-        data?: { data?: BookingRequestWithDetails[] };
-      };
+      const response = await fetch("/api/owner/booking-requests");
+      const body = await response.json();
       const items = Array.isArray(body?.data?.data)
         ? body.data.data
         : Array.isArray(body?.data)
@@ -76,54 +74,44 @@ export default function OwnerBookingRequestsPage() {
     enabled: !!session?.user?.id,
   });
 
-  const approveMutation = useMutation({
-    mutationFn: async ({ id, price }: { id: string; price: number }) => {
-      const { data } = await apiClient.patch(
-        `/api/owner/booking-requests/${id}`,
-        {
-          status: "approved",
-          agreedPrice: price,
-        },
-      );
-      return data;
-    },
-    onSuccess: () => {
+  const handleApprove = async (id: string, price: number) => {
+    const result = await reviewBookingRequestAction(
+      { success: false, error: "", data: undefined },
+      {
+        get requestId() { return id; },
+        get status() { return "approved"; },
+        get agreedPrice() { return String(price); },
+      } as any
+    );
+    if (result.success) {
       queryClient.invalidateQueries({ queryKey: ["owner-booking-requests"] });
       setReviewingId(null);
       setAgreedPrice("");
       showToastSuccess(
-        "Permintaan booking berhasil disetujui dan invoice DP telah dibuat.",
+        "Permintaan booking berhasil disetujui dan invoice DP telah dibuat."
       );
-    },
-    onError: (err: unknown) => {
-      showToastError(
-        err instanceof Error ? err.message : "Gagal menyetujui booking",
-      );
-    },
-  });
+    } else if (result.error) {
+      showToastError(result.error);
+    }
+  };
 
-  const rejectMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { data } = await apiClient.patch(
-        `/api/owner/booking-requests/${id}`,
-        {
-          status: "rejected",
-        },
-      );
-      return data;
-    },
-    onSuccess: () => {
+  const handleReject = async (id: string) => {
+    const result = await reviewBookingRequestAction(
+      { success: false, error: "", data: undefined },
+      {
+        get requestId() { return id; },
+        get status() { return "rejected"; },
+      } as any
+    );
+    if (result.success) {
       queryClient.invalidateQueries({ queryKey: ["owner-booking-requests"] });
       setReviewingId(null);
       setRejectReason("");
       showToastSuccess("Permintaan booking ditolak.");
-    },
-    onError: (err: unknown) => {
-      showToastError(
-        err instanceof Error ? err.message : "Gagal menolak booking",
-      );
-    },
-  });
+    } else if (result.error) {
+      showToastError(result.error);
+    }
+  };
 
   const requests = data?.data ?? [];
 
@@ -229,8 +217,7 @@ export default function OwnerBookingRequestsPage() {
                           size="sm"
                           variant="destructive"
                           className="flex-1"
-                          onClick={() => rejectMutation.mutate(request.id)}
-                          disabled={rejectMutation.isPending}
+                          onClick={() => handleReject(request.id)}
                         >
                           <HugeiconsIcon
                             icon={CancelCircleIcon}
@@ -248,9 +235,8 @@ export default function OwnerBookingRequestsPage() {
                               showToastError("Masukkan harga yang valid");
                               return;
                             }
-                            approveMutation.mutate({ id: request.id, price });
+                            handleApprove(request.id, price);
                           }}
-                          disabled={approveMutation.isPending}
                         >
                           <HugeiconsIcon
                             icon={CheckmarkCircle02Icon}

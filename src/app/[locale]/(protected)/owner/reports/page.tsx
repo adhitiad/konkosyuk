@@ -28,15 +28,19 @@ interface ReportStats {
   occupancyRate: number;
 }
 
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  meta?: Record<string, unknown>;
+}
+
 function OwnerReportsPage() {
   const { data, isLoading } = useQuery<ReportStats>({
     queryKey: ["owner-reports"],
     queryFn: async () => {
       const response = await apiClient.get("/api/owner/reports");
-      const body = response.data as { data?: ReportStats };
+      const body = response.data as ApiResponse<ReportStats>;
       if (body.data) return body.data;
-      const inner = (body as any)?.data?.data;
-      if (inner) return inner;
       throw new Error("Invalid reports response");
     },
   });

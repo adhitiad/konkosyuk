@@ -57,15 +57,15 @@ export function handleApiError(error: unknown, context?: string) {
   if (error instanceof Error) {
     logError(error, context || "API_ERROR");
 
-    if (error.message === "Unauthorized") {
+    if (error.message === "Tidak berwenang") {
       return Response.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } },
+        { success: false, error: { code: 'UNAUTHORIZED', message: 'Tidak berwenang' } },
         { status: 401 }
       );
     }
-    if (error.message === "Forbidden") {
+    if (error.message === "Dilarang") {
       return Response.json(
-        { success: false, error: { code: 'FORBIDDEN', message: 'Forbidden' } },
+        { success: false, error: { code: 'FORBIDDEN', message: 'Dilarang' } },
         { status: 403 }
       );
     }

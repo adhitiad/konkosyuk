@@ -1,5 +1,4 @@
-"use client";
-
+import { useActionState } from "react";
 import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { createReportAction } from "@/actions/reports";
 
 type Stay = {
   propertyId: string;
@@ -29,15 +29,15 @@ const categories = [
   ["lainnya", "Lainnya"],
 ] as const;
 
-export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
+function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
   const [stays, setStays] = useState<Stay[]>([]);
   const [stay, setStay] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [state, formAction, isPending] = useActionState(createReportAction, undefined);
 
   useEffect(() => {
     apiClient
@@ -77,36 +77,35 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
     }
   }
 
-  async function submit(event: React.FormEvent) {
-    event.preventDefault();
-    setMessage(null);
+  function submit(formData: FormData) {
     const selected = stays.find((item) => item.unitId === stay);
-    if (!selected || !category || description.trim().length < 10)
-      return setMessage(
-        "Lengkapi unit, kategori, dan deskripsi minimal 10 karakter.",
-      );
-    setSubmitting(true);
-    try {
-      await apiClient.post("/api/reports", {
-        propertyId: selected.propertyId,
-        unitId: selected.unitId,
-        category,
-        description: description.trim(),
-        images,
-      });
-      setStay("");
-      setCategory("");
-      setDescription("");
-      setImages([]);
-      setMessage("Laporan berhasil dikirim.");
-      onSuccess?.();
-    } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Gagal mengirim laporan.",
-      );
-    } finally {
-      setSubmitting(false);
+    if (!selected || !category || description.trim().length < 10) {
+      setMessage("Lengkapi unit, kategori, dan deskripsi minimal 10 karakter.");
+      return;
     }
+    formData.set("propertyId", selected.propertyId);
+    formData.set("unitId", selected.unitId);
+    formData.set("category", category);
+    formData.set("description", description.trim());
+    formData.set("images", JSON.stringify(images));
+    formAction(formData);
+  }
+
+  if (state?.success) {
+    setStay("");
+    setCategory("");
+    setDescription("");
+    setImages([]);
+    setMessage("Laporan berhasil dikirim.");
+    onSuccess?.();
+  }
+
+  if (state?.error) {
+    setMessage(state.error);
+  }
+
+  if (state?.error) {
+    setMessage(state.error);
   }
 
   return (
@@ -115,7 +114,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
         <CardTitle>Laporkan Masalah</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={submit} className="space-y-4">
+        <form action={formAction} className="space-y-4">
           {message && (
             <p className="text-sm text-muted-foreground" role="status">
               {message}
@@ -162,6 +161,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
             <Label htmlFor="report-description">Deskripsi</Label>
             <Textarea
               id="report-description"
+              name="description"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               maxLength={2000}
@@ -194,11 +194,15 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
               </div>
             )}
           </div>
-          <Button type="submit" disabled={submitting || uploading}>
-            {submitting ? "Mengirim..." : "Kirim Laporan"}
+          <Button type="submit" disabled={isPending || uploading}>
+            {isPending ? "Mengirim..." : "Kirim Laporan"}
           </Button>
         </form>
       </CardContent>
     </Card>
   );
+}
+
+export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
+  return <ReportFormInner onSuccess={onSuccess} />;
 }

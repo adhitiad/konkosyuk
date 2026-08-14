@@ -24,7 +24,7 @@ import {
   WalletIcon,
 } from "@hugeicons/core-free-icons";
 import type { OwnerBankAccount } from "@/db/schema";
-import { apiClient } from "@/lib/axios";
+import { createWithdrawalAction, CreateWithdrawalState } from "@/actions/withdrawals";
 
 interface Withdrawal {
   id: string;
@@ -71,24 +71,20 @@ export default function WalletPage() {
 
   const fetchData = async () => {
     try {
-      const [accountsRes, withdrawalsRes] = await Promise.all([
-        apiClient.get("/api/owner/bank-accounts"),
-        apiClient.get("/api/owner/withdrawals"),
-      ]);
-
-      const accountsBody = accountsRes.data as any;
-      const accountsItems = Array.isArray(accountsBody?.data)
-        ? accountsBody.data
-        : (accountsBody as any)?.data?.data || [];
+      const res = await fetch("/api/owner/bank-accounts");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal memuat data");
+      const accountsItems = data.data || [];
       setAccounts(accountsItems);
       if (accountsItems.length > 0 && !selectedAccount) {
         setSelectedAccount(accountsItems[0].id);
       }
 
-      const withdrawalsBody = withdrawalsRes.data as any;
-      const withdrawalsItems = Array.isArray(withdrawalsBody?.data)
-        ? withdrawalsBody.data
-        : (withdrawalsBody as any)?.data?.data || [];
+      const withdrawalsRes = await fetch("/api/owner/withdrawals");
+      const withdrawalsData = await withdrawalsRes.json();
+      if (!withdrawalsRes.ok)
+        throw new Error(withdrawalsData.error || "Gagal memuat riwayat");
+      const withdrawalsItems = withdrawalsData.data || [];
       setWithdrawals(withdrawalsItems);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");
@@ -108,34 +104,19 @@ export default function WalletPage() {
     setSubmitting(true);
 
     try {
-      const numericAmount = Number(amount);
-      if (numericAmount <= 0) {
-        setError("Jumlah penarikan harus lebih dari 0");
-        return;
+      const formData = new FormData();
+      formData.append("bank_account_id", selectedAccount);
+      formData.append("amount", amount);
+
+      const result: CreateWithdrawalState = await createWithdrawalAction(undefined, formData);
+
+      if (result.success) {
+        setAmount("");
+        setSuccess("Permintaan penarikan berhasil dikirim.");
+        await fetchData();
+      } else {
+        setError(result.error || "Gagal mengajukan penarikan");
       }
-
-      if (numericAmount > balance) {
-        setError("Saldo tidak mencukupi");
-        return;
-      }
-
-      const res = await apiClient.post("/api/owner/withdrawals", {
-        bank_account_id: selectedAccount,
-        amount: numericAmount.toFixed(2),
-      });
-
-      const data = res.data;
-
-      if (res.status >= 400) {
-        setError(data.error || "Gagal mengajukan penarikan");
-        return;
-      }
-
-      setAmount("");
-      setSuccess("Permintaan penarikan berhasil dikirim.");
-      await fetchData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
       setSubmitting(false);
     }

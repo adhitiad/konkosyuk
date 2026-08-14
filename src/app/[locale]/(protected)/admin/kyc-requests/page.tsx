@@ -27,6 +27,7 @@ import { toast } from "@/components/ui/toast";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import { apiClient } from "@/lib/axios";
 import { withAdminAuth } from "@/lib/with-admin-auth";
+import { approveKycAction } from "@/actions/admin/kyc";
 
 interface KYCRequest {
   id: string;
@@ -68,22 +69,22 @@ function AdminKYCRequestsPage() {
       action: "verified" | "rejected";
       adminNote?: string;
     }) => {
-      const res = await apiClient.post("/api/admin/kyc/approve", {
-        userId,
-        action,
-        adminNote,
-      });
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Failed to update KYC");
+      const formData = new FormData();
+      formData.append("userId", userId);
+      formData.append("action", action);
+      if (adminNote) formData.append("adminNote", adminNote);
+      
+      const result = await approveKycAction(undefined, formData);
+      if (!result.success) {
+        throw new Error(result.error || "Failed to update KYC");
       }
-      return res.data;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-kyc-requests"] });
       toast({
-        title: "KYC updated",
-        description: "KYC status has been changed.",
+        title: "KYC diperbarui",
+        description: "Status KYC telah diubah.",
         type: "success",
       });
       setRejectUserId(null);

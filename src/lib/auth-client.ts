@@ -1,4 +1,5 @@
 import { createAuthClient } from "better-auth/react";
+import type { User as BetterAuthUser } from "better-auth";
 
 const appUrl =
   typeof window !== "undefined"
@@ -21,18 +22,17 @@ export const roleRedirectMap: Record<Role, string> = {
   staff: "/staff",
 };
 
-export interface SessionUserWithRole {
-  id: string;
-  email: string;
-  name: string;
+export interface SessionUserWithRole extends BetterAuthUser {
   role: Role;
-  image: string | null;
   phone: string | null;
+  province?: string | null;
+  city?: string | null;
+  district?: string | null;
   reputationScore?: number;
   kycStatus?: string;
   ktpNumber?: string | null;
   ktpImageUrl?: string | null;
   balance?: string | number | null;
-  createdAt: Date;
-  updatedAt: Date;
+  telegram?: string | null;
+  whatsapp?: string | null;
 }

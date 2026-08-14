@@ -2,10 +2,12 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/axios";
+import { useActionState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wrench, Check, X } from "lucide-react";
+import { updateReportAction } from "@/actions/reports";
 
 type Report = {
   id: string;
@@ -33,6 +35,114 @@ const statusLabels: Record<string, string> = {
   rejected: "Ditolak",
 };
 
+function ReportItem({
+  report,
+  onUpdate,
+}: {
+  report: Report;
+  onUpdate: (id: string, status: "in_progress" | "resolved" | "rejected") => void;
+}) {
+  const [state, formAction, isPending] = useActionState(updateReportAction, undefined);
+
+  function handleUpdate(status: "in_progress" | "resolved" | "rejected") {
+    const formData = new FormData();
+    formData.set("id", report.id);
+    formData.set("status", status);
+    formData.set("resolutionNote", status === "resolved" ? "Masalah telah ditangani." : "");
+    formAction(formData);
+  }
+
+  if (state?.success) {
+    onUpdate(report.id, state.data?.status as "in_progress" | "resolved" | "rejected");
+  }
+
+  return (
+    <div key={report.id} className="rounded-xl border p-4 space-y-3">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="font-medium">
+            {categoryLabels[report.category] ?? report.category} ·{" "}
+            {report.propertyName}
+            {report.unitName ? ` · ${report.unitName}` : ""}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {report.tenantName ?? "Tenant"} ·{" "}
+            {new Date(report.createdAt).toLocaleDateString("id-ID")}
+          </p>
+        </div>
+        <Badge
+          className={
+            report.status === "resolved"
+              ? "bg-green-100 text-green-700"
+              : report.status === "in_progress"
+                ? "bg-blue-100 text-blue-700"
+                : report.status === "pending"
+                  ? "bg-yellow-100 text-yellow-700"
+                  : ""
+          }
+        >
+          {statusLabels[report.status] ?? report.status}
+        </Badge>
+      </div>
+      <p className="text-sm whitespace-pre-wrap">
+        {report.description}
+      </p>
+      {report.images?.length ? (
+        <div className="flex flex-wrap gap-2">
+          {report.images.map((url) => (
+            <img
+              key={url}
+              src={url}
+              alt="Lampiran laporan"
+              className="size-20 rounded-md border object-cover"
+            />
+          ))}
+        </div>
+      ) : null}
+      {report.status !== "resolved" && report.status !== "rejected" && (
+        <div className="flex flex-wrap gap-2">
+          <form action={formAction}>
+            <input type="hidden" name="id" value={report.id} />
+            <input type="hidden" name="status" value="in_progress" />
+            <input type="hidden" name="resolutionNote" value="" />
+            <Button
+              type="submit"
+              size="sm"
+              variant="outline"
+              disabled={isPending}
+            >
+              {isPending ? "Memproses..." : "Tandai Diproses"}
+            </Button>
+          </form>
+          <form action={formAction}>
+            <input type="hidden" name="id" value={report.id} />
+            <input type="hidden" name="status" value="resolved" />
+            <input type="hidden" name="resolutionNote" value="Masalah telah ditangani." />
+            <Button type="submit" size="sm" disabled={isPending}>
+              <Check className="size-4" />
+              {isPending ? "Memproses..." : "Tandai Selesai"}
+            </Button>
+          </form>
+          <form action={formAction}>
+            <input type="hidden" name="id" value={report.id} />
+            <input type="hidden" name="status" value="rejected" />
+            <input type="hidden" name="resolutionNote" value="" />
+            <Button
+              type="submit"
+              size="sm"
+              variant="destructive"
+              disabled={isPending}
+            >
+              <X className="size-4" />
+              {isPending ? "Memproses..." : "Tolak"}
+            </Button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function OwnerReportList() {
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
@@ -40,14 +150,11 @@ export default function OwnerReportList() {
     queryFn: async () => (await apiClient.get("/api/reports")).data,
   });
   const reports: Report[] = data?.data?.data ?? [];
-  async function update(
+
+  function handleUpdate(
     id: string,
     status: "in_progress" | "resolved" | "rejected",
   ) {
-    await apiClient.patch(`/api/reports/${id}`, {
-      status,
-      resolutionNote: status === "resolved" ? "Masalah telah ditangani." : null,
-    });
     queryClient.invalidateQueries({ queryKey: ["maintenance-reports"] });
   }
   return (
@@ -67,75 +174,7 @@ export default function OwnerReportList() {
           </p>
         ) : (
           reports.map((report) => (
-            <div key={report.id} className="rounded-xl border p-4 space-y-3">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <p className="font-medium">
-                    {categoryLabels[report.category] ?? report.category} ·{" "}
-                    {report.propertyName}
-                    {report.unitName ? ` · ${report.unitName}` : ""}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {report.tenantName ?? "Tenant"} ·{" "}
-                    {new Date(report.createdAt).toLocaleDateString("id-ID")}
-                  </p>
-                </div>
-                <Badge
-                  className={
-                    report.status === "resolved"
-                      ? "bg-green-100 text-green-700"
-                      : report.status === "in_progress"
-                        ? "bg-blue-100 text-blue-700"
-                        : report.status === "pending"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : ""
-                  }
-                >
-                  {statusLabels[report.status] ?? report.status}
-                </Badge>
-              </div>
-              <p className="text-sm whitespace-pre-wrap">
-                {report.description}
-              </p>
-              {report.images?.length ? (
-                <div className="flex flex-wrap gap-2">
-                  {report.images.map((url) => (
-                    <img
-                      key={url}
-                      src={url}
-                      alt="Lampiran laporan"
-                      className="size-20 rounded-md border object-cover"
-                    />
-                  ))}
-                </div>
-              ) : null}
-              {report.status !== "resolved" && report.status !== "rejected" && (
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => update(report.id, "in_progress")}
-                  >
-                    Tandai Diproses
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => update(report.id, "resolved")}
-                  >
-                    <Check className="size-4" />
-                    Tandai Selesai
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => update(report.id, "rejected")}
-                  >
-                    <X className="size-4" />
-                    Tolak
-                  </Button>
-                </div>
-              )}
-            </div>
+            <ReportItem key={report.id} report={report} onUpdate={handleUpdate} />
           ))
         )}
       </CardContent>

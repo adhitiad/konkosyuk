@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins, Inter } from "next/font/google";
+import { VercelAnalytics } from "@/app/analytics";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -99,7 +100,10 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://basemaps.cartocdn.com" />
         <link rel="dns-prefetch" href="https://basemaps.cartocdn.com" />
       </head>
-      <body className={`${poppins.className} antialiased`}>{children}</body>
+      <body className={`${poppins.className} antialiased`}>
+        {children}
+        <VercelAnalytics />
+      </body>
     </html>
   );
 }

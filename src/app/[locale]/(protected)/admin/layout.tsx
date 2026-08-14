@@ -5,6 +5,7 @@ import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import type { Role } from "@/lib/auth";
 import { useEffect } from "react";
+import type { SessionUserWithRole } from "@/lib/auth-client";
 
 export default function AdminLayout({
   children,
@@ -15,10 +16,11 @@ export default function AdminLayout({
   const router = useRouter();
 
   useEffect(() => {
+    const userRole = (session?.user as SessionUserWithRole | undefined)?.role;
     if (
       !isPending &&
       (!session ||
-        !["admin", "staff"].includes((session.user as any).role as Role))
+        !["admin", "staff"].includes(userRole as Role))
     ) {
       router.replace("/login");
     }

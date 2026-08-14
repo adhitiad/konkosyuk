@@ -1,4 +1,5 @@
 import { getAxiosInstance } from "@/lib/api";
+import type { AxiosError } from "axios";
 
 type WhatsAppTemplateParameter = { type: "text"; text: string };
 
@@ -45,9 +46,8 @@ export async function sendMaintenanceWhatsApp(
       },
     );
   } catch (error) {
-    const response = (
-      error as { response?: { status?: number; data?: unknown } }
-    ).response;
+    const axiosError = error as AxiosError<unknown>;
+    const response = axiosError.response;
     console.error(
       "WhatsApp maintenance API error:",
       response?.status,
@@ -110,8 +110,9 @@ export async function sendApprovalWhatsApp(
         },
       );
     } catch (error) {
-      const status = (error as any)?.response?.status;
-      const text = (error as any)?.response?.data;
+      const axiosError = error as AxiosError<unknown>;
+      const status = axiosError.response?.status;
+      const text = axiosError.response?.data;
       console.error("WhatsApp API error:", status, text);
     }
   } catch (error) {

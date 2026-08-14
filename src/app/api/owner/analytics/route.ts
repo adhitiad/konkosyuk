@@ -4,10 +4,11 @@ import { bookings, properties, units } from "@/db/schema";
 import { eq, sql, desc, and } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
+import type { Role } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await requireSession(["owner", "admin", "staff"] as any[]);
+    const session = await requireSession(["owner", "admin", "staff"]);
 
     const ownerProperties = await db
       .select({ id: properties.id })

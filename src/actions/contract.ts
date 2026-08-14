@@ -32,7 +32,7 @@ export async function generateContractAction(
     });
 
     if (!session?.user?.id) {
-      return { error: "Unauthorized", success: false };
+      return { error: "Tidak berwenang", success: false };
     }
 
     const [booking] = await db
@@ -42,11 +42,11 @@ export async function generateContractAction(
       .limit(1);
 
     if (!booking) {
-      return { error: "Booking not found", success: false };
+      return { error: "Pemesanan tidak ditemukan", success: false };
     }
 
     if (booking.userId !== session.user.id) {
-      return { error: "Forbidden", success: false };
+      return { error: "Dilarang", success: false };
     }
 
     const [property] = await db
@@ -56,7 +56,7 @@ export async function generateContractAction(
       .limit(1);
 
     if (!property) {
-      return { error: "Property not found", success: false };
+      return { error: "Properti tidak ditemukan", success: false };
     }
 
     const [unit] = await db
@@ -66,7 +66,7 @@ export async function generateContractAction(
       .limit(1);
 
     if (!unit) {
-      return { error: "Unit not found", success: false };
+      return { error: "Unit tidak ditemukan", success: false };
     }
 
     const [tenant] = await db
@@ -76,7 +76,7 @@ export async function generateContractAction(
       .limit(1);
 
     if (!tenant) {
-      return { error: "Tenant not found", success: false };
+      return { error: "Penyewa tidak ditemukan", success: false };
     }
 
     const [owner] = await db
@@ -134,7 +134,7 @@ export async function generateContractAction(
       contractUrl,
     };
   } catch (error) {
-    console.error("Contract generation error:", error);
-    return { error: "Failed to generate contract", success: false };
+      console.error("Kesalahan pembuatan kontrak:", error);
+      return { error: "Gagal membuat kontrak", success: false };
   }
 }

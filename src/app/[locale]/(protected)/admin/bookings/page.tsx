@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
+import type { SessionUserWithRole } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -95,7 +96,7 @@ function AdminBookingsPage() {
     );
   }
 
-  if (!session || !["admin", "staff"].includes((session.user as any).role)) {
+  if (!session || !["admin", "staff"].includes((session.user as SessionUserWithRole).role)) {
     return null;
   }
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "@/lib/auth-client";
+import type { SessionUserWithRole } from "@/lib/auth-client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,7 +47,7 @@ export default function OwnerKYCPage() {
   });
 
   const kycStatus =
-    userData?.kycStatus || (session?.user as any)?.kycStatus || "none";
+    userData?.kycStatus || (session?.user as SessionUserWithRole)?.kycStatus || "none";
   const kycInfo = KYC_STATUS_LABEL[kycStatus] || KYC_STATUS_LABEL.none;
 
   const maskKtp = (ktp: string | null) => {

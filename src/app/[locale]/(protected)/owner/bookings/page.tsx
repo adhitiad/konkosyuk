@@ -43,6 +43,21 @@ export interface OwnerBooking extends Booking {
 
 type BookingStatus = Booking["status"];
 
+interface BookingsApiResponse {
+  data: OwnerBooking[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+interface ApiResponse<T> {
+  success?: boolean;
+  data?: T;
+}
+
 const tabOptions: { value: BookingStatus | "all"; label: string }[] = [
   { value: "all", label: "Semua" },
   { value: "awaiting_owner_approval", label: "Menunggu Approval" },
@@ -87,10 +102,7 @@ export default function OwnerBookingsPage() {
   const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
   const limit = 10;
 
-  const { data, isLoading, isError, error } = useQuery<{
-    data: OwnerBooking[];
-    meta: { total: number; page: number; limit: number; totalPages: number };
-  }>({
+  const { data, isLoading, isError, error } = useQuery<BookingsApiResponse>({
     queryKey: ["owner-bookings", activeTab, page],
     queryFn: async () => {
       const response = await apiClient.get("/api/bookings", {
@@ -100,18 +112,7 @@ export default function OwnerBookingsPage() {
           limit,
         },
       });
-      const body = response.data as {
-        success?: boolean;
-        data?: {
-          data: OwnerBooking[];
-          meta: {
-            total: number;
-            page: number;
-            limit: number;
-            totalPages: number;
-          };
-        };
-      };
+      const body = response.data as ApiResponse<BookingsApiResponse>;
       const payload = body.data;
       return (
         payload ?? { data: [], meta: { total: 0, page, limit, totalPages: 0 } }
@@ -120,10 +121,7 @@ export default function OwnerBookingsPage() {
     staleTime: 30000,
   });
 
-  const rawBookings = Array.isArray(data?.data)
-    ? data.data
-    : (data as any)?.data?.data;
-  const bookings = Array.isArray(rawBookings) ? rawBookings : [];
+  const bookings = data?.data ?? [];
   const totalPages = data?.meta?.totalPages ?? 1;
 
   return (

@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useActionState } from "react";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -11,7 +10,7 @@ import {
   showToastError,
   showToastInfo,
 } from "@/lib/use-toast-custom";
-import { apiClient } from "@/lib/axios";
+import { toggleWishlist } from "@/actions/wishlist";
 
 interface FavoriteButtonProps {
   propertyId: string;
@@ -23,51 +22,40 @@ export default function FavoriteButton({
   initialFavorite = false,
 }: FavoriteButtonProps) {
   const { data: session } = useSession();
-  const queryClient = useQueryClient();
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
+  const [state, formAction, isPending] = useActionState(toggleWishlist, undefined);
 
-  const toggleMutation = useMutation({
-    mutationFn: async () => {
-      if (!session) throw new Error("Unauthorized");
+  const handleSubmit = (formData: FormData) => {
+    formData.append("propertyId", propertyId);
+    formAction(formData);
+  };
 
-      if (isFavorite) {
-        await apiClient.delete(`/api/favorites/${propertyId}`);
-      } else {
-        await apiClient.post("/api/favorites", { propertyId });
-      }
-    },
-    onMutate: () => {
-      setIsFavorite((prev) => !prev);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["favorites"] });
-      showToastInfo(
-        isFavorite ? "Dihapus dari favorit" : "Ditambahkan ke favorit",
-      );
-    },
-    onError: (err) => {
-      setIsFavorite((prev) => !prev);
-      showToastError(err instanceof Error ? err.message : "Terjadi kesalahan.");
-    },
-  });
+  if (state?.success && state.favorited !== undefined) {
+    setIsFavorite(state.favorited);
+    showToastInfo(state.favorited ? "Ditambahkan ke favorit" : "Dihapus dari favorit");
+  } else if (state?.error) {
+    showToastError(state.error);
+    setIsFavorite((prev) => !prev);
+  }
 
   if (!session) {
     return null;
   }
 
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon-sm"
-      onClick={() => toggleMutation.mutate()}
-      disabled={toggleMutation.isPending}
-    >
-      <HugeiconsIcon
-        icon={HeartIcon}
-        strokeWidth={2}
-        className={`size-4 transition-colors ${isFavorite ? "text-red-500 fill-red-500" : "text-muted-foreground"}`}
-      />
-    </Button>
+    <form action={handleSubmit}>
+      <Button
+        type="submit"
+        variant="ghost"
+        size="icon-sm"
+        disabled={isPending}
+      >
+        <HugeiconsIcon
+          icon={HeartIcon}
+          strokeWidth={2}
+          className={`size-4 transition-colors ${isFavorite ? "text-red-500 fill-red-500" : "text-muted-foreground"}`}
+        />
+      </Button>
+    </form>
   );
 }

@@ -49,14 +49,15 @@ describe("sanitizeObject", () => {
   });
 
   it("does not modify non-string values", () => {
-    const result = sanitizeObject({
+    const input = {
       count: 42,
       active: true,
       nested: { value: 123 },
-    });
+    };
+    const result = sanitizeObject(input);
     expect(result.count).toBe(42);
     expect(result.active).toBe(true);
-    expect((result.nested as any).value).toBe(123);
+    expect(result.nested.value).toBe(123);
   });
 });
 
@@ -65,10 +66,10 @@ describe("sanitizeMetadata", () => {
     expect(sanitizeMetadata(null)).toBe(null);
   });
 
-  it("sanitizes metadata object", () => {
+it("sanitizes metadata object", () => {
     const metadata = { description: "<p>Test</p>", count: 5 };
     const result = sanitizeMetadata(metadata);
-    expect((result as Record<string, unknown>).description).toBe("&lt;p&gt;Test&lt;&#x2F;p&gt;");
-    expect((result as Record<string, unknown>).count).toBe(5);
+    expect(result?.description).toBe("<p>Test<&#x2F;p>");
+    expect(result?.count).toBe(5);
   });
 });

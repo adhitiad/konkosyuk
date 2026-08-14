@@ -1,6 +1,7 @@
 import type { PaymentGatewayConfig } from "@/db/schema";
 import { getAxiosInstance } from "@/lib/api";
 import { decryptPaymentConfig } from "@/lib/payment-config-crypto";
+import type { AxiosError } from "axios";
 
 export type GatewayProvider = "doku" | "ipaymu" | "nicepay";
 
@@ -262,9 +263,9 @@ export class PaymentGatewayManager {
         throw error;
       }
       const message = error instanceof Error ? error.message : "Unknown error";
-      const status = (error as any)?.response?.status;
-      const responseData = (error as any)?.response?.data as
-        Record<string, unknown> | undefined;
+      const axiosError = error as AxiosError<Record<string, unknown>>;
+      const status = axiosError.response?.status;
+      const responseData = axiosError.response?.data;
       throw new PaymentGatewayError("doku", message, status, responseData);
     }
   }
@@ -323,9 +324,9 @@ export class PaymentGatewayManager {
         throw error;
       }
       const message = error instanceof Error ? error.message : "Unknown error";
-      const status = (error as any)?.response?.status;
-      const responseData = (error as any)?.response?.data as
-        Record<string, unknown> | undefined;
+      const axiosError = error as AxiosError<Record<string, unknown>>;
+      const status = axiosError.response?.status;
+      const responseData = axiosError.response?.data;
       throw new PaymentGatewayError("ipaymu", message, status, responseData);
     }
   }
@@ -375,9 +376,9 @@ export class PaymentGatewayManager {
         throw error;
       }
       const message = error instanceof Error ? error.message : "Unknown error";
-      const status = (error as any)?.response?.status;
-      const responseData = (error as any)?.response?.data as
-        Record<string, unknown> | undefined;
+      const axiosError = error as AxiosError<Record<string, unknown>>;
+      const status = axiosError.response?.status;
+      const responseData = axiosError.response?.data;
       throw new PaymentGatewayError("nicepay", message, status, responseData);
     }
   }
@@ -411,9 +412,9 @@ export class PaymentGatewayManager {
         throw error;
       }
       const message = error instanceof Error ? error.message : "Unknown error";
-      const status = (error as any)?.response?.status;
-      const responseData = (error as any)?.response?.data as
-        Record<string, unknown> | undefined;
+      const axiosError = error as AxiosError<Record<string, unknown>>;
+      const status = axiosError.response?.status;
+      const responseData = axiosError.response?.data;
       throw new PaymentGatewayError("doku", message, status, responseData);
     }
   }
@@ -453,9 +454,9 @@ export class PaymentGatewayManager {
         throw error;
       }
       const message = error instanceof Error ? error.message : "Unknown error";
-      const status = (error as any)?.response?.status;
-      const responseData = (error as any)?.response?.data as
-        Record<string, unknown> | undefined;
+      const axiosError = error as AxiosError<Record<string, unknown>>;
+      const status = axiosError.response?.status;
+      const responseData = axiosError.response?.data;
       throw new PaymentGatewayError("ipaymu", message, status, responseData);
     }
   }
@@ -489,9 +490,9 @@ export class PaymentGatewayManager {
         throw error;
       }
       const message = error instanceof Error ? error.message : "Unknown error";
-      const status = (error as any)?.response?.status;
-      const responseData = (error as any)?.response?.data as
-        Record<string, unknown> | undefined;
+      const axiosError = error as AxiosError<Record<string, unknown>>;
+      const status = axiosError.response?.status;
+      const responseData = axiosError.response?.data;
       throw new PaymentGatewayError("nicepay", message, status, responseData);
     }
   }
@@ -532,9 +533,9 @@ export class PaymentGatewayManager {
         throw error;
       }
       const message = error instanceof Error ? error.message : "Unknown error";
-      const status = (error as any)?.response?.status;
-      const responseData = (error as any)?.response?.data as
-        Record<string, unknown> | undefined;
+      const axiosError = error as AxiosError<Record<string, unknown>>;
+      const status = axiosError.response?.status;
+      const responseData = axiosError.response?.data;
       throw new PaymentGatewayError("doku", message, status, responseData);
     }
   }
@@ -584,9 +585,9 @@ export class PaymentGatewayManager {
         throw error;
       }
       const message = error instanceof Error ? error.message : "Unknown error";
-      const status = (error as any)?.response?.status;
-      const responseData = (error as any)?.response?.data as
-        Record<string, unknown> | undefined;
+      const axiosError = error as AxiosError<Record<string, unknown>>;
+      const status = axiosError.response?.status;
+      const responseData = axiosError.response?.data;
       throw new PaymentGatewayError("ipaymu", message, status, responseData);
     }
   }
@@ -627,9 +628,9 @@ export class PaymentGatewayManager {
         throw error;
       }
       const message = error instanceof Error ? error.message : "Unknown error";
-      const status = (error as any)?.response?.status;
-      const responseData = (error as any)?.response?.data as
-        Record<string, unknown> | undefined;
+      const axiosError = error as AxiosError<Record<string, unknown>>;
+      const status = axiosError.response?.status;
+      const responseData = axiosError.response?.data;
       throw new PaymentGatewayError("nicepay", message, status, responseData);
     }
   }

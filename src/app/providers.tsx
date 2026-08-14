@@ -9,11 +9,12 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 30000,
       gcTime: 5 * 60 * 1000,
-      retry: (failureCount, error: any) => {
+      retry: (failureCount, error: unknown) => {
+        const apiError = error as { statusCode?: number } | null;
         if (
-          error?.statusCode &&
-          error.statusCode >= 400 &&
-          error.statusCode < 500
+          apiError?.statusCode &&
+          apiError.statusCode >= 400 &&
+          apiError.statusCode < 500
         ) {
           return false;
         }

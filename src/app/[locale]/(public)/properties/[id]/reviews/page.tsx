@@ -1,8 +1,9 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { useParams } from "next/navigation";
+import { useActionState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import StarRating from "@/components/star-rating";
 import { useState } from "react";
 import { toast } from "@/components/ui/toast";
-import { apiClient } from "@/lib/axios";
+import { createReviewAction } from "@/actions/reviews";
 
 interface Review {
   id: string;
@@ -38,65 +39,47 @@ export default function ReviewsPage() {
   const queryClient = useQueryClient();
   const [newRating, setNewRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [state, formAction, isPending] = useActionState(createReviewAction, undefined);
 
   const { data, isLoading, isError, error } = useQuery<ReviewsResponse>({
     queryKey: ["reviews", id],
     queryFn: async () => {
-      const { data } = await apiClient.get("/api/reviews", {
-        params: { propertyId: id },
-      });
-      return data;
+      const res = await fetch(`/api/reviews?propertyId=${id}`);
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Gagal memuat review");
+      return json;
     },
     staleTime: 30000,
     enabled: !!id,
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (payload: {
-      bookingId: string;
-      rating: number;
-      comment?: string;
-    }) => {
-      const { data } = await apiClient.post("/api/reviews", {
-        ...payload,
-        propertyId: id,
-      });
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["reviews", id] });
-      toast({
-        title: "Review submitted",
-        description: "Thank you for your feedback!",
-        type: "success",
-      });
-      setNewRating(0);
-      setComment("");
-    },
-    onError: (err) => {
-      toast({
-        title: "Gagal",
-        description:
-          err instanceof Error ? err.message : "Gagal submit review.",
-        type: "error",
-      });
-    },
-  });
+  const handleSubmit = (formData: FormData) => {
+    formData.append("propertyId", id || "");
+    formAction(formData);
+  };
+
+  if (state?.success) {
+    queryClient.invalidateQueries({ queryKey: ["reviews", id] });
+    toast({
+      title: "Review submitted",
+      description: "Thank you for your feedback!",
+      type: "success",
+    });
+    setNewRating(0);
+    setComment("");
+  } else if (state?.error) {
+    toast({
+      title: "Gagal",
+      description: state.error,
+      type: "error",
+    });
+  }
 
   const reviews = data?.data ?? [];
   const avgRating =
     reviews.length > 0
       ? reviews.reduce((sum, r) => sum + Number(r.rating), 0) / reviews.length
       : 0;
-
-  const handleSubmit = () => {
-    if (newRating === 0) return;
-    createMutation.mutate({
-      bookingId: "",
-      rating: newRating,
-      comment: comment || undefined,
-    });
-  };
 
   return (
     <div className="container py-6">
@@ -144,25 +127,32 @@ export default function ReviewsPage() {
             <CardTitle>Write a Review</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Rating</label>
-              <StarRating rating={newRating} onRatingChange={setNewRating} />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Comment</label>
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Bagikan pengalaman Anda..."
-                className="w-full min-h-[80px] rounded-4xl border border-input bg-input/30 px-3 py-2 text-sm"
-              />
-            </div>
-            <Button
-              onClick={handleSubmit}
-              disabled={newRating === 0 || createMutation.isPending}
-            >
-              {createMutation.isPending ? "Submitting..." : "Submit Review"}
-            </Button>
+            <form action={handleSubmit} className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Rating</label>
+                <StarRating rating={newRating} onRatingChange={setNewRating} />
+                <input type="hidden" name="rating" value={newRating} />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Comment</label>
+                <textarea
+                  name="comment"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Bagikan pengalaman Anda..."
+                  className="w-full min-h-[80px] rounded-4xl border border-input bg-input/30 px-3 py-2 text-sm"
+                  required
+                />
+              </div>
+              <input type="hidden" name="type" value="property" />
+              <input type="hidden" name="bookingId" value="" />
+              <Button
+                type="submit"
+                disabled={newRating === 0 || isPending}
+              >
+                {isPending ? "Submitting..." : "Submit Review"}
+              </Button>
+            </form>
           </CardContent>
         </Card>
       )}

@@ -22,7 +22,7 @@ import {
   showToastWarning,
 } from "@/lib/use-toast-custom";
 import { Spinner } from "@/components/ui/spinner";
-import { apiClient } from "@/lib/axios";
+import { addBankAccountAction, AddBankAccountState } from "@/actions/bank-accounts";
 
 const PROVIDERS = [
   { value: "bank", label: "Bank", options: BANKS },
@@ -63,9 +63,15 @@ export function KYCBankForm({
 
       const validated = addBankAccountSchema.parse(payload);
 
-      try {
-        const res = await apiClient.post("/api/owner/bank-accounts", validated);
+      const formData = new FormData();
+      formData.append("account_type", validated.account_type);
+      formData.append("provider_name", validated.provider_name);
+      formData.append("account_number", validated.account_number);
+      formData.append("account_name", validated.account_name);
 
+      const result: AddBankAccountState = await addBankAccountAction(undefined, formData);
+
+      if (result.success) {
         showToastSuccess(
           "Rekening berhasil ditambahkan! Nama sesuai dengan profil Anda.",
         );
@@ -74,23 +80,16 @@ export function KYCBankForm({
         setAccountNumber("");
         setAccountName("");
         onSuccess?.();
-      } catch (err: unknown) {
-        const axiosError = err as {
-          response?: { data?: { error?: string; code?: string } };
-        };
-        const data = axiosError?.response?.data ?? {};
-        const errorMessage = data.error || "Gagal menambahkan rekening";
-        const errorCode = data.code || null;
-
-        if (errorCode === "NAME_MISMATCH") {
+      } else {
+        if (result.errorCode === "NAME_MISMATCH") {
           showToastError(
             "Nama rekening tidak cocok. Silakan perbarui nama profil terlebih dahulu.",
           );
         } else {
-          showToastError(errorMessage);
+          showToastError(result.error || "Gagal menambahkan rekening");
         }
-        setError(errorMessage);
-        setErrorCode(errorCode);
+        setError(result.error || "Gagal menambahkan rekening");
+        setErrorCode(result.errorCode || null);
       }
     } catch (err) {
       showToastWarning("Mohon lengkapi semua field dengan benar.");

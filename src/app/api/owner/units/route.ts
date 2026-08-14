@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { units, properties } from "@/db/schema";
+import type { NewUnit } from "@/db/schema";
 import { eq, and, desc, inArray } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import type { Role } from "@/lib/auth";
 import { logError } from "@/lib/logger";
+import { ApiError } from "@/lib/api-error";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await requireSession(["owner", "admin"] as Role[]);
+    const session = await requireSession(["owner", "admin"]);
     const { searchParams } = new URL(req.url);
     const propertyId = searchParams.get("propertyId");
 
@@ -74,7 +76,7 @@ export async function POST(req: NextRequest) {
   try {
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
-    const session = await requireSession(["owner", "admin"] as Role[]);
+    const session = await requireSession(["owner", "admin"]);
     const body = await req.json();
 
     const {
@@ -108,17 +110,22 @@ export async function POST(req: NextRequest) {
     if (type) metadata.unitType = type;
     if (Array.isArray(facilities)) metadata.facilities = facilities;
 
+    // TypeScript narrowing for unit status
+    const unitStatus = (status as "available" | "booked" | "maintenance" | null | undefined) ?? "available";
+
+    const unitValues: NewUnit = {
+      propertyId: propertyId as string,
+      name: name as string,
+      description: (description as string | null) ?? null,
+      price: String(price),
+      capacity: capacity ? String(capacity) : null,
+      status: unitStatus,
+      metadata,
+    };
+
     const [unit] = await db
       .insert(units)
-      .values({
-        propertyId: propertyId as string,
-        name: name as string,
-        description: (description as string | null) ?? null,
-        price: String(price),
-        capacity: capacity ? String(capacity) : null,
-        status: (status as string | null) ?? "available",
-        metadata,
-      } as any)
+      .values(unitValues)
       .returning();
 
     return ok(unit, 201);

@@ -1,6 +1,5 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
-import * as Sentry from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   output: "standalone",

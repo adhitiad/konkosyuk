@@ -1,7 +1,8 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -35,7 +36,8 @@ import {
 } from "@hugeicons/core-free-icons";
 import type { Property } from "@/db/schema";
 import type { PropertyPackages } from "@/lib/types/property-packages";
-import { apiClient } from "@/lib/axios";
+import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
+import { deletePropertyAction } from "@/actions/properties";
 
 interface PropertyResponse {
   data: Property[];
@@ -179,16 +181,21 @@ function DeletePropertyButton({
   propertyName: string;
 }) {
   const queryClient = useQueryClient();
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { data } = await apiClient.delete(`/api/properties/${id}`);
-      return data;
-    },
-    onSuccess: () => {
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    const formData = new FormData();
+    formData.append("propertyId", propertyId);
+    const result = await deletePropertyAction(undefined, formData);
+    if (result.success) {
       queryClient.invalidateQueries({ queryKey: ["owner-properties-v2"] });
-    },
-  });
+      showToastSuccess("Properti berhasil dihapus");
+    } else if (result.error) {
+      showToastError(result.error);
+    }
+    setIsDeleting(false);
+  };
 
   return (
     <Dialog>
@@ -203,19 +210,15 @@ function DeletePropertyButton({
           <DialogTitle>Konfirmasi Hapus</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Apakah Anda yakin ingin menghapus properti &quot;{propertyName}&quot;?
+          Apakah Anda yakin ingin menghapus properti "{propertyName}"?
           Tindakan ini tidak dapat dibatalkan.
         </p>
         <div className="flex justify-end gap-2">
           <DialogTrigger render={<Button variant="outline" />}>
             Batal
           </DialogTrigger>
-          <Button
-            variant="destructive"
-            disabled={deleteMutation.isPending}
-            onClick={() => deleteMutation.mutate(propertyId)}
-          >
-            {deleteMutation.isPending ? "Menghapus..." : "Hapus"}
+          <Button variant="destructive" disabled={isDeleting} onClick={handleDelete}>
+            {isDeleting ? "Menghapus..." : "Hapus"}
           </Button>
         </div>
       </DialogContent>
@@ -230,8 +233,8 @@ export default function PropertiesPage() {
   const { data, isLoading, isError, error } = useQuery<PropertyResponse>({
     queryKey: ["owner-properties-v2"],
     queryFn: async () => {
-      const response = await apiClient.get("/api/owner/properties");
-      const body = response.data as any;
+      const response = await fetch("/api/owner/properties");
+      const body = await response.json();
       const items = Array.isArray(body?.data)
         ? body.data
         : Array.isArray(body?.data?.data)

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "@/lib/auth-client";
+import type { SessionUserWithRole } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { KYCBankForm } from "@/components/owner/kyc-bank-form";
 import type { OwnerBankAccount } from "@/db/schema";
-import { apiClient } from "@/lib/axios";
+import { deleteBankAccountAction, DeleteBankAccountState, updateBankAccountAction, UpdateBankAccountState } from "@/actions/bank-accounts";
 
 const KYC_STATUS_LABEL: Record<
   string,
@@ -40,12 +41,13 @@ export default function BankAccountsPage() {
   const [error, setError] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [updateLoading, setUpdateLoading] = useState(false);
 
   const fetchAccounts = async () => {
     try {
-      const res = await apiClient.get("/api/owner/bank-accounts");
-      const data = res.data;
-      if (res.status >= 400) throw new Error(data.error || "Gagal memuat data");
+      const res = await fetch("/api/owner/bank-accounts");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal memuat data");
       setAccounts(data.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");
@@ -60,40 +62,42 @@ export default function BankAccountsPage() {
 
   const handleDelete = async (id: string) => {
     setDeleteLoading(true);
-    try {
-      const res = await apiClient.delete(`/api/owner/bank-accounts/${id}`);
-      const data = res.data;
-      if (res.status >= 400)
-        throw new Error(data.error || "Gagal menghapus rekening");
+    const formData = new FormData();
+    formData.append("id", id);
+
+    const result: DeleteBankAccountState = await deleteBankAccountAction(undefined, formData);
+
+    if (result.success) {
       setAccounts((prev) => prev.filter((acc) => acc.id !== id));
       setDeleteTargetId(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
-    } finally {
-      setDeleteLoading(false);
+    } else {
+      setError(result.error || "Gagal menghapus rekening");
     }
+    setDeleteLoading(false);
   };
 
   const handleSetPrimary = async (id: string) => {
-    try {
-      const res = await apiClient.patch(`/api/owner/bank-accounts/${id}`, {
-        is_primary: true,
-      });
-      const data = res.data;
-      if (res.status >= 400)
-        throw new Error(data.error || "Gagal mengubah rekening utama");
+    setUpdateLoading(true);
+    const formData = new FormData();
+    formData.append("id", id);
+    formData.append("is_primary", "true");
+
+    const result: UpdateBankAccountState = await updateBankAccountAction(undefined, formData);
+
+    if (result.success) {
       setAccounts((prev) =>
         prev.map((acc) => ({
           ...acc,
           isPrimary: acc.id === id,
         })),
       );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
+    } else {
+      setError(result.error || "Gagal mengubah rekening utama");
     }
+    setUpdateLoading(false);
   };
 
-  const kycStatus = (session?.user as any)?.kycStatus || "none";
+  const kycStatus = (session?.user as SessionUserWithRole)?.kycStatus || "none";
   const kycInfo = KYC_STATUS_LABEL[kycStatus] || KYC_STATUS_LABEL.none;
 
   return (

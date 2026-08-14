@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { bookings, units, properties, payments, users } from "@/db/schema";
+import { bookingStatus } from "@/db/schema";
 import { eq, and, or, gte, lte, sql, desc, inArray } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { bookingRateLimit, enforceRateLimit } from "@/lib/rate-limit";
@@ -17,6 +18,9 @@ import {
   calculateCustomPrice,
 } from "@/lib/packages/calculator";
 import { NotFoundError, ValidationError, AuthorizationError, RateLimitError } from "@/lib/api-error";
+import { ApiError } from "@/lib/api-error";
+
+type BookingStatus = (typeof bookingStatus)[number];
 
 export async function GET(req: NextRequest) {
   const startTime = Date.now();
@@ -29,7 +33,7 @@ export async function GET(req: NextRequest) {
     const { page, limit, status } = query;
 
     const statusValue = typeof status === "string" ? status : undefined;
-    let where;
+    let where: ReturnType<typeof eq> | ReturnType<typeof and> | undefined;
 
     if (session.user.role === "owner") {
       const ownerProperties = await db
@@ -44,15 +48,15 @@ export async function GET(req: NextRequest) {
 
       const baseWhere = inArray(bookings.propertyId, propertyIds);
       where = statusValue
-        ? and(baseWhere, eq(bookings.status, statusValue as any))
+        ? and(baseWhere, eq(bookings.status, statusValue as BookingStatus))
         : baseWhere;
     } else if (session.user.role === "admin" || session.user.role === "staff") {
-      where = statusValue ? eq(bookings.status, statusValue as any) : undefined;
+      where = statusValue ? eq(bookings.status, statusValue as BookingStatus) : undefined;
     } else {
       where = statusValue
         ? and(
             eq(bookings.userId, session.user.id),
-            eq(bookings.status, statusValue as any),
+            eq(bookings.status, statusValue as BookingStatus),
           )
         : eq(bookings.userId, session.user.id);
     }
@@ -101,9 +105,10 @@ export async function GET(req: NextRequest) {
     logApiRequest('GET', '/api/bookings', 200, duration, session.user.id);
 
     return ok({ data, meta: { total, page, limit, totalPages } });
-  } catch (error) {
+} catch (error) {
     const duration = Date.now() - startTime;
-    logApiRequest('GET', '/api/bookings', error instanceof Error && 'statusCode' in error ? (error as any).statusCode : 500, duration);
+    const statusCode = error instanceof ApiError ? error.statusCode : 500;
+    logApiRequest('GET', '/api/bookings', statusCode, duration);
     logError(error, "GET /api/bookings");
     return handleApiError(error, "GET /api/bookings");
   }
@@ -122,7 +127,7 @@ export async function POST(req: NextRequest) {
       return limited;
     }
     
-    const session = await requireSession(["cust"] as Role[]);
+    const session = await requireSession(["cust"]);
     const body = createBookingSchema.parse(await req.json());
 
     const [unit] = await db
@@ -284,9 +289,10 @@ export async function POST(req: NextRequest) {
       },
       201,
     );
-  } catch (error) {
+} catch (error) {
     const duration = Date.now() - startTime;
-    logApiRequest('POST', '/api/bookings', error instanceof Error && 'statusCode' in error ? (error as any).statusCode : 500, duration);
+    const statusCode = error instanceof ApiError ? error.statusCode : 500;
+    logApiRequest('POST', '/api/bookings', statusCode, duration);
     logError(error, "POST /api/bookings");
     return handleApiError(error, "POST /api/bookings");
   }

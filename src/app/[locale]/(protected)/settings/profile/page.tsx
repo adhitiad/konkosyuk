@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "@/lib/auth-client";
+import type { SessionUserWithRole } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -63,7 +64,7 @@ export default function ProfileSettingsPage() {
       router.push("/login");
     }
     if (session?.user) {
-      const user = session.user as any;
+      const user = session.user as SessionUserWithRole;
       setName(user.name || "");
       setPhone(user.phone || "");
       setProvince(user.province || "");
@@ -211,8 +212,9 @@ export default function ProfileSettingsPage() {
 
       router.refresh();
       alert("Profil berhasil diperbarui!");
-    } catch (err: any) {
-      setFormError(err.message || "Terjadi kesalahan");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Terjadi kesalahan";
+      setFormError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -304,7 +306,7 @@ export default function ProfileSettingsPage() {
                 required
                 disabled={loading}
               />
-              {(session.user as any).role === "owner" && (
+              {(session.user as SessionUserWithRole).role === "owner" && (
                 <p className="text-xs text-amber-600 font-medium">
                   ⚠️ Nama HARUS sama dengan KTP/Buku Tabungan untuk pencairan
                   dana

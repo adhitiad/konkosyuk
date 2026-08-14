@@ -27,6 +27,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { approvePropertyAction } from "@/actions/properties";
 
 interface AdminStats {
   totalUsers: number;
@@ -44,6 +45,12 @@ interface AdminProperty {
   isActive: boolean;
   createdAt: string;
 }
+
+interface PendingPropertiesResponse {
+  data: AdminProperty[];
+}
+
+type PendingPropertiesCacheData = PendingPropertiesResponse | undefined;
 
 interface AdminBooking {
   id: string;
@@ -199,28 +206,32 @@ function AdminDashboardPage() {
 
   const approveMutation = useMutation({
     mutationFn: async (propertyId: string) => {
-      const res = await apiClient.patch(
-        `/api/properties/${propertyId}/approve`,
-        { isActive: true },
-      );
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Failed to approve property");
+      const formData = new FormData();
+      formData.append("propertyId", propertyId);
+      formData.append("isActive", "true");
+      const result = await approvePropertyAction(undefined, formData);
+      if (!result.success) {
+        throw new Error(result.error || "Failed to approve property");
       }
-      return res.data;
+      return result.data;
     },
     onMutate: async (propertyId) => {
       await queryClient.cancelQueries({
         queryKey: ["admin-pending-properties"],
       });
-      const previous = queryClient.getQueryData(["admin-pending-properties"]);
-      queryClient.setQueryData(["admin-pending-properties"], (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          data: old.data.filter((p: any) => p.id !== propertyId),
-        };
-      });
+      const previous = queryClient.getQueryData<PendingPropertiesCacheData>([
+        "admin-pending-properties",
+      ]);
+      queryClient.setQueryData<PendingPropertiesCacheData>(
+        ["admin-pending-properties"],
+        (old) => {
+          if (!old?.data) return old;
+          return {
+            ...old,
+            data: old.data.filter((p) => p.id !== propertyId),
+          };
+        },
+      );
       return { previous };
     },
     onError: (err, _variables, context) => {
@@ -250,28 +261,32 @@ function AdminDashboardPage() {
 
   const rejectMutation = useMutation({
     mutationFn: async (propertyId: string) => {
-      const res = await apiClient.patch(
-        `/api/properties/${propertyId}/approve`,
-        { isActive: false },
-      );
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Failed to reject property");
+      const formData = new FormData();
+      formData.append("propertyId", propertyId);
+      formData.append("isActive", "false");
+      const result = await approvePropertyAction(undefined, formData);
+      if (!result.success) {
+        throw new Error(result.error || "Failed to reject property");
       }
-      return res.data;
+      return result.data;
     },
     onMutate: async (propertyId) => {
       await queryClient.cancelQueries({
         queryKey: ["admin-pending-properties"],
       });
-      const previous = queryClient.getQueryData(["admin-pending-properties"]);
-      queryClient.setQueryData(["admin-pending-properties"], (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          data: old.data.filter((p: any) => p.id !== propertyId),
-        };
-      });
+      const previous = queryClient.getQueryData<PendingPropertiesCacheData>([
+        "admin-pending-properties",
+      ]);
+      queryClient.setQueryData<PendingPropertiesCacheData>(
+        ["admin-pending-properties"],
+        (old) => {
+          if (!old?.data) return old;
+          return {
+            ...old,
+            data: old.data.filter((p) => p.id !== propertyId),
+          };
+        },
+      );
       return { previous };
     },
     onError: (err, _variables, context) => {

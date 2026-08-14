@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { useParams, useRouter } from "next/navigation";
 import { Link } from "@/config";
@@ -30,7 +30,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import type { Property } from "@/db/schema";
 import { updatePropertySchema, type UpdatePropertyInput } from "@/lib/zod";
-import { apiClient } from "@/lib/axios";
+import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
+import { updatePropertyAction, deletePropertyAction } from "@/actions/properties";
 
 const propertyTypeOptions = [
   { value: "kost", label: "Kost" },
@@ -64,6 +65,7 @@ export default function PropertyDetailPage() {
   const [description, setDescription] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const {
     data,
@@ -73,8 +75,8 @@ export default function PropertyDetailPage() {
   } = useQuery<Property | undefined>({
     queryKey: ["property", id],
     queryFn: async () => {
-      const response = await apiClient.get(`/api/properties/${id}`);
-      const body = response.data as { data?: Property };
+      const response = await fetch(`/api/properties/${id}`);
+      const body = await response.json();
       return body.data;
     },
     staleTime: 30000,
@@ -95,27 +97,76 @@ export default function PropertyDetailPage() {
     }
   }, [property]);
 
-  const updateMutation = useMutation({
-    mutationFn: async (payload: UpdatePropertyInput) => {
-      const { data } = await apiClient.put(`/api/properties/${id}`, payload);
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["properties"] });
-      queryClient.invalidateQueries({ queryKey: ["property", id] });
-    },
-  });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
 
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      const { data } = await apiClient.delete(`/api/properties/${id}`);
-      return data;
-    },
-    onSuccess: () => {
+    const payload: UpdatePropertyInput = {
+      title,
+      type,
+      address,
+      description: description || undefined,
+      city: city || undefined,
+      basePrice: basePrice || undefined,
+      amenities,
+      status: "aktif",
+    };
+
+    const result = updatePropertySchema.safeParse(payload);
+    if (!result.success) {
+      setError(
+        result.error.issues
+          .map((i) => `${i.path.join(".")}: ${i.message}`)
+          .join(", "),
+      );
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append("propertyId", id!);
+      Object.entries(result.data).forEach(([key, value]) => {
+        if (value !== undefined) {
+          if (Array.isArray(value)) {
+            formData.append(key, JSON.stringify(value));
+          } else if (typeof value === "object") {
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, String(value));
+          }
+        }
+      });
+      const actionResult = await updatePropertyAction(undefined, formData);
+      if (actionResult.success) {
+        queryClient.invalidateQueries({ queryKey: ["properties"] });
+        queryClient.invalidateQueries({ queryKey: ["property", id] });
+        showToastSuccess("Properti berhasil diperbarui");
+        setError(null);
+      } else if (actionResult.error) {
+        setError(actionResult.error);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal memperbarui properti.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    const formData = new FormData();
+    formData.append("propertyId", id!);
+    const result = await deletePropertyAction(undefined, formData);
+    if (result.success) {
       queryClient.invalidateQueries({ queryKey: ["properties"] });
+      showToastSuccess("Properti berhasil dihapus");
       router.push("/owner/properties");
-    },
-  });
+    } else if (result.error) {
+      showToastError(result.error);
+    }
+    setIsDeleting(false);
+  };
 
   if (isLoading) {
     return (
@@ -171,44 +222,6 @@ export default function PropertyDetailPage() {
 
   const removeAmenity = (value: string) => {
     setAmenities(amenities.filter((a) => a !== value));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    const payload: UpdatePropertyInput = {
-      title,
-      type,
-      address,
-      description: description || undefined,
-      city: city || undefined,
-      basePrice: basePrice || undefined,
-      amenities,
-      status: "aktif",
-    };
-
-    const result = updatePropertySchema.safeParse(payload);
-    if (!result.success) {
-      setError(
-        result.error.issues
-          .map((i) => `${i.path.join(".")}: ${i.message}`)
-          .join(", "),
-      );
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await updateMutation.mutateAsync(result.data);
-      setError(null);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Gagal memperbarui properti.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   return (
@@ -384,7 +397,7 @@ export default function PropertyDetailPage() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
+<div className="flex items-center justify-between">
           <Dialog>
             <DialogTrigger render={<Button variant="destructive" />}>
               Hapus Properti
@@ -394,19 +407,15 @@ export default function PropertyDetailPage() {
                 <DialogTitle>Konfirmasi Hapus</DialogTitle>
               </DialogHeader>
               <p className="text-sm text-muted-foreground">
-                Apakah Anda yakin ingin menghapus properti &quot;{property.name}
-                &quot;? Tindakan ini tidak dapat dibatalkan.
+                Apakah Anda yakin ingin menghapus properti "{property.name}
+                "? Tindakan ini tidak dapat dibatalkan.
               </p>
               <div className="flex justify-end gap-2">
                 <DialogTrigger render={<Button variant="outline" />}>
                   Batal
                 </DialogTrigger>
-                <Button
-                  variant="destructive"
-                  disabled={deleteMutation.isPending}
-                  onClick={() => deleteMutation.mutate()}
-                >
-                  {deleteMutation.isPending ? "Menghapus..." : "Hapus"}
+                <Button variant="destructive" disabled={isDeleting} onClick={handleDelete}>
+                  {isDeleting ? "Menghapus..." : "Hapus"}
                 </Button>
               </div>
             </DialogContent>

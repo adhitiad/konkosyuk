@@ -13,7 +13,10 @@ export function WishlistButton({ propertyId, initialFavorited }: WishlistButtonP
   const [state, formAction, pending] = useActionState<
     ToggleWishlistState,
     FormData
-  >(toggleWishlist, {});
+  >(
+    async (state, formData) => toggleWishlist(state, formData),
+    { success: false },
+  );
 
   const [optimisticFavorited, setOptimisticFavorited] = useOptimistic(
     initialFavorited,
@@ -24,9 +27,9 @@ export function WishlistButton({ propertyId, initialFavorited }: WishlistButtonP
     startTransition(async () => {
       const formData = new FormData();
       formData.set("propertyId", propertyId);
-      const result = await formAction(formData);
-      if (result?.success && result.favorited !== undefined) {
-        setOptimisticFavorited(result.favorited);
+      formAction(formData);
+      if (state?.success && state.favorited !== undefined) {
+        setOptimisticFavorited(state.favorited);
       }
     });
   };

@@ -6,6 +6,7 @@ import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
+import type { Role } from "@/lib/auth";
 
 const updateTicketSchema = z.object({
   status: z
@@ -66,7 +67,7 @@ export async function PATCH(
   try {
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
-    const session = await requireSession(["owner", "admin"] as any[]);
+    const session = await requireSession(["owner", "admin"]);
     const { id } = await params;
     const body = updateTicketSchema.parse(await req.json());
 

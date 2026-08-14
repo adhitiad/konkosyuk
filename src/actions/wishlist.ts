@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { wishlists, properties } from "@/db/schema";
+import { favorites, properties } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -31,34 +31,34 @@ export async function toggleWishlist(
     });
 
     if (!session?.user?.id) {
-      return { error: "Unauthorized", success: false };
+      return { error: "Tidak terotorisasi", success: false };
     }
 
     const [existing] = await db
       .select()
-      .from(wishlists)
+      .from(favorites)
       .where(
         and(
-          eq(wishlists.userId, session.user.id),
-          eq(wishlists.propertyId, validated.propertyId),
+          eq(favorites.userId, session.user.id),
+          eq(favorites.propertyId, validated.propertyId),
         ),
       )
       .limit(1);
 
     if (existing) {
       await db
-        .delete(wishlists)
+        .delete(favorites)
         .where(
           and(
-            eq(wishlists.userId, session.user.id),
-            eq(wishlists.propertyId, validated.propertyId),
+            eq(favorites.userId, session.user.id),
+            eq(favorites.propertyId, validated.propertyId),
           ),
         );
 
       return { success: true, favorited: false };
     }
 
-    await db.insert(wishlists).values({
+    await db.insert(favorites).values({
       userId: session.user.id,
       propertyId: validated.propertyId,
     });
@@ -66,40 +66,40 @@ export async function toggleWishlist(
     return { success: true, favorited: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Invalid input", success: false };
+      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
     }
-    return { error: "Failed to update wishlist", success: false };
+    return { error: "Gagal memperbarui favorit", success: false };
   }
 }
 
-export async function getWishlist() {
+export async function getFavorites() {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
     });
 
     if (!session?.user?.id) {
-      return { error: "Unauthorized", success: false };
+      return { error: "Tidak terotorisasi", success: false };
     }
 
     const data = await db
       .select({
-        id: wishlists.id,
-        propertyId: wishlists.propertyId,
-        createdAt: wishlists.createdAt,
+        id: favorites.id,
+        propertyId: favorites.propertyId,
+        createdAt: favorites.createdAt,
         propertyName: properties.name,
         propertyAddress: properties.address,
         propertyType: properties.type,
         propertyBasePrice: properties.basePrice,
         propertyImages: properties.images,
       })
-      .from(wishlists)
-      .leftJoin(properties, eq(wishlists.propertyId, properties.id))
-      .where(eq(wishlists.userId, session.user.id))
-      .orderBy(desc(wishlists.createdAt));
+      .from(favorites)
+      .leftJoin(properties, eq(favorites.propertyId, properties.id))
+      .where(eq(favorites.userId, session.user.id))
+      .orderBy(desc(favorites.createdAt));
 
     return { success: true, data, meta: { total: data.length } };
   } catch (error) {
-    return { error: "Failed to fetch wishlist", success: false };
+    return { error: "Gagal mengambil favorit", success: false };
   }
 }

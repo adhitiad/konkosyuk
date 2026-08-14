@@ -7,7 +7,7 @@ export async function logAudit(
   action: string,
   targetType: string,
   targetId: string,
-  details?: any,
+  details?: Record<string, unknown>,
 ) {
   const payload: NewAuditLog = {
     adminId,

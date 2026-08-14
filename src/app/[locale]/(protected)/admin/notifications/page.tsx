@@ -22,8 +22,9 @@ import { CheckCircle2 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import type { Role } from "@/lib/auth";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
-import { apiClient } from "@/lib/axios";
 import { withAdminAuth } from "@/lib/with-admin-auth";
+import { adminUpdateNotificationAction } from "@/actions/notifications";
+import { apiClient } from "@/lib/axios";
 
 interface AdminNotification {
   id: string;
@@ -86,11 +87,12 @@ function AdminNotificationsPage() {
 
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: string) => {
-      const { data } = await apiClient.patch("/api/admin/notifications", {
-        notificationId,
-        isRead: true,
-      });
-      return data;
+      const formData = new FormData();
+      formData.append("notificationId", notificationId);
+      formData.append("isRead", "true");
+      const result = await adminUpdateNotificationAction(undefined, formData);
+      if (result.error) throw new Error(result.error);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-notifications"] });

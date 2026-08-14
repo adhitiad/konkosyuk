@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useActionState } from "react";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
@@ -48,7 +49,7 @@ import { ROLE_OPTIONS, getRoleBadgeVariant } from "@/lib/constants/user";
 import { FaCheck, FaTimes, FaTrash } from "react-icons/fa";
 import Link from "next/link";
 import { ImageUpload } from "@/components/ui/image-upload";
-import { set } from "better-auth";
+import { updateUserAction, deleteUserAction } from "@/actions/admin/users";
 
 interface User {
   id: string;
@@ -67,7 +68,9 @@ interface UsersResponse {
   };
 }
 
-const AdminUsersPage = () => {
+interface AdminUsersPageProps {}
+
+const AdminUsersPage = ({}: AdminUsersPageProps) => {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
@@ -115,27 +118,34 @@ const AdminUsersPage = () => {
       userId,
       name,
       role,
+      isActive,
+      isBanned,
     }: {
       userId: string;
       name?: string;
       role?: string;
+      isActive?: boolean;
+      isBanned?: boolean;
     }) => {
-      const res = await apiClient.patch(`/api/admin/users/${userId}`, {
-        name,
-        role,
-      });
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Failed to update user");
+      const formData = new FormData();
+      formData.append("id", userId);
+      if (name !== undefined) formData.append("name", name);
+      if (role !== undefined) formData.append("role", role);
+      if (isActive !== undefined) formData.append("isActive", String(isActive));
+      if (isBanned !== undefined) formData.append("isBanned", String(isBanned));
+      
+      const result = await updateUserAction(undefined, formData);
+      if (!result.success) {
+        throw new Error(result.error || "Failed to update user");
       }
-      return res.data;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
       toast({
-        title: "User updated",
-        description: "User data has been changed.",
+        title: "User diperbarui",
+        description: "Data user telah diubah.",
         type: "success",
       });
       setSelectedUser(null);
@@ -152,19 +162,21 @@ const AdminUsersPage = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const res = await apiClient.delete(`/api/admin/users/${userId}`);
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Failed to delete user");
+      const formData = new FormData();
+      formData.append("id", userId);
+      
+      const result = await deleteUserAction(undefined, formData);
+      if (!result.success) {
+        throw new Error(result.error || "Failed to delete user");
       }
-      return res.data;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
       toast({
-        title: "User deleted",
-        description: "User has been removed.",
+        title: "User dihapus",
+        description: "User telah dihapus.",
         type: "success",
       });
       setDeleteTarget(null);
@@ -704,4 +716,4 @@ const AdminUsersPage = () => {
   );
 };
 
-export default withAdminAuth(AdminUsersPage as any);
+export default withAdminAuth(AdminUsersPage);

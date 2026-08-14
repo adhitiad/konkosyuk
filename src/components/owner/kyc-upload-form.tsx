@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,8 +14,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
-import { apiClient } from "@/lib/axios";
-import { csrfFetch } from "@/lib/axios";
+import { submitKycAction } from "@/actions/kyc";
 
 export function KYCUploadForm({ onSuccess }: { onSuccess?: () => void }) {
   const [ktpNumber, setKtpNumber] = useState("");
@@ -22,9 +22,9 @@ export function KYCUploadForm({ onSuccess }: { onSuccess?: () => void }) {
   const [ktpFile, setKtpFile] = useState<File | null>(null);
   const [ktpPreview, setKtpPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [state, formAction, isPending] = useActionState(submitKycAction, undefined);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -45,7 +45,7 @@ export function KYCUploadForm({ onSuccess }: { onSuccess?: () => void }) {
       formData.append("file", file);
       formData.append("type", "ktp");
 
-      const res = await csrfFetch("/api/upload", {
+      const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
@@ -75,49 +75,26 @@ export function KYCUploadForm({ onSuccess }: { onSuccess?: () => void }) {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    try {
-      if (!ktpImageUrl) {
-        setError("Upload foto KTP terlebih dahulu");
-        setLoading(false);
-        return;
-      }
-
-      const res = await apiClient.post("/api/owner/kyc/submit", {
-        ktpNumber,
-        ktpImageUrl,
-      });
-
-      const data = res.data;
-
-      if (res.status >= 400) {
-        setError(data.error || "Gagal mengirim KYC");
-        showToastError("Gagal mengunggah dokumen. Coba lagi.");
-        return;
-      }
-
-      setKtpNumber("");
-      setKtpImageUrl("");
-      setKtpFile(null);
-      setKtpPreview(null);
-      showToastSuccess(
-        "Dokumen KYC terkirim! Admin akan memverifikasi dalam 5-25 menit.",
-      );
-      onSuccess?.();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
-      showToastError("Gagal mengunggah dokumen. Coba lagi.");
-    } finally {
-      setLoading(false);
-    }
+  const handleSubmit = (formData: FormData) => {
+    formAction(formData);
   };
 
+  if (state?.success) {
+    setKtpNumber("");
+    setKtpImageUrl("");
+    setKtpFile(null);
+    setKtpPreview(null);
+    showToastSuccess(
+      "Dokumen KYC terkirim! Admin akan memverifikasi dalam 5-25 menit.",
+    );
+    onSuccess?.();
+  } else if (state?.error) {
+    setError(state.error);
+    showToastError("Gagal mengunggah dokumen. Coba lagi.");
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form action={handleSubmit} className="space-y-4">
       <Alert>
         <HugeiconsIcon
           icon={InformationCircleIcon}
@@ -134,6 +111,7 @@ export function KYCUploadForm({ onSuccess }: { onSuccess?: () => void }) {
         <Label htmlFor="ktpNumber">NIK KTP (16 digit)</Label>
         <Input
           id="ktpNumber"
+          name="ktpNumber"
           value={ktpNumber}
           onChange={(e) =>
             setKtpNumber(e.target.value.replace(/\D/g, "").slice(0, 16))
@@ -212,12 +190,14 @@ export function KYCUploadForm({ onSuccess }: { onSuccess?: () => void }) {
         )}
       </div>
 
+      <input type="hidden" name="ktpImageUrl" value={ktpImageUrl} />
+
       <Button
         type="submit"
         className="w-full"
-        disabled={loading || !ktpImageUrl}
+        disabled={isPending || !ktpImageUrl}
       >
-        {loading ? "Mengirim..." : "Kirim untuk Verifikasi"}
+        {isPending ? "Mengirim..." : "Kirim untuk Verifikasi"}
       </Button>
     </form>
   );

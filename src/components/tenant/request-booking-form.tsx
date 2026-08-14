@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useActionState, useEffect } from "react";
 import { useSession } from "@/lib/auth-client";
 import {
   Dialog,
@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
-import { apiClient } from "@/lib/axios";
+import { createBookingRequestAction } from "@/actions/booking-requests";
 
 export interface PricingTier {
   id: string;
@@ -52,7 +52,10 @@ export default function RequestBookingForm({
   const [open, setOpen] = useState(false);
   const [numOccupants, setNumOccupants] = useState(1);
   const [startDate, setStartDate] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [formState, formAction, isPending] = useActionState(
+    createBookingRequestAction,
+    { success: undefined, error: undefined, data: undefined },
+  );
   const [error, setError] = useState<string | null>(null);
 
   const capacity =
@@ -81,7 +84,7 @@ export default function RequestBookingForm({
     return `${year}-${month}-${day}`;
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
@@ -99,41 +102,29 @@ export default function RequestBookingForm({
       setError("Jumlah orang melebihi kapasitas kamar");
       return;
     }
+  };
 
-    setLoading(true);
-    try {
-      const res = await apiClient.post("/api/tenant/booking-requests", {
-        unitId,
-        propertyId,
-        numOccupants,
-        startDate: new Date(startDate).toISOString(),
-      });
+  const handleFormAction = async (formData: FormData) => {
+    formData.append("unitId", unitId);
+    formData.append("propertyId", propertyId);
+    formData.append("numOccupants", String(numOccupants));
+    formData.append("startDate", new Date(startDate).toISOString());
+    await formAction(formData);
+  };
 
-      if (res.status >= 400) {
-        throw new Error(res.data?.error ?? "Gagal mengirim permintaan booking");
-      }
-
+  useEffect(() => {
+    if (formState?.error) {
+      setError(formState.error);
+      showToastError(formState.error);
+    } else if (formState?.success) {
       showToastSuccess(
         "Permintaan booking berhasil dikirim. Silakan tunggu approval pemilik.",
       );
       setOpen(false);
       setNumOccupants(1);
       setStartDate("");
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Gagal mengirim permintaan booking",
-      );
-      showToastError(
-        err instanceof Error
-          ? err.message
-          : "Gagal mengirim permintaan booking",
-      );
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [formState, setOpen]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -143,7 +134,7 @@ export default function RequestBookingForm({
           <DialogTitle>Minta Sewa Kamar</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form action={handleFormAction} className="space-y-4">
           {error && (
             <Alert variant="destructive">
               <HugeiconsIcon
@@ -208,9 +199,9 @@ export default function RequestBookingForm({
             </Button>
             <Button
               type="submit"
-              disabled={loading || isOverCapacity || estimatedPrice === null}
+              disabled={isPending || isOverCapacity || estimatedPrice === null}
             >
-              {loading ? "Mengirim..." : "Kirim Permintaan Sewa"}
+              {isPending ? "Mengirim..." : "Kirim Permintaan Sewa"}
             </Button>
           </div>
         </form>

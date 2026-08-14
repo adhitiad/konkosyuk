@@ -39,6 +39,7 @@ import {
   Cell,
   ResponsiveContainer,
   Tooltip,
+  type PieLabelRenderProps,
 } from "recharts";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon } from "@hugeicons/core-free-icons";
@@ -448,7 +449,7 @@ function AdminDemographicsPage() {
                       cx="50%"
                       cy="50%"
                       outerRadius={120}
-                      label={({ name, percent }: any) =>
+                      label={({ name, percent }: PieLabelRenderProps) =>
                         `${name || ""}: ${((percent ?? 0) * 100).toFixed(1)}%`
                       }
                     >
@@ -460,8 +461,8 @@ function AdminDemographicsPage() {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value: any) => [
-                        `${value} ${filterType === "user" ? "User" : "Owner"}`,
+                      formatter={(value: unknown) => [
+                        `${Number(value ?? 0)} ${filterType === "user" ? "User" : "Owner"}`,
                         "Jumlah",
                       ]}
                     />

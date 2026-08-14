@@ -44,6 +44,7 @@ import {
   PROVINCES,
   CITIES_BY_PROVINCE,
 } from "@/lib/constants/indonesia-regions";
+import { createPropertyAction } from "@/actions/properties";
 
 interface Unit {
   _tempId: string;
@@ -250,53 +251,58 @@ export default function PropertyWizard() {
     setIsSubmitting(true);
 
     try {
-      const payload = {
-        title: step1.title,
-        type: step1.type as "kost" | "kontrakan",
-        address: step1.address,
-        province: step1.province,
-        city: step1.city,
-        description: step1.description || undefined,
-        packages: step1.packages || undefined,
-        amenities: step1.amenities,
-        images: step1.images,
-        status: "aktif" as const,
-        latitude: step1.latitude,
-        longitude: step1.longitude,
-      };
-
-      const res = await apiClient.post("/api/properties", payload);
-      if (res.status >= 400) {
-        throw new Error(res.data?.error || "Gagal menambahkan properti");
+      const formData = new FormData();
+      formData.append("title", step1.title);
+      formData.append("type", step1.type as "kost" | "kontrakan");
+      formData.append("address", step1.address);
+      formData.append("province", step1.province);
+      formData.append("city", step1.city);
+      if (step1.description) {
+        formData.append("description", step1.description);
+      }
+      if (step1.packages) {
+        formData.append("packages", JSON.stringify(step1.packages));
+      }
+      formData.append("amenities", JSON.stringify(step1.amenities));
+      formData.append("images", JSON.stringify(step1.images));
+      formData.append("status", "aktif");
+      if (step1.latitude !== undefined) {
+        formData.append("latitude", String(step1.latitude));
+      }
+      if (step1.longitude !== undefined) {
+        formData.append("longitude", String(step1.longitude));
       }
 
-      const propertyId = res.data?.data?.id;
-      if (!propertyId) {
-        throw new Error("Gagal mendapatkan ID properti");
-      }
+      const propertyResult = await createPropertyAction(undefined, formData);
 
-      for (const unit of units) {
-        const enrichedUnit = await uploadUnitImages(
-          unit,
-          unitFilesMap[unit._tempId] || [],
-        );
-        const unitRes = await apiClient.post(
-          `/api/owner/properties/${propertyId}/units`,
-          {
-            name: enrichedUnit.name,
-            price: enrichedUnit.price,
-            status: enrichedUnit.status,
-            description: enrichedUnit.description,
-          },
-        );
-        if (unitRes.status >= 400) {
-          throw new Error(unitRes.data?.error || "Gagal menambahkan unit");
+      if (propertyResult.success && propertyResult.data?.id) {
+        const propertyId = propertyResult.data.id;
+
+        for (const unit of units) {
+          const enrichedUnit = await uploadUnitImages(
+            unit,
+            unitFilesMap[unit._tempId] || [],
+          );
+          const unitRes = await apiClient.post(
+            `/api/owner/properties/${propertyId}/units`,
+            {
+              name: enrichedUnit.name,
+              price: enrichedUnit.price,
+              status: enrichedUnit.status,
+              description: enrichedUnit.description,
+            },
+          );
+          if (unitRes.status >= 400) {
+            throw new Error(unitRes.data?.error || "Gagal menambahkan unit");
+          }
         }
-      }
 
-      queryClient.invalidateQueries({ queryKey: ["properties"] });
-      alert("Properti dan unit berhasil disimpan!");
-      window.location.href = "/owner/properties";
+        queryClient.invalidateQueries({ queryKey: ["properties"] });
+        alert("Properti dan unit berhasil disimpan!");
+        window.location.href = "/owner/properties";
+      } else {
+        throw new Error(propertyResult.error || "Gagal membuat properti");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal menyimpan data");
     } finally {

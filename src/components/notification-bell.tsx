@@ -5,7 +5,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
-import { apiClient } from "@/lib/axios";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { markAllNotificationsReadAction, updateNotificationAction } from "@/actions/notifications";
+import { apiClient } from "@/lib/axios";
 
 type Notification = {
   id: string;
@@ -39,9 +40,24 @@ export default function NotificationBell() {
     enabled: Boolean(session),
     queryFn: async () => (await apiClient.get("/api/notifications")).data,
   });
-  const markAsRead = useMutation({
-    mutationFn: (id: string) =>
-      apiClient.patch(`/api/notifications/${id}/read`),
+  const markAllAsRead = useMutation({
+    mutationFn: async () => {
+      const formData = new FormData();
+      const result = await markAllNotificationsReadAction(undefined, formData);
+      if (result.error) throw new Error(result.error);
+      return result.data;
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+  const markAsReadMutation = useMutation({
+    mutationFn: async (notificationId: string) => {
+      const formData = new FormData();
+      formData.append("notificationId", notificationId);
+      const result = await updateNotificationAction(undefined, formData);
+      if (result.error) throw new Error(result.error);
+      return result.data;
+    },
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["notifications"] }),
   });
@@ -82,7 +98,7 @@ export default function NotificationBell() {
   if (!mounted || !session) return null;
   const role = (session.user as { role?: string }).role;
   const openNotification = (notification: Notification) => {
-    if (!notification.isRead) markAsRead.mutate(notification.id);
+    if (!notification.isRead) markAsReadMutation.mutate(notification.id);
     if (notification.type === "report" && notification.referenceId)
       router.push(
         role === "admin"
@@ -122,15 +138,13 @@ export default function NotificationBell() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() =>
-              apiClient
-                .patch("/api/notifications/read-all")
-                .then(() =>
-                  queryClient.invalidateQueries({
-                    queryKey: ["notifications"],
-                  }),
-                )
-            }
+            onClick={async () => {
+              const formData = new FormData();
+              const result = await markAllNotificationsReadAction(undefined, formData);
+              if (result.success) {
+                queryClient.invalidateQueries({ queryKey: ["notifications"] });
+              }
+            }}
           >
             Tandai semua dibaca
           </Button>

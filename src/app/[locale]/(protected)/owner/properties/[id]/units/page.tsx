@@ -35,7 +35,7 @@ import { AlertCircleIcon, Add01Icon } from "@hugeicons/core-free-icons";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import AddUnitDialog from "./add-unit-dialog";
 import type { Unit } from "@/db/schema";
-import { apiClient } from "@/lib/axios";
+import { updateUnitAction, UpdateUnitState } from "@/actions/units";
 
 interface UnitResponse {
   data: Unit[];
@@ -73,32 +73,29 @@ export default function UnitsPage() {
   const { data, isLoading, isError, error } = useQuery<UnitResponse>({
     queryKey: ["units", propertyId],
     queryFn: async () => {
-      const { data } = await apiClient.get("/api/units", {
-        params: { propertyId },
-      });
+      const res = await fetch(`/api/units?propertyId=${propertyId}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal memuat data unit.");
       return data;
     },
     staleTime: 30000,
     enabled: !!propertyId,
   });
 
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({
-      unitId,
-      status,
-    }: {
-      unitId: string;
-      status: string;
-    }) => {
-      const { data } = await apiClient.patch(`/api/units/${unitId}`, {
-        status,
-      });
-      return data;
-    },
-    onSuccess: () => {
+  const handleStatusChange = async (unitId: string, status: string) => {
+    const formData = new FormData();
+    formData.append("id", unitId);
+    formData.append("status", status);
+
+    const result: UpdateUnitState = await updateUnitAction(undefined, formData);
+
+    if (result.success) {
       queryClient.invalidateQueries({ queryKey: ["units", propertyId] });
-    },
-  });
+    } else {
+      // Show error toast or set error state
+      console.error("Failed to update unit:", result.error);
+    }
+  };
 
   const units = data?.data ?? [];
 
@@ -209,10 +206,7 @@ export default function UnitsPage() {
                           value={unit.status}
                           onValueChange={(value) =>
                             value &&
-                            updateStatusMutation.mutate({
-                              unitId: unit.id,
-                              status: value,
-                            })
+                            handleStatusChange(unit.id, value)
                           }
                         >
                           <SelectTrigger className="w-40">
