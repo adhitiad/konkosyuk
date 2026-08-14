@@ -7,6 +7,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Upload01Icon, Delete01Icon } from "@hugeicons/core-free-icons";
 import { toast } from "@/components/ui/toast";
 import { apiClient } from "@/lib/axios";
+import imageCompression from "browser-image-compression";
 
 interface ImageUploaderProps {
   value?: string[];
@@ -45,6 +46,19 @@ export default function ImageUploader({
     return true;
   };
 
+  const compressImage = async (file: File): Promise<File> => {
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+    };
+    try {
+      return await imageCompression(file, options);
+    } catch {
+      return file;
+    }
+  };
+
   const handleFiles = useCallback(
     async (files: FileList | File[]) => {
       if (value.length + files.length > maxFiles) {
@@ -61,8 +75,9 @@ export default function ImageUploader({
         const uploadPromises = Array.from(files).map(async (file) => {
           if (!validateFile(file)) return null;
 
+          const compressedFile = await compressImage(file);
           const formData = new FormData();
-          formData.append("file", file);
+          formData.append("file", compressedFile);
 
           const { data } = await apiClient.post("/api/upload", formData, {
             headers: {

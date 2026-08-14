@@ -1,8 +1,11 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import * as Sentry from '@sentry/nextjs';
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  compress: true,
+  reactStrictMode: true,
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
@@ -30,9 +33,40 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "tiles.stadiamaps.com",
+      },
+      {
+        protocol: "https",
+        hostname: "basemaps.cartocdn.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.cartocdn.com",
+      },
     ],
+    minimumCacheTTL: 60 * 60 * 24 * 365,
+    dangerouslyAllowSVG: true,
+    contentDispositionType: "attachment",
   },
   turbopack: {},
+  experimental: {
+    optimizePackageImports: [
+      "@tanstack/react-query",
+      "framer-motion",
+      "react-map-gl/maplibre",
+      "maplibre-gl",
+      "lucide-react",
+      "@hugeicons/react",
+      "@hugeicons/core-free-icons",
+      "recharts",
+      "date-fns",
+    ],
+    scrollRestoration: true,
+    ppr: true,
+    typedRoutes: true,
+  },
   async headers() {
     const isProd = process.env.NODE_ENV === "production";
 
@@ -92,7 +126,7 @@ const nextConfig: NextConfig = {
                 ? "script-src 'self' https://translate.google.com"
                 : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://translate.google.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "img-src 'self' data: blob: https://*.uploadthing.com https://utfs.io https://res.cloudinary.com https://*.placehold.co https://via.placeholder.com https://images.unsplash.com https://cdn.jsdelivr.net",
+              "img-src 'self' data: blob: https://*.uploadthing.com https://utfs.io https://res.cloudinary.com https://*.placehold.co https://via.placeholder.com https://images.unsplash.com https://cdn.jsdelivr.net https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://*.cartocdn.com",
               "font-src 'self' data: https://fonts.gstatic.com",
               "connect-src 'self' https://translate.google.com https://translate.googleapis.com https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://tiles.openstreetmap.org https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://*.cartocdn.com https://*.cartodb.com https://api.maptiler.com https://tiles.maptiler.com https://*.maptiler.com blob: data: ws: wss:",
               "frame-src 'self' https://translate.google.com",
@@ -115,3 +149,4 @@ const nextConfig: NextConfig = {
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 export default withNextIntl(nextConfig);
+

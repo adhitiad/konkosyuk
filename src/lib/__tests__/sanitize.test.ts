@@ -68,7 +68,7 @@ describe("sanitizeMetadata", () => {
   it("sanitizes metadata object", () => {
     const metadata = { description: "<p>Test</p>", count: 5 };
     const result = sanitizeMetadata(metadata);
-    expect(result.description).toBe("&lt;p&gt;Test&lt;&#x2F;p&gt;");
-    expect(result.count).toBe(5);
+    expect((result as Record<string, unknown>).description).toBe("&lt;p&gt;Test&lt;&#x2F;p&gt;");
+    expect((result as Record<string, unknown>).count).toBe(5);
   });
 });

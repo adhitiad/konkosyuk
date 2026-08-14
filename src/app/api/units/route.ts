@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { units, properties } from "@/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -7,51 +7,79 @@ import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { createUnitSchema, unitQuerySchema } from "@/lib/zod";
 import type { Role } from "@/lib/auth";
+import { logError, logApiRequest } from "@/lib/logger";
+import { getCachedData, buildCacheKey, invalidateCacheByTag } from "@/lib/cache";
 
 export async function GET(req: NextRequest) {
+  const startTime = Date.now();
+  
   try {
     const query = unitQuerySchema.parse(
       Object.fromEntries(req.nextUrl.searchParams),
     );
     const { page, limit, propertyId, status } = query;
 
-    const conditions = [];
-    if (propertyId) {
-      conditions.push(eq(units.propertyId, propertyId));
-    }
-    if (status) {
-      conditions.push(eq(units.status, status));
-    }
-
-    const where = conditions.length > 0 ? and(...conditions) : undefined;
-
-    const offset = (page - 1) * limit;
-
-    const [data, [{ count }]] = await Promise.all([
-      db
-        .select()
-        .from(units)
-        .where(where)
-        .orderBy(desc(units.createdAt))
-        .limit(limit)
-        .offset(offset),
-      db
-        .select({ count: sql<number>`count(*)` })
-        .from(units)
-        .where(where),
-    ]);
-
-    return ok({
-      data,
-      meta: {
-        page,
-        limit,
-        total: Number(count),
-        totalPages: Math.ceil(Number(count) / limit),
-      },
+    const cacheKey = buildCacheKey("units", {
+      propertyId: propertyId ?? "all",
+      status: status ?? "all",
+      page,
+      limit,
     });
+
+    const result = await getCachedData(
+      cacheKey,
+      async () => {
+        const conditions = [];
+        if (propertyId) {
+          conditions.push(eq(units.propertyId, propertyId));
+        }
+        if (status) {
+          conditions.push(eq(units.status, status));
+        }
+
+        const where = conditions.length > 0 ? and(...conditions) : undefined;
+        const offset = (page - 1) * limit;
+
+        const [data, [{ count }]] = await Promise.all([
+          db
+            .select()
+            .from(units)
+            .where(where)
+            .orderBy(desc(units.createdAt))
+            .limit(limit)
+            .offset(offset),
+          db
+            .select({ count: sql<number>`count(*)` })
+            .from(units)
+            .where(where),
+        ]);
+
+        return {
+          data,
+          meta: {
+            page,
+            limit,
+            total: Number(count),
+            totalPages: Math.ceil(Number(count) / limit),
+          },
+        };
+      },
+      { ttlSeconds: 120, tags: ["units"] }
+    );
+
+    const duration = Date.now() - startTime;
+    logApiRequest("GET", "/api/units", 200, duration);
+
+    return ok(result);
   } catch (error) {
-    return handleApiError(error);
+    const duration = Date.now() - startTime;
+    const statusCode =
+      error instanceof Error && "statusCode" in error
+        ? (error as any).statusCode
+        : 500;
+    logApiRequest("GET", "/api/units", statusCode, duration);
+    logError(error, "GET /api/units");
+    return handleApiError(error, "GET /api/units");
   }
 }
 
@@ -90,8 +118,11 @@ export async function POST(req: NextRequest) {
 
     const [unit] = await db.insert(units).values(body).returning();
 
+    await invalidateCacheByTag("units");
+
     return ok(unit, 201);
   } catch (error) {
-    return handleApiError(error);
+    logError(error, "POST /api/units");
+    return handleApiError(error, "POST /api/units");
   }
 }

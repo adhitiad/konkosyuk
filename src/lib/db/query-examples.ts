@@ -6,6 +6,7 @@ import {
   users,
   propertyTags,
   tags,
+  payments,
 } from "@/db/schema";
 import { eq, and, or, sql, desc, gte, lte, inArray } from "drizzle-orm";
 import {

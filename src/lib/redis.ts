@@ -3,7 +3,7 @@ import Redis from "ioredis";
 
 export type RedisProvider = "upstash" | "redis-cloud" | "local" | "memory";
 
-type RedisValue =
+export type RedisValue =
   string | number | boolean | null | Record<string, unknown> | unknown[];
 
 export interface RedisClient {

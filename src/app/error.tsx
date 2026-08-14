@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import * as Sentry from '@sentry/nextjs';
 
 interface AppErrorProps {
   error: Error & { digest?: string };
@@ -13,7 +14,11 @@ interface AppErrorProps {
 
 export default function Error({ error, reset }: AppErrorProps) {
   useEffect(() => {
-    console.error("Page error:", error);
+    Sentry.captureException(error, {
+      tags: {
+        errorBoundary: 'app',
+      },
+    });
   }, [error]);
 
   return (

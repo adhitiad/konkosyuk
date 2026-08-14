@@ -92,6 +92,20 @@
       "when": 1786609856033,
       "tag": "0012_true_nextwave",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1786692266632,
+      "tag": "0013_cold_deathbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1786694380188,
+      "tag": "0014_worthless_harpoon",
+      "breakpoints": true
     }
   ]
 }

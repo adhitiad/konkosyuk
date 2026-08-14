@@ -8,7 +8,7 @@ import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { createBookingSchema, bookingQuerySchema } from "@/lib/zod";
 import type { Role } from "@/lib/auth";
-import { logError } from "@/lib/logger";
+import { logError, logApiRequest } from "@/lib/logger";
 import {
   getPackageById,
   calculatePackageEndDate,
@@ -16,8 +16,11 @@ import {
   validateBookingPackage,
   calculateCustomPrice,
 } from "@/lib/packages/calculator";
+import { getCachedData, buildCacheKey, invalidateCacheByTag } from "@/lib/cache";
 
 export async function GET(req: NextRequest) {
+  const startTime = Date.now();
+  
   try {
     const session = await requireSession();
     const { searchParams } = new URL(req.url);
@@ -54,48 +57,73 @@ export async function GET(req: NextRequest) {
         : eq(bookings.userId, session.user.id);
     }
 
-    const offset = (page - 1) * limit;
+    const cacheKey = buildCacheKey("bookings", {
+      userId: session.user.id,
+      role: session.user.role,
+      status: statusValue ?? "all",
+      page,
+      limit,
+    });
 
-    const [data, [{ count: totalCount }]] = await Promise.all([
-      db
-        .select({
-          id: bookings.id,
-          propertyId: bookings.propertyId,
-          unitId: bookings.unitId,
-          bookingType: bookings.bookingType,
-          status: bookings.status,
-          startDate: bookings.startDate,
-          endDate: bookings.endDate,
-          metadata: bookings.metadata,
-          rejectionReason: bookings.rejectionReason,
-          createdAt: bookings.createdAt,
-          updatedAt: bookings.updatedAt,
-          propertyName: properties.name,
-          propertyAddress: properties.address,
-          unitName: units.name,
-          unitPrice: units.price,
-          userName: users.name,
-          userEmail: users.email,
-        })
-        .from(bookings)
-        .leftJoin(properties, eq(bookings.propertyId, properties.id))
-        .leftJoin(units, eq(bookings.unitId, units.id))
-        .leftJoin(users, eq(bookings.userId, users.id))
-        .where(where)
-        .orderBy(desc(bookings.createdAt))
-        .limit(limit)
-        .offset(offset),
-      db
-        .select({ count: sql<number>`count(*)` })
-        .from(bookings)
-        .where(where),
-    ]);
+    const result = await getCachedData(
+      cacheKey,
+      async () => {
+        const offset = (page - 1) * limit;
 
-    const total = Number(totalCount);
-    const totalPages = Math.ceil(total / limit);
+        const [data, [{ count: totalCount }]] = await Promise.all([
+          db
+            .select({
+              id: bookings.id,
+              propertyId: bookings.propertyId,
+              unitId: bookings.unitId,
+              bookingType: bookings.bookingType,
+              status: bookings.status,
+              startDate: bookings.startDate,
+              endDate: bookings.endDate,
+              metadata: bookings.metadata,
+              rejectionReason: bookings.rejectionReason,
+              createdAt: bookings.createdAt,
+              updatedAt: bookings.updatedAt,
+              propertyName: properties.name,
+              propertyAddress: properties.address,
+              unitName: units.name,
+              unitPrice: units.price,
+              userName: users.name,
+              userEmail: users.email,
+            })
+            .from(bookings)
+            .leftJoin(properties, eq(bookings.propertyId, properties.id))
+            .leftJoin(units, eq(bookings.unitId, units.id))
+            .leftJoin(users, eq(bookings.userId, users.id))
+            .where(where)
+            .orderBy(desc(bookings.createdAt))
+            .limit(limit)
+            .offset(offset),
+          db
+            .select({ count: sql<number>`count(*)` })
+            .from(bookings)
+            .where(where),
+        ]);
 
-    return ok({ data, meta: { total, page, limit, totalPages } });
+        const total = Number(totalCount);
+        const totalPages = Math.ceil(total / limit);
+
+        return { data, meta: { total, page, limit, totalPages } };
+      },
+      { ttlSeconds: 30, tags: ["bookings"] }
+    );
+
+    const duration = Date.now() - startTime;
+    logApiRequest("GET", "/api/bookings", 200, duration);
+
+    return ok(result);
   } catch (error) {
+    const duration = Date.now() - startTime;
+    const statusCode =
+      error instanceof Error && "statusCode" in error
+        ? (error as any).statusCode
+        : 500;
+    logApiRequest("GET", "/api/bookings", statusCode, duration);
     logError(error, "GET /api/bookings");
     return handleApiError(error, "GET /api/bookings");
   }
@@ -233,6 +261,8 @@ export async function POST(req: NextRequest) {
         },
       })
       .returning();
+
+    await invalidateCacheByTag("bookings");
 
     return ok(
       {

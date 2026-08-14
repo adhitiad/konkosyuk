@@ -60,14 +60,16 @@ const isProduction = process.env.NODE_ENV === 'production'
 export const logger = pino(
   {
     level: isProduction ? 'info' : 'debug',
-    formatter: (log) => {
-      const sanitizedMeta = sanitizeObject(log as Record<string, unknown>)
-      return {
-        timestamp: new Date().toISOString(),
-        level: log.level,
-        message: log.msg,
-        ...sanitizedMeta,
-      }
+    formatters: {
+      log: (log) => {
+        const sanitizedMeta = sanitizeObject(log as Record<string, unknown>)
+        return {
+          timestamp: new Date().toISOString(),
+          level: log.level,
+          message: log.msg,
+          ...sanitizedMeta,
+        }
+      },
     },
     transport: isProduction
       ? undefined
@@ -151,4 +153,26 @@ export function logDatabaseQuery(query: string, duration: number, rowsAffected?:
 export function logPaymentEvent(event: string, provider: string, bookingId?: string, metadata?: LogMetadata) {
   logger.info(
     {
-      cat
+      category: 'payment',
+      event,
+      provider,
+      bookingId,
+      ...sanitizeMetadata(metadata),
+    },
+    `[PAYMENT] ${event}`
+  )
+}
+
+export function logAuthEvent(event: string, userId?: string, metadata?: LogMetadata) {
+  logger.info(
+    {
+      category: 'auth',
+      event,
+      userId,
+      ...sanitizeMetadata(metadata),
+    },
+    `[AUTH] ${event}`
+  )
+}
+
+export default logger

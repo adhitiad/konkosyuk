@@ -14,7 +14,7 @@ export async function getCachedData<T>(
   fetcher: () => Promise<T>,
   options: CacheOptions = {},
 ): Promise<T> {
-  const { ttlSeconds = DEFAULT_TTL, condition = true } = options;
+  const { ttlSeconds = DEFAULT_TTL, tags = [], condition = true } = options;
 
   if (!condition) {
     return fetcher();
@@ -36,6 +36,9 @@ export async function getCachedData<T>(
 
   try {
     await client.set(cacheKey, data as RedisValue, ttlSeconds);
+    if (tags.length > 0) {
+      await setCacheTags(key, tags);
+    }
   } catch {
     // Cache write failed, but data is still returned
   }

@@ -59,6 +59,13 @@ export const maintenanceReportCategory = [
   "furniture",
   "lainnya",
 ] as const;
+export const kycVerificationStatus = [
+  "pending",
+  "approved",
+  "rejected",
+  "expired",
+] as const;
+export const kycDocumentType = ["ktp", "passport", "driving_license"] as const;
 export const maintenanceReportStatus = [
   "pending",
   "in_progress",
@@ -358,6 +365,11 @@ export const properties = pgTable(
     cityIdx: index("properties_city_idx").on(table.city),
     provinceIdx: index("properties_province_idx").on(table.province),
     isActiveIdx: index("properties_is_active_idx").on(table.isActive),
+    ownerActiveCreatedIdx: index("properties_owner_active_created_idx").on(
+      table.ownerId,
+      table.isActive,
+      table.createdAt,
+    ),
     amenitiesGinIdx: index("properties_amenities_gin_idx").using(
       "gin",
       table.amenities,
@@ -389,6 +401,11 @@ export const units = pgTable(
   (table) => ({
     propertyIdIdx: index("units_property_id_idx").on(table.propertyId),
     statusIdx: index("units_status_idx").on(table.status),
+    propertyStatusCreatedIdx: index("units_property_status_created_idx").on(
+      table.propertyId,
+      table.status,
+      table.createdAt,
+    ),
     propertyNameUnique: unique("units_property_id_name_unique").on(
       table.propertyId,
       table.name,
@@ -473,6 +490,16 @@ export const bookings = pgTable(
     propertyIdIdx: index("bookings_property_id_idx").on(table.propertyId),
     unitIdIdx: index("bookings_unit_id_idx").on(table.unitId),
     statusIdx: index("bookings_status_idx").on(table.status),
+    userStatusCreatedIdx: index("bookings_user_status_created_idx").on(
+      table.userId,
+      table.status,
+      table.createdAt,
+    ),
+    propertyStatusCreatedIdx: index("bookings_property_status_created_idx").on(
+      table.propertyId,
+      table.status,
+      table.createdAt,
+    ),
   }),
 );
 
@@ -1134,3 +1161,114 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const chatRooms = pgTable(
+  "chat_rooms",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    propertyId: uuid("property_id")
+      .notNull()
+      .references(() => properties.id, { onDelete: "cascade" }),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    ownerId: uuid("owner_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    lastMessageAt: timestamp("last_message_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    tenantIdIdx: index("chat_rooms_tenant_id_idx").on(table.tenantId),
+    ownerIdIdx: index("chat_rooms_owner_id_idx").on(table.ownerId),
+    propertyIdIdx: index("chat_rooms_property_id_idx").on(table.propertyId),
+    lastMessageAtIdx: index("chat_rooms_last_message_at_idx").on(table.lastMessageAt),
+    tenantOwnerUnique: unique("chat_rooms_tenant_owner_unique").on(
+      table.tenantId,
+      table.ownerId,
+    ),
+  }),
+);
+
+export const chatRoomsRelations = relations(chatRooms, ({ one, many }) => ({
+  property: one(properties, {
+    fields: [chatRooms.propertyId],
+    references: [properties.id],
+  }),
+  tenant: one(users, {
+    fields: [chatRooms.tenantId],
+    references: [users.id],
+  }),
+  owner: one(users, {
+    fields: [chatRooms.ownerId],
+    references: [users.id],
+  }),
+  messages: many(messages),
+}));
+
+export const messages = pgTable(
+  "messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    roomId: uuid("room_id")
+      .notNull()
+      .references(() => chatRooms.id, { onDelete: "cascade" }),
+    senderId: uuid("sender_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    isRead: boolean("is_read").notNull().default(false),
+  },
+  (table) => ({
+    roomIdIdx: index("messages_room_id_idx").on(table.roomId),
+    senderIdIdx: index("messages_sender_id_idx").on(table.senderId),
+    createdAtIdx: index("messages_created_at_idx").on(table.createdAt),
+  }),
+);
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  room: one(chatRooms, {
+    fields: [messages.roomId],
+    references: [chatRooms.id],
+  }),
+  sender: one(users, {
+    fields: [messages.senderId],
+    references: [users.id],
+  }),
+}));
+
+export const kycVerifications = pgTable(
+  "kyc_verifications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    diditSessionId: text("didit_session_id").unique(),
+    status: text("status", { enum: kycVerificationStatus })
+      .notNull()
+      .default("pending"),
+    documentType: text("document_type", { enum: kycDocumentType }),
+    ktpImageUrl: text("ktp_image_url"),
+    selfieImageUrl: text("selfie_image_url"),
+    faceMatchScore: numeric("face_match_score", { precision: 5, scale: 2 }),
+    livenessPassed: boolean("liveness_passed"),
+    rejectionReason: text("rejection_reason"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("kyc_verifications_user_id_idx").on(table.userId),
+    diditSessionIdIdx: index("kyc_verifications_didit_session_id_idx").on(table.diditSessionId),
+    statusIdx: index("kyc_verifications_status_idx").on(table.status),
+  }),
+);
+
+export const kycVerificationsRelations = relations(kycVerifications, ({ one }) => ({
+  user: one(users, {
+    fields: [kycVerifications.userId],
+    references: [users.id],
+  }),
+}));
+

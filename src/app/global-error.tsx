@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import * as Sentry from '@sentry/nextjs';
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };
@@ -13,7 +14,11 @@ interface GlobalErrorProps {
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
-    console.error("Global error:", error);
+    Sentry.captureException(error, {
+      tags: {
+        errorBoundary: 'global',
+      },
+    });
   }, [error]);
 
   return (

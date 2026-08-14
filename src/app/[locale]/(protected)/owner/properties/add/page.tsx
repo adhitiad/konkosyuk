@@ -1,5 +1,11 @@
 import AddPropertyDialog from "../add-property-dialog";
+import { withKycVerified } from "@/lib/with-kyc-verified";
 
-export default function AddPropertyPage() {
+function AddPropertyPage() {
   return <AddPropertyDialog />;
 }
+
+export default withKycVerified(AddPropertyPage, {
+  redirectTo: "/owner/kyc",
+  showKycPrompt: true,
+});

@@ -1,8 +1,10 @@
 import { ApiError, getAxiosInstance } from "./api.client";
 import { logError } from "./logger";
 import { z, ZodError } from "zod";
+import { ApiError as AppApiError, ValidationError, AuthenticationError, AuthorizationError, NotFoundError, ConflictError, RateLimitError, InternalServerError } from "./api-error";
 
 export { ApiError, getAxiosInstance };
+export { AppApiError, ValidationError, AuthenticationError, AuthorizationError, NotFoundError, ConflictError, RateLimitError, InternalServerError };
 
 export function ok(data: unknown, status = 200) {
   return Response.json({ success: true, data }, { status });
@@ -13,9 +15,23 @@ export function fail(message: string, status = 400) {
 }
 
 export function handleApiError(error: unknown, context?: string) {
-  if (error instanceof ApiError) {
-    logError(error, context || "API_ERROR", { statusCode: error.statusCode });
-    return fail(error.message, error.statusCode);
+  if (error instanceof AppApiError) {
+    logError(error, context || "API_ERROR", { 
+      statusCode: error.statusCode,
+      code: error.code,
+      details: error.details,
+    })
+    return Response.json(
+      {
+        success: false,
+        error: {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+        },
+      },
+      { status: error.statusCode }
+    )
   }
 
   if (error instanceof ZodError) {
@@ -24,15 +40,35 @@ export function handleApiError(error: unknown, context?: string) {
       .join(", ");
     logError(error, context || "API_VALIDATION_ERROR", {
       issues: error.issues,
-    });
-    return fail(message, 422);
+    })
+    return Response.json(
+      {
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message,
+          details: error.issues,
+        },
+      },
+      { status: 422 }
+    );
   }
 
   if (error instanceof Error) {
     logError(error, context || "API_ERROR");
 
-    if (error.message === "Unauthorized") return fail("Unauthorized", 401);
-    if (error.message === "Forbidden") return fail("Forbidden", 403);
+    if (error.message === "Unauthorized") {
+      return Response.json(
+        { success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } },
+        { status: 401 }
+      );
+    }
+    if (error.message === "Forbidden") {
+      return Response.json(
+        { success: false, error: { code: 'FORBIDDEN', message: 'Forbidden' } },
+        { status: 403 }
+      );
+    }
 
     const sensitivePatterns = [
       /SELECT.*FROM/i,
@@ -58,9 +94,15 @@ export function handleApiError(error: unknown, context?: string) {
           ? "An internal error occurred"
           : error.message;
 
-    return fail(message, 500);
+    return Response.json(
+      { success: false, error: { code: 'INTERNAL_SERVER_ERROR', message } },
+      { status: 500 }
+    );
   }
 
   logError(new Error("Unknown error"), context || "API_ERROR");
-  return fail("Internal server error", 500);
+  return Response.json(
+    { success: false, error: { code: 'INTERNAL_SERVER_ERROR', message: 'Internal server error' } },
+    { status: 500 }
+  );
 }

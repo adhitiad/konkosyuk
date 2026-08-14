@@ -1,5 +1,21 @@
 import type { Metadata } from "next";
+import { Poppins, Inter } from "next/font/google";
 import "./globals.css";
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-poppins",
+  display: "swap",
+  preload: true,
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+  preload: false,
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://konkosyuk.com"),
@@ -68,8 +84,22 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" suppressHydrationWarning>
-      <body>{children}</body>
+    <html lang="id" suppressHydrationWarning className={`${poppins.variable} ${inter.variable}`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://utfs.io" />
+        <link rel="dns-prefetch" href="https://utfs.io" />
+        <link rel="preconnect" href="https://tiles.stadiamaps.com" />
+        <link rel="dns-prefetch" href="https://tiles.stadiamaps.com" />
+        <link rel="preconnect" href="https://basemaps.cartocdn.com" />
+        <link rel="dns-prefetch" href="https://basemaps.cartocdn.com" />
+      </head>
+      <body className={`${poppins.className} antialiased`}>{children}</body>
     </html>
   );
 }
