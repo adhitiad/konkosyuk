@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
         propertyName: properties.name,
       })
       .from(reviews)
-      .leftJoin(users, eq(reviews.reviewerId, users.id))
+      .leftJoin(users, eq(reviews.createdById, users.id))
       .leftJoin(properties, eq(reviews.propertyId, properties.id))
       .where(whereClause)
       .orderBy(desc(reviews.createdAt));
@@ -123,18 +123,17 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await db.transaction(async (tx) => {
-      const [review] = await tx
+      const [review] = await db
         .insert(reviews)
         .values({
-          reviewerId: session.user.id,
+          createdById: session.user.id,
           reviewedUserId,
           propertyId,
           type: body.type,
           rating: body.rating,
           comment: body.comment,
           bookingId: body.bookingId,
-        })
-        .returning();
+        } as any);
 
       if (body.type === "tenant" && reviewedUserId) {
         const [user] = await tx

@@ -1,18 +1,26 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { reviews, users, properties } from "@/db/schema";
+import { reviews, users, properties, reviewReplies } from "@/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
+import { z } from "zod";
+
+const updateReviewSchema = z.object({
+  rating: z.coerce.number().min(1).max(5).optional(),
+  comment: z.string().max(1000).optional(),
+});
+
+const replySchema = z.object({
+  content: z.string().max(1000),
+});
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const csrfError = validateMutationCsrf(req);
-    if (csrfError) return csrfError;
     const session = await requireSession();
     const { id } = await params;
 
@@ -28,7 +36,7 @@ export async function GET(
         propertyName: properties.name,
       })
       .from(reviews)
-      .leftJoin(users, eq(reviews.reviewerId, users.id))
+      .leftJoin(users, eq(reviews.createdById, users.id))
       .leftJoin(properties, eq(reviews.propertyId, properties.id))
       .where(eq(reviews.id, id))
       .limit(1);
@@ -38,6 +46,50 @@ export async function GET(
     }
 
     return ok(review);
+  } catch (error) {
+    return handleApiError(error);
+  }
+}
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const csrfError = validateMutationCsrf(req);
+    if (csrfError) return csrfError;
+    const session = await requireSession();
+    const { id } = await params;
+    const body = updateReviewSchema.parse(await req.json());
+
+    const [review] = await db
+      .select()
+      .from(reviews)
+      .where(eq(reviews.id, id))
+      .limit(1);
+
+    if (!review) {
+      return fail("Review not found", 404);
+    }
+
+    if (review.createdById !== session.user.id) {
+      return fail("Forbidden", 403);
+    }
+
+    const updateData: Record<string, unknown> = {
+      isEdited: true,
+    };
+
+    if (body.rating !== undefined) updateData.rating = body.rating;
+    if (body.comment !== undefined) updateData.comment = body.comment;
+
+    const [updated] = await db
+      .update(reviews)
+      .set(updateData)
+      .where(eq(reviews.id, id))
+      .returning();
+
+    return ok(updated);
   } catch (error) {
     return handleApiError(error);
   }
@@ -62,7 +114,7 @@ export async function DELETE(
       return fail("Review not found", 404);
     }
 
-    if (!isAdmin && review.reviewerId !== session.user.id) {
+    if (!isAdmin && review.createdById !== session.user.id) {
       return fail("Forbidden", 403);
     }
 
@@ -109,6 +161,54 @@ export async function DELETE(
     });
 
     return ok({ success: true });
+  } catch (error) {
+    return handleApiError(error);
+  }
+}
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const csrfError = validateMutationCsrf(req);
+    if (csrfError) return csrfError;
+    const session = await requireSession();
+    const { id } = await params;
+    const body = replySchema.parse(await req.json());
+
+    const [review] = await db
+      .select()
+      .from(reviews)
+      .where(eq(reviews.id, id))
+      .limit(1);
+
+    if (!review) {
+      return fail("Review not found", 404);
+    }
+
+    const isOwner = review.propertyId && session.user.role === "owner";
+    const isAdmin = session.user.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      return fail("Only property owner or admin can reply", 403);
+    }
+
+    const [reply] = await db
+      .insert(reviewReplies)
+      .values({
+        reviewId: id,
+        userId: session.user.id,
+        content: body.content,
+      })
+      .returning();
+
+    await db
+      .update(reviews)
+      .set({ replyCount: sql`${reviews.replyCount} + 1` })
+      .where(eq(reviews.id, id));
+
+    return ok(reply, 201);
   } catch (error) {
     return handleApiError(error);
   }

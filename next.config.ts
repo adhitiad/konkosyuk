@@ -1,11 +1,12 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
-import * as Sentry from '@sentry/nextjs';
+import * as Sentry from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   output: "standalone",
   compress: true,
   reactStrictMode: true,
+  cacheComponents: true,
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
@@ -64,7 +65,7 @@ const nextConfig: NextConfig = {
       "date-fns",
     ],
     scrollRestoration: true,
-    ppr: true,
+
     typedRoutes: true,
   },
   async headers() {
@@ -149,4 +150,3 @@ const nextConfig: NextConfig = {
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 export default withNextIntl(nextConfig);
-

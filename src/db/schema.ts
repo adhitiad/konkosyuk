@@ -563,11 +563,13 @@ export const webhookEvents = pgTable(
   }),
 );
 
+export const reviewStatus = ["pending", "approved", "rejected"] as const;
+
 export const reviews = pgTable(
   "reviews",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    reviewerId: uuid("reviewer_id")
+    createdById: uuid("created_by_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     reviewedUserId: uuid("reviewed_user_id").references(() => users.id, {
@@ -577,21 +579,39 @@ export const reviews = pgTable(
       onDelete: "cascade",
     }),
     type: text("type", { enum: reviewType }).notNull(),
-    rating: integer("rating").notNull(),
+    rating: numeric("rating", { precision: 3, scale: 2 }).notNull(),
+    cleanliness: numeric("cleanliness", { precision: 3, scale: 2 }).notNull(),
+    security: numeric("security", { precision: 3, scale: 2 }).notNull(),
+    accuracy: numeric("accuracy", { precision: 3, scale: 2 }).notNull(),
+    communication: numeric("communication", { precision: 3, scale: 2 }).notNull(),
+    valueForMoney: numeric("value_for_money", { precision: 3, scale: 2 }).notNull(),
     comment: text("comment").notNull(),
     bookingId: uuid("booking_id")
       .notNull()
       .references(() => bookings.id, { onDelete: "cascade" }),
+    status: text("status", { enum: reviewStatus })
+      .notNull()
+      .default("pending"),
+    isEdited: boolean("is_edited").notNull().default(false),
+    helpfulCount: integer("helpful_count").notNull().default(0),
+    replyCount: integer("reply_count").notNull().default(0),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
   },
   (table) => ({
-    reviewerIdIdx: index("reviews_reviewer_id_idx").on(table.reviewerId),
+    createdByIdIdx: index("reviews_created_by_id_idx").on(table.createdById),
     reviewedUserIdIdx: index("reviews_reviewed_user_id_idx").on(
       table.reviewedUserId,
     ),
     propertyIdIdx: index("reviews_property_id_idx").on(table.propertyId),
     bookingIdIdx: index("reviews_booking_id_idx").on(table.bookingId),
     typeIdx: index("reviews_type_idx").on(table.type),
+    statusIdx: index("reviews_status_idx").on(table.status),
+    propertyUserUnique: unique("reviews_property_user_unique").on(
+      table.propertyId,
+      table.createdById,
+    ),
+    ratingIdx: index("reviews_rating_idx").on(table.rating),
   }),
 );
 
@@ -611,6 +631,28 @@ export const favorites = pgTable(
     userIdIdx: index("favorites_user_id_idx").on(table.userId),
     propertyIdIdx: index("favorites_property_id_idx").on(table.propertyId),
     userPropertyUnique: unique("favorites_user_property_unique").on(
+      table.userId,
+      table.propertyId,
+    ),
+  }),
+);
+
+export const wishlists = pgTable(
+  "wishlists",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    propertyId: uuid("property_id")
+      .notNull()
+      .references(() => properties.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("wishlists_user_id_idx").on(table.userId),
+    propertyIdIdx: index("wishlists_property_id_idx").on(table.propertyId),
+    userPropertyUnique: unique("wishlists_user_property_unique").on(
       table.userId,
       table.propertyId,
     ),
@@ -762,6 +804,12 @@ export type Review = typeof reviews.$inferSelect;
 export type NewReview = typeof reviews.$inferInsert;
 export type Favorite = typeof favorites.$inferSelect;
 export type NewFavorite = typeof favorites.$inferInsert;
+export type Wishlist = typeof wishlists.$inferSelect;
+export type NewWishlist = typeof wishlists.$inferInsert;
+export type UserContract = typeof userContracts.$inferSelect;
+export type NewUserContract = typeof userContracts.$inferInsert;
+export type Feedback = typeof feedbacks.$inferSelect;
+export type NewFeedback = typeof feedbacks.$inferInsert;
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
@@ -802,8 +850,9 @@ export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   properties: many(properties),
   bookings: many(bookings),
-  reviewsGiven: many(reviews, { relationName: "reviewer" }),
+  reviewsGiven: many(reviews, { relationName: "createdBy" }),
   reviewsReceived: many(reviews, { relationName: "reviewedUser" }),
+  wishlists: many(wishlists),
   twoFactors: many(twoFactor),
 }));
 
@@ -836,6 +885,7 @@ export const propertiesRelations = relations(properties, ({ one, many }) => ({
   units: many(units),
   bookings: many(bookings),
   propertyTags: many(propertyTags),
+  wishlists: many(wishlists),
 }));
 
 export const unitsRelations = relations(units, ({ one, many }) => ({
@@ -898,11 +948,10 @@ export const paymentsRelations = relations(payments, ({ one }) => ({
   }),
 }));
 
-export const reviewsRelations = relations(reviews, ({ one }) => ({
-  reviewer: one(users, {
-    fields: [reviews.reviewerId],
+export const reviewsRelations = relations(reviews, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [reviews.createdById],
     references: [users.id],
-    relationName: "reviewer",
   }),
   reviewedUser: one(users, {
     fields: [reviews.reviewedUserId],
@@ -1268,6 +1317,148 @@ export const kycVerifications = pgTable(
 export const kycVerificationsRelations = relations(kycVerifications, ({ one }) => ({
   user: one(users, {
     fields: [kycVerifications.userId],
+    references: [users.id],
+  }),
+}));
+
+export const reviewReplies = pgTable(
+  "review_replies",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    reviewId: uuid("review_id")
+      .notNull()
+      .references(() => reviews.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    reviewIdIdx: index("review_replies_review_id_idx").on(table.reviewId),
+    userIdIdx: index("review_replies_user_id_idx").on(table.userId),
+  }),
+);
+
+export const reviewRepliesRelations = relations(reviewReplies, ({ one }) => ({
+  review: one(reviews, {
+    fields: [reviewReplies.reviewId],
+    references: [reviews.id],
+  }),
+  user: one(users, {
+    fields: [reviewReplies.userId],
+    references: [users.id],
+  }),
+}));
+
+export const propertyRatings = pgTable(
+  "property_ratings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    propertyId: uuid("property_id")
+      .notNull()
+      .references(() => properties.id, { onDelete: "cascade" }),
+    averageRating: numeric("average_rating", { precision: 3, scale: 2 }).notNull().default("0"),
+    totalReviews: integer("total_reviews").notNull().default(0),
+    cleanliness: numeric("cleanliness", { precision: 3, scale: 2 }).notNull().default("0"),
+    security: numeric("security", { precision: 3, scale: 2 }).notNull().default("0"),
+    accuracy: numeric("accuracy", { precision: 3, scale: 2 }).notNull().default("0"),
+    communication: numeric("communication", { precision: 3, scale: 2 }).notNull().default("0"),
+    valueForMoney: numeric("value_for_money", { precision: 3, scale: 2 }).notNull().default("0"),
+    ratingDistribution: jsonb("rating_distribution").$type<Record<number, number>>().default({}),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    propertyIdIdx: unique("property_ratings_property_id_unique").on(table.propertyId),
+  }),
+);
+
+export const propertyRatingsRelations = relations(propertyRatings, ({ one }) => ({
+  property: one(properties, {
+    fields: [propertyRatings.propertyId],
+    references: [properties.id],
+  }),
+}));
+
+export const userContracts = pgTable(
+  "user_contracts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    bookingId: uuid("booking_id")
+      .notNull()
+      .references(() => bookings.id, { onDelete: "cascade" }),
+    propertyId: uuid("property_id")
+      .notNull()
+      .references(() => properties.id, { onDelete: "cascade" }),
+    contractUrl: text("contract_url").notNull(),
+    status: text("contract_status", { enum: ["draft", "generated", "signed", "expired"] })
+      .notNull()
+      .default("generated"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("user_contracts_user_id_idx").on(table.userId),
+    bookingIdIdx: index("user_contracts_booking_id_idx").on(table.bookingId),
+    propertyIdIdx: index("user_contracts_property_id_idx").on(table.propertyId),
+  }),
+);
+
+export const userContractsRelations = relations(userContracts, ({ one }) => ({
+  user: one(users, {
+    fields: [userContracts.userId],
+    references: [users.id],
+  }),
+  booking: one(bookings, {
+    fields: [userContracts.bookingId],
+    references: [bookings.id],
+  }),
+  property: one(properties, {
+    fields: [userContracts.propertyId],
+    references: [properties.id],
+  }),
+}));
+
+export const wishlistsRelations = relations(wishlists, ({ one }) => ({
+  user: one(users, {
+    fields: [wishlists.userId],
+    references: [users.id],
+  }),
+  property: one(properties, {
+    fields: [wishlists.propertyId],
+    references: [properties.id],
+  }),
+}));
+
+export const feedbacks = pgTable(
+  "feedbacks",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    category: text("category", { enum: ["bug", "feature", "improvement", "other"] }).notNull(),
+    message: text("message").notNull(),
+    rating: integer("rating"),
+    status: text("status", { enum: ["pending", "reviewed", "resolved"] })
+      .notNull()
+      .default("pending"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("feedbacks_user_id_idx").on(table.userId),
+    categoryIdx: index("feedbacks_category_idx").on(table.category),
+    statusIdx: index("feedbacks_status_idx").on(table.status),
+  }),
+);
+
+export const feedbacksRelations = relations(feedbacks, ({ one }) => ({
+  user: one(users, {
+    fields: [feedbacks.userId],
     references: [users.id],
   }),
 }));
