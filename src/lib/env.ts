@@ -55,11 +55,4 @@ const envSchema = z.object({
 
 export const env = envSchema.parse(process.env);
 
-if (
-  process.env.NODE_ENV === "production" &&
-  !env.PAYMENT_CONFIG_ENCRYPTION_KEY
-) {
-  throw new Error("PAYMENT_CONFIG_ENCRYPTION_KEY is required in production");
-}
-
 export type Env = z.infer<typeof envSchema>;
