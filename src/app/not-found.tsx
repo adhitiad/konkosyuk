@@ -1,3 +1,5 @@
+"use client";
+
 import { HomeIcon, SearchXIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {

@@ -8,7 +8,7 @@ import type { Role } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await requireSession(["cust", "owner"] as Role[]);
+    const session = await requireSession(["cust", "owner", "admin"] as Role[]);
     const { searchParams } = new URL(req.url);
     const limit = Math.min(Number(searchParams.get("limit")) || 20, 100);
     const offset = Number(searchParams.get("offset")) || 0;

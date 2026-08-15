@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Upload01Icon, Delete01Icon } from "@hugeicons/core-free-icons";
 import { toast } from "@/components/ui/toast";
-import { uploadImageAction } from "@/actions/upload";
+import { uploadImageAction, type UploadImageState } from "@/actions/upload";
 import imageCompression from "browser-image-compression";
 
 interface ImageUploaderProps {
@@ -84,7 +84,7 @@ export default function ImageUploader({
           formData.append("file", compressedFile);
           formData.append("type", "property");
 
-          const result = await uploadAction(formData);
+          const result = (await uploadAction(formData)) as unknown as UploadImageState;
 
           if (result?.success && result.data?.url) {
             return result.data.url;

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useActionState } from "react";
 import { useForm, SubmitHandler, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,7 +37,7 @@ import PackageForm from "@/components/owner/package-form";
 import type { PropertyPackages } from "@/lib/types/property-packages";
 import Link from "next/link";
 import { createPropertyAction, CreatePropertyState } from "@/actions/properties";
-import { uploadImageAction } from "@/actions/upload";
+import { uploadImageAction, type UploadImageState } from "@/actions/upload";
 
 const propertyTypeOptions = [
   { value: "kost", label: "Kost" },
@@ -166,7 +168,7 @@ export default function AddPropertyForm() {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("type", "property");
-      const result = await uploadAction(formData);
+      const result = (await uploadAction(formData)) as unknown as UploadImageState;
       if (result?.success && result.data?.url) {
         uploaded.push(result.data.url);
       } else {

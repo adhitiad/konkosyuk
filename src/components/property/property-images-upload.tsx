@@ -7,7 +7,7 @@ import { toast } from "@/components/ui/toast";
 import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { uploadImageAction } from "@/actions/upload";
+import { uploadImageAction, type UploadImageState } from "@/actions/upload";
 import { useActionState } from "react";
 
 interface PropertyImagesUploadProps {
@@ -92,7 +92,7 @@ export function PropertyImagesUpload({
           formData.append("file", file);
           formData.append("type", "property");
 
-          const result = await uploadAction(formData);
+          const result = (await uploadAction(formData)) as unknown as UploadImageState;
 
           if (result?.success && result.data?.url) {
             setImages((prev) =>

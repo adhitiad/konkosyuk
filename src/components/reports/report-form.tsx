@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createReportAction } from "@/actions/reports";
-import { uploadImageAction } from "@/actions/upload";
+import { uploadImageAction, type UploadImageState } from "@/actions/upload";
 
 type Stay = {
   propertyId: string;
@@ -63,11 +63,11 @@ function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("type", "report");
-      await uploadAction(formData);
-      if (uploadState?.success && uploadState.data?.url) {
-        setImages((current) => [...current, uploadState.data!.url].slice(0, 5));
+      const result = (await uploadAction(formData)) as unknown as UploadImageState;
+      if (result?.success && result.data?.url) {
+        setImages((current) => [...current, result.data!.url].slice(0, 5));
       } else {
-        throw new Error(uploadState?.error || "Gagal upload gambar.");
+        throw new Error(result?.error || "Gagal upload gambar.");
       }
     } catch (error) {
       setMessage(
@@ -99,10 +99,6 @@ function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
     setImages([]);
     setMessage("Laporan berhasil dikirim.");
     onSuccess?.();
-  }
-
-  if (state?.error) {
-    setMessage(state.error);
   }
 
   if (state?.error) {

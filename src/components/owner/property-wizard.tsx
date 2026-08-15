@@ -44,7 +44,7 @@ import {
   PROVINCES,
   CITIES_BY_PROVINCE,
 } from "@/lib/constants/indonesia-regions";
-import { createPropertyAction } from "@/actions/properties";
+import { createPropertyAction, deletePropertyAction } from "@/actions/properties";
 import { createUnitAction } from "@/actions/units";
 
 interface Unit {
@@ -279,23 +279,35 @@ export default function PropertyWizard() {
       if (propertyResult.success && propertyResult.data?.id) {
         const propertyId = propertyResult.data.id;
 
-        for (const unit of units) {
-          const enrichedUnit = await uploadUnitImages(
-            unit,
-            unitFilesMap[unit._tempId] || [],
+        try {
+          for (const unit of units) {
+            const enrichedUnit = await uploadUnitImages(
+              unit,
+              unitFilesMap[unit._tempId] || [],
+            );
+            const unitFormData = new FormData();
+            unitFormData.append("propertyId", propertyId);
+            unitFormData.append("name", enrichedUnit.name);
+            unitFormData.append("price", String(enrichedUnit.price));
+            unitFormData.append("status", enrichedUnit.status);
+            if (enrichedUnit.description) {
+              unitFormData.append("description", enrichedUnit.description);
+            }
+            const unitResult = await createUnitAction(undefined, unitFormData);
+            if (!unitResult.success) {
+              throw new Error(unitResult.error || "Gagal menambahkan unit");
+            }
+          }
+        } catch (unitError) {
+          const deleteFormData = new FormData();
+          deleteFormData.append("propertyId", propertyId);
+          await deletePropertyAction(undefined, deleteFormData);
+          setError(
+            unitError instanceof Error
+              ? unitError.message
+              : "Gagal menambahkan unit. Properti telah dihapus.",
           );
-          const unitFormData = new FormData();
-          unitFormData.append("propertyId", propertyId);
-          unitFormData.append("name", enrichedUnit.name);
-          unitFormData.append("price", String(enrichedUnit.price));
-          unitFormData.append("status", enrichedUnit.status);
-          if (enrichedUnit.description) {
-            unitFormData.append("description", enrichedUnit.description);
-          }
-          const unitResult = await createUnitAction(undefined, unitFormData);
-          if (!unitResult.success) {
-            throw new Error(unitResult.error || "Gagal menambahkan unit");
-          }
+          return;
         }
 
         queryClient.invalidateQueries({ queryKey: ["properties"] });

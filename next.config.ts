@@ -5,7 +5,6 @@ const nextConfig: NextConfig = {
   output: "standalone",
   compress: true,
   reactStrictMode: true,
-  cacheComponents: true,
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
@@ -65,7 +64,7 @@ const nextConfig: NextConfig = {
     ],
     scrollRestoration: true,
 
-    typedRoutes: true,
+    typedRoutes: false,
   },
   async headers() {
     const isProd = process.env.NODE_ENV === "production";

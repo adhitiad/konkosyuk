@@ -89,7 +89,6 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24,
   },
   plugins: [
-    nextCookies(),
     twoFactor({
       issuer: "KonkosYuk",
       totpOptions: {
@@ -102,6 +101,7 @@ export const auth = betterAuth({
         durationSeconds: 900,
       },
     }),
+    nextCookies(),
   ],
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
