@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { chatRooms, messages } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -6,12 +6,12 @@ import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 
 export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await requireSession(["cust", "owner", "admin", "staff"] as const);
-    const roomId = params.id;
+    const { id: roomId } = await params;
 
     const [room] = await db
       .select()

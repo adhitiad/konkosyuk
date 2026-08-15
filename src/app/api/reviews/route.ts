@@ -133,7 +133,8 @@ export async function POST(req: NextRequest) {
           rating: body.rating,
           comment: body.comment,
           bookingId: body.bookingId,
-        } as any);
+        } as any)
+        .returning();
 
       if (body.type === "tenant" && reviewedUserId) {
         const [user] = await tx
