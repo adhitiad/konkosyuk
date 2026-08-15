@@ -47,7 +47,7 @@ jobs:
           bun-version: latest
       - run: bun install
       - run: bun run test -- --run --coverage
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-report
@@ -68,7 +68,7 @@ jobs:
         with:
           node-version: 20
       - run: bunx playwright test --project=chromium
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playwright-report
@@ -97,7 +97,7 @@ jobs:
           bun-version: latest
       - run: bun install
       - run: bun run build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: build-output
           path: .next/
