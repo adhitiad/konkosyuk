@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
-import { useState } from "react";
+import { useState, useActionState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -36,7 +36,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { Wrench } from "lucide-react";
 import type { MaintenanceTicket } from "@/db/schema";
-import { apiClient } from "@/lib/axios";
+import { updateMaintenanceTicketAction } from "@/actions/maintenance";
 
 interface MaintenanceTicketWithNames extends MaintenanceTicket {
   unitName: string | null;
@@ -77,17 +77,18 @@ export default function OwnerMaintenancePage() {
     useState<MaintenanceTicketWithNames | null>(null);
   const [ownerNotes, setOwnerNotes] = useState("");
   const [newStatus, setNewStatus] = useState<string>("");
-  const [saving, setSaving] = useState(false);
+  const [state, formAction, isPending] = useActionState(
+    updateMaintenanceTicketAction,
+    undefined,
+  );
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["maintenance-tickets", statusFilter],
     queryFn: async () => {
-      const response = await apiClient.get("/api/maintenance", {
-        params: statusFilter === "all" ? undefined : { status: statusFilter },
-      });
-      const body = response.data as {
-        data?: { data?: MaintenanceTicketWithNames[] };
-      };
+      const response = await fetch(
+        `/api/maintenance?${statusFilter === "all" ? "" : `status=${statusFilter}`}`,
+      );
+      const body = await response.json();
       const items = Array.isArray(body?.data?.data)
         ? body.data.data
         : Array.isArray(body?.data)
@@ -98,6 +99,15 @@ export default function OwnerMaintenancePage() {
     staleTime: 30000,
   });
 
+  useEffect(() => {
+    if (state?.success) {
+      queryClient.invalidateQueries({ queryKey: ["maintenance-tickets"] });
+      setSelectedTicket(null);
+    } else if (state?.error) {
+      alert(state.error);
+    }
+  }, [state, queryClient]);
+
   const tickets = data?.data ?? [];
 
   const handleOpenTicket = (ticket: MaintenanceTicketWithNames) => {
@@ -106,30 +116,13 @@ export default function OwnerMaintenancePage() {
     setNewStatus(ticket.status);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!selectedTicket) return;
-    setSaving(true);
-    try {
-      const res = await apiClient.patch(
-        `/api/maintenance/${selectedTicket.id}`,
-        {
-          status: newStatus,
-          ownerNotes: ownerNotes.trim() || undefined,
-        },
-      );
-
-      if (res.status >= 400) {
-        const json = res.data;
-        throw new Error(json.error || "Gagal update tiket");
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["maintenance-tickets"] });
-      setSelectedTicket(null);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Terjadi kesalahan");
-    } finally {
-      setSaving(false);
-    }
+    const formData = new FormData();
+    formData.append("id", selectedTicket.id);
+    formData.append("status", newStatus);
+    formData.append("ownerNotes", ownerNotes.trim() || "");
+    formAction(formData);
   };
 
   return (
@@ -333,8 +326,8 @@ export default function OwnerMaintenancePage() {
                 />
               </div>
 
-              <Button onClick={handleSave} className="w-full" disabled={saving}>
-                {saving ? "Menyimpan..." : "Simpan Perubahan"}
+              <Button onClick={handleSave} className="w-full" disabled={isPending}>
+                {isPending ? "Menyimpan..." : "Simpan Perubahan"}
               </Button>
             </div>
           )}

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useActionState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +31,11 @@ import {
   MultiplicationSignIcon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "@/components/ui/toast";
-import { apiClient } from "@/lib/axios";
+import {
+  createManualPaymentAction,
+  cancelPaymentAction,
+  reconcilePaymentAction,
+} from "@/actions/admin/payments";
 import { withAdminAuth } from "@/lib/with-admin-auth";
 
 interface Payment {
@@ -115,6 +119,19 @@ function AdminPaymentsPage() {
     "pending",
   );
 
+  const [createState, createAction, isCreatePending] = useActionState(
+    createManualPaymentAction,
+    undefined,
+  );
+  const [cancelState, cancelAction, isCancelPending] = useActionState(
+    cancelPaymentAction,
+    undefined,
+  );
+  const [reconcileState, reconcileAction, isReconcilePending] = useActionState(
+    reconcilePaymentAction,
+    undefined,
+  );
+
   const { data, isLoading, isError, error, refetch } =
     useQuery<PaymentResponse>({
       queryKey: ["admin-payments", statusFilter],
@@ -122,72 +139,15 @@ function AdminPaymentsPage() {
         const params = new URLSearchParams();
         if (statusFilter) params.set("status", statusFilter);
 
-        const { data: json } = await apiClient.get(
-          `/api/admin/payments?${params.toString()}`,
-        );
+        const response = await fetch(`/api/admin/payments?${params.toString()}`);
+        const json = await response.json();
         return { data: json.data?.data, meta: json.data?.meta };
       },
       staleTime: 30000,
     });
 
-  const reconcileMutation = useMutation({
-    mutationFn: async ({
-      paymentId,
-      transactionId,
-      reason,
-    }: {
-      paymentId: string;
-      transactionId?: string;
-      reason: string;
-    }) => {
-      const res = await apiClient.post(
-        `/api/admin/payments/${paymentId}/reconcile`,
-        { transactionId, reason },
-      );
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Failed to reconcile payment");
-      }
-      return res.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-payments"] });
-      toast({
-        title: "Rekonsiliasi berhasil",
-        description: "Payment telah ditandai sebagai success.",
-        type: "success",
-      });
-      setReconcileId(null);
-      setReconcileReason("");
-      setReconcileTransactionId("");
-    },
-    onError: (err) => {
-      toast({
-        title: "Gagal",
-        description:
-          err instanceof Error ? err.message : "Gagal merekonsiliasi payment.",
-        type: "error",
-      });
-    },
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiClient.post("/api/admin/payments", {
-        userId: manualUserId,
-        bookingId: manualBookingId,
-        amount: manualAmount,
-        provider: manualProvider,
-        purpose: manualPurpose,
-        status: manualStatus,
-      });
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Failed to create payment");
-      }
-      return res.data;
-    },
-    onSuccess: () => {
+  useEffect(() => {
+    if (createState?.success) {
       queryClient.invalidateQueries({ queryKey: ["admin-payments"] });
       toast({
         title: "Payment dibuat",
@@ -201,35 +161,17 @@ function AdminPaymentsPage() {
       setManualProvider("doku");
       setManualPurpose("dp");
       setManualStatus("pending");
-    },
-    onError: (err) => {
+    } else if (createState?.error) {
       toast({
         title: "Gagal",
-        description:
-          err instanceof Error ? err.message : "Gagal membuat payment manual.",
+        description: createState.error,
         type: "error",
       });
-    },
-  });
+    }
+  }, [createState, queryClient]);
 
-  const cancelMutation = useMutation({
-    mutationFn: async ({
-      paymentId,
-      reason,
-    }: {
-      paymentId: string;
-      reason: string;
-    }) => {
-      const res = await apiClient.patch(`/api/admin/payments/${paymentId}`, {
-        reason,
-      });
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Failed to cancel payment");
-      }
-      return res.data;
-    },
-    onSuccess: () => {
+  useEffect(() => {
+    if (cancelState?.success) {
       queryClient.invalidateQueries({ queryKey: ["admin-payments"] });
       toast({
         title: "Payment dibatalkan",
@@ -238,27 +180,45 @@ function AdminPaymentsPage() {
       });
       setCancelTarget(null);
       setCancelReason("");
-    },
-    onError: (err) => {
+    } else if (cancelState?.error) {
       toast({
         title: "Gagal",
-        description:
-          err instanceof Error ? err.message : "Gagal membatalkan payment.",
+        description: cancelState.error,
         type: "error",
       });
-    },
-  });
+    }
+  }, [cancelState, queryClient]);
+
+  useEffect(() => {
+    if (reconcileState?.success) {
+      queryClient.invalidateQueries({ queryKey: ["admin-payments"] });
+      toast({
+        title: "Rekonsiliasi berhasil",
+        description: "Payment telah ditandai sebagai success.",
+        type: "success",
+      });
+      setReconcileId(null);
+      setReconcileReason("");
+      setReconcileTransactionId("");
+    } else if (reconcileState?.error) {
+      toast({
+        title: "Gagal",
+        description: reconcileState.error,
+        type: "error",
+      });
+    }
+  }, [reconcileState, queryClient]);
 
   const payments: Payment[] = Array.isArray(data?.data) ? data.data : [];
   const selectedPayment = payments.find((p: Payment) => p.id === reconcileId);
 
   const handleReconcile = () => {
     if (!reconcileId || !reconcileReason.trim()) return;
-    reconcileMutation.mutate({
-      paymentId: reconcileId,
-      transactionId: reconcileTransactionId || undefined,
-      reason: reconcileReason,
-    });
+    const formData = new FormData();
+    formData.append("paymentId", reconcileId);
+    formData.append("transactionId", reconcileTransactionId || "");
+    formData.append("reason", reconcileReason);
+    reconcileAction(formData);
   };
 
   const handleCreate = () => {
@@ -270,12 +230,22 @@ function AdminPaymentsPage() {
       });
       return;
     }
-    createMutation.mutate();
+    const formData = new FormData();
+    formData.append("userId", manualUserId);
+    formData.append("bookingId", manualBookingId);
+    formData.append("amount", manualAmount);
+    formData.append("provider", manualProvider);
+    formData.append("purpose", manualPurpose);
+    formData.append("status", manualStatus);
+    createAction(formData);
   };
 
   const handleCancel = () => {
     if (!cancelTarget || !cancelReason.trim()) return;
-    cancelMutation.mutate({ paymentId: cancelTarget.id, reason: cancelReason });
+    const formData = new FormData();
+    formData.append("paymentId", cancelTarget.id);
+    formData.append("reason", cancelReason);
+    cancelAction(formData);
   };
 
   return (
@@ -534,12 +504,12 @@ function AdminPaymentsPage() {
                                           </Button>
                                           <Button
                                             disabled={
-                                              reconcileMutation.isPending ||
+                                              isReconcilePending ||
                                               !reconcileReason.trim()
                                             }
                                             onClick={handleReconcile}
                                           >
-                                            {reconcileMutation.isPending
+                                            {isReconcilePending
                                               ? "Memproses..."
                                               : "Konfirmasi"}
                                           </Button>
@@ -595,29 +565,29 @@ function AdminPaymentsPage() {
                                         className="w-full min-h-[80px] rounded-4xl border border-input bg-input/30 px-3 py-2 text-sm"
                                       />
                                     </div>
-                                    <div className="flex justify-end gap-2">
-                                      <Button
-                                        variant="outline"
-                                        onClick={() => {
-                                          setCancelTarget(null);
-                                          setCancelReason("");
-                                        }}
-                                      >
-                                        Batal
-                                      </Button>
-                                      <Button
-                                        variant="destructive"
-                                        disabled={
-                                          cancelMutation.isPending ||
-                                          !cancelReason.trim()
-                                        }
-                                        onClick={handleCancel}
-                                      >
-                                        {cancelMutation.isPending
-                                          ? "Memproses..."
-                                          : "Batalkan"}
-                                      </Button>
-                                    </div>
+                                        <div className="flex justify-end gap-2">
+                                          <Button
+                                            variant="outline"
+                                            onClick={() => {
+                                              setCancelTarget(null);
+                                              setCancelReason("");
+                                            }}
+                                          >
+                                            Batal
+                                          </Button>
+                                          <Button
+                                            variant="destructive"
+                                            disabled={
+                                              isCancelPending ||
+                                              !cancelReason.trim()
+                                            }
+                                            onClick={handleCancel}
+                                          >
+                                            {isCancelPending
+                                              ? "Memproses..."
+                                              : "Batalkan"}
+                                          </Button>
+                                        </div>
                                   </div>
                                 </DialogContent>
                               </Dialog>
@@ -721,10 +691,10 @@ function AdminPaymentsPage() {
                 Batal
               </Button>
               <Button
-                disabled={createMutation.isPending}
+                disabled={isCreatePending}
                 onClick={handleCreate}
               >
-                {createMutation.isPending ? "Menyimpan..." : "Buat Payment"}
+                {isCreatePending ? "Menyimpan..." : "Buat Payment"}
               </Button>
             </div>
           </div>

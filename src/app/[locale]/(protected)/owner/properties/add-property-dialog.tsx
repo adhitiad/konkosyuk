@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useActionState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -38,7 +38,7 @@ const PropertyMapPicker = dynamic(
 );
 import PackageForm from "@/components/owner/package-form";
 import type { PropertyPackages } from "@/lib/types/property-packages";
-import { csrfFetch } from "@/lib/axios";
+import { createPropertyAction } from "@/actions/properties";
 
 const propertyTypeOptions = [
   { value: "kost", label: "Kost" },
@@ -78,7 +78,10 @@ export default function AddPropertyDialog() {
   const [amenityInput, setAmenityInput] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [state, formAction, isPending] = useActionState(
+    createPropertyAction,
+    undefined,
+  );
 
   const addAmenity = (value: string) => {
     const trimmed = value.trim();
@@ -92,73 +95,43 @@ export default function AddPropertyDialog() {
     setAmenities(amenities.filter((a) => a !== value));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
+  const handleSubmit = (formData: FormData) => {
     if (propertyImages.length < 3) {
       setError("Upload minimal 3 foto properti.");
       return;
     }
 
-    const payload: CreatePropertyInput = {
-      title,
-      type,
-      address,
-      description: description || undefined,
-      province: province || undefined,
-      city,
-      district: district || undefined,
-      basePrice: basePrice || undefined,
-      packages: packages || undefined,
-      amenities,
-      status: "aktif",
-      images: propertyImages,
-      metadata: undefined,
-      latitude: latitude ? Number(latitude) : undefined,
-      longitude: longitude ? Number(longitude) : undefined,
-      isActive,
-      icalImportUrl: icalImportUrl || undefined,
-    };
+    formData.append("title", title);
+    formData.append("type", type);
+    formData.append("address", address);
+    if (description) formData.append("description", description);
+    formData.append("province", province);
+    formData.append("city", city);
+    if (district) formData.append("district", district);
+    if (basePrice) formData.append("basePrice", basePrice);
+    if (packages) formData.append("packages", JSON.stringify(packages));
+    formData.append("amenities", JSON.stringify(amenities));
+    formData.append("images", JSON.stringify(propertyImages));
+    formData.append("status", "aktif");
+    if (latitude) formData.append("latitude", latitude);
+    if (longitude) formData.append("longitude", longitude);
+    formData.append("isActive", isActive.toString());
+    if (icalImportUrl) formData.append("icalImportUrl", icalImportUrl);
 
-    const result = createPropertySchema.safeParse(payload);
-    if (!result.success) {
-      setError(
-        result.error.issues
-          .map((i) => `${i.path.join(".")}: ${i.message}`)
-          .join(", "),
-      );
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const res = await csrfFetch("/api/owner/properties", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(result.data),
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Gagal menambahkan properti.");
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["owner-properties-v2"] });
-      toast({
-        title: "Berhasil",
-        description: "Properti berhasil ditambahkan.",
-        type: "success",
-      });
-      router.push("/owner/properties");
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Gagal menambahkan properti.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+    formAction(formData);
   };
+
+  if (state?.success) {
+    queryClient.invalidateQueries({ queryKey: ["owner-properties-v2"] });
+    toast({
+      title: "Berhasil",
+      description: "Properti berhasil ditambahkan.",
+      type: "success",
+    });
+    router.push("/owner/properties");
+  } else if (state?.error) {
+    setError(state.error);
+  }
 
   return (
     <div className="container py-6 space-y-6 max-w-5xl">
@@ -203,7 +176,7 @@ export default function AddPropertyDialog() {
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form action={formAction} className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Informasi Dasar</CardTitle>
@@ -472,8 +445,8 @@ export default function AddPropertyDialog() {
           >
             Batal
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
+          <Button type="submit" disabled={isPending}>
+            {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Menyimpan...

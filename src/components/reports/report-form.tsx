@@ -1,6 +1,5 @@
 import { useActionState } from "react";
 import { useEffect, useState } from "react";
-import { apiClient } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -13,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createReportAction } from "@/actions/reports";
+import { uploadImageAction } from "@/actions/upload";
 
 type Stay = {
   propertyId: string;
@@ -38,11 +38,12 @@ function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [state, formAction, isPending] = useActionState(createReportAction, undefined);
+  const [uploadState, uploadAction] = useActionState(uploadImageAction, undefined);
 
   useEffect(() => {
-    apiClient
-      .get("/api/bookings?limit=100")
-      .then(({ data: json }) => {
+    fetch("/api/bookings?limit=100")
+      .then((res) => res.json())
+      .then((json) => {
         const bookings = json?.data?.data ?? [];
         setStays(
           bookings.filter((b: { status: string }) =>
@@ -62,12 +63,12 @@ function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("type", "report");
-      const { data: json } = await apiClient.post("/api/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      const url = json?.data?.url ?? json?.url;
-      if (!url) throw new Error("URL gambar tidak tersedia");
-      setImages((current) => [...current, url].slice(0, 5));
+      await uploadAction(formData);
+      if (uploadState?.success && uploadState.data?.url) {
+        setImages((current) => [...current, uploadState.data!.url].slice(0, 5));
+      } else {
+        throw new Error(uploadState?.error || "Gagal upload gambar.");
+      }
     } catch (error) {
       setMessage(
         error instanceof Error ? error.message : "Gagal upload gambar.",

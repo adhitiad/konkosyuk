@@ -30,14 +30,14 @@ Klik tombol **Fork** di pojok kanan atas halaman repository ini.
 ### 2. Clone Repository
 
 ```bash
-git clone https://github.com/<username>/konkosyuk.git
+git clone https://github.com/adhitiad/konkosyuk.git
 cd konkosyuk
 ```
 
 ### 3. Tambahkan Upstream Remote
 
 ```bash
-git remote add upstream https://github.com/adhitiadwima/konkosyuk.git
+git remote add upstream https://github.com/adhitiad/konkosyuk.git
 ```
 
 ### 4. Buat Branch Baru

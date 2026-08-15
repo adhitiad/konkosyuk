@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useActionState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Upload01Icon, Delete01Icon } from "@hugeicons/core-free-icons";
 import { toast } from "@/components/ui/toast";
-import { apiClient } from "@/lib/axios";
+import { uploadImageAction } from "@/actions/upload";
 import imageCompression from "browser-image-compression";
 
 interface ImageUploaderProps {
@@ -24,6 +24,10 @@ export default function ImageUploader({
 }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [uploadState, uploadAction, isUploading] = useActionState(
+    uploadImageAction,
+    undefined,
+  );
 
   const validateFile = (file: File): boolean => {
     const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
@@ -78,13 +82,15 @@ export default function ImageUploader({
           const compressedFile = await compressImage(file);
           const formData = new FormData();
           formData.append("file", compressedFile);
+          formData.append("type", "property");
 
-          const { data } = await apiClient.post("/api/upload", formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
-          return data.url as string;
+          const result = await uploadAction(formData);
+
+          if (result?.success && result.data?.url) {
+            return result.data.url;
+          }
+
+          return null;
         });
 
         const urls = (await Promise.all(uploadPromises)).filter(
@@ -102,7 +108,7 @@ export default function ImageUploader({
         setUploading(false);
       }
     },
-    [value, maxFiles, onChange],
+    [value, maxFiles, onChange, uploadAction],
   );
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {

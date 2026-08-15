@@ -45,6 +45,7 @@ import {
   CITIES_BY_PROVINCE,
 } from "@/lib/constants/indonesia-regions";
 import { createPropertyAction } from "@/actions/properties";
+import { createUnitAction } from "@/actions/units";
 
 interface Unit {
   _tempId: string;
@@ -283,17 +284,17 @@ export default function PropertyWizard() {
             unit,
             unitFilesMap[unit._tempId] || [],
           );
-          const unitRes = await apiClient.post(
-            `/api/owner/properties/${propertyId}/units`,
-            {
-              name: enrichedUnit.name,
-              price: enrichedUnit.price,
-              status: enrichedUnit.status,
-              description: enrichedUnit.description,
-            },
-          );
-          if (unitRes.status >= 400) {
-            throw new Error(unitRes.data?.error || "Gagal menambahkan unit");
+          const unitFormData = new FormData();
+          unitFormData.append("propertyId", propertyId);
+          unitFormData.append("name", enrichedUnit.name);
+          unitFormData.append("price", String(enrichedUnit.price));
+          unitFormData.append("status", enrichedUnit.status);
+          if (enrichedUnit.description) {
+            unitFormData.append("description", enrichedUnit.description);
+          }
+          const unitResult = await createUnitAction(undefined, unitFormData);
+          if (!unitResult.success) {
+            throw new Error(unitResult.error || "Gagal menambahkan unit");
           }
         }
 

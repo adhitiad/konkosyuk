@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useActionState } from "react";
 import { useForm, SubmitHandler, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createPropertySchema, type CreatePropertyInput } from "@/lib/zod";
@@ -26,7 +26,6 @@ import { AlertCircleIcon, Location02Icon } from "@hugeicons/core-free-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import type { SessionUserWithRole } from "@/lib/auth-client";
-import { useActionState } from "react";
 import {
   PROVINCES,
   CITIES_BY_PROVINCE,
@@ -36,7 +35,7 @@ import PackageForm from "@/components/owner/package-form";
 import type { PropertyPackages } from "@/lib/types/property-packages";
 import Link from "next/link";
 import { createPropertyAction, CreatePropertyState } from "@/actions/properties";
-import { apiClient } from "@/lib/axios";
+import { uploadImageAction } from "@/actions/upload";
 
 const propertyTypeOptions = [
   { value: "kost", label: "Kost" },
@@ -159,19 +158,20 @@ export default function AddPropertyForm() {
     );
   };
 
+  const [uploadState, uploadAction] = useActionState(uploadImageAction, undefined);
+
   const uploadImages = async (): Promise<string[]> => {
     const uploaded: string[] = [];
     for (const file of files) {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("type", "property");
-
-      const { data: json } = await apiClient.post("/api/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      uploaded.push(json.url);
+      const result = await uploadAction(formData);
+      if (result?.success && result.data?.url) {
+        uploaded.push(result.data.url);
+      } else {
+        throw new Error(result?.error || "Gagal upload gambar");
+      }
     }
     return uploaded;
   };

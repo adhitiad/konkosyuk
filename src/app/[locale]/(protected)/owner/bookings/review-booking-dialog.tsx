@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useActionState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
-import { apiClient } from "@/lib/axios";
+import { reviewBookingAction } from "@/actions/bookings";
 
 interface ReviewBookingDialogProps {
   bookingId: string;
@@ -36,30 +36,16 @@ export default function ReviewBookingDialog({
   const queryClient = useQueryClient();
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [action, setAction] = useState<"approve" | "reject" | null>(null);
+  const [state, formAction, isPending] = useActionState(
+    reviewBookingAction,
+    undefined,
+  );
 
-  const mutation = useMutation({
-    mutationFn: async ({
-      action,
-      reason,
-    }: {
-      action: "approve" | "reject";
-      reason?: string;
-    }) => {
-      const res = await apiClient.post(`/api/bookings/${bookingId}/review`, {
-        status: action === "approve" ? "confirmed" : "rejected",
-        note: reason,
-      });
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Gagal memproses review.");
-      }
-      return res.data;
-    },
-    onSuccess: (_, variables) => {
+  useEffect(() => {
+    if (state?.success) {
       queryClient.invalidateQueries({ queryKey: ["owner-bookings"] });
-      if (variables.action === "approve") {
+      if (action === "approve") {
         toast({
           title: "Booking diterima",
           description: `Booking untuk ${unitName} telah disetujui.`,
@@ -72,16 +58,13 @@ export default function ReviewBookingDialog({
           type: "info",
         });
       }
-    },
-    onError: (err) => {
-      setError(err instanceof Error ? err.message : "Gagal memproses review.");
-    },
-    onSettled: () => {
-      setIsSubmitting(false);
       setAction(null);
       setReason("");
-    },
-  });
+      setError(null);
+    } else if (state?.error) {
+      setError(state.error);
+    }
+  }, [state, action, queryClient, unitName]);
 
   const handleAction = (selected: "approve" | "reject") => {
     if (selected === "reject" && !reason.trim()) {
@@ -90,11 +73,13 @@ export default function ReviewBookingDialog({
     }
     setError(null);
     setAction(selected);
-    setIsSubmitting(true);
-    mutation.mutate({
-      action: selected,
-      reason: selected === "reject" ? reason : undefined,
-    });
+    const formData = new FormData();
+    formData.append("bookingId", bookingId);
+    formData.append("status", selected === "approve" ? "confirmed" : "rejected");
+    if (selected === "reject") {
+      formData.append("note", reason);
+    }
+    formAction(formData);
   };
 
   if (!action) {
@@ -155,7 +140,7 @@ export default function ReviewBookingDialog({
   return (
     <Dialog
       open={action === "reject"}
-      onOpenChange={(open) => !open && mutation.isPending && setAction(null)}
+      onOpenChange={(open) => !open && isPending && setAction(null)}
     >
       <DialogContent>
         <DialogHeader>
@@ -169,7 +154,7 @@ export default function ReviewBookingDialog({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Berikan alasan penolakan kepada tenant..."
-              disabled={isSubmitting}
+              disabled={isPending}
               className="w-full min-h-[80px] rounded-4xl border border-input bg-input/30 px-3 py-2 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
             />
           </div>
@@ -187,17 +172,17 @@ export default function ReviewBookingDialog({
           <div className="flex justify-end gap-2">
             <DialogClose
               render={
-                <Button type="button" variant="outline" disabled={isSubmitting}>
+                <Button type="button" variant="outline" disabled={isPending}>
                   Batal
                 </Button>
               }
             />
             <Button
               variant="destructive"
-              disabled={isSubmitting || !reason.trim()}
+              disabled={isPending || !reason.trim()}
               onClick={() => handleAction("reject")}
             >
-              {isSubmitting ? "Memproses..." : "Tolak Booking"}
+              {isPending ? "Memproses..." : "Tolak Booking"}
             </Button>
           </div>
         </div>

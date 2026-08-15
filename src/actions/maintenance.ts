@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { maintenanceTickets, units, bookings } from "@/db/schema";
+import { maintenanceTickets, units, properties, bookings } from "@/db/schema";
 import { eq, and, lte, gte } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -101,5 +101,96 @@ export async function createMaintenanceTicketAction(
       return { error: error.issues[0]?.message || "Input tidak valid", success: false };
     }
     return { error: "Gagal membuat tiket maintenance", success: false };
+  }
+}
+
+const updateTicketSchema = z.object({
+  status: z
+    .enum(["reported", "in_progress", "resolved", "cancelled"])
+    .optional(),
+  ownerNotes: z.string().optional(),
+  priority: z.enum(["low", "medium", "high", "urgent"]).optional(),
+});
+
+export type UpdateMaintenanceTicketState = {
+  success?: boolean;
+  error?: string;
+  data?: unknown;
+};
+
+export async function updateMaintenanceTicketAction(
+  prevState: UpdateMaintenanceTicketState | undefined,
+  formData: FormData,
+): Promise<UpdateMaintenanceTicketState> {
+  try {
+    const ticketId = formData.get("id") as string;
+    if (!ticketId) {
+      return { error: "ID tiket tidak valid", success: false };
+    }
+
+    const validated = updateTicketSchema.parse({
+      status: formData.get("status") || undefined,
+      ownerNotes: formData.get("ownerNotes") || undefined,
+      priority: formData.get("priority") || undefined,
+    });
+
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user?.id) {
+      return { error: "Tidak terotorisasi", success: false };
+    }
+
+    const [ticket] = await db
+      .select()
+      .from(maintenanceTickets)
+      .where(eq(maintenanceTickets.id, ticketId))
+      .limit(1);
+
+    if (!ticket) {
+      return { error: "Tiket tidak ditemukan", success: false };
+    }
+
+    if (session.user.role === "owner") {
+      const [unit] = await db
+        .select()
+        .from(units)
+        .where(eq(units.id, ticket.unitId))
+        .limit(1);
+
+      if (!unit) {
+        return { error: "Unit tidak ditemukan", success: false };
+      }
+
+      const [property] = await db
+        .select()
+        .from(properties)
+        .where(eq(properties.id, unit.propertyId))
+        .limit(1);
+
+      if (!property || property.ownerId !== session.user.id) {
+        return { error: "Dilarang", success: false };
+      }
+    }
+
+    const updateData: Record<string, unknown> = {};
+    if (validated.status) updateData.status = validated.status;
+    if (validated.ownerNotes !== undefined) updateData.ownerNotes = validated.ownerNotes;
+    if (validated.priority) updateData.priority = validated.priority;
+
+    const [updated] = await db
+      .update(maintenanceTickets)
+      .set(updateData)
+      .where(eq(maintenanceTickets.id, ticketId))
+      .returning();
+
+    return { success: true, data: updated };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+    }
+    console.error("updateMaintenanceTicketAction error:", error);
+    return { error: "Gagal memperbarui tiket maintenance", success: false };
   }
 }

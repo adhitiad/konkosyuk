@@ -7,7 +7,8 @@ import { toast } from "@/components/ui/toast";
 import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { csrfFetch } from "@/lib/axios";
+import { uploadImageAction } from "@/actions/upload";
+import { useActionState } from "react";
 
 interface PropertyImagesUploadProps {
   initialImages?: string[];
@@ -41,6 +42,10 @@ export function PropertyImagesUpload({
   const [uploadingCount, setUploadingCount] = useState(0);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [uploadState, uploadAction] = useActionState(
+    uploadImageAction,
+    undefined,
+  );
 
   const handleFiles = useCallback(
     async (files: FileList | File[]) => {
@@ -87,30 +92,25 @@ export function PropertyImagesUpload({
           formData.append("file", file);
           formData.append("type", "property");
 
-          const response = await csrfFetch("/api/upload", {
-            method: "POST",
-            body: formData,
-          });
+          const result = await uploadAction(formData);
 
-          if (!response.ok) {
-            throw new Error("Upload gagal");
+          if (result?.success && result.data?.url) {
+            setImages((prev) =>
+              prev.map((img) =>
+                img.id === imageId
+                  ? { ...img, url: result.data!.url, isUploading: false, progress: 100 }
+                  : img,
+              ),
+            );
+
+            setImages((currentImages) => {
+              const allUrls = currentImages.map((img) => img.url);
+              onImagesChange(allUrls);
+              return currentImages;
+            });
+          } else {
+            throw new Error(result?.error || "Upload gagal");
           }
-
-          const result = await response.json();
-
-          setImages((prev) =>
-            prev.map((img) =>
-              img.id === imageId
-                ? { ...img, url: result.url, isUploading: false, progress: 100 }
-                : img,
-            ),
-          );
-
-          setImages((currentImages) => {
-            const allUrls = currentImages.map((img) => img.url);
-            onImagesChange(allUrls);
-            return currentImages;
-          });
         } catch (error) {
           toast({
             title: "Upload gagal",
@@ -124,7 +124,7 @@ export function PropertyImagesUpload({
         }
       }
     },
-    [images.length, maxImages, onImagesChange],
+    [images.length, maxImages, onImagesChange, uploadAction],
   );
 
   const handleDrag = useCallback((e: React.DragEvent) => {

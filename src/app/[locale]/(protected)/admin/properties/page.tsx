@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useActionState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
@@ -40,7 +40,10 @@ import {
   Delete01Icon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "@/components/ui/toast";
-import { apiClient } from "@/lib/axios";
+import {
+  updatePropertyAction,
+  deletePropertyAction,
+} from "@/actions/properties";
 import { withAdminAuth } from "@/lib/with-admin-auth";
 
 interface Property {
@@ -99,6 +102,14 @@ function AdminPropertiesPage() {
   const [editBasePrice, setEditBasePrice] = useState("");
   const [editIsActive, setEditIsActive] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Property | null>(null);
+  const [updateState, updateAction, isUpdatePending] = useActionState(
+    updatePropertyAction,
+    undefined,
+  );
+  const [deleteState, deleteAction, isDeletePending] = useActionState(
+    deletePropertyAction,
+    undefined,
+  );
 
   const limit = 10;
 
@@ -112,38 +123,15 @@ function AdminPropertiesPage() {
       if (cityFilter) params.set("city", cityFilter);
       if (typeFilter) params.set("type", typeFilter);
 
-      const { data: json } = await apiClient.get(
-        `/api/properties?${params.toString()}`,
-      );
+      const response = await fetch(`/api/properties?${params.toString()}`);
+      const json = await response.json();
       return { data: json.data?.data, meta: json.data?.meta };
     },
     staleTime: 30000,
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async ({
-      propertyId,
-      name,
-      basePrice,
-      isActive,
-    }: {
-      propertyId: string;
-      name?: string;
-      basePrice?: string;
-      isActive?: boolean;
-    }) => {
-      const res = await apiClient.patch(`/api/admin/properties/${propertyId}`, {
-        name,
-        basePrice,
-        isActive,
-      });
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Failed to update property");
-      }
-      return res.data;
-    },
-    onSuccess: () => {
+  useEffect(() => {
+    if (updateState?.success) {
       queryClient.invalidateQueries({ queryKey: ["admin-properties"] });
       queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
       toast({
@@ -152,27 +140,17 @@ function AdminPropertiesPage() {
         type: "success",
       });
       setSelectedProperty(null);
-    },
-    onError: (err) => {
+    } else if (updateState?.error) {
       toast({
         title: "Gagal",
-        description:
-          err instanceof Error ? err.message : "Gagal memperbarui properti.",
+        description: updateState.error,
         type: "error",
       });
-    },
-  });
+    }
+  }, [updateState, queryClient]);
 
-  const deleteMutation = useMutation({
-    mutationFn: async (propertyId: string) => {
-      const res = await apiClient.delete(`/api/admin/properties/${propertyId}`);
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Failed to delete property");
-      }
-      return res.data;
-    },
-    onSuccess: () => {
+  useEffect(() => {
+    if (deleteState?.success) {
       queryClient.invalidateQueries({ queryKey: ["admin-properties"] });
       queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
       toast({
@@ -181,76 +159,14 @@ function AdminPropertiesPage() {
         type: "success",
       });
       setDeleteTarget(null);
-    },
-    onError: (err) => {
+    } else if (deleteState?.error) {
       toast({
         title: "Gagal",
-        description:
-          err instanceof Error ? err.message : "Gagal menghapus properti.",
+        description: deleteState.error,
         type: "error",
       });
-    },
-  });
-
-  const verifyGpsMutation = useMutation({
-    mutationFn: async (propertyId: string) => {
-      const res = await apiClient.patch(`/api/admin/properties/${propertyId}`, {
-        gpsVerified: true,
-      });
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Failed to verify GPS");
-      }
-      return res.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-properties"] });
-      toast({
-        title: "GPS terverifikasi",
-        description: "Lokasi properti telah diverifikasi.",
-        type: "success",
-      });
-    },
-    onError: (err) => {
-      toast({
-        title: "Gagal",
-        description:
-          err instanceof Error ? err.message : "Gagal memverifikasi GPS.",
-        type: "error",
-      });
-    },
-  });
-
-  const unverifyGpsMutation = useMutation({
-    mutationFn: async (propertyId: string) => {
-      const res = await apiClient.patch(`/api/admin/properties/${propertyId}`, {
-        gpsVerified: false,
-      });
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Failed to unverify GPS");
-      }
-      return res.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-properties"] });
-      toast({
-        title: "Verifikasi dibatalkan",
-        description: "Lokasi GPS properti telah ditolak.",
-        type: "success",
-      });
-    },
-    onError: (err) => {
-      toast({
-        title: "Gagal",
-        description:
-          err instanceof Error
-            ? err.message
-            : "Gagal membatalkan verifikasi GPS.",
-        type: "error",
-      });
-    },
-  });
+    }
+  }, [deleteState, queryClient]);
 
   const properties: Property[] = Array.isArray(data?.data) ? data.data : [];
   const total = data?.meta?.total ?? 0;
@@ -265,21 +181,25 @@ function AdminPropertiesPage() {
 
   const handleSaveEdit = () => {
     if (!selectedProperty) return;
-    updateMutation.mutate({
-      propertyId: selectedProperty.id,
-      name: editName !== selectedProperty.name ? editName : undefined,
-      basePrice:
-        editBasePrice !== selectedProperty.basePrice
-          ? editBasePrice
-          : undefined,
-      isActive:
-        editIsActive !== selectedProperty.isActive ? editIsActive : undefined,
-    });
+    const formData = new FormData();
+    formData.append("propertyId", selectedProperty.id);
+    if (editName !== selectedProperty.name) {
+      formData.append("name", editName);
+    }
+    if (editBasePrice !== selectedProperty.basePrice) {
+      formData.append("basePrice", editBasePrice);
+    }
+    if (editIsActive !== selectedProperty.isActive) {
+      formData.append("isActive", editIsActive.toString());
+    }
+    updateAction(formData);
   };
 
   const handleDelete = () => {
     if (!deleteTarget) return;
-    deleteMutation.mutate(deleteTarget.id);
+    const formData = new FormData();
+    formData.append("propertyId", deleteTarget.id);
+    deleteAction(formData);
   };
 
   return (
@@ -444,12 +364,15 @@ function AdminPropertiesPage() {
                             <Button
                               size="sm"
                               variant="destructive"
-                              disabled={unverifyGpsMutation.isPending}
-                              onClick={() =>
-                                unverifyGpsMutation.mutate(property.id)
-                              }
+                              disabled={isUpdatePending}
+                              onClick={() => {
+                                const formData = new FormData();
+                                formData.append("propertyId", property.id);
+                                formData.append("gpsVerified", "false");
+                                updateAction(formData);
+                              }}
                             >
-                              {unverifyGpsMutation.isPending
+                              {isUpdatePending
                                 ? "Membatalkan..."
                                 : "Batal Verifikasi"}
                             </Button>
@@ -457,66 +380,62 @@ function AdminPropertiesPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              disabled={verifyGpsMutation.isPending}
+                              disabled={isUpdatePending}
                               onClick={() => setGpsVerifyProperty(property)}
                             >
-                              {verifyGpsMutation.isPending
+                              {isUpdatePending
                                 ? "Memverifikasi..."
                                 : "Verifikasi GPS"}
                             </Button>
                           )}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openEdit(property)}
-                          >
-                            <HugeiconsIcon
-                              icon={Edit01Icon}
-                              strokeWidth={2}
-                              className="size-4"
-                            />
-                          </Button>
-                          <Dialog>
-                            <DialogTrigger
-                              render={
-                                <Button size="sm" variant="destructive">
-                                  <HugeiconsIcon
-                                    icon={Delete01Icon}
-                                    strokeWidth={2}
-                                    className="size-4"
-                                  />
-                                </Button>
-                              }
-                            />
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Konfirmasi Hapus</DialogTitle>
-                              </DialogHeader>
-                              <p className="text-sm text-muted-foreground">
-                                Apakah Anda yakin ingin menghapus properti
-                                &quot;{property.name}&quot;? Tindakan ini tidak
-                                dapat dibatalkan.
-                              </p>
-                              <div className="flex justify-end gap-2">
-                                <DialogTrigger
-                                  render={
-                                    <Button variant="outline">Batal</Button>
-                                  }
-                                />
-                                <Button
-                                  variant="destructive"
-                                  disabled={deleteMutation.isPending}
-                                  onClick={() =>
-                                    deleteMutation.mutate(property.id)
-                                  }
-                                >
-                                  {deleteMutation.isPending
-                                    ? "Menghapus..."
-                                    : "Hapus"}
-                                </Button>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => openEdit(property)}
+                  >
+                    <HugeiconsIcon
+                      icon={Edit01Icon}
+                      strokeWidth={2}
+                      className="size-4"
+                    />
+                  </Button>
+                  <Dialog>
+                    <DialogTrigger
+                      render={
+                        <Button size="sm" variant="destructive">
+                          <HugeiconsIcon
+                            icon={Delete01Icon}
+                            strokeWidth={2}
+                            className="size-4"
+                          />
+                        </Button>
+                      }
+                    />
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Konfirmasi Hapus</DialogTitle>
+                      </DialogHeader>
+                      <p className="text-sm text-muted-foreground">
+                        Apakah Anda yakin ingin menghapus properti
+                        &quot;{property.name}&quot;? Tindakan ini tidak
+                        dapat dibatalkan.
+                      </p>
+                      <div className="flex justify-end gap-2">
+                        <DialogTrigger
+                          render={
+                            <Button variant="outline">Batal</Button>
+                          }
+                        />
+                        <Button
+                          variant="destructive"
+                          disabled={isDeletePending}
+                          onClick={handleDelete}
+                        >
+                          {isDeletePending ? "Menghapus..." : "Hapus"}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -582,10 +501,10 @@ function AdminPropertiesPage() {
                   Batal
                 </Button>
                 <Button
-                  disabled={updateMutation.isPending}
+                  disabled={isUpdatePending}
                   onClick={handleSaveEdit}
                 >
-                  {updateMutation.isPending ? "Menyimpan..." : "Simpan"}
+                  {isUpdatePending ? "Menyimpan..." : "Simpan"}
                 </Button>
               </div>
             </div>
@@ -613,10 +532,10 @@ function AdminPropertiesPage() {
                 </Button>
                 <Button
                   variant="destructive"
-                  disabled={deleteMutation.isPending}
+                  disabled={isDeletePending}
                   onClick={handleDelete}
                 >
-                  {deleteMutation.isPending ? "Menghapus..." : "Hapus"}
+                  {isDeletePending ? "Menghapus..." : "Hapus"}
                 </Button>
               </div>
             </div>
@@ -630,10 +549,13 @@ function AdminPropertiesPage() {
         propertyName={gpsVerifyProperty?.name ?? ""}
         propertyCity={gpsVerifyProperty?.city ?? null}
         onConfirm={(id) => {
-          verifyGpsMutation.mutate(id);
+          const formData = new FormData();
+          formData.append("propertyId", id);
+          formData.append("gpsVerified", "true");
+          updateAction(formData);
           setGpsVerifyProperty(null);
         }}
-        isPending={verifyGpsMutation.isPending}
+        isPending={isUpdatePending}
       />
     </div>
   );

@@ -1,11 +1,12 @@
 "use server";
 
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { users, accounts } from "@/db/schema";
 import { eq, and, ne } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
+import { hashPassword } from "better-auth/crypto";
 import { createAuditLog } from "@/lib/audit-log";
 
 const updateUserSchema = z.object({
@@ -306,5 +307,118 @@ export async function banUserAction(
       return { error: error.issues[0]?.message || "Input tidak valid", success: false };
     }
     return { error: "Gagal mengubah status blokir user", success: false };
+  }
+}
+
+const createUserSchema = z.object({
+  name: z.string().min(1, "Nama harus diisi").max(255),
+  email: z.string().email("Format email tidak valid"),
+  role: z.enum(["cust", "owner", "admin", "staff"]).default("cust"),
+  password: z.string().min(8, "Password minimal 8 karakter"),
+  phone: z.string().optional(),
+  image: z.string().url().optional().or(z.literal("")),
+  whatsapp: z.string().optional(),
+  telegram: z.string().optional(),
+  province: z.string().optional(),
+  city: z.string().optional(),
+  district: z.string().optional(),
+  isActive: z.boolean().default(true),
+});
+
+export type CreateUserState = {
+  success?: boolean;
+  error?: string;
+  message?: string;
+  data?: unknown;
+};
+
+export async function createUserAction(
+  prevState: CreateUserState | undefined,
+  formData: FormData,
+): Promise<CreateUserState> {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user?.id) {
+      return { error: "Tidak terotorisasi", success: false };
+    }
+
+    if (!["admin", "staff"].includes(session.user.role)) {
+      return { error: "Dilarang", success: false };
+    }
+
+    const validated = createUserSchema.parse({
+      name: formData.get("name"),
+      email: formData.get("email"),
+      role: formData.get("role") || "cust",
+      password: formData.get("password"),
+      phone: formData.get("phone") || undefined,
+      image: formData.get("image") || undefined,
+      whatsapp: formData.get("whatsapp") || undefined,
+      telegram: formData.get("telegram") || undefined,
+      province: formData.get("province") || undefined,
+      city: formData.get("city") || undefined,
+      district: formData.get("district") || undefined,
+      isActive: formData.get("isActive") === "true",
+    });
+
+    const [existing] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, validated.email))
+      .limit(1);
+
+    if (existing) {
+      return { error: "Email sudah digunakan", success: false };
+    }
+
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        name: validated.name,
+        email: validated.email,
+        role: validated.role,
+        image: validated.image || null,
+        phone: validated.phone || null,
+        whatsapp: validated.whatsapp || null,
+        telegram: validated.telegram || null,
+        province: validated.province || null,
+        city: validated.city || null,
+        district: validated.district || null,
+        isActive: validated.isActive,
+      })
+      .returning();
+
+    const hashedPassword = await hashPassword(validated.password);
+
+    await db.insert(accounts).values({
+      id: crypto.randomUUID(),
+      userId: newUser.id,
+      accountId: validated.email,
+      providerId: "email",
+      password: hashedPassword,
+    });
+
+    await createAuditLog({
+      action: "create",
+      targetType: "user",
+      targetId: newUser.id,
+      adminId: session.user.id,
+      details: {
+        email: newUser.email,
+        role: newUser.role,
+        isActive: newUser.isActive,
+      },
+    });
+
+    return { success: true, message: "User berhasil dibuat", data: newUser };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+    }
+    console.error("createUserAction error:", error);
+    return { error: "Gagal membuat user", success: false };
   }
 }

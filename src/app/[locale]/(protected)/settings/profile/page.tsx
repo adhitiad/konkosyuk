@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useActionState } from "react";
 import { useSession } from "@/lib/auth-client";
 import type { SessionUserWithRole } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
@@ -25,7 +25,8 @@ import {
 } from "@/components/ui/select";
 import { User, Upload, AlertTriangle } from "lucide-react";
 import imageCompression from "browser-image-compression";
-import { apiClient } from "@/lib/axios";
+import { updateUserProfileAction } from "@/actions/profile";
+import { uploadImageAction } from "@/actions/upload";
 import { apiGet } from "@/lib/api.client";
 
 interface RegionOption {
@@ -44,7 +45,14 @@ export default function ProfileSettingsPage() {
   const [district, setDistrict] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [profileState, profileAction, isProfilePending] = useActionState(
+    updateUserProfileAction,
+    undefined,
+  );
+  const [uploadState, uploadAction, isUploadPending] = useActionState(
+    uploadImageAction,
+    undefined,
+  );
   const [formError, setFormError] = useState<string | null>(null);
 
   const [provinces, setProvinces] = useState<RegionOption[]>([]);
@@ -148,7 +156,6 @@ export default function ProfileSettingsPage() {
     if (!file) return;
 
     setFormError(null);
-    setLoading(true);
 
     try {
       const options = {
@@ -167,58 +174,49 @@ export default function ProfileSettingsPage() {
     } catch (err) {
       setFormError("Gagal mengompres gambar.");
       console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError(null);
-    setLoading(true);
+  const handleSubmit = (formData: FormData) => {
+    formData.append("name", name);
+    formData.append("phone", phone);
+    formData.append("province", province || "");
+    formData.append("city", city || "");
+    formData.append("district", district || "");
 
-    try {
-      let imageUrl = session?.user.image || null;
+    if (imageFile) {
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", imageFile);
+      uploadFormData.append("type", "avatar");
+      uploadAction(uploadFormData);
+    } else {
+      profileAction(formData);
+    }
+  };
 
-      if (imageFile) {
-        const formData = new FormData();
-        formData.append("file", imageFile);
-
-        const { data: uploadData } = await apiClient.post(
-          "/api/user/upload-avatar",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          },
-        );
-
-        if (uploadData.error)
-          throw new Error(uploadData.error || "Gagal upload");
-        imageUrl = uploadData.url;
-      }
-
-      const res = await apiClient.patch("/api/user/profile", {
-        name,
-        phone,
-        image: imageUrl,
-        province,
-        city,
-        district,
-      });
-
-      if (res.status >= 400) throw new Error("Gagal update profil");
-
+  useEffect(() => {
+    if (profileState?.success) {
       router.refresh();
       alert("Profil berhasil diperbarui!");
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Terjadi kesalahan";
-      setFormError(errorMessage);
-    } finally {
-      setLoading(false);
+    } else if (profileState?.error) {
+      setFormError(profileState.error);
     }
-  };
+  }, [profileState, router]);
+
+  useEffect(() => {
+    if (uploadState?.success && uploadState.data?.url) {
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("phone", phone);
+      formData.append("image", uploadState.data.url);
+      formData.append("province", province || "");
+      formData.append("city", city || "");
+      formData.append("district", district || "");
+      profileAction(formData);
+    } else if (uploadState?.error) {
+      setFormError(uploadState.error);
+    }
+  }, [uploadState, name, phone, province, city, district, profileAction]);
 
   if (isPending)
     return (
@@ -264,13 +262,13 @@ export default function ProfileSettingsPage() {
               accept="image/*"
               className="hidden"
               onChange={handleImageChange}
-              disabled={loading}
+              disabled={isProfilePending || isUploadPending}
             />
             <Button
               type="button"
               variant="outline"
               onClick={() => document.getElementById("avatar")?.click()}
-              disabled={loading}
+              disabled={isProfilePending || isUploadPending}
             >
               <Upload className="mr-2 h-4 w-4" />
               {imagePreview ? "Ganti Foto" : "Upload Foto"}
@@ -284,32 +282,32 @@ export default function ProfileSettingsPage() {
         </CardContent>
       </Card>
 
-      <form onSubmit={handleSubmit}>
+      <form action={profileAction} className="space-y-6">
+        {formError && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>{formError}</AlertDescription>
+          </Alert>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>Informasi Pribadi</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {formError && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>{formError}</AlertDescription>
-              </Alert>
-            )}
-
             <div className="space-y-2">
               <Label htmlFor="name">Nama Lengkap</Label>
               <Input
                 id="name"
+                name="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                disabled={loading}
+                disabled={isProfilePending || isUploadPending}
               />
               {(session.user as SessionUserWithRole).role === "owner" && (
                 <p className="text-xs text-amber-600 font-medium">
-                  ⚠️ Nama HARUS sama dengan KTP/Buku Tabungan untuk pencairan
-                  dana
+                  Nama HARUS sama dengan KTP/Buku Tabungan untuk pencairan dana
                 </p>
               )}
             </div>
@@ -328,17 +326,19 @@ export default function ProfileSettingsPage() {
               <Label htmlFor="phone">Nomor Telepon</Label>
               <Input
                 id="phone"
+                name="phone"
                 type="tel"
                 placeholder="0812xxxxxxx"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
-                disabled={loading}
+                disabled={isProfilePending || isUploadPending}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="province">Provinsi</Label>
+              <input type="hidden" name="province" value={province} />
               <Select
                 value={province}
                 onValueChange={(value) => {
@@ -346,7 +346,7 @@ export default function ProfileSettingsPage() {
                   setCity("");
                   setDistrict("");
                 }}
-                disabled={loadingProvinces || loading}
+                disabled={loadingProvinces || isProfilePending || isUploadPending}
               >
                 <SelectTrigger id="province">
                   <SelectValue
@@ -367,13 +367,14 @@ export default function ProfileSettingsPage() {
 
             <div className="space-y-2">
               <Label htmlFor="city">Kota/Kabupaten</Label>
+              <input type="hidden" name="city" value={city} />
               <Select
                 value={city}
                 onValueChange={(value) => {
                   setCity(value ?? "");
                   setDistrict("");
                 }}
-                disabled={!province || loadingCities || loading}
+                disabled={!province || loadingCities || isProfilePending || isUploadPending}
               >
                 <SelectTrigger id="city">
                   <SelectValue
@@ -398,10 +399,11 @@ export default function ProfileSettingsPage() {
 
             <div className="space-y-2">
               <Label htmlFor="district">Kecamatan</Label>
+              <input type="hidden" name="district" value={district} />
               <Select
                 value={district}
                 onValueChange={(value) => setDistrict(value ?? "")}
-                disabled={!city || loadingDistricts || loading}
+                disabled={!city || loadingDistricts || isProfilePending || isUploadPending}
               >
                 <SelectTrigger id="district">
                   <SelectValue
@@ -424,8 +426,12 @@ export default function ProfileSettingsPage() {
               </Select>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Menyimpan..." : "Simpan Perubahan"}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isProfilePending || isUploadPending}
+            >
+              {(isProfilePending || isUploadPending) ? "Menyimpan..." : "Simpan Perubahan"}
             </Button>
           </CardContent>
         </Card>

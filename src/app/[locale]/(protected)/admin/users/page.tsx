@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useActionState } from "react";
 import { useSession } from "@/lib/auth-client";
@@ -49,7 +49,7 @@ import { ROLE_OPTIONS, getRoleBadgeVariant } from "@/lib/constants/user";
 import { FaCheck, FaTimes, FaTrash } from "react-icons/fa";
 import Link from "next/link";
 import { ImageUpload } from "@/components/ui/image-upload";
-import { updateUserAction, deleteUserAction } from "@/actions/admin/users";
+import { updateUserAction, deleteUserAction, createUserAction } from "@/actions/admin/users";
 
 interface User {
   id: string;
@@ -93,6 +93,10 @@ const AdminUsersPage = ({}: AdminUsersPageProps) => {
   const [createCity, setCreateCity] = useState("");
   const [createDistrict, setCreateDistrict] = useState("");
   const [createIsActive, setCreateIsActive] = useState(true);
+  const [createState, createAction, isCreatePending] = useActionState(
+    createUserAction,
+    undefined,
+  );
 
   const limit = 10;
 
@@ -191,55 +195,8 @@ const AdminUsersPage = ({}: AdminUsersPageProps) => {
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: async ({
-      name,
-      email,
-      role,
-      password,
-      phone,
-      image,
-      whatsapp,
-      telegram,
-      province,
-      city,
-      district,
-      isActive,
-    }: {
-      name: string;
-      email: string;
-      role: string;
-      password: string;
-      phone?: string;
-      image?: string;
-      whatsapp?: string;
-      telegram?: string;
-      province?: string;
-      city?: string;
-      district?: string;
-      isActive: boolean;
-    }) => {
-      const res = await apiClient.post("/api/admin/users", {
-        name,
-        email,
-        role,
-        password,
-        phone,
-        image,
-        whatsapp,
-        telegram,
-        province,
-        city,
-        district,
-        isActive,
-      });
-      if (res.status >= 400) {
-        const text = res.data;
-        throw new Error(text || "Failed to create user");
-      }
-      return res.data;
-    },
-    onSuccess: () => {
+  useEffect(() => {
+    if (createState?.success) {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
       toast({
@@ -260,15 +217,14 @@ const AdminUsersPage = ({}: AdminUsersPageProps) => {
       setCreateCity("");
       setCreateDistrict("");
       setCreateIsActive(true);
-    },
-    onError: (err) => {
+    } else if (createState?.error) {
       toast({
         title: "Gagal",
-        description: err instanceof Error ? err.message : "Gagal membuat user.",
+        description: createState.error,
         type: "error",
       });
-    },
-  });
+    }
+  }, [createState, queryClient]);
 
   const users = Array.isArray(data?.data) ? data.data : [];
   const total = data?.meta?.total ?? 0;
@@ -689,25 +645,25 @@ const AdminUsersPage = ({}: AdminUsersPageProps) => {
               Batal
             </Button>
             <Button
-              onClick={() =>
-                createMutation.mutate({
-                  name: createName,
-                  email: createEmail,
-                  role: createRole,
-                  password: createPassword,
-                  phone: createPhone,
-                  image: createImage,
-                  whatsapp: createWhatsApp,
-                  telegram: createTelegram,
-                  province: createProvince,
-                  city: createCity,
-                  district: createDistrict,
-                  isActive: createIsActive,
-                })
-              }
-              disabled={createMutation.isPending}
+              onClick={() => {
+                const formData = new FormData();
+                formData.append("name", createName);
+                formData.append("email", createEmail);
+                formData.append("role", createRole);
+                formData.append("password", createPassword);
+                formData.append("phone", createPhone);
+                formData.append("image", createImage);
+                formData.append("whatsapp", createWhatsApp);
+                formData.append("telegram", createTelegram);
+                formData.append("province", createProvince);
+                formData.append("city", createCity);
+                formData.append("district", createDistrict);
+                formData.append("isActive", createIsActive.toString());
+                createAction(formData);
+              }}
+              disabled={isCreatePending}
             >
-              {createMutation.isPending ? "Membuat..." : "Buat"}
+              {isCreatePending ? "Membuat..." : "Buat"}
             </Button>
           </div>
         </DialogContent>

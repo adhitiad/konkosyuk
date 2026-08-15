@@ -1,8 +1,8 @@
 "use server";
 
 import { db } from "@/db";
-import { bookings, units, properties } from "@/db/schema";
-import { eq, and, or, gte, lte, inArray } from "drizzle-orm";
+import { bookings, units, properties, users, balanceLogs, payments } from "@/db/schema";
+import { eq, and, or, gte, lte, inArray, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
@@ -213,5 +213,144 @@ export async function createBookingAction(
       return { error: error.issues[0]?.message || "Input tidak valid", success: false };
     }
     return { error: "Gagal membuat booking", success: false };
+  }
+}
+
+const reviewBookingSchema = z.object({
+  bookingId: z.string().uuid(),
+  status: z.enum(["confirmed", "rejected"]),
+  note: z.string().optional(),
+});
+
+export type ReviewBookingState = {
+  success?: boolean;
+  error?: string;
+  data?: unknown;
+};
+
+export async function reviewBookingAction(
+  prevState: ReviewBookingState | undefined,
+  formData: FormData,
+): Promise<ReviewBookingState> {
+  try {
+    const validated = reviewBookingSchema.parse({
+      bookingId: formData.get("bookingId"),
+      status: formData.get("status"),
+      note: formData.get("note") || undefined,
+    });
+
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user?.id) {
+      return { error: "Tidak terotorisasi", success: false };
+    }
+
+    const [booking] = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.id, validated.bookingId))
+      .limit(1);
+
+    if (!booking) {
+      return { error: "Booking tidak ditemukan", success: false };
+    }
+
+    const [property] = await db
+      .select()
+      .from(properties)
+      .where(eq(properties.id, booking.propertyId))
+      .limit(1);
+
+    if (!property) {
+      return { error: "Properti tidak ditemukan", success: false };
+    }
+
+    if (session.user.role === "owner" && property.ownerId !== session.user.id) {
+      return { error: "Dilarang", success: false };
+    }
+
+    if (booking.status !== "awaiting_owner_approval") {
+      return { error: "Booking tidak menunggu approval", success: false };
+    }
+
+    const newStatus =
+      validated.status === "confirmed" ? "awaiting_full_payment" : "rejected";
+
+    const updatePayload: Record<string, unknown> = {
+      status: newStatus,
+      metadata: {
+        ...booking.metadata,
+        reviewNote: validated.note,
+        reviewedBy: session.user.id,
+        reviewedAt: new Date().toISOString(),
+      },
+      updatedAt: new Date(),
+    };
+
+    if (validated.status === "rejected") {
+      updatePayload.rejectionReason = validated.note ?? null;
+    }
+
+    if (validated.status === "rejected") {
+      await db.transaction(async (tx) => {
+        const [dpPayment] = await tx
+          .select()
+          .from(payments)
+          .where(
+            and(
+              eq(payments.bookingId, validated.bookingId),
+              eq(payments.status, "success"),
+              eq(payments.purpose, "dp"),
+            ),
+          )
+          .limit(1);
+
+        if (dpPayment) {
+          const dpAmount = Number(dpPayment.amount);
+
+          await tx
+            .update(users)
+            .set({
+              balance: sql`${users.balance} + ${dpAmount}`,
+              updatedAt: new Date(),
+            })
+            .where(eq(users.id, booking.userId));
+
+          await tx.insert(balanceLogs).values({
+            userId: booking.userId,
+            amount: dpAmount.toFixed(2),
+            type: "refund",
+            description: `Refund DP booking #${validated.bookingId.slice(0, 8)} - ${validated.note ?? "Booking ditolak"}`,
+            relatedId: validated.bookingId,
+          });
+        }
+
+        const [updated] = await tx
+          .update(bookings)
+          .set(updatePayload)
+          .where(eq(bookings.id, booking.id))
+          .returning();
+
+        return updated;
+      });
+    } else {
+      const [updated] = await db
+        .update(bookings)
+        .set(updatePayload)
+        .where(eq(bookings.id, booking.id))
+        .returning();
+
+      return { success: true, data: updated };
+    }
+
+    return { success: true };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+    }
+    console.error("reviewBookingAction error:", error);
+    return { error: "Gagal memproses review booking", success: false };
   }
 }

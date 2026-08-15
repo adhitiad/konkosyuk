@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useActionState } from "react";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import {
@@ -31,7 +31,7 @@ import type {
   PackageItem,
   DurationUnit,
 } from "@/lib/types/property-packages";
-import { apiClient } from "@/lib/axios";
+import { createBookingAction } from "@/actions/bookings";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("id-ID", {
@@ -71,7 +71,10 @@ export default function BookingDialogClient({
   const [selectedPackageId, setSelectedPackageId] = useState<string>("");
   const [customDuration, setCustomDuration] = useState<number>(1);
   const [startDate, setStartDate] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [state, formAction, isPending] = useActionState(
+    createBookingAction,
+    undefined,
+  );
   const [error, setError] = useState<string | null>(null);
 
   const today = useMemo(() => {
@@ -109,63 +112,27 @@ export default function BookingDialogClient({
   const isStartDateValid =
     startDate === "" || new Date(startDate) >= new Date(today.slice(0, 10));
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (!session?.user) {
-      router.push(`/login?redirect=/properties/${propertyId}`);
-      return;
+  const handleSubmit = (formData: FormData) => {
+    formData.append("propertyId", propertyId);
+    formData.append("unitId", unitId);
+    formData.append("packageId", selectedPackageId);
+    formData.append("startDate", new Date(startDate).toISOString());
+    if (selectedPackageId === "custom" && packages.custom.enabled) {
+      formData.append("customDuration", customDuration.toString());
     }
-
-    if (!selectedPackageId) {
-      setError("Pilih paket terlebih dahulu");
-      return;
-    }
-
-    if (
-      selectedPackageId === "custom" &&
-      packages.custom.enabled &&
-      !customDuration
-    ) {
-      setError("Masukkan durasi custom");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const body: Record<string, unknown> = {
-        propertyId,
-        unitId,
-        packageId: selectedPackageId,
-        bookingType: "instant",
-        startDate: new Date(startDate).toISOString(),
-        metadata: {},
-      };
-
-      if (selectedPackageId === "custom" && packages.custom.enabled) {
-        body.customDuration = customDuration;
-      }
-
-      const res = await apiClient.post("/api/bookings", body);
-
-      const json = res.data;
-      if (res.status >= 400) {
-        showToastError(json.error ?? "Gagal membuat booking");
-        throw new Error(json.error ?? "Gagal membuat booking");
-      }
-
-      showToastSuccess(
-        "Booking berhasil! Silakan bayar DP 35% untuk mengunci kamar.",
-      );
-      setOpen(false);
-      router.push("/dashboard/bookings");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
-    } finally {
-      setLoading(false);
-    }
+    formAction(formData);
   };
+
+  if (state?.success) {
+    showToastSuccess(
+      "Booking berhasil! Silakan bayar DP 35% untuk mengunci kamar.",
+    );
+    setOpen(false);
+    router.push("/dashboard/bookings");
+  } else if (state?.error) {
+    setError(state.error);
+    showToastError(state.error);
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -178,7 +145,7 @@ export default function BookingDialogClient({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form action={formAction} className="space-y-4">
           {error && (
             <Alert variant="destructive">
               <HugeiconsIcon
@@ -298,9 +265,9 @@ export default function BookingDialogClient({
           <DialogFooter>
             <Button
               type="submit"
-              disabled={loading || !selectedPackageId || !startDate}
+              disabled={isPending || !selectedPackageId || !startDate}
             >
-              {loading ? "Memproses..." : "Booking Sekarang"}
+              {isPending ? "Memproses..." : "Booking Sekarang"}
             </Button>
           </DialogFooter>
         </form>

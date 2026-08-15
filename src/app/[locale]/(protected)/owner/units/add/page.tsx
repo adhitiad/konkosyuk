@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useActionState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { apiClient } from "@/lib/axios";
+import { createUnitAction } from "@/actions/units";
 import { withOwnerAuth } from "@/lib/with-owner-auth";
 import { useSession } from "@/lib/auth-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,13 +46,19 @@ function AddUnitPage() {
     facilities: "",
   });
 
+  const [unitState, unitAction, isPending] = useActionState(
+    createUnitAction,
+    undefined,
+  );
+
   const { data: properties } = useQuery<PropertyOption[]>({
     queryKey: ["owner-properties-list"],
     queryFn: async () => {
-      const response = await apiClient.get("/api/properties", {
-        params: { ownerId: session?.user?.id, limit: 100 },
-      });
-      const body = response.data as { data?: { data?: PropertyOption[] } };
+      const response = await fetch(
+        `/api/properties?ownerId=${session?.user?.id}&limit=100`,
+      );
+      const json = await response.json();
+      const body = json as { data?: { data?: PropertyOption[] } };
       const items = Array.isArray(body?.data?.data)
         ? body.data.data
         : Array.isArray(body?.data)
@@ -63,12 +69,8 @@ function AddUnitPage() {
     enabled: !!session?.user?.id,
   });
 
-  const addMutation = useMutation({
-    mutationFn: async (payload: Record<string, unknown>) => {
-      const res = await apiClient.post("/api/owner/units", payload);
-      return res.data;
-    },
-    onSuccess: () => {
+  useEffect(() => {
+    if (unitState?.success) {
       queryClient.invalidateQueries({ queryKey: ["owner-units"] });
       toast({
         title: "Unit berhasil ditambahkan",
@@ -76,15 +78,14 @@ function AddUnitPage() {
         type: "success",
       });
       router.push("/owner/units");
-    },
-    onError: (err) => {
+    } else if (unitState?.error) {
       toast({
         title: "Gagal menambahkan unit",
-        description: err instanceof Error ? err.message : "Terjadi kesalahan",
+        description: unitState.error,
         type: "error",
       });
-    },
-  });
+    }
+  }, [unitState, queryClient, router]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,18 +115,16 @@ function AddUnitPage() {
       return;
     }
 
-    addMutation.mutate({
-      propertyId: formData.propertyId,
-      name: formData.name,
-      type: formData.type,
-      price: Number(formData.price),
-      capacity: Number(formData.capacity),
-      status: formData.status,
-      description: formData.description || null,
-      facilities: formData.facilities
-        ? formData.facilities.split(",").map((f) => f.trim())
-        : [],
-    });
+    const unitFormData = new FormData();
+    unitFormData.append("propertyId", formData.propertyId);
+    unitFormData.append("name", formData.name);
+    unitFormData.append("price", formData.price);
+    unitFormData.append("capacity", formData.capacity);
+    unitFormData.append("status", formData.status);
+    if (formData.description) {
+      unitFormData.append("description", formData.description);
+    }
+    unitAction(unitFormData);
   };
 
   return (
@@ -313,8 +312,8 @@ function AddUnitPage() {
               >
                 Batal
               </Button>
-              <Button type="submit" disabled={addMutation.isPending}>
-                {addMutation.isPending ? (
+              <Button type="submit" disabled={isPending}>
+                {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Menyimpan...
