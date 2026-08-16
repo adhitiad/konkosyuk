@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { ChatTriggerButton } from "@/components/chat/chat-trigger-button";
 
 const amenityIcons: Record<string, any> = {
   wifi: Wifi,
@@ -177,6 +178,12 @@ export default async function PropertyDetailPage({
                 <Button className="w-full h-12 text-lg font-semibold" size="lg">
                   Ajukan Booking Sekarang
                 </Button>
+                <ChatTriggerButton
+                  propertyId={property.id}
+                  propertyName={property.name}
+                  variant="outline"
+                  className="w-full h-12"
+                />
                 <Button variant="outline" className="w-full h-12" size="lg">
                   Hubungi Pemilik via WhatsApp
                 </Button>

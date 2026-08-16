@@ -25,6 +25,7 @@
     "kycRequests": "คำขอ KYC",
     "notifications": "การแจ้งเตือน",
     "notificationSettings": "การตั้งค่าการแจ้งเตือน",
+    "chat": "Chat",
     "systemHealth": "สุขภาพระบบ",
     "activityLogs": "บันทึกกิจกรรม",
     "paymentGateways": "เกตเวย์การชำระเงิน",
@@ -79,3 +80,5 @@
     "staff": "พนักงาน"
   }
 }
+
+

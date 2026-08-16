@@ -25,6 +25,7 @@
     "kycRequests": "KYC 请求",
     "notifications": "通知",
     "notificationSettings": "通知设置",
+    "chat": "Chat",
     "systemHealth": "系统健康",
     "activityLogs": "活动日志",
     "paymentGateways": "支付网关",
@@ -79,3 +80,5 @@
     "staff": "员工"
   }
 }
+
+

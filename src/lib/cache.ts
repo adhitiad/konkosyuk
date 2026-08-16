@@ -84,9 +84,13 @@ export function buildCacheKey(
   prefix: string,
   params: Record<string, unknown>,
 ): string {
-  const sorted = Object.keys(params)
-    .sort()
-    .map((key) => `${key}:${params[key]}`)
-    .join(":");
-  return `${prefix}:${sorted}`;
+  // Optimasi: gunakan array push + single join alih-alih .sort().map().join()
+  // yang membuat banyak intermediate strings
+  const keys = Object.keys(params).sort();
+  const parts: string[] = [prefix];
+  for (let i = 0; i < keys.length; i++) {
+    parts.push(keys[i]);
+    parts.push(String(params[keys[i]]));
+  }
+  return parts.join(":");
 }

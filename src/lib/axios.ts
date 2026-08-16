@@ -22,6 +22,9 @@ export async function ensureCsrfToken(): Promise<void> {
       csrfRequest = null;
     });
   await csrfRequest;
+  if (!getCsrfToken()) {
+    throw new Error("CSRF token cookie is not available after initialization");
+  }
 }
 
 export async function csrfFetch(

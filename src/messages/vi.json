@@ -25,6 +25,7 @@
     "kycRequests": "Yêu cầu KYC",
     "notifications": "Thông báo",
     "notificationSettings": "Cài đặt thông báo",
+    "chat": "Chat",
     "systemHealth": "Sức khỏe hệ thống",
     "activityLogs": "Nhật ký hoạt động",
     "paymentGateways": "Cổng thanh toán",
@@ -79,3 +80,5 @@
     "staff": "Nhân viên"
   }
 }
+
+

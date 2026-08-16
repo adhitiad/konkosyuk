@@ -51,7 +51,10 @@ export function PushNotificationToggle() {
           auth: json.keys?.auth,
         }),
       });
-      if (!response.ok) throw new Error("Subscription failed");
+      if (!response.ok) {
+        const text = await response.text().catch(() => "Unknown error");
+        throw new Error(`Subscription failed: ${response.status} ${text}`);
+      }
       setState("enabled");
     } catch (error) {
       console.error("Push notification setup failed:", error);

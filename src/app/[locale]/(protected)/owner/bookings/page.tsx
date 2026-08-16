@@ -28,6 +28,7 @@ import { AlertCircleIcon, UserIcon } from "@hugeicons/core-free-icons";
 import ReviewBookingDialog from "./review-booking-dialog";
 import TenantDetailDialog from "./tenant-detail-dialog";
 import ReviewForm from "@/components/review-form";
+import { ChatTriggerButton } from "@/components/chat/chat-trigger-button";
 import type { Booking } from "@/db/schema";
 import { apiClient } from "@/lib/axios";
 
@@ -224,6 +225,13 @@ export default function OwnerBookingsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
+                          <ChatTriggerButton
+                            propertyId={booking.propertyId}
+                            propertyName={booking.propertyName ?? "Properti"}
+                            tenantId={booking.userId}
+                            variant="ghost"
+                            className="size-8 p-0"
+                          />
                           <Dialog>
                             <DialogTrigger
                               render={

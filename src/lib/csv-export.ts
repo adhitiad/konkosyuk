@@ -1,29 +1,38 @@
+import { CsvBuffer } from "@/lib/perf";
+
 export function exportToCSV(data: Record<string, unknown>[], filename: string) {
   if (!data || data.length === 0) {
     throw new Error("No data to export");
   }
 
   const headers = Object.keys(data[0]);
-  const csvRows = [
-    headers.join(","),
-    ...data.map((row) =>
-      headers
-        .map((header) => {
-          const value = row[header];
-          const stringValue =
-            value === null || value === undefined ? "" : String(value);
-          return stringValue.includes(",") ||
-            stringValue.includes('"') ||
-            stringValue.includes("\n")
-            ? `"${stringValue.replace(/"/g, '""')}"`
-            : stringValue;
-        })
-        .join(","),
-    ),
-  ];
+  const csv = new CsvBuffer();
 
-  const csvString = csvRows.join("\n");
-  const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+  // Header line
+  csv.appendLine(headers.join(","));
+
+  // Data rows
+  for (let i = 0; i < data.length; i++) {
+    const row = data[i];
+    const rowParts: string[] = [];
+    for (let j = 0; j < headers.length; j++) {
+      const value = row[headers[j]];
+      const stringValue =
+        value === null || value === undefined ? "" : String(value);
+      if (
+        stringValue.includes(",") ||
+        stringValue.includes('"') ||
+        stringValue.includes("\n")
+      ) {
+        rowParts.push(`"${stringValue.replace(/"/g, '""')}"`);
+      } else {
+        rowParts.push(stringValue);
+      }
+    }
+    csv.appendLine(rowParts.join(","));
+  }
+
+  const blob = csv.toBlob();
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
 
@@ -33,4 +42,6 @@ export function exportToCSV(data: Record<string, unknown>[], filename: string) {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
+

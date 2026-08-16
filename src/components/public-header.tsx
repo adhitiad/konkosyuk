@@ -90,7 +90,7 @@ export function Navbar() {
                   <Link href="/dashboard">Dashboard</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Link href="/settings">Pengaturan</Link>
+                  <Link href="/settings/profile">Pengaturan</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

@@ -131,6 +131,7 @@ export const users = pgTable(
     isActive: boolean("is_active").notNull().default(true),
     isBanned: boolean("is_banned").notNull().default(false),
     banReason: text("ban_reason"),
+    twoFactorEnabled: boolean("two_factor_enabled").default(false),
     kycStatus: text("kyc_status", { enum: kycStatus })
       .notNull()
       .default("none"),
@@ -298,6 +299,8 @@ export const twoFactor = pgTable(
     secretIdx: index("two_factor_secret_idx").on(table.secret),
   }),
 );
+
+export const twoFactors = twoFactor;
 
 export const propertyStatus = ["aktif", "nonaktif"] as const;
 

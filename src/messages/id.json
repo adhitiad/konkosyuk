@@ -26,6 +26,7 @@
     "analytics": "Analitik",
     "notifications": "Notifikasi",
     "notificationSettings": "Pengaturan Notifikasi",
+    "chat": "Chat",
     "systemHealth": "Kesehatan Sistem",
     "activityLogs": "Log Aktivitas",
     "paymentGateways": "Payment Gateway",
@@ -79,3 +80,4 @@
     "staff": "Staff"
   }
 }
+

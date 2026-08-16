@@ -19,6 +19,7 @@ import type { NextRequest } from "next/server";
 import { getDeviceInfoFromRequest } from "@/lib/device";
 
 import { getRedis } from "@/lib/redis";
+import { RateLimitResultPool } from "@/lib/perf";
 
 export function rateLimit(
   options: RateLimitOptions,
@@ -32,12 +33,22 @@ export function rateLimit(
     const redis = await getRedis();
     const ttlSeconds = Math.ceil(windowMs / 1000);
     const count = await redis.incr(`ratelimit:${clientKey}`, ttlSeconds);
-    const resetAt = new Date(Date.now() + ttlSeconds * 1000);
-    return {
-      success: count <= max,
-      remaining: Math.max(0, max - count),
-      resetAt,
+
+    // Gunakan pooled result object untuk menghindari alokasi baru
+    const pooled = RateLimitResultPool.acquire();
+    pooled.success = count <= max;
+    pooled.remaining = Math.max(0, max - count);
+    pooled.resetAtMs = Date.now() + ttlSeconds * 1000;
+
+    // Konversi ke public interface (Date) dan release pooled object
+    const result: RateLimitResult = {
+      success: pooled.success,
+      remaining: pooled.remaining,
+      resetAt: new Date(pooled.resetAtMs),
     };
+    RateLimitResultPool.release(pooled);
+
+    return result;
   };
 }
 

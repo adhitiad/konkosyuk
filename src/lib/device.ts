@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { CookieMapPool } from "@/lib/perf";
 
 const DEVICE_ID_COOKIE = "device_id";
 const DEVICE_NAME_COOKIE = "device_name";
@@ -57,17 +58,39 @@ export async function setDeviceName(name: string) {
 
 export function getDeviceInfoFromRequest(req: Request): DeviceInfo {
   const cookieHeader = req.headers.get("cookie") || "";
-  const cookies = cookieHeader.split(";").reduce(
-    (acc, cookie) => {
-      const [key, value] = cookie.trim().split("=");
-      acc[key] = value;
-      return acc;
-    },
-    {} as Record<string, string>,
-  );
+
+  // Gunakan pooled cookie map untuk menghindari alokasi object baru per-request
+  const cookies = CookieMapPool.acquire();
+
+  // Iterative parsing alih-alih split().reduce()
+  let start = 0;
+  const len = cookieHeader.length;
+  while (start < len) {
+    // Cari akhir cookie pair
+    let end = cookieHeader.indexOf(";", start);
+    if (end === -1) end = len;
+
+    // Cari pemisah key=value
+    const eqIdx = cookieHeader.indexOf("=", start);
+    if (eqIdx !== -1 && eqIdx < end) {
+      // Trim whitespace dari key
+      let keyStart = start;
+      while (keyStart < eqIdx && cookieHeader.charCodeAt(keyStart) === 32) keyStart++;
+      const key = cookieHeader.slice(keyStart, eqIdx);
+      const value = cookieHeader.slice(eqIdx + 1, end);
+      cookies[key] = value;
+    }
+
+    start = end + 1;
+    // Skip whitespace setelah semicolon
+    while (start < len && cookieHeader.charCodeAt(start) === 32) start++;
+  }
 
   const deviceId = cookies[DEVICE_ID_COOKIE] || generateDeviceId();
   const deviceName = cookies[DEVICE_NAME_COOKIE] || "unknown";
+
+  // Release pooled map setelah extract nilai yang diperlukan
+  CookieMapPool.release(cookies);
 
   return { deviceId, deviceName };
 }

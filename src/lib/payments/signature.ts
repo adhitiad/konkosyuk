@@ -1,4 +1,5 @@
-import { createHmac, createHash, timingSafeEqual } from "node:crypto";
+import { createHmac, createHash } from "node:crypto";
+import { timingSafeCompare } from "@/lib/perf";
 
 export function hmacSha256Hex(payload: string, secret: string): string {
   return createHmac("sha256", secret).update(payload).digest("hex");
@@ -23,14 +24,8 @@ export function verifySignature(
 ): boolean {
   if (!signatureHeader) return false;
 
-  try {
-    return timingSafeEqual(
-      Buffer.from(expectedSignature),
-      Buffer.from(signatureHeader),
-    );
-  } catch {
-    return false;
-  }
+  // Gunakan timingSafeCompare dari buffer-pool — reuse pre-allocated buffers
+  return timingSafeCompare(expectedSignature, signatureHeader);
 }
 
 export function verifyHmacHex(
@@ -46,11 +41,7 @@ export function verifyHmacHex(
     ? signatureHeader.slice(prefix.length)
     : signatureHeader;
 
-  if (actual.length !== expected.length) return false;
-
-  try {
-    return timingSafeEqual(Buffer.from(expected), Buffer.from(actual));
-  } catch {
-    return false;
-  }
+  // Gunakan timingSafeCompare — pre-allocated buffers alih-alih Buffer.from() per-call
+  return timingSafeCompare(expected, actual);
 }
+

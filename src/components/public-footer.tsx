@@ -5,12 +5,8 @@ import { useTranslations } from "next-intl";
 import { Logo } from "@/components/ui/logo";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { PaymentLogos } from "@/components/public/payment-logos";
-import { AppStoreBadges } from "@/components/public/app-store-badges";
-import { Globe } from "lucide-react";
 
 export function PublicFooter() {
-  const t = useTranslations("public");
   const year = new Date().getFullYear();
 
   return (
@@ -124,7 +120,7 @@ export function PublicFooter() {
               </li>
               <li>
                 <Link
-                  href="/terms"
+                  href="/umum/syarat-dan-ketentuan"
                   className="text-sm text-muted-foreground transition-colors hover:text-primary hover:underline"
                 >
                   Syarat & Ketentuan
@@ -137,30 +133,6 @@ export function PublicFooter() {
         <hr className="my-8 border-gray-200 dark:border-gray-700" />
 
         <div className="flex flex-col items-center gap-6">
-          <AppStoreBadges />
-
-          <div className="w-full">
-            <p className="text-sm text-muted-foreground text-center mb-4">
-              Kami Menerima Pembayaran Dari
-            </p>
-            <PaymentLogos />
-          </div>
-
-          {/* <div className="flex items-center gap-4">
-            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Facebook">
-              <Globe className="w-5 h-5" />
-            </Link>
-            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Instagram">
-              <Globe className="w-5 h-5" />
-            </Link>
-            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Twitter">
-              <Globe className="w-5 h-5" />
-            </Link>
-            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="LinkedIn">
-              <Globe className="w-5 h-5" />
-            </Link>
-          </div> */}
-
           <div className="text-center text-xs text-muted-foreground">
             © {year} KonkosYuk. All rights reserved.
           </div>

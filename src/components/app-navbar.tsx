@@ -83,7 +83,7 @@ export function AppNavbar() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => router.push({ pathname: "/dashboard/settings" })}
+                onClick={() => router.push("/settings/profile")}
               >
                 <HugeiconsIcon
                   icon={Settings01Icon}

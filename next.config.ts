@@ -44,6 +44,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.cartocdn.com",
       },
+      {
+        protocol: "https",
+        hostname: "tile.openstreetmap.org",
+      },
+      {
+        protocol: "https",
+        hostname: "*.tile.openstreetmap.org",
+      },
     ],
     minimumCacheTTL: 60 * 60 * 24 * 365,
     dangerouslyAllowSVG: true,
@@ -106,10 +114,6 @@ const nextConfig: NextConfig = {
             value: "same-origin",
           },
           {
-            key: "Cross-Origin-Embedder-Policy",
-            value: "require-corp",
-          },
-          {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
           },
@@ -122,12 +126,12 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               isProd
-                ? "script-src 'self' https://translate.google.com"
-                : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://translate.google.com",
+                ? "script-src 'self' https://translate.google.com https://va.vercel-scripts.com"
+                : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://translate.google.com https://va.vercel-scripts.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "img-src 'self' data: blob: https://*.uploadthing.com https://utfs.io https://res.cloudinary.com https://*.placehold.co https://via.placeholder.com https://images.unsplash.com https://cdn.jsdelivr.net https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://*.cartocdn.com",
+              "img-src 'self' data: blob: https://*.uploadthing.com https://utfs.io https://res.cloudinary.com https://*.placehold.co https://via.placeholder.com https://images.unsplash.com https://cdn.jsdelivr.net https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://*.cartocdn.com https://tile.openstreetmap.org https://*.tile.openstreetmap.org",
               "font-src 'self' data: https://fonts.gstatic.com",
-              "connect-src 'self' https://translate.google.com https://translate.googleapis.com https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://tiles.openstreetmap.org https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://*.cartocdn.com https://*.cartodb.com https://api.maptiler.com https://tiles.maptiler.com https://*.maptiler.com blob: data: ws: wss:",
+              "connect-src 'self' https://translate.google.com https://translate.googleapis.com https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://tiles.openstreetmap.org https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://*.cartocdn.com https://*.cartodb.com https://api.maptiler.com https://tiles.maptiler.com https://*.maptiler.com https://va.vercel-scripts.com https://vitals.vercel-insights.com blob: data: ws: wss:",
               "frame-src 'self' https://translate.google.com",
               "worker-src 'self' blob:",
               "media-src 'self' blob:",

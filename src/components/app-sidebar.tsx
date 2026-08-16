@@ -37,6 +37,7 @@ import {
   Shield,
   HeartPulse,
   Wrench,
+  MessageSquare,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Logo } from "@/components/ui/logo";
@@ -51,6 +52,7 @@ const menuConfig: Record<
     { title: "payment", href: "/dashboard/payments", icon: CreditCard },
     { title: "maintenance", href: "/dashboard/maintenance", icon: Wrench },
     { title: "search", href: "/properties", icon: Search },
+    { title: "chat", href: "/chat", icon: MessageSquare },
     { title: "notifications", href: "/notifications", icon: Bell },
     { title: "pengaturanProfil", href: "/settings/profile", icon: User },
   ],
@@ -60,6 +62,7 @@ const menuConfig: Record<
     { title: "units", href: "/owner/units", icon: Layers },
     { title: "incomingBookings", href: "/owner/bookings", icon: CalendarDays },
     { title: "bookingRequests", href: "/owner/booking-requests", icon: Users },
+    { title: "chat", href: "/chat", icon: MessageSquare },
     { title: "maintenance", href: "/owner/maintenance", icon: Wrench },
     { title: "analytics", href: "/owner/analytics", icon: BarChart3 },
     { title: "reports", href: "/owner/reports", icon: FileText },

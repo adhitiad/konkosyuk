@@ -17,6 +17,7 @@ import {
   CancelCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { apiClient } from "@/lib/axios";
+import { ChatTriggerButton } from "@/components/chat/chat-trigger-button";
 
 interface BookingDetail {
   id: string;
@@ -414,6 +415,12 @@ export default function BookingDetailPage() {
               <CardTitle>Aksi</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
+              <ChatTriggerButton
+                propertyId={booking.propertyId}
+                propertyName={booking.propertyName ?? "Properti"}
+                variant="outline"
+                className="w-full"
+              />
               {booking.status === "pending_dp" && (
                 <Button
                   render={

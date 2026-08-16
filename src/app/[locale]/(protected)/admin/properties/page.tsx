@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState, useEffect } from "react";
+import { useState, useActionState, useEffect, startTransition } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
@@ -189,17 +189,21 @@ function AdminPropertiesPage() {
     if (editBasePrice !== selectedProperty.basePrice) {
       formData.append("basePrice", editBasePrice);
     }
-    if (editIsActive !== selectedProperty.isActive) {
-      formData.append("isActive", editIsActive.toString());
-    }
-    updateAction(formData);
-  };
+      if (editIsActive !== selectedProperty.isActive) {
+        formData.append("isActive", editIsActive.toString());
+      }
+      startTransition(() => {
+        updateAction(formData);
+      });
+    };
 
   const handleDelete = () => {
     if (!deleteTarget) return;
     const formData = new FormData();
     formData.append("propertyId", deleteTarget.id);
-    deleteAction(formData);
+    startTransition(() => {
+      deleteAction(formData);
+    });
   };
 
   return (
@@ -369,7 +373,9 @@ function AdminPropertiesPage() {
                                 const formData = new FormData();
                                 formData.append("propertyId", property.id);
                                 formData.append("gpsVerified", "false");
-                                updateAction(formData);
+                                startTransition(() => {
+                                  updateAction(formData);
+                                });
                               }}
                             >
                               {isUpdatePending
@@ -552,7 +558,9 @@ function AdminPropertiesPage() {
           const formData = new FormData();
           formData.append("propertyId", id);
           formData.append("gpsVerified", "true");
-          updateAction(formData);
+          startTransition(() => {
+            updateAction(formData);
+          });
           setGpsVerifyProperty(null);
         }}
         isPending={isUpdatePending}

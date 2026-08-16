@@ -1,9 +1,8 @@
 # KonkosYuk
 
-<!-- BADGES_START -->
-<!-- BADGES_END -->
+<img src="public\1786091031.png" alt="KonkosYuk" width="600" height="350" />
 
-> Platform booking kost & kontrakan modern dengan pembayaran aman, verifikasi KYC, dan multi-bahasa.
+Platform booking kost & kontrakan modern dengan pembayaran aman, verifikasi KYC, dan multi-bahasa.
 
 [Demo](#) • [Dokumentasi](#) • [Pelaporan Bug](#) • [Diskusi](#)
 
@@ -80,7 +79,7 @@ Sebelum memulai, pastikan Anda telah menginstal:
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/adhitiadwima/konkosyuk.git
+git clone https://github.com/adhitiad/konkosyuk.git
 cd konkosyuk
 ```
 
@@ -255,7 +254,7 @@ Proyek ini dilisensikan under MIT License - lihat file [LICENSE](LICENSE) untuk 
 
 **Adhitia Dwima**
 
-- GitHub: [@adhitiadwima](https://github.com/adhitiad)
+- GitHub: [@adhitiad](https://github.com/adhitiad)
 
 ## 🙏 Ucapan Terima Kasih
 
@@ -263,10 +262,13 @@ Proyek ini dilisensikan under MIT License - lihat file [LICENSE](LICENSE) untuk 
 - [Better Auth](https://better-auth.com/)
 - [Drizzle ORM](https://orm.drizzle.team/)
 - [shadcn/ui](https://ui.shadcn.com/)
-- [Leaflet](https://leafletjs.com/)
-
 ---
 
 <p align="center">
   Dibuat dengan ❤️ oleh Adhitia Dwima
+  <span>
+    <a href="https://nextjs.org/">
+      <img src="https://nextjs.org/logo.svg" alt="Next.js" width="48" height="48" />
+    </a>
+  </span>
 </p>

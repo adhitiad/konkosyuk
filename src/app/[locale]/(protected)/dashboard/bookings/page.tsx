@@ -79,7 +79,14 @@ export default function TenantBookingsPage() {
     enabled: !!session?.user?.id,
   });
 
-  const bookings = data?.data ?? [];
+  const rawPayload = data?.data;
+  const bookings: BookingRequestItem[] = Array.isArray(rawPayload)
+    ? rawPayload
+    : Array.isArray((rawPayload as any)?.data)
+      ? (rawPayload as any).data
+      : Array.isArray(data)
+        ? (data as any)
+        : [];
 
   return (
     <div className="container py-6">

@@ -26,6 +26,7 @@
     "analytics": "Analytics",
     "notifications": "Notifications",
     "notificationSettings": "Notification Settings",
+    "chat": "Chat",
     "systemHealth": "System Health",
     "activityLogs": "Activity Logs",
     "paymentGateways": "Payment Gateways",
@@ -79,3 +80,4 @@
     "staff": "Staff"
   }
 }
+

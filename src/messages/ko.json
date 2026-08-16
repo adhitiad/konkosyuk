@@ -25,6 +25,7 @@
     "kycRequests": "KYC 요청",
     "notifications": "알림",
     "notificationSettings": "알림 설정",
+    "chat": "Chat",
     "systemHealth": "시스템 상태",
     "activityLogs": "활동 로그",
     "paymentGateways": "결제 게이트웨이",
@@ -79,3 +80,5 @@
     "staff": "직원"
   }
 }
+
+

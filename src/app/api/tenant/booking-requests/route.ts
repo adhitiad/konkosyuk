@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
       .where(eq(bookingRequests.tenantId, session.user.id))
       .orderBy(desc(bookingRequests.createdAt));
 
-    return ok({ data });
+    return ok(data);
   } catch (error) {
     return handleApiError(error);
   }

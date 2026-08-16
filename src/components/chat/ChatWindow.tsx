@@ -8,6 +8,12 @@ import { useChat, type Message } from "@/hooks/useChat";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Bubble,
+  BubbleContent,
+  BubbleReactions,
+  BubbleGroup,
+} from "@/components/ui/bubble";
 import { User } from "lucide-react";
 
 interface ChatWindowProps {
@@ -93,7 +99,7 @@ export default function ChatWindow({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4">
         {connectionStatus === "initialized" && (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
@@ -108,43 +114,32 @@ export default function ChatWindow({
           </div>
         )}
 
-        {messages.map((message) => {
-          const own = isOwnMessage(message);
-          return (
-            <div
-              key={message.id}
-              className={`flex ${own ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                  own
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-gray-100 text-gray-900"
-                }`}
-              >
-                <p className="text-sm whitespace-pre-wrap break-words">
-                  {message.content}
-                </p>
-                <p
-                  className={`mt-1 text-xs ${
-                    own ? "text-primary-foreground/70" : "text-muted-foreground"
-                  }`}
-                >
-                  {formatMessageTime(message.createdAt)}
-                </p>
-              </div>
-            </div>
-          );
-        })}
+        <BubbleGroup>
+          {messages.map((message) => {
+            const own = isOwnMessage(message);
+            return (
+              <Bubble key={message.id} variant="secondary" align={own ? "end" : "start"}>
+                <BubbleContent>
+                  <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                  <p className="mt-1 text-xs opacity-70">
+                    {formatMessageTime(message.createdAt)}
+                  </p>
+                </BubbleContent>
+              </Bubble>
+            );
+          })}
+        </BubbleGroup>
 
         {/* Typing indicator */}
         {typingUsers.length > 0 && (
-          <div className="flex justify-start">
-            <div className="rounded-lg bg-gray-100 px-4 py-2">
-              <p className="text-xs text-muted-foreground italic">
-                {otherPartyName} sedang mengetik...
-              </p>
-            </div>
+          <div className="mt-2">
+            <Bubble variant="muted" align="start">
+              <BubbleContent>
+                <p className="text-xs text-muted-foreground italic">
+                  {otherPartyName} sedang mengetik...
+                </p>
+              </BubbleContent>
+            </Bubble>
           </div>
         )}
 

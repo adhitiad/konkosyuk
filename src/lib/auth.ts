@@ -25,6 +25,10 @@ export const auth = betterAuth({
   trustedOrigins: [
     "http://localhost:3000",
     "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    process.env.BETTER_AUTH_URL,
+    process.env.NEXT_PUBLIC_APP_URL,
     process.env.NEXT_PUBLIC_APP_URL1,
     process.env.NEXT_PUBLIC_APP_URL2,
   ].filter((origin): origin is string => Boolean(origin)),
@@ -35,7 +39,9 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
+    requireEmailVerification:
+      process.env.NODE_ENV === "production" &&
+      Boolean(process.env.RESEND_API_KEY || process.env.SMTP_HOST),
     minPasswordLength: 8,
   },
   socialProviders: {

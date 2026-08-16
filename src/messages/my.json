@@ -25,6 +25,7 @@
     "kycRequests": "Permintaan KYC",
     "notifications": "Notifikasi",
     "notificationSettings": "Tetapan Notifikasi",
+    "chat": "Chat",
     "systemHealth": "Kesihatan Sistem",
     "activityLogs": "Log Aktiviti",
     "paymentGateways": "Gerb Pembayaran",
@@ -79,3 +80,5 @@
     "staff": "Staf"
   }
 }
+
+

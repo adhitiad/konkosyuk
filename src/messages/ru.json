@@ -25,6 +25,7 @@
     "kycRequests": "Запросы KYC",
     "notifications": "Уведомления",
     "notificationSettings": "Настройки уведомлений",
+    "chat": "Chat",
     "systemHealth": "Здоровье системы",
     "activityLogs": "Журнал активности",
     "paymentGateways": "Платежные шлюзы",
@@ -79,3 +80,5 @@
     "staff": "Сотрудник"
   }
 }
+
+
