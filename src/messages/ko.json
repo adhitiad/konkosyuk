@@ -4,6 +4,7 @@
     "dashboard": "대시보드",
     "logout": "로그아웃",
     "settings": "설정",
+    "appSettings": "App Settings",
     "profile": "프로필",
     "search": "고시원 찾기",
     "payment": "결제",
@@ -32,7 +33,8 @@
     "auditLogs": "감사 로그",
     "generalLedger": "총계정원장",
     "pengaturanProfil": "프로필 설정",
-    "settings": "설정"
+    "settings": "설정",
+    "appSettings": "App Settings"
   },
   "sidebar": {
     "menu": "메뉴"
@@ -80,5 +82,6 @@
     "staff": "직원"
   }
 }
+
 
 

@@ -1,21 +1,14 @@
 import { Rest } from "ably";
+import { getSettingRequired } from "@/lib/settings";
 
-export function getAblyRest() {
-  const apiKey = process.env.ABLY_API_KEY;
-
-  if (!apiKey) {
-    throw new Error("ABLY_API_KEY is not defined");
-  }
+export async function getAblyRest() {
+  const apiKey = await getSettingRequired("ABLY_API_KEY");
 
   return new Rest(apiKey);
 }
 
-export function getAblyAuth() {
-  const apiKey = process.env.ABLY_API_KEY;
-
-  if (!apiKey) {
-    throw new Error("ABLY_API_KEY is not defined");
-  }
+export async function getAblyAuth() {
+  const apiKey = await getSettingRequired("ABLY_API_KEY");
 
   return new Rest(apiKey).auth;
 }

@@ -4,6 +4,7 @@
     "dashboard": "Dashboard",
     "logout": "Logout",
     "settings": "Settings",
+    "appSettings": "App Settings",
     "profile": "Profile",
     "pengaturanProfil": "Profile Settings",
     "search": "Find Kost",
@@ -32,7 +33,8 @@
     "paymentGateways": "Payment Gateways",
     "auditLogs": "Audit Logs",
     "generalLedger": "General Ledger",
-    "settings": "Settings"
+    "settings": "Settings",
+    "appSettings": "App Settings"
   },
   "sidebar": {
     "menu": "Menu"
@@ -80,4 +82,5 @@
     "staff": "Staff"
   }
 }
+
 

@@ -4,6 +4,7 @@
     "dashboard": "仪表板",
     "logout": "退出登录",
     "settings": "设置",
+    "appSettings": "App Settings",
     "profile": "个人资料",
     "search": "寻找宿舍",
     "payment": "支付",
@@ -32,7 +33,8 @@
     "auditLogs": "审计日志",
     "generalLedger": "总账",
     "pengaturanProfil": "个人资料设置",
-    "settings": "设置"
+    "settings": "设置",
+    "appSettings": "App Settings"
   },
   "sidebar": {
     "menu": "菜单"
@@ -80,5 +82,6 @@
     "staff": "员工"
   }
 }
+
 
 

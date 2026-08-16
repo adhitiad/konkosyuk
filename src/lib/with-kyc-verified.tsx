@@ -16,7 +16,7 @@ export function withKycVerified<P extends object>(
   WrappedComponent: React.ComponentType<P>,
   options: WithKycVerifiedOptions = {},
 ) {
-  const { redirectTo = "/owner/settings/kyc", showKycPrompt = true } = options;
+  const { redirectTo = "/owner/kyc", showKycPrompt = true } = options;
 
   return function KYCProtectedComponent(props: P) {
     const { data: session, isPending } = useSession();

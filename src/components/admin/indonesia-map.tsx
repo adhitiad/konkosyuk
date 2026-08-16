@@ -31,28 +31,28 @@ interface IndonesiaMapProps {
   filterType: "user" | "owner";
 }
 
-// --- OPENSTREETMAP RASTER TILES STYLE ---
-// Ini adalah style sederhana yang menggunakan gambar tiles langsung dari OSM
+// --- CARTO BASEMAP STYLE ---
+// Style mirip Google Maps, ringan dan bersih
 const OSM_STYLE = {
   version: 8,
   sources: {
-    "osm-tiles": {
+    "carto-tiles": {
       type: "raster",
       tiles: [
-        "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
       ],
       tileSize: 256,
-      attribution: "© OpenStreetMap contributors",
+      attribution: '© <a href="https://carto.com/">CARTO</a> © <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
       maxzoom: 19,
     },
   },
   layers: [
     {
-      id: "osm-layer",
+      id: "carto-layer",
       type: "raster",
-      source: "osm-tiles",
+      source: "carto-tiles",
       minzoom: 0,
       maxzoom: 19,
     },

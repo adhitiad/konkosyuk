@@ -1,9 +1,14 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import { Icon, LatLngTuple } from "leaflet";
-import "leaflet/dist/leaflet.css";
+import { useState, useCallback, useRef } from "react";
+import Map, {
+  MapRef,
+  Marker,
+  Popup,
+  NavigationControl,
+  GeolocateControl,
+} from "react-map-gl/maplibre";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -13,20 +18,31 @@ import {
   type StructuredAddress,
 } from "@/lib/geolocation";
 
-const defaultCenter: LatLngTuple = [-6.2088, 106.8456];
-
-const customIcon = new Icon({
-  iconUrl:
-    "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl:
-    "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl:
-    "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+const OSM_STYLE = {
+  version: 8,
+  sources: {
+    "carto-tiles": {
+      type: "raster",
+      tiles: [
+        "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+      ],
+      tileSize: 256,
+      attribution: '© <a href="https://carto.com/">CARTO</a> © <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxzoom: 19,
+    },
+  },
+  layers: [
+    {
+      id: "carto-layer",
+      type: "raster",
+      source: "carto-tiles",
+      minzoom: 0,
+      maxzoom: 19,
+    },
+  ],
+} as const;
 
 interface PropertyMapPickerProps {
   lat?: number | null;
@@ -41,23 +57,21 @@ interface PropertyMapPickerProps {
   }) => void;
 }
 
-function MapClickHandler({
+export default function PropertyMapPicker({
+  lat,
+  lng,
   onLocationSelected,
-}: {
-  onLocationSelected: (data: {
-    lat: number;
-    lng: number;
-    address: string;
-    province: string;
-    city: string;
-    district: string;
-  }) => void;
-}) {
-  const map = useMap();
+}: PropertyMapPickerProps) {
+  const mapRef = useRef<MapRef>(null);
+  const [loading, setLoading] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
-  const handleClick = useCallback(
-    async (e: { latlng: { lat: number; lng: number } }) => {
-      const { lat, lng } = e.latlng;
+  const position: [number, number] | undefined =
+    lat && lng ? [lat, lng] : undefined;
+
+  const handleMapClick = useCallback(
+    async (e: { lngLat: { lat: number; lng: number } }) => {
+      const { lat, lng } = e.lngLat;
       try {
         const address = await getStructuredAddressFromCoords(lat, lng);
         onLocationSelected({
@@ -82,20 +96,8 @@ function MapClickHandler({
     [onLocationSelected],
   );
 
-  map.on("click", handleClick);
-
-  return null;
-}
-
-export default function PropertyMapPicker({
-  lat,
-  lng,
-  onLocationSelected,
-}: PropertyMapPickerProps) {
-  const [loading, setLoading] = useState(false);
-  const position: LatLngTuple | undefined = lat && lng ? [lat, lng] : undefined;
-
   const handleUseCurrentLocation = async () => {
+    if (!lat || !lng) return;
     setLoading(true);
     try {
       const response = await fetch(
@@ -107,8 +109,8 @@ export default function PropertyMapPicker({
       const data = await response.json();
       const address = data.address || {};
       onLocationSelected({
-        lat: lat ?? defaultCenter[0],
-        lng: lng ?? defaultCenter[1],
+        lat: lat ?? -6.2088,
+        lng: lng ?? 106.8456,
         address: data.display_name || `${lat}, ${lng}`,
         province: address.state || "",
         city: address.city || address.town || address.municipality || "",
@@ -116,9 +118,9 @@ export default function PropertyMapPicker({
       });
     } catch {
       onLocationSelected({
-        lat: lat ?? defaultCenter[0],
-        lng: lng ?? defaultCenter[1],
-        address: `${lat ?? defaultCenter[0]}, ${lng ?? defaultCenter[1]}`,
+        lat: lat ?? -6.2088,
+        lng: lng ?? 106.8456,
+        address: `${lat ?? -6.2088}, ${lng ?? 106.8456}`,
         province: "",
         city: "",
         district: "",
@@ -134,30 +136,48 @@ export default function PropertyMapPicker({
         className="relative rounded-lg overflow-hidden border"
         style={{ height: "320px" }}
       >
-        <MapContainer
-          center={position ?? defaultCenter}
-          zoom={position ? 15 : 13}
-          style={{ height: "100%", width: "100%" }}
-          scrollWheelZoom={false}
+        <Map
+          ref={mapRef}
+          initialViewState={{
+            longitude: position ? position[1] : 106.8456,
+            latitude: position ? position[0] : -6.2088,
+            zoom: position ? 15 : 13,
+          }}
+          mapStyle={OSM_STYLE as any}
+          onClick={handleMapClick}
+          interactive={true}
         >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <MapClickHandler onLocationSelected={onLocationSelected} />
+          <NavigationControl position="top-right" />
+          <GeolocateControl position="top-right" />
           {position && (
-            <Marker position={position} icon={customIcon}>
-              <Popup>
-                <div className="space-y-1">
-                  <p className="font-semibold text-sm">Lokasi Properti</p>
-                  <p className="text-xs text-muted-foreground">
-                    {lat!.toFixed(5)}, {lng!.toFixed(5)}
-                  </p>
-                </div>
-              </Popup>
+            <Marker longitude={position[1]} latitude={position[0]}>
+              <div
+                className="cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPopup(!showPopup);
+                }}
+              >
+                <HugeiconsIcon icon={MapPinIcon} strokeWidth={2} className="size-8 text-red-500" />
+              </div>
+              {showPopup && (
+                <Popup
+                  longitude={position[1]}
+                  latitude={position[0]}
+                  anchor="bottom"
+                  onClose={() => setShowPopup(false)}
+                >
+                  <div className="space-y-1">
+                    <p className="font-semibold text-sm">Lokasi Properti</p>
+                    <p className="text-xs text-muted-foreground">
+                      {lat!.toFixed(5)}, {lng!.toFixed(5)}
+                    </p>
+                  </div>
+                </Popup>
+              )}
             </Marker>
           )}
-        </MapContainer>
+        </Map>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">

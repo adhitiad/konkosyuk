@@ -95,8 +95,6 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <link rel="preconnect" href="https://utfs.io" />
         <link rel="dns-prefetch" href="https://utfs.io" />
-        <link rel="preconnect" href="https://tiles.stadiamaps.com" />
-        <link rel="dns-prefetch" href="https://tiles.stadiamaps.com" />
         <link rel="preconnect" href="https://basemaps.cartocdn.com" />
         <link rel="dns-prefetch" href="https://basemaps.cartocdn.com" />
       </head>

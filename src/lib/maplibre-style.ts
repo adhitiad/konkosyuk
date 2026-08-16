@@ -123,9 +123,8 @@ export const CARTO_DARK_STYLE: StyleSpecification = {
 /**
  * Rekomendasi untuk KonkosYuk:
  *
- * - Development / MVP: OSM_STYLE (gratis, cepat)
- * - Production (branding terang): CARTO_POSITRON_STYLE (gratis, bersih)
+ * - Production (default, mirip Google Maps): CARTO_POSITRON_STYLE (gratis, bersih)
  * - Production (dark mode / branding gelap): CARTO_DARK_STYLE (gratis, elegan)
  * - Production (fitur lengkap): MAPTILER_STYLE (berbayar, performa terbaik)
  */
-export const KONKOSYUK_MAP_STYLE = OSM_STYLE;
+export const KONKOSYUK_MAP_STYLE = CARTO_POSITRON_STYLE;

@@ -73,7 +73,7 @@ const menuConfig: Record<
       href: "/owner/settings/bank-accounts",
       icon: CreditCard,
     },
-    { title: "kyc", href: "/owner/settings/kyc", icon: IdCard },
+    { title: "kyc", href: "/owner/kyc", icon: IdCard },
     { title: "pengaturanProfil", href: "/settings/profile", icon: User },
   ],
   admin: [
@@ -98,6 +98,7 @@ const menuConfig: Record<
     { title: "auditLogs", href: "/admin/audit-logs", icon: Shield },
     { title: "generalLedger", href: "/admin/general-ledger", icon: FileText },
     { title: "reports", href: "/admin/reports/demographics", icon: BarChart3 },
+    { title: "appSettings", href: "/admin/settings", icon: Settings },
     { title: "settings", href: "/admin/settings/monetization", icon: Settings },
     { title: "pengaturanProfil", href: "/settings/profile", icon: User },
   ],

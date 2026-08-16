@@ -4,6 +4,7 @@
     "dashboard": "แผงควบคุม",
     "logout": "ออกจากระบบ",
     "settings": "การตั้งค่า",
+    "appSettings": "App Settings",
     "profile": "โปรไฟล์",
     "search": "ค้นหาหอพัก",
     "payment": "การชำระเงิน",
@@ -32,7 +33,8 @@
     "auditLogs": "บันทึกตรวจสอบ",
     "generalLedger": "สมุดบัญชีรวม",
     "pengaturanProfil": "การตั้งค่าโปรไฟล์",
-    "settings": "การตั้งค่า"
+    "settings": "การตั้งค่า",
+    "appSettings": "App Settings"
   },
   "sidebar": {
     "menu": "เมนู"
@@ -80,5 +82,6 @@
     "staff": "พนักงาน"
   }
 }
+
 
 

@@ -32,7 +32,8 @@
     "paymentGateways": "Payment Gateway",
     "auditLogs": "Log Audit",
     "generalLedger": "Buku Besar",
-    "settings": "Pengaturan"
+    "settings": "Pengaturan",
+    "appSettings": "Pengaturan App"
   },
   "sidebar": {
     "menu": "Menu"

@@ -6,6 +6,6 @@ function AddPropertyPage() {
 }
 
 export default withKycVerified(AddPropertyPage, {
-  redirectTo: "/owner/settings/kyc",
+  redirectTo: "/owner/kyc",
   showKycPrompt: true,
 });

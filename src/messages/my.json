@@ -4,6 +4,7 @@
     "dashboard": "Papan Pemuka",
     "logout": "Log Keluar",
     "settings": "Tetapan",
+    "appSettings": "App Settings",
     "profile": "Profil",
     "search": "Cari Kost",
     "payment": "Bayaran",
@@ -32,7 +33,8 @@
     "auditLogs": "Log Audit",
     "generalLedger": "Buku Besar",
     "pengaturanProfil": "Tetapan Profil",
-    "settings": "Tetapan"
+    "settings": "Tetapan",
+    "appSettings": "App Settings"
   },
   "sidebar": {
     "menu": "Menu"
@@ -80,5 +82,6 @@
     "staff": "Staf"
   }
 }
+
 
 

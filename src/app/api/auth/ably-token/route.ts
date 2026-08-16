@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       return fail("channelName wajib diisi", 400);
     }
 
-    const auth = getAblyAuth();
+    const auth = await getAblyAuth();
 
     const tokenParams = {
       clientId: session.user.id,

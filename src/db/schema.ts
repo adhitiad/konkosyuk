@@ -1298,6 +1298,7 @@ export const kycVerifications = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     diditSessionId: text("didit_session_id").unique(),
+    diditRedirectUrl: text("didit_redirect_url"),
     status: text("status", { enum: kycVerificationStatus })
       .notNull()
       .default("pending"),
@@ -1323,6 +1324,22 @@ export const kycVerificationsRelations = relations(kycVerifications, ({ one }) =
     references: [users.id],
   }),
 }));
+
+export const appSettings = pgTable(
+  "app_settings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    key: text("key").notNull().unique(),
+    value: text("value").notNull(),
+    isSecret: boolean("is_secret").notNull().default(false),
+    description: text("description"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    keyIdx: index("app_settings_key_idx").on(table.key),
+  })
+);
 
 export const reviewReplies = pgTable(
   "review_replies",

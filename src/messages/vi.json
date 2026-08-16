@@ -4,6 +4,7 @@
     "dashboard": "Bảng điều khiển",
     "logout": "Đăng xuất",
     "settings": "Cài đặt",
+    "appSettings": "App Settings",
     "profile": "Hồ sơ",
     "search": "Tìm kiếm nhà trọ",
     "payment": "Thanh toán",
@@ -32,7 +33,8 @@
     "auditLogs": "Nhật ký kiểm toán",
     "generalLedger": "Sổ cái",
     "pengaturanProfil": "Cài đặt hồ sơ",
-    "settings": "Cài đặt"
+    "settings": "Cài đặt",
+    "appSettings": "App Settings"
   },
   "sidebar": {
     "menu": "Menu"
@@ -80,5 +82,6 @@
     "staff": "Nhân viên"
   }
 }
+
 
 

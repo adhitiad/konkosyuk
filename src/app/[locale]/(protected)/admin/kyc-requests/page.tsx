@@ -22,6 +22,7 @@ import {
   Clock01Icon,
   CheckmarkCircle02Icon,
   Cancel01Icon,
+  ExternalLinkIcon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "@/components/ui/toast";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
@@ -38,6 +39,15 @@ interface KYCRequest {
   kycStatus: string;
   updatedAt: string;
   createdAt: string;
+  verificationId: string | null;
+  diditSessionId: string | null;
+  verificationStatus: string | null;
+  documentType: string | null;
+  faceMatchScore: number | null;
+  livenessPassed: boolean | null;
+  rejectionReason: string | null;
+  verificationCreatedAt: string | null;
+  verificationUpdatedAt: string | null;
 }
 
 export default withAdminAuth(AdminKYCRequestsPage);
@@ -229,6 +239,48 @@ function AdminKYCRequestsPage() {
                     )}
                   </div>
                 </div>
+
+                {request.diditSessionId && (
+                  <div className="mt-4 p-4 rounded-xl border bg-muted/30">
+                    <p className="text-sm font-medium mb-2">Didit Verification</p>
+                    <div className="grid gap-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Session ID:</span>
+                        <span className="font-mono text-xs">{request.diditSessionId}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Status:</span>
+                        <Badge variant={request.verificationStatus === "verified" ? "default" : request.verificationStatus === "rejected" ? "destructive" : "secondary"}>
+                          {request.verificationStatus || "pending"}
+                        </Badge>
+                      </div>
+                      {request.documentType && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Document:</span>
+                          <span>{request.documentType.toUpperCase()}</span>
+                        </div>
+                      )}
+                      {request.faceMatchScore !== null && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Face Match:</span>
+                          <span>{request.faceMatchScore}%</span>
+                        </div>
+                      )}
+                      {request.livenessPassed !== null && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Liveness:</span>
+                          <span>{request.livenessPassed ? "Lulus" : "Tidak Lulus"}</span>
+                        </div>
+                      )}
+                      {request.rejectionReason && (
+                        <div className="mt-2 p-2 bg-destructive/10 rounded-lg">
+                          <p className="text-xs text-destructive">{request.rejectionReason}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="mt-4 flex gap-2">
                   <Button
                     size="sm"

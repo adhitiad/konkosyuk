@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { createAblyClient } from "@/lib/ably/client";
+import { createAblyClientFromSettings } from "@/lib/ably/client";
 import { sendMessageAction } from "@/actions/chat";
 
 export interface Message {
@@ -65,7 +65,7 @@ export function useChat({
 
     const initChat = async () => {
       try {
-        const client = createAblyClient();
+        const client = await createAblyClientFromSettings();
         clientRef.current = client;
 
         const channel = client.channels.get(`chat:${roomId}`);

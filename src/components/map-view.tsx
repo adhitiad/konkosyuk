@@ -1,17 +1,36 @@
 "use client";
 
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  useMap,
-  Circle,
-} from "react-leaflet";
-import { Icon, LatLngBoundsExpression } from "leaflet";
-import "leaflet/dist/leaflet.css";
+import { useState, useCallback, useRef } from "react";
+import Map, { MapRef, Marker, Popup, NavigationControl } from "react-map-gl/maplibre";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MapPinIcon } from "@hugeicons/core-free-icons";
+
+const OSM_STYLE = {
+  version: 8,
+  sources: {
+    "carto-tiles": {
+      type: "raster",
+      tiles: [
+        "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+      ],
+      tileSize: 256,
+      attribution: '© <a href="https://carto.com/">CARTO</a> © <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxzoom: 19,
+    },
+  },
+  layers: [
+    {
+      id: "carto-layer",
+      type: "raster",
+      source: "carto-tiles",
+      minzoom: 0,
+      maxzoom: 19,
+    },
+  ],
+} as const;
 
 interface MarkerData {
   id: string;
@@ -29,37 +48,19 @@ interface MapViewProps {
   height?: string;
 }
 
-const customIcon = new Icon({
-  iconUrl:
-    "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl:
-    "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl:
-    "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
-
-function FitBounds({ markers }: { markers: MarkerData[] }) {
-  const map = useMap();
-
-  if (markers.length > 0) {
-    const bounds: LatLngBoundsExpression = markers.map((m) => [m.lat, m.lng]);
-    map.fitBounds(bounds, { padding: [50, 50] });
-  }
-
-  return null;
-}
-
 export default function MapView({
   center,
   zoom = 13,
   markers,
   height = "400px",
 }: MapViewProps) {
+  const mapRef = useRef<MapRef>(null);
   const defaultCenter = center ?? { lat: -6.2088, lng: 106.8456 };
+  const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
+
+  const handleMarkerClick = useCallback((marker: MarkerData) => {
+    setSelectedMarker(marker);
+  }, []);
 
   return (
     <div
@@ -70,59 +71,80 @@ export default function MapView({
         overflow: "hidden",
       }}
     >
-      <MapContainer
-        center={[defaultCenter.lat, defaultCenter.lng]}
-        zoom={zoom}
-        style={{ height: "100%", width: "100%" }}
-        scrollWheelZoom={false}
+      <Map
+        ref={mapRef}
+        initialViewState={{
+          longitude: defaultCenter.lng,
+          latitude: defaultCenter.lat,
+          zoom,
+        }}
+        mapStyle={OSM_STYLE as any}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {markers.length > 0 && <FitBounds markers={markers} />}
+        <NavigationControl position="top-right" />
         {markers.map((marker) =>
           marker.isJittered ? (
-            <Circle
+            <Marker
               key={marker.id}
-              center={[marker.lat, marker.lng]}
-              radius={500}
-              pathOptions={{
-                color: "#06b6d4",
-                fillColor: "#06b6d4",
-                fillOpacity: 0.2,
-                weight: 2,
-              }}
+              longitude={marker.lng}
+              latitude={marker.lat}
             >
-              <Popup>
-                <div className="space-y-1">
-                  <p className="font-semibold text-sm">{marker.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Lokasi Perkiraan Properti
-                  </p>
+              <div
+                className="cursor-pointer"
+                onClick={() => handleMarkerClick(marker)}
+              >
+                <div className="relative">
+                  <div
+                    className="absolute rounded-full bg-cyan-500/20"
+                    style={{ width: 40, height: 40, top: -8, left: -8 }}
+                  />
+                  <HugeiconsIcon icon={MapPinIcon} strokeWidth={2} className="size-6 text-cyan-500" />
                 </div>
-              </Popup>
-            </Circle>
+              </div>
+              {selectedMarker?.id === marker.id && (
+                <Popup
+                  longitude={marker.lng}
+                  latitude={marker.lat}
+                  anchor="bottom"
+                  onClose={() => setSelectedMarker(null)}
+                >
+                  <div className="space-y-1">
+                    <p className="font-semibold text-sm">{marker.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Lokasi Perkiraan Properti
+                    </p>
+                  </div>
+                </Popup>
+              )}
+            </Marker>
           ) : (
             <Marker
               key={marker.id}
-              position={[marker.lat, marker.lng]}
-              icon={customIcon}
+              longitude={marker.lng}
+              latitude={marker.lat}
+              onClick={() => handleMarkerClick(marker)}
             >
-              <Popup>
-                <div className="space-y-1">
-                  <p className="font-semibold text-sm">{marker.title}</p>
-                  {marker.popup && (
-                    <p className="text-xs text-muted-foreground">
-                      {marker.popup}
-                    </p>
-                  )}
-                </div>
-              </Popup>
+              <HugeiconsIcon icon={MapPinIcon} strokeWidth={2} className="size-6 text-red-500" />
+              {selectedMarker?.id === marker.id && (
+                <Popup
+                  longitude={marker.lng}
+                  latitude={marker.lat}
+                  anchor="bottom"
+                  onClose={() => setSelectedMarker(null)}
+                >
+                  <div className="space-y-1">
+                    <p className="font-semibold text-sm">{marker.title}</p>
+                    {marker.popup && (
+                      <p className="text-xs text-muted-foreground">
+                        {marker.popup}
+                      </p>
+                    )}
+                  </div>
+                </Popup>
+              )}
             </Marker>
           ),
         )}
-      </MapContainer>
+      </Map>
     </div>
   );
 }
