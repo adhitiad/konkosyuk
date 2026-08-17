@@ -87,7 +87,7 @@
     "@vitest/ui": "^4.1.10",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
-    "eslint-config-next": "16.3.0",
+    "eslint-config-next": "16.3.1",
     "eslint-plugin-react": "^7.37.5",
     "jsdom": "^30.0.1",
     "pino": "^10.3.1",
