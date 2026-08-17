@@ -1,12 +1,11 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { properties, units, bookings, users } from "@/db/schema";
-import { eq, and, or, sql, desc, gte, lte, inArray } from "drizzle-orm";
+import { properties } from "@/db/schema";
+import { eq, and, sql } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { propertyQuerySchema } from "@/lib/zod";
 import { calculateDistance } from "@/lib/geolocation";
-import { jitterCoordinates } from "@/lib/utils/location";
 import { logError } from "@/lib/logger";
 import { enforceRateLimit, publicRateLimit } from "@/lib/rate-limit";
 import { getCachedData, buildCacheKey } from "@/lib/cache";
@@ -14,7 +13,7 @@ import { getCachedData, buildCacheKey } from "@/lib/cache";
 export const dynamic = "force-dynamic";
 
 interface CursorPage {
-  data: any[];
+  data: Array<(typeof properties.$inferSelect) & { distance?: number }>;
   nextCursor?: string;
   hasMore: boolean;
 }

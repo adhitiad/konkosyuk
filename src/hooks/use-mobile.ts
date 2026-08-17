@@ -13,7 +13,10 @@ export function useIsMobile() {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
     };
     mql.addEventListener("change", onChange);
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    // Initial check outside render
+    if (typeof window !== "undefined") {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    }
     return () => mql.removeEventListener("change", onChange);
   }, []);
 

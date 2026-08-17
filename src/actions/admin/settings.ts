@@ -30,9 +30,9 @@ export async function getSettingsAction() {
 }
 
 export async function upsertSettingAction(
-  prevState: any,
+  prevState: unknown,
   formData: FormData,
-): Promise<any> {
+): Promise<Response> {
   try {
     await requireSession(["admin"] as const);
     const validated = settingSchema.parse({

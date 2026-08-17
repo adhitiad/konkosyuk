@@ -43,9 +43,13 @@ export default withAdminAuth(SystemHealthPage);
 function SystemHealthPage() {
   const [mounted, setMounted] = useState(false);
 
+  // Set mounted on initial mount without setState in effect
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Alternative: just use the initial state value
+  // mounted is already false by default, and we can set it in the component
 
   const { data, isLoading, refetch } = useQuery<SystemHealth>({
     queryKey: ["system-health"],

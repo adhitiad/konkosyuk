@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "@/lib/auth-client";
 import type { SessionUserWithRole } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
@@ -94,15 +94,18 @@ function MonetizationSettingsPage() {
 
   const queryClient = useQueryClient();
 
+  const feePercentRef = useRef<string | undefined>(undefined);
+  const featuredPriceRef = useRef<string | undefined>(undefined);
+
   useEffect(() => {
     if (settings) {
-      setFeePercent(settings.platformFeePercent);
-      setFeaturedPrice(settings.featuredListingPrice);
+      feePercentRef.current = settings.platformFeePercent;
+      featuredPriceRef.current = settings.featuredListingPrice;
     }
   }, [settings]);
 
   const handleSave = () => {
-    const fee = parseFloat(feePercent);
+    const fee = parseFloat(feePercentRef.current ?? "0");
     if (isNaN(fee) || fee < 0 || fee > 10) {
       toast({
         title: "Input Tidak Valid",
@@ -113,7 +116,7 @@ function MonetizationSettingsPage() {
     }
     mutation.mutate({
       platformFeePercent: fee,
-      featuredListingPrice: parseInt(featuredPrice, 10),
+      featuredListingPrice: parseInt(featuredPriceRef.current ?? "0", 10),
     });
   };
 

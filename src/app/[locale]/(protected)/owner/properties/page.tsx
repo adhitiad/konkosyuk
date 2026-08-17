@@ -255,7 +255,7 @@ export default function PropertiesPage() {
 
   const rawProperties = Array.isArray(data?.data)
     ? data.data
-    : (data as any)?.data?.data;
+    : (data as { data: any })?.data?.data;
   const properties = Array.isArray(rawProperties) ? rawProperties : [];
 
   return (

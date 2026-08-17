@@ -70,6 +70,7 @@ export default function NotificationBell() {
   ).length;
 
   useEffect(() => {
+    // Set mounted on mount - this is fine for initial mount
     setMounted(true);
   }, []);
 

@@ -6,7 +6,6 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
-import type { Role } from "@/lib/auth";
 
 const updateProfileSchema = z.object({
   name: z.string().min(3, "Nama minimal 3 karakter").max(255),

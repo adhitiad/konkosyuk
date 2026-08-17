@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { users, withdrawals, ownerBankAccounts } from "@/db/schema";
+import { withdrawals, users } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";

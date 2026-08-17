@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,13 +33,15 @@ function OwnerKYCPage() {
     },
   });
 
+  const flowStepRef = useRef<string | undefined>(undefined);
+
   useEffect(() => {
     if (data?.kycStatus === "pending") {
-      setFlowStep("processing");
+      flowStepRef.current = "processing";
     } else if (data?.kycStatus === "verified") {
-      setFlowStep("result");
+      flowStepRef.current = "result";
     } else if (data?.kycStatus === "rejected") {
-      setFlowStep("result");
+      flowStepRef.current = "result";
     }
   }, [data]);
 

@@ -72,15 +72,9 @@ export default function IndonesiaMap({ data, filterType }: IndonesiaMapProps) {
     const loadGeoJSON = async () => {
       try {
         setLoading(true);
-        console.log("[Map] 🔄 Loading GeoJSON...");
         const response = await fetch("/geojson/indonesia.geojson");
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const jsonData = await response.json();
-        console.log(
-          "[Map] ✅ GeoJSON loaded:",
-          jsonData.features?.length,
-          "features",
-        );
         setGeoJsonData(jsonData);
       } catch (err) {
         console.error("[Map] ❌ GeoJSON error:", err);
@@ -156,7 +150,6 @@ export default function IndonesiaMap({ data, filterType }: IndonesiaMapProps) {
           style={{ width: "100%", height: "100%" }}
           mapStyle={OSM_STYLE as any}
           onLoad={(e) => {
-            console.log("[Map] ✅ Map instance ready");
             setMapLoaded(true);
           }}
           onError={(e) => {

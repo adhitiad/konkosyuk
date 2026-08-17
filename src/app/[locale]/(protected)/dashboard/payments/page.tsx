@@ -155,26 +155,19 @@ export default function TenantPaymentsPage() {
     null,
   );
 
-  const { data, isLoading, isError, error } = useQuery<{
-    data: PaymentItem[];
-  }>({
+  const { data: queryData, isLoading, isError, error } = useQuery({
     queryKey: ["tenant-payments"],
     queryFn: async () => {
-      const { data } = await apiClient.get("/api/payments");
-      return data;
+      const response = await apiClient.get("/api/payments");
+      return response.data;
     },
     staleTime: 30000,
     enabled: !!session?.user?.id,
   });
 
-  const rawPayload = data?.data;
-  const paymentsList: PaymentItem[] = Array.isArray(rawPayload)
-    ? rawPayload
-    : Array.isArray((rawPayload as any)?.data)
-      ? (rawPayload as any).data
-      : Array.isArray(data)
-        ? (data as any)
-        : [];
+  const paymentsList: PaymentItem[] = Array.isArray(queryData?.data)
+    ? queryData.data
+    : [];
 
   // Summary metrics
   const totalSpent = paymentsList

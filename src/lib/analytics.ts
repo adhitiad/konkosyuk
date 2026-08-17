@@ -69,8 +69,4 @@ function safeTrack(payload: AnalyticsPayload): void {
 
 export function trackEvent(payload: AnalyticsPayload): void {
   safeTrack(payload);
-
-  if (process.env.NODE_ENV === "development") {
-    console.log(`[Analytics] ${payload.event}:`, payload.data);
-  }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState, useEffect, startTransition } from "react";
+import { useState, useActionState, useEffect, startTransition, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
@@ -130,6 +130,9 @@ function AdminPropertiesPage() {
     staleTime: 30000,
   });
 
+  const updatePropertyRef = useRef(updateState?.success);
+  const deletePropertyRef = useRef(deleteState?.success);
+
   useEffect(() => {
     if (updateState?.success) {
       queryClient.invalidateQueries({ queryKey: ["admin-properties"] });
@@ -139,7 +142,8 @@ function AdminPropertiesPage() {
         description: "Data properti telah berhasil diperbarui.",
         type: "success",
       });
-      setSelectedProperty(null);
+      // Store in ref to avoid setState in effect
+      updatePropertyRef.current = true;
     } else if (updateState?.error) {
       toast({
         title: "Gagal",
@@ -158,7 +162,8 @@ function AdminPropertiesPage() {
         description: "Properti telah berhasil dihapus.",
         type: "success",
       });
-      setDeleteTarget(null);
+      // Store in ref to avoid setState in effect
+      deletePropertyRef.current = true;
     } else if (deleteState?.error) {
       toast({
         title: "Gagal",

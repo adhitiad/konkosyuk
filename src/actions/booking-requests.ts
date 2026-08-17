@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { bookingRequests, units, properties } from "@/db/schema";
-import { eq, desc, sql, and } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";

@@ -2,12 +2,13 @@
 
 import { db } from "@/db";
 import { users, accounts } from "@/db/schema";
-import { eq, and, ne } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { hashPassword } from "better-auth/crypto";
 import { createAuditLog } from "@/lib/audit-log";
+import { differenceInDays } from "date-fns";
 
 const updateUserSchema = z.object({
   id: z.string().uuid(),

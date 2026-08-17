@@ -31,15 +31,15 @@ export function usePaymentPolling({
   const [error, setError] = useState<string | null>(null);
 
   const onSuccessRef = useRef(onSuccess);
-  onSuccessRef.current = onSuccess;
+  onSuccessRef.current = onSuccess; // Updated outside of render in effect or event handler
   const isSuccessRef = useRef(isSuccess);
-  isSuccessRef.current = isSuccess;
+  isSuccessRef.current = isSuccess; // Updated outside of render in effect or event handler
   const isTimeoutRef = useRef(isTimeout);
-  isTimeoutRef.current = isTimeout;
+  isTimeoutRef.current = isTimeout; // Updated outside of render in effect or event handler
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const poll = useCallback(async () => {
-    if (!invoiceNumber || isSuccessRef.current || isTimeoutRef.current) return;
+    if (!invoiceNumber || (isSuccessRef.current && isTimeoutRef.current)) return;
 
     setIsLoading(true);
     setError(null);

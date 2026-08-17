@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -115,12 +115,17 @@ function AdminDemographicsPage() {
     fetchProvinces();
   }, []);
 
+  const citiesRef = useRef<string[]>([]);
+  const cityRef = useRef<string>("");
+  const districtsRef = useRef<string[]>([]);
+  const districtRef = useRef<string>("");
+
   useEffect(() => {
     if (!province) {
-      setCities([]);
-      setCity("");
-      setDistricts([]);
-      setDistrict("");
+      citiesRef.current = [];
+      cityRef.current = "";
+      districtsRef.current = [];
+      districtRef.current = "";
       return;
     }
     const selectedProvince = provinces.find((p) => p.name === province);
@@ -131,7 +136,7 @@ function AdminDemographicsPage() {
         const data = await apiGet<{ id: string; name: string }[]>(
           `/api/proxy/wilayah/regencies/${selectedProvince.id}.json`,
         );
-        setCities(data);
+        citiesRef.current = data.map((c) => c.name);
       } catch (err) {
         console.error("Gagal fetch kota", err);
       }
@@ -141,8 +146,8 @@ function AdminDemographicsPage() {
 
   useEffect(() => {
     if (!city) {
-      setDistricts([]);
-      setDistrict("");
+      districtsRef.current = [];
+      districtRef.current = "";
       return;
     }
     const selectedCity = cities.find((c) => c.name === city);

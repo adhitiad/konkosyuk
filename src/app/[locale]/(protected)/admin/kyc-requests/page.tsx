@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
@@ -111,8 +111,15 @@ function AdminKYCRequestsPage() {
 
   const requests: KYCRequest[] = Array.isArray(data?.data) ? data.data : [];
 
+  // Use a stable timestamp from the component's mount/render to avoid impure function during render
+  const renderTime = useRef(Date.now());
+
+  useEffect(() => {
+    renderTime.current = Date.now();
+  }, []);
+
   const getWaitTime = (updatedAt: string) => {
-    const diff = Date.now() - new Date(updatedAt).getTime();
+    const diff = renderTime.current - new Date(updatedAt).getTime();
     const minutes = Math.floor(diff / 60000);
     if (minutes < 60) return `${minutes} menit`;
     const hours = Math.floor(minutes / 60);
@@ -120,7 +127,7 @@ function AdminKYCRequestsPage() {
   };
 
   const isNearLimit = (updatedAt: string) => {
-    const diff = Date.now() - new Date(updatedAt).getTime();
+    const diff = renderTime.current - new Date(updatedAt).getTime();
     return diff > 20 * 60 * 1000;
   };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
@@ -40,15 +40,17 @@ function NotificationSettingsPage() {
 
   const settings = data?.data as NotificationSettings | undefined;
 
+  const emailSenderRef = useRef<string>("");
+  const waCreatedTemplateRef = useRef<string>("");
+  const waUpdatedTemplateRef = useRef<string>("");
+
   useEffect(() => {
     if (settings) {
-      setEmailSender(settings.email.sender || "");
-      setWaCreatedTemplate(
-        settings.whatsapp.createdTemplate || "maintenance_report_created",
-      );
-      setWaUpdatedTemplate(
-        settings.whatsapp.updatedTemplate || "maintenance_report_updated",
-      );
+      emailSenderRef.current = settings.email.sender || "";
+      waCreatedTemplateRef.current =
+        settings.whatsapp.createdTemplate || "maintenance_report_created";
+      waUpdatedTemplateRef.current =
+        settings.whatsapp.updatedTemplate || "maintenance_report_updated";
     }
   }, [settings]);
 

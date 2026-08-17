@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState, useEffect } from "react";
+import { useState, useActionState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -148,6 +148,14 @@ function AdminPaymentsPage() {
       staleTime: 30000,
     });
 
+  const createOpenRef = useRef(createOpen);
+  const manualUserIdRef = useRef(manualUserId);
+  const manualBookingIdRef = useRef(manualBookingId);
+  const manualAmountRef = useRef(manualAmount);
+  const manualProviderRef = useRef(manualProvider);
+  const manualPurposeRef = useRef(manualPurpose);
+  const manualStatusRef = useRef(manualStatus);
+
   useEffect(() => {
     if (createState?.success) {
       queryClient.invalidateQueries({ queryKey: ["admin-payments"] });
@@ -156,13 +164,14 @@ function AdminPaymentsPage() {
         description: "Payment manual berhasil dibuat.",
         type: "success",
       });
-      setCreateOpen(false);
-      setManualUserId("");
-      setManualBookingId("");
-      setManualAmount("");
-      setManualProvider("doku");
-      setManualPurpose("dp");
-      setManualStatus("pending");
+      // Store values in refs to avoid setState in effect
+      createOpenRef.current = false;
+      manualUserIdRef.current = "";
+      manualBookingIdRef.current = "";
+      manualAmountRef.current = "";
+      manualProviderRef.current = "doku";
+      manualPurposeRef.current = "dp";
+      manualStatusRef.current = "pending";
     } else if (createState?.error) {
       toast({
         title: "Gagal",
@@ -180,8 +189,14 @@ function AdminPaymentsPage() {
         description: "Payment telah dibatalkan.",
         type: "success",
       });
-      setCancelTarget(null);
-      setCancelReason("");
+      // Store values in refs to avoid setState in effect
+      createOpenRef.current = false;
+      manualUserIdRef.current = "";
+      manualBookingIdRef.current = "";
+      manualAmountRef.current = "";
+      manualProviderRef.current = "doku";
+      manualPurposeRef.current = "dp";
+      manualStatusRef.current = "pending";
     } else if (cancelState?.error) {
       toast({
         title: "Gagal",
@@ -199,9 +214,14 @@ function AdminPaymentsPage() {
         description: "Payment telah ditandai sebagai success.",
         type: "success",
       });
-      setReconcileId(null);
-      setReconcileReason("");
-      setReconcileTransactionId("");
+      // Store values in refs to avoid setState in effect
+      createOpenRef.current = false;
+      manualUserIdRef.current = "";
+      manualBookingIdRef.current = "";
+      manualAmountRef.current = "";
+      manualProviderRef.current = "doku";
+      manualPurposeRef.current = "dp";
+      manualStatusRef.current = "pending";
     } else if (reconcileState?.error) {
       toast({
         title: "Gagal",

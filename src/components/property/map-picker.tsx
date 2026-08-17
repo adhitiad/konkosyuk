@@ -10,13 +10,9 @@ import Map, {
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MapPinIcon, LoaderPinwheelIcon } from "@hugeicons/core-free-icons";
-import {
-  getStructuredAddressFromCoords,
-  type StructuredAddress,
-} from "@/lib/geolocation";
+import { getStructuredAddressFromCoords } from "@/lib/geolocation";
 
 const OSM_STYLE = {
   version: 8,

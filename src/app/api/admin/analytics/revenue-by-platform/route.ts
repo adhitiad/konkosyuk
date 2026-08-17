@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
       .where(eq(platformSettings.id, "default"))
       .limit(1);
 
-    const feePercent = parseFloat(settings?.platformFeePercent || "1.8") / 100;
+    const _feePercent = parseFloat(settings?.platformFeePercent || "1.8") / 100;
 
     const platformRevenue = await db
       .select({

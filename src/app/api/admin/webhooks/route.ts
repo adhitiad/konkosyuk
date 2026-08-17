@@ -2,9 +2,8 @@ import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { webhookEvents } from "@/db/schema";
 import { eq, desc, sql, and } from "drizzle-orm";
-import { validateAdminRequest, validateAdminOnlyRequest } from "@/lib/api-auth";
-import { ok, fail, handleApiError } from "@/lib/api";
-import type { Role } from "@/lib/auth";
+import { validateAdminRequest } from "@/lib/api-auth";
+import { ok, handleApiError } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
   try {

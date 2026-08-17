@@ -19,7 +19,7 @@ export async function getPaymentGatewayConfig(
     return {};
   }
 
-  let publicConfig = decryptPaymentConfig(config.config);
+  const publicConfig = decryptPaymentConfig(config.config);
   let secretConfig: Record<string, unknown> = {};
 
   const [credential] = await db

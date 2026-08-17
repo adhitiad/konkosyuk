@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { auditLogs, users } from "@/db/schema";
-import { eq, desc, and, or, ilike, count } from "drizzle-orm";
+import { eq, desc, and, or, count, ilike } from "drizzle-orm";
 import { validateAdminRequest } from "@/lib/api-auth";
-import type { Role } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {

@@ -103,7 +103,7 @@ function Carousel({
     return () => {
       api?.off("select", onSelect);
     };
-  }, [api, onSelect]);
+  }, [api]);
 
   return (
     <CarouselContext.Provider

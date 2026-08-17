@@ -1078,11 +1078,11 @@ export const chartOfAccounts = pgTable("chart_of_accounts", {
   accountName: text("account_name").notNull(),
   accountType: text("account_type", { enum: accountType }).notNull(),
   parentAccountId: text("parent_account_id").references(
-    (): any => chartOfAccounts.id,
+    () => chartOfAccounts.id,
     { onDelete: "set null" },
   ),
   isActive: boolean("is_active").default(true),
-});
+}) as any;
 
 export const generalLedger = pgTable("general_ledger", {
   id: text("id").primaryKey(),

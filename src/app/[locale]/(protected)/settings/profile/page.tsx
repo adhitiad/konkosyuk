@@ -168,9 +168,6 @@ export default function ProfileSettingsPage() {
 
       setImageFile(compressedFile);
       setImagePreview(URL.createObjectURL(compressedFile));
-      console.log(
-        `Ukuran asli: ${(file.size / 1024 / 1024).toFixed(2)} MB -> Terkompresi: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`,
-      );
     } catch (err) {
       setFormError("Gagal mengompres gambar.");
       console.error(err);

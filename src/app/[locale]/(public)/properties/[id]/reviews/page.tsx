@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon } from "@hugeicons/core-free-icons";
-import StarRating from "@/components/star-rating";
+import { StarRating } from "@/components/StarRating";
 import { useState } from "react";
 import { toast } from "@/components/ui/toast";
 import { createReviewAction } from "@/actions/reviews";
@@ -133,7 +133,7 @@ export default function ReviewsPage() {
             <form action={handleSubmit} className="space-y-4">
               <div>
                 <label className="text-sm font-medium mb-2 block">Rating</label>
-                <StarRating rating={newRating} onRatingChange={setNewRating} />
+                <StarRating rating={newRating} onChange={setNewRating} />
                 <input type="hidden" name="rating" value={newRating} />
               </div>
               <div>

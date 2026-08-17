@@ -3,7 +3,6 @@ import Image from "next/image";
 import {
   MapPin,
   Bed,
-  Bath,
   Maximize,
   CheckCircle2,
   Wifi,
@@ -16,11 +15,15 @@ import { properties } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ChatTriggerButton } from "@/components/chat/chat-trigger-button";
 
-const amenityIcons: Record<string, any> = {
+type AmenityIconMap = Record<
+  string,
+  React.ComponentType<{ className?: string }>
+>;
+
+const amenityIcons: AmenityIconMap = {
   wifi: Wifi,
   ac: Wind,
   parkir: Car,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "@/lib/auth-client";
 import type { SessionUserWithRole } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
@@ -61,8 +61,13 @@ export default function BankAccountsPage() {
     }
   };
 
+  const accountsFetchRef = useRef(false);
+
   useEffect(() => {
-    fetchAccounts();
+    if (!accountsFetchRef.current) {
+      fetchAccounts();
+      accountsFetchRef.current = true;
+    }
   }, []);
 
   const handleDelete = async (id: string) => {
