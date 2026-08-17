@@ -26,6 +26,7 @@
     "kycRequests": "KYC 请求",
     "notifications": "通知",
     "notificationSettings": "通知设置",
+    "pushNotifications": "Push Notifications",
     "chat": "Chat",
     "systemHealth": "系统健康",
     "activityLogs": "活动日志",
@@ -81,7 +82,4 @@
     "admin": "管理员",
     "staff": "员工"
   }
-}
-
-
-
+,"admin":{"pushNotifications":{"title":"Push Notifications","description":"Manage push notification subscriptions and broadcast messages.","broadcastTitle":"Broadcast Message","broadcastLabel":"Title","broadcastPlaceholder":"Notification title","messageLabel":"Message","messagePlaceholder":"Notification message","sendBroadcast":"Send Broadcast","sending":"Sending...","broadcastSuccess":"Broadcast sent","broadcastError":"Failed to send broadcast","titleAndMessageRequired":"Title and message are required","subscriptionsTitle":"Active Subscriptions ({count})","noSubscriptions":"No active subscriptions.","subscriptionLabel":"Subscription"}}}

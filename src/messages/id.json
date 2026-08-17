@@ -26,6 +26,7 @@
     "analytics": "Analitik",
     "notifications": "Notifikasi",
     "notificationSettings": "Pengaturan Notifikasi",
+    "pushNotifications": "Push Notifications",
     "chat": "Chat",
     "systemHealth": "Kesehatan Sistem",
     "activityLogs": "Log Aktivitas",
@@ -79,6 +80,25 @@
     "adminDashboard": "Dashboard Admin",
     "admin": "Admin",
     "staff": "Staff"
+  },
+  "admin": {
+    "pushNotifications": {
+      "title": "Push Notifications",
+      "description": "Kelola langganan push notification dan kirim pesan broadcast.",
+      "broadcastTitle": "Kirim Broadcast",
+      "broadcastLabel": "Judul",
+      "broadcastPlaceholder": "Judul notifikasi",
+      "messageLabel": "Pesan",
+      "messagePlaceholder": "Isi pesan notifikasi",
+      "sendBroadcast": "Kirim Broadcast",
+      "sending": "Mengirim...",
+      "broadcastSuccess": "Broadcast terkirim",
+      "broadcastError": "Gagal mengirim broadcast",
+      "titleAndMessageRequired": "Judul dan pesan wajib diisi",
+      "subscriptionsTitle": "Langganan Aktif ({count})",
+      "noSubscriptions": "Belum ada langganan aktif.",
+      "subscriptionLabel": "Langganan"
+    }
   }
 }
 

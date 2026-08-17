@@ -6,10 +6,12 @@ import {
   properties,
   webhookEvents,
   bookingRequests,
+  users,
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getPaymentProvider } from "./index";
 import type { WebhookContext, NormalizedWebhook } from "./types";
+import { sendPaymentReceivedEmail } from "@/lib/notifications/email";
 import crypto from "node:crypto";
 
 export async function handleWebhookRequest(
@@ -178,6 +180,58 @@ export async function handleWebhookRequest(
           .update(bookings)
           .set({ status: nextStatus, updatedAt: new Date() })
           .where(eq(bookings.id, booking.id));
+      }
+
+      let targetPropertyId = payment.propertyId;
+      let tenantName: string | undefined;
+
+      if (payment.bookingId) {
+        const [relatedBooking] = await tx
+          .select()
+          .from(bookings)
+          .where(eq(bookings.id, payment.bookingId))
+          .limit(1);
+
+        if (relatedBooking) {
+          targetPropertyId ??= relatedBooking.propertyId;
+
+          const [tenant] = await tx
+            .select()
+            .from(users)
+            .where(eq(users.id, relatedBooking.userId))
+            .limit(1);
+
+          tenantName = tenant?.name;
+        }
+      }
+
+      if (targetPropertyId) {
+        const [property] = await tx
+          .select()
+          .from(properties)
+          .where(eq(properties.id, targetPropertyId))
+          .limit(1);
+
+        if (property) {
+          const [owner] = await tx
+            .select()
+            .from(users)
+            .where(eq(users.id, property.ownerId))
+            .limit(1);
+
+          if (owner?.email) {
+            sendPaymentReceivedEmail(
+              owner.email,
+              owner.name,
+              tenantName ?? "Tenant",
+              property.name,
+              Number(payment.amount),
+              `${process.env.NEXT_PUBLIC_APP_URL}/owner/payments`,
+            ).catch((err) =>
+              console.error("Failed to send payment received email:", err),
+            );
+          }
+        }
       }
     }
 

@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Mail, MessageCircle } from "lucide-react";
+import { Mail, MessageCircle, Bell } from "lucide-react";
 import { withAdminAuth } from "@/lib/with-admin-auth";
 
 type NotificationSettings = {
@@ -179,6 +179,30 @@ function NotificationSettingsPage() {
               <Button onClick={handleSaveWhatsApp} disabled={mutation.isPending}>
                 {mutation.isPending ? "Menyimpan..." : "Simpan WhatsApp"}
               </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="size-5" />
+                Push Notifications (Web Push)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">VAPID Public Key</label>
+                <Input
+                  value={window.location.hostname === "localhost" ? "" : ""}
+                  onChange={(e) => {}}
+                  placeholder="Disediakan dari env / settings"
+                  disabled
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                VAPID keys digunakan untuk autentikasi Web Push. Generate via:
+                <code className="ml-1">web-push generate-vapid-keys</code>
+              </p>
             </CardContent>
           </Card>
         </div>

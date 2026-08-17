@@ -14,6 +14,11 @@ import {
   calculateCustomPrice,
 } from "@/lib/packages/calculator";
 import { invalidateCacheByTag } from "@/lib/cache";
+import {
+  sendApprovalEmail,
+  sendBookingRequestEmail,
+  sendBookingRejectionEmail,
+} from "@/lib/notifications/email";
 
 const createBookingSchema = z.object({
   propertyId: z.string().uuid(),
@@ -197,6 +202,25 @@ export async function createBookingAction(
 
     await invalidateCacheByTag("bookings");
 
+    const [owner] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, property.ownerId))
+      .limit(1);
+
+    if (owner?.email) {
+      sendBookingRequestEmail(
+        owner.email,
+        owner.name,
+        session.user.name,
+        property.name,
+        unit.name,
+        `${process.env.NEXT_PUBLIC_APP_URL}/owner/booking-requests`,
+      ).catch((err) =>
+        console.error("Failed to send booking request email:", err),
+      );
+    }
+
     return {
       success: true,
       data: {
@@ -333,6 +357,30 @@ export async function reviewBookingAction(
           .where(eq(bookings.id, booking.id))
           .returning();
 
+        const [unit] = await tx
+          .select()
+          .from(units)
+          .where(eq(units.id, booking.unitId))
+          .limit(1);
+
+        const [tenant] = await tx
+          .select()
+          .from(users)
+          .where(eq(users.id, booking.userId))
+          .limit(1);
+
+        if (tenant?.email && unit) {
+          sendBookingRejectionEmail(
+            tenant.email,
+            tenant.name,
+            property.name,
+            unit.name,
+            validated.note ?? undefined,
+          ).catch((err) =>
+            console.error("Failed to send booking rejection email:", err),
+          );
+        }
+
         return updated;
       });
     } else {
@@ -341,6 +389,32 @@ export async function reviewBookingAction(
         .set(updatePayload)
         .where(eq(bookings.id, booking.id))
         .returning();
+
+      const [unit] = await db
+        .select()
+        .from(units)
+        .where(eq(units.id, booking.unitId))
+        .limit(1);
+
+      const [tenant] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, booking.userId))
+        .limit(1);
+
+      if (tenant?.email && unit) {
+        const dpAmount = Number(booking.metadata?.dpAmount ?? 0);
+        sendApprovalEmail(
+          tenant.email,
+          tenant.name,
+          property.name,
+          unit.name,
+          dpAmount,
+          `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/bookings`,
+        ).catch((err) =>
+          console.error("Failed to send approval email:", err),
+        );
+      }
 
       return { success: true, data: updated };
     }

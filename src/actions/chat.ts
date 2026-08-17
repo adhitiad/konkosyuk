@@ -1,11 +1,12 @@
 "use server";
 
 import { db } from "@/db";
-import { messages, chatRooms } from "@/db/schema";
+import { messages, chatRooms, users } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
+import { sendChatNotificationEmail } from "@/lib/notifications/email";
 
 const sendMessageSchema = z.object({
   roomId: z.string().uuid(),
@@ -68,6 +69,29 @@ export async function sendMessageAction(
         content: validated.content.trim(),
       })
       .returning();
+
+    const recipientId =
+      room.tenantId === session.user.id ? room.ownerId : room.tenantId;
+
+    if (recipientId) {
+      const [recipient] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, recipientId))
+        .limit(1);
+
+      if (recipient?.email) {
+        sendChatNotificationEmail(
+          recipient.email,
+          recipient.name,
+          session.user.name,
+          validated.content.trim().slice(0, 200),
+          `${process.env.NEXT_PUBLIC_APP_URL}/chat`,
+        ).catch((err) =>
+          console.error("Failed to send chat notification email:", err),
+        );
+      }
+    }
 
     await db
       .update(chatRooms)
