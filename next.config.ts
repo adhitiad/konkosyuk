@@ -71,9 +71,8 @@ const nextConfig: NextConfig = {
       "date-fns",
     ],
     scrollRestoration: true,
-
-    typedRoutes: false,
   },
+  typedRoutes: false,
   async headers() {
     const isProd = process.env.NODE_ENV === "production";
 
