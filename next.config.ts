@@ -124,7 +124,7 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               isProd
-                ? "script-src 'self' https://translate.google.com https://va.vercel-scripts.com"
+                ? "script-src 'self' 'unsafe-inline' https://translate.google.com https://va.vercel-scripts.com"
                 : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://translate.google.com https://va.vercel-scripts.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: blob: https://*.uploadthing.com https://utfs.io https://res.cloudinary.com https://*.placehold.co https://via.placeholder.com https://images.unsplash.com https://cdn.jsdelivr.net https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://*.cartocdn.com https://tile.openstreetmap.org https://*.tile.openstreetmap.org",

@@ -4,9 +4,8 @@ import { db } from "@/db";
 import { pushSubscriptions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { ok, handleApiError } from "@/lib/api";
-import { sendWebPushNotification } from "@/lib/notifications";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     await requireSession(["admin", "staff"] as const);
     const subscriptions = await db.select().from(pushSubscriptions);

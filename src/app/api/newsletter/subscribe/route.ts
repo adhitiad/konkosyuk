@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getResendClient, getFromEmail } from "@/lib/notifications/email";
 import { ok, fail, handleApiError } from "@/lib/api";

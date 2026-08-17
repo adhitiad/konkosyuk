@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/db";
 import { pushSubscriptions } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { sendWebPushNotification } from "@/lib/notifications";
 
