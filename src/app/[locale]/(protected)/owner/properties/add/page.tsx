@@ -1,3 +1,5 @@
+"use client";
+
 import AddPropertyDialog from "../add-property-dialog";
 import { withKycVerified } from "@/lib/with-kyc-verified";
 
