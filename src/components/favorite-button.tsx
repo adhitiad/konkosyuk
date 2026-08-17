@@ -23,7 +23,10 @@ export default function FavoriteButton({
 }: FavoriteButtonProps) {
   const { data: session } = useSession();
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
-  const [state, formAction, isPending] = useActionState(toggleWishlist, undefined);
+  const [state, formAction, isPending] = useActionState(
+    toggleWishlist,
+    undefined,
+  );
 
   const handleSubmit = (formData: FormData) => {
     formData.append("propertyId", propertyId);
@@ -32,7 +35,9 @@ export default function FavoriteButton({
 
   if (state?.success && state.favorited !== undefined) {
     setIsFavorite(state.favorited);
-    showToastInfo(state.favorited ? "Ditambahkan ke favorit" : "Dihapus dari favorit");
+    showToastInfo(
+      state.favorited ? "Ditambahkan ke favorit" : "Dihapus dari favorit",
+    );
   } else if (state?.error) {
     showToastError(state.error);
     setIsFavorite((prev) => !prev);
@@ -44,12 +49,7 @@ export default function FavoriteButton({
 
   return (
     <form action={handleSubmit}>
-      <Button
-        type="submit"
-        variant="ghost"
-        size="icon-sm"
-        disabled={isPending}
-      >
+      <Button type="submit" variant="ghost" size="icon-sm" disabled={isPending}>
         <HugeiconsIcon
           icon={HeartIcon}
           strokeWidth={2}

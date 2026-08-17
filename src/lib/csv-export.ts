@@ -44,4 +44,3 @@ export function exportToCSV(data: Record<string, unknown>[], filename: string) {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
-

@@ -78,7 +78,12 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const session = await requireSession(["cust", "owner", "admin", "staff"] as const);
+    const session = await requireSession([
+      "cust",
+      "owner",
+      "admin",
+      "staff",
+    ] as const);
     const { searchParams } = new URL(req.url);
     const limit = Number(searchParams.get("limit")) || 20;
     const offset = Number(searchParams.get("offset")) || 0;

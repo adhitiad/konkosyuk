@@ -42,7 +42,9 @@ export default function ChatRoomPage() {
   if (!session?.user?.id) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-muted-foreground">Silakan login untuk mengakses chat.</p>
+        <p className="text-muted-foreground">
+          Silakan login untuk mengakses chat.
+        </p>
       </div>
     );
   }
@@ -65,12 +67,18 @@ export default function ChatRoomPage() {
     return (
       <div className="mx-auto max-w-4xl px-4 py-6">
         <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => router.push("/chat")}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push("/chat")}
+          >
             <ArrowLeft className="size-4" />
           </Button>
           <h1 className="text-2xl font-bold">Chat</h1>
         </div>
-        <p className="text-muted-foreground">Anda tidak memiliki akses ke percakapan ini.</p>
+        <p className="text-muted-foreground">
+          Anda tidak memiliki akses ke percakapan ini.
+        </p>
       </div>
     );
   }
@@ -78,7 +86,11 @@ export default function ChatRoomPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/chat")}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.push("/chat")}
+        >
           <ArrowLeft className="size-4" />
         </Button>
         <div>
@@ -86,10 +98,7 @@ export default function ChatRoomPage() {
         </div>
       </div>
       <div className="border rounded-xl bg-white">
-        <ChatWindow
-          roomId={roomId}
-          currentUserId={session.user.id}
-        />
+        <ChatWindow roomId={roomId} currentUserId={session.user.id} />
       </div>
     </div>
   );

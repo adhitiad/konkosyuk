@@ -31,7 +31,10 @@ import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import type { Property } from "@/db/schema";
 import { updatePropertySchema, type UpdatePropertyInput } from "@/lib/zod";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
-import { updatePropertyAction, deletePropertyAction } from "@/actions/properties";
+import {
+  updatePropertyAction,
+  deletePropertyAction,
+} from "@/actions/properties";
 
 const propertyTypeOptions = [
   { value: "kost", label: "Kost" },
@@ -147,7 +150,9 @@ export default function PropertyDetailPage() {
         setError(actionResult.error);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal memperbarui properti.");
+      setError(
+        err instanceof Error ? err.message : "Gagal memperbarui properti.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -397,7 +402,7 @@ export default function PropertyDetailPage() {
           </div>
         </div>
 
-<div className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <Dialog>
             <DialogTrigger render={<Button variant="destructive" />}>
               Hapus Properti
@@ -414,7 +419,11 @@ export default function PropertyDetailPage() {
                 <DialogTrigger render={<Button variant="outline" />}>
                   Batal
                 </DialogTrigger>
-                <Button variant="destructive" disabled={isDeleting} onClick={handleDelete}>
+                <Button
+                  variant="destructive"
+                  disabled={isDeleting}
+                  onClick={handleDelete}
+                >
                   {isDeleting ? "Menghapus..." : "Hapus"}
                 </Button>
               </div>

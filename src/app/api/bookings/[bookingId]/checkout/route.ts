@@ -68,7 +68,8 @@ export async function POST(
     }
 
     // TypeScript narrowing: after validation, paymentProvider is one of the real providers
-    const validatedProvider = body.paymentProvider as "doku" | "ipaymu" | "nicepay";
+    const validatedProvider = body.paymentProvider as
+      "doku" | "ipaymu" | "nicepay";
 
     const [user] = await db
       .select({ name: users.name, email: users.email })

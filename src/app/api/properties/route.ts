@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
     const limited = await enforceRateLimit(req, publicRateLimit);
     if (limited) return limited;
@@ -266,11 +266,13 @@ export async function GET(req: NextRequest) {
         return {
           data,
           meta: {
-            ...(cursor ? { nextCursor, hasMore } : { page, limit, total, totalPages }),
+            ...(cursor
+              ? { nextCursor, hasMore }
+              : { page, limit, total, totalPages }),
           },
         };
       },
-      { ttlSeconds: 60, tags: ["properties"] }
+      { ttlSeconds: 60, tags: ["properties"] },
     );
 
     const duration = Date.now() - startTime;

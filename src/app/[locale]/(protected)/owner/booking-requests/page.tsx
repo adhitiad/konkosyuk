@@ -78,17 +78,23 @@ export default function OwnerBookingRequestsPage() {
     const result = await reviewBookingRequestAction(
       { success: false, error: "", data: undefined },
       {
-        get requestId() { return id; },
-        get status() { return "approved"; },
-        get agreedPrice() { return String(price); },
-      } as any
+        get requestId() {
+          return id;
+        },
+        get status() {
+          return "approved";
+        },
+        get agreedPrice() {
+          return String(price);
+        },
+      } as any,
     );
     if (result.success) {
       queryClient.invalidateQueries({ queryKey: ["owner-booking-requests"] });
       setReviewingId(null);
       setAgreedPrice("");
       showToastSuccess(
-        "Permintaan booking berhasil disetujui dan invoice DP telah dibuat."
+        "Permintaan booking berhasil disetujui dan invoice DP telah dibuat.",
       );
     } else if (result.error) {
       showToastError(result.error);
@@ -99,9 +105,13 @@ export default function OwnerBookingRequestsPage() {
     const result = await reviewBookingRequestAction(
       { success: false, error: "", data: undefined },
       {
-        get requestId() { return id; },
-        get status() { return "rejected"; },
-      } as any
+        get requestId() {
+          return id;
+        },
+        get status() {
+          return "rejected";
+        },
+      } as any,
     );
     if (result.success) {
       queryClient.invalidateQueries({ queryKey: ["owner-booking-requests"] });

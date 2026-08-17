@@ -4,11 +4,11 @@ import { logPaymentEvent, logError } from "@/lib/logger";
 
 export async function simulasiPembayaranGagal(
   bookingId: string,
-  provider: string
+  provider: string,
 ) {
   try {
     throw new Error(
-      "Gateway timeout: Payment provider tidak merespons dalam 30 detik"
+      "Gateway timeout: Payment provider tidak merespons dalam 30 detik",
     );
   } catch (error) {
     logPaymentEvent("failed", provider, bookingId, {

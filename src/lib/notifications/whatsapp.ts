@@ -6,7 +6,8 @@ type WhatsAppTemplateParameter = { type: "text"; text: string };
 
 async function getWhatsAppCredentials() {
   const settings = await getNotificationSettings();
-  const phoneNumberId = settings.metaPhoneNumberId || process.env.META_PHONE_NUMBER_ID;
+  const phoneNumberId =
+    settings.metaPhoneNumberId || process.env.META_PHONE_NUMBER_ID;
   const accessToken = settings.metaAccessToken || process.env.META_ACCESS_TOKEN;
 
   if (!phoneNumberId || !accessToken) {

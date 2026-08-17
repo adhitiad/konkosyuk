@@ -23,7 +23,10 @@ export function FooterSection() {
             >
               Kontak
             </Link>
-            <Link href="/umum/syarat-dan-ketentuan" className="transition-colors hover:text-white">
+            <Link
+              href="/umum/syarat-dan-ketentuan"
+              className="transition-colors hover:text-white"
+            >
               Syarat &amp; Ketentuan
             </Link>
             <Link

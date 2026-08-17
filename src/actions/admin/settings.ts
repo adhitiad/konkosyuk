@@ -19,7 +19,10 @@ export type AppSetting = typeof appSettings.$inferSelect;
 export async function getSettingsAction() {
   try {
     await requireSession(["admin"] as const);
-    const settings = await db.select().from(appSettings).orderBy(appSettings.key);
+    const settings = await db
+      .select()
+      .from(appSettings)
+      .orderBy(appSettings.key);
     return ok({ data: settings });
   } catch (error) {
     return handleApiError(error, "GET /api/admin/settings");
@@ -93,25 +96,31 @@ export async function updatePlatformFeeAction(
       featuredListingPrice: formData.get("featuredListingPrice"),
     });
 
-    await db.insert(appSettings).values({
-      key: "PLATFORM_FEE_PERCENT",
-      value: validated.platformFeePercent,
-      isSecret: false,
-      description: "Platform fee percentage",
-    }).onConflictDoUpdate({
-      target: appSettings.key,
-      set: { value: validated.platformFeePercent, updatedAt: new Date() },
-    });
+    await db
+      .insert(appSettings)
+      .values({
+        key: "PLATFORM_FEE_PERCENT",
+        value: validated.platformFeePercent,
+        isSecret: false,
+        description: "Platform fee percentage",
+      })
+      .onConflictDoUpdate({
+        target: appSettings.key,
+        set: { value: validated.platformFeePercent, updatedAt: new Date() },
+      });
 
-    await db.insert(appSettings).values({
-      key: "FEATURED_LISTING_PRICE",
-      value: validated.featuredListingPrice,
-      isSecret: false,
-      description: "Featured listing price",
-    }).onConflictDoUpdate({
-      target: appSettings.key,
-      set: { value: validated.featuredListingPrice, updatedAt: new Date() },
-    });
+    await db
+      .insert(appSettings)
+      .values({
+        key: "FEATURED_LISTING_PRICE",
+        value: validated.featuredListingPrice,
+        isSecret: false,
+        description: "Featured listing price",
+      })
+      .onConflictDoUpdate({
+        target: appSettings.key,
+        set: { value: validated.featuredListingPrice, updatedAt: new Date() },
+      });
 
     return ok({ success: true });
   } catch (error) {

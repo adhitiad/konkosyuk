@@ -8,7 +8,10 @@ import { z } from "zod";
 
 const feedbackSchema = z.object({
   category: z.enum(["bug", "feature", "improvement", "other"]),
-  message: z.string().min(10, "Message must be at least 10 characters").max(2000),
+  message: z
+    .string()
+    .min(10, "Message must be at least 10 characters")
+    .max(2000),
   rating: z.coerce.number().min(1).max(5).optional(),
 });
 
@@ -46,7 +49,10 @@ export async function submitFeedbackAction(
     return { success: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Masukan tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Masukan tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal mengirim umpan balik", success: false };
   }

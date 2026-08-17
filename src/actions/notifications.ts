@@ -52,7 +52,10 @@ export async function updateNotificationAction(
     return { success: true, data: { success: true } };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal memperbarui notifikasi", success: false };
   }
@@ -112,7 +115,10 @@ export async function adminUpdateNotificationAction(
     return { success: true, data: { success: true } };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal memperbarui notifikasi", success: false };
   }
@@ -151,8 +157,14 @@ export async function markAllNotificationsReadAction(
     return { success: true, data: { success: true } };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
-    return { error: "Gagal menandai semua notifikasi sebagai dibaca", success: false };
+    return {
+      error: "Gagal menandai semua notifikasi sebagai dibaca",
+      success: false,
+    };
   }
 }

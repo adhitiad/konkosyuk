@@ -31,13 +31,8 @@ export async function GET(req: NextRequest) {
         verificationUpdatedAt: kycVerifications.updatedAt,
       })
       .from(users)
-      .leftJoin(
-        kycVerifications,
-        eq(users.id, kycVerifications.userId)
-      )
-      .where(
-        sql`${users.kycStatus} = 'pending' OR ${users.kycStatus} = 'none'`
-      )
+      .leftJoin(kycVerifications, eq(users.id, kycVerifications.userId))
+      .where(sql`${users.kycStatus} = 'pending' OR ${users.kycStatus} = 'none'`)
       .orderBy(desc(users.updatedAt));
 
     return ok({ data: verifications });

@@ -16,7 +16,10 @@ const settingSchema = z.object({
 export async function GET() {
   try {
     await requireSession(["admin"] as const);
-    const settings = await db.select().from(appSettings).orderBy(appSettings.key);
+    const settings = await db
+      .select()
+      .from(appSettings)
+      .orderBy(appSettings.key);
     return ok({ data: settings });
   } catch (error) {
     return handleApiError(error, "GET /api/admin/settings");

@@ -59,7 +59,9 @@ function AdminSettingsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (key: string) => {
-      return apiClient.delete(`/api/admin/settings?key=${encodeURIComponent(key)}`);
+      return apiClient.delete(
+        `/api/admin/settings?key=${encodeURIComponent(key)}`,
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-settings"] });
@@ -113,7 +115,8 @@ function AdminSettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Konfigurasi cepat untuk integrasi Didit KYC. Klik tombol di bawah untuk mengisi otomatis.
+            Konfigurasi cepat untuk integrasi Didit KYC. Klik tombol di bawah
+            untuk mengisi otomatis.
           </p>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -162,7 +165,8 @@ function AdminSettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Konfigurasi cepat untuk integrasi Ably real-time chat. Klik tombol di bawah untuk mengisi otomatis.
+            Konfigurasi cepat untuk integrasi Ably real-time chat. Klik tombol
+            di bawah untuk mengisi otomatis.
           </p>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -240,7 +244,11 @@ function AdminSettingsPage() {
             disabled={mutation.isPending}
             className="w-full md:w-auto"
           >
-            <HugeiconsIcon icon={Add01Icon} strokeWidth={2} className="size-4 mr-2" />
+            <HugeiconsIcon
+              icon={Add01Icon}
+              strokeWidth={2}
+              className="size-4 mr-2"
+            />
             {mutation.isPending ? "Menyimpan..." : "Simpan"}
           </Button>
         </CardContent>
@@ -258,7 +266,9 @@ function AdminSettingsPage() {
               <Skeleton className="h-12 w-full" />
             </div>
           ) : settings.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Belum ada pengaturan.</p>
+            <p className="text-sm text-muted-foreground">
+              Belum ada pengaturan.
+            </p>
           ) : (
             <div className="space-y-3">
               {settings.map((setting) => (

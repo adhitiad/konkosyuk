@@ -81,5 +81,24 @@
     "adminDashboard": "Панель администратора",
     "admin": "Администратор",
     "staff": "Сотрудник"
+  },
+  "admin": {
+    "pushNotifications": {
+      "title": "Push Notifications",
+      "description": "Manage push notification subscriptions and broadcast messages.",
+      "broadcastTitle": "Broadcast Message",
+      "broadcastLabel": "Title",
+      "broadcastPlaceholder": "Notification title",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Notification message",
+      "sendBroadcast": "Send Broadcast",
+      "sending": "Sending...",
+      "broadcastSuccess": "Broadcast sent",
+      "broadcastError": "Failed to send broadcast",
+      "titleAndMessageRequired": "Title and message are required",
+      "subscriptionsTitle": "Active Subscriptions ({count})",
+      "noSubscriptions": "No active subscriptions.",
+      "subscriptionLabel": "Subscription"
+    }
   }
-,"admin":{"pushNotifications":{"title":"Push Notifications","description":"Manage push notification subscriptions and broadcast messages.","broadcastTitle":"Broadcast Message","broadcastLabel":"Title","broadcastPlaceholder":"Notification title","messageLabel":"Message","messagePlaceholder":"Notification message","sendBroadcast":"Send Broadcast","sending":"Sending...","broadcastSuccess":"Broadcast sent","broadcastError":"Failed to send broadcast","titleAndMessageRequired":"Title and message are required","subscriptionsTitle":"Active Subscriptions ({count})","noSubscriptions":"No active subscriptions.","subscriptionLabel":"Subscription"}}}
+}

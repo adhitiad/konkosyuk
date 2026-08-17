@@ -96,7 +96,10 @@ function AdminBookingsPage() {
     );
   }
 
-  if (!session || !["admin", "staff"].includes((session.user as SessionUserWithRole).role)) {
+  if (
+    !session ||
+    !["admin", "staff"].includes((session.user as SessionUserWithRole).role)
+  ) {
     return null;
   }
 

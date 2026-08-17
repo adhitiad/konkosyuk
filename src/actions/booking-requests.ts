@@ -91,7 +91,8 @@ export async function createBookingRequestAction(
 
     if (existing) {
       return {
-        error: "Anda sudah memiliki permintaan booking yang sedang menunggu untuk unit ini",
+        error:
+          "Anda sudah memiliki permintaan booking yang sedang menunggu untuk unit ini",
         success: false,
       };
     }
@@ -120,7 +121,10 @@ export async function createBookingRequestAction(
     return { success: true, data: request };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     logError(error, "create_booking_request");
     return { error: "Gagal membuat permintaan booking", success: false };
@@ -197,10 +201,12 @@ export async function reviewBookingRequestAction(
     return { success: true, data: updated[0] };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     logError(error, "review_booking_request");
     return { error: "Gagal meninjau permintaan booking", success: false };
   }
 }
-

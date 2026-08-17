@@ -134,7 +134,7 @@ export async function generateContractAction(
       contractUrl,
     };
   } catch (error) {
-      console.error("Kesalahan pembuatan kontrak:", error);
-      return { error: "Gagal membuat kontrak", success: false };
+    console.error("Kesalahan pembuatan kontrak:", error);
+    return { error: "Gagal membuat kontrak", success: false };
   }
 }

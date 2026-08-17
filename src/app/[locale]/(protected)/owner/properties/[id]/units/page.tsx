@@ -205,8 +205,7 @@ export default function UnitsPage() {
                         <Select
                           value={unit.status}
                           onValueChange={(value) =>
-                            value &&
-                            handleStatusChange(unit.id, value)
+                            value && handleStatusChange(unit.id, value)
                           }
                         >
                           <SelectTrigger className="w-40">

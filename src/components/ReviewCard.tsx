@@ -12,7 +12,11 @@ interface ReviewCardProps {
   showReplyForm?: boolean;
 }
 
-export function ReviewCard({ review, onReply, showReplyForm }: ReviewCardProps) {
+export function ReviewCard({
+  review,
+  onReply,
+  showReplyForm,
+}: ReviewCardProps) {
   const aspects = [
     { label: "Kebersihan", value: review.cleanliness },
     { label: "Keamanan", value: review.security },

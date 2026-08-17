@@ -27,7 +27,10 @@ export default function ReviewForm({
 }: ReviewFormProps) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
-  const [state, formAction, isPending] = useActionState(createReviewAction, undefined);
+  const [state, formAction, isPending] = useActionState(
+    createReviewAction,
+    undefined,
+  );
 
   const handleSubmit = (formData: FormData) => {
     formData.append("bookingId", bookingId);
@@ -87,7 +90,11 @@ export default function ReviewForm({
         </p>
       </div>
 
-      <Button type="submit" className="w-full" disabled={isPending || rating === 0}>
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={isPending || rating === 0}
+      >
         {isPending ? "Mengirim..." : "Kirim Review"}
       </Button>
     </form>

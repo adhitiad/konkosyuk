@@ -49,7 +49,11 @@ import { ROLE_OPTIONS, getRoleBadgeVariant } from "@/lib/constants/user";
 import { FaCheck, FaTimes, FaTrash } from "react-icons/fa";
 import Link from "next/link";
 import { ImageUpload } from "@/components/ui/image-upload";
-import { updateUserAction, deleteUserAction, createUserAction } from "@/actions/admin/users";
+import {
+  updateUserAction,
+  deleteUserAction,
+  createUserAction,
+} from "@/actions/admin/users";
 
 interface User {
   id: string;
@@ -137,7 +141,7 @@ const AdminUsersPage = ({}: AdminUsersPageProps) => {
       if (role !== undefined) formData.append("role", role);
       if (isActive !== undefined) formData.append("isActive", String(isActive));
       if (isBanned !== undefined) formData.append("isBanned", String(isBanned));
-      
+
       const result = await updateUserAction(undefined, formData);
       if (!result.success) {
         throw new Error(result.error || "Failed to update user");
@@ -168,7 +172,7 @@ const AdminUsersPage = ({}: AdminUsersPageProps) => {
     mutationFn: async (userId: string) => {
       const formData = new FormData();
       formData.append("id", userId);
-      
+
       const result = await deleteUserAction(undefined, formData);
       if (!result.success) {
         throw new Error(result.error || "Failed to delete user");

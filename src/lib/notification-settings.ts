@@ -1,7 +1,10 @@
 import { db } from "@/db";
 import { notificationSettings } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { encryptNotificationValue, decryptNotificationValue } from "@/lib/notification-crypto";
+import {
+  encryptNotificationValue,
+  decryptNotificationValue,
+} from "@/lib/notification-crypto";
 
 export interface NotificationSettings {
   id: string;
@@ -44,31 +47,35 @@ export async function getNotificationSettings(): Promise<NotificationSettings> {
   };
 }
 
-export async function upsertNotificationSettings(
-  data: {
-    resendApiKey?: string;
-    resendFromEmail?: string;
-    metaAccessToken?: string;
-    metaPhoneNumberId?: string;
-    metaMaintenanceCreatedTemplate?: string;
-    metaMaintenanceUpdatedTemplate?: string;
-  },
-): Promise<NotificationSettings> {
+export async function upsertNotificationSettings(data: {
+  resendApiKey?: string;
+  resendFromEmail?: string;
+  metaAccessToken?: string;
+  metaPhoneNumberId?: string;
+  metaMaintenanceCreatedTemplate?: string;
+  metaMaintenanceUpdatedTemplate?: string;
+}): Promise<NotificationSettings> {
   const existing = await getNotificationSettings();
   const existingId = existing.id;
 
   const values = {
     id: existingId || "00000000-0000-0000-0000-000000000001",
-    resendApiKey: data.resendApiKey !== undefined
-      ? JSON.stringify(encryptNotificationValue(data.resendApiKey))
-      : existing.resendApiKey,
+    resendApiKey:
+      data.resendApiKey !== undefined
+        ? JSON.stringify(encryptNotificationValue(data.resendApiKey))
+        : existing.resendApiKey,
     resendFromEmail: data.resendFromEmail ?? existing.resendFromEmail,
-    metaAccessToken: data.metaAccessToken !== undefined
-      ? JSON.stringify(encryptNotificationValue(data.metaAccessToken))
-      : existing.metaAccessToken,
+    metaAccessToken:
+      data.metaAccessToken !== undefined
+        ? JSON.stringify(encryptNotificationValue(data.metaAccessToken))
+        : existing.metaAccessToken,
     metaPhoneNumberId: data.metaPhoneNumberId ?? existing.metaPhoneNumberId,
-    metaMaintenanceCreatedTemplate: data.metaMaintenanceCreatedTemplate ?? existing.metaMaintenanceCreatedTemplate,
-    metaMaintenanceUpdatedTemplate: data.metaMaintenanceUpdatedTemplate ?? existing.metaMaintenanceUpdatedTemplate,
+    metaMaintenanceCreatedTemplate:
+      data.metaMaintenanceCreatedTemplate ??
+      existing.metaMaintenanceCreatedTemplate,
+    metaMaintenanceUpdatedTemplate:
+      data.metaMaintenanceUpdatedTemplate ??
+      existing.metaMaintenanceUpdatedTemplate,
     updatedAt: new Date(),
   };
 

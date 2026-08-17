@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import * as Sentry from '@sentry/nextjs';
+import * as Sentry from "@sentry/nextjs";
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };
@@ -16,7 +16,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
     Sentry.captureException(error, {
       tags: {
-        errorBoundary: 'global',
+        errorBoundary: "global",
       },
     });
   }, [error]);
@@ -46,7 +46,10 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
           </Alert>
           <div className="flex gap-3">
             <Button onClick={reset}>Coba Lagi</Button>
-            <Button variant="outline" onClick={() => (window.location.href = "/")}>
+            <Button
+              variant="outline"
+              onClick={() => (window.location.href = "/")}
+            >
               Kembali ke Beranda
             </Button>
           </div>

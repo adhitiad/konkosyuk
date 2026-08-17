@@ -95,7 +95,8 @@ export function useUpdateReview() {
   }) => {
     const formData = new FormData();
     formData.append("id", id);
-    if (data.rating !== undefined) formData.append("rating", data.rating.toString());
+    if (data.rating !== undefined)
+      formData.append("rating", data.rating.toString());
     if (data.comment !== undefined) formData.append("comment", data.comment);
     await formAction(formData);
     queryClient.invalidateQueries({ queryKey: ["reviews"] });

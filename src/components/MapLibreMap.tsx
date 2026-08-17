@@ -112,7 +112,7 @@ export default function MapLibreMap({
     setPopupInfo(null);
   }, []);
 
-  const defaultCenter: [number, number] = [-6.200000, 106.816666];
+  const defaultCenter: [number, number] = [-6.2, 106.816666];
 
   return (
     <div

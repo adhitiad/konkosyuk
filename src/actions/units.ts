@@ -71,7 +71,10 @@ export async function createUnitAction(
       .select()
       .from(units)
       .where(
-        and(eq(units.propertyId, validated.propertyId), eq(units.name, validated.name)),
+        and(
+          eq(units.propertyId, validated.propertyId),
+          eq(units.name, validated.name),
+        ),
       )
       .limit(1);
 
@@ -86,7 +89,10 @@ export async function createUnitAction(
     return { success: true, data: unit };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal menambahkan unit", success: false };
   }
@@ -150,10 +156,7 @@ export async function updateUnitAction(
       return { error: "Properti tidak ditemukan", success: false };
     }
 
-    if (
-      session.user.role !== "admin" &&
-      property.ownerId !== session.user.id
-    ) {
+    if (session.user.role !== "admin" && property.ownerId !== session.user.id) {
       return { error: "Dilarang", success: false };
     }
 
@@ -182,7 +185,10 @@ export async function updateUnitAction(
     return { success: true, data: updated };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal memperbarui unit", success: false };
   }
@@ -235,10 +241,7 @@ export async function deleteUnitAction(
       return { error: "Properti tidak ditemukan", success: false };
     }
 
-    if (
-      session.user.role !== "admin" &&
-      property.ownerId !== session.user.id
-    ) {
+    if (session.user.role !== "admin" && property.ownerId !== session.user.id) {
       return { error: "Dilarang", success: false };
     }
 
@@ -249,7 +252,10 @@ export async function deleteUnitAction(
     return { success: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal menghapus unit", success: false };
   }

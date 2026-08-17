@@ -66,7 +66,10 @@ export async function toggleWishlist(
     return { success: true, favorited: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal memperbarui favorit", success: false };
   }

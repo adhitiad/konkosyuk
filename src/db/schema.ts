@@ -586,15 +586,19 @@ export const reviews = pgTable(
     cleanliness: numeric("cleanliness", { precision: 3, scale: 2 }).notNull(),
     security: numeric("security", { precision: 3, scale: 2 }).notNull(),
     accuracy: numeric("accuracy", { precision: 3, scale: 2 }).notNull(),
-    communication: numeric("communication", { precision: 3, scale: 2 }).notNull(),
-    valueForMoney: numeric("value_for_money", { precision: 3, scale: 2 }).notNull(),
+    communication: numeric("communication", {
+      precision: 3,
+      scale: 2,
+    }).notNull(),
+    valueForMoney: numeric("value_for_money", {
+      precision: 3,
+      scale: 2,
+    }).notNull(),
     comment: text("comment").notNull(),
     bookingId: uuid("booking_id")
       .notNull()
       .references(() => bookings.id, { onDelete: "cascade" }),
-    status: text("status", { enum: reviewStatus })
-      .notNull()
-      .default("pending"),
+    status: text("status", { enum: reviewStatus }).notNull().default("pending"),
     isEdited: boolean("is_edited").notNull().default(false),
     helpfulCount: integer("helpful_count").notNull().default(0),
     replyCount: integer("reply_count").notNull().default(0),
@@ -1234,7 +1238,9 @@ export const chatRooms = pgTable(
     tenantIdIdx: index("chat_rooms_tenant_id_idx").on(table.tenantId),
     ownerIdIdx: index("chat_rooms_owner_id_idx").on(table.ownerId),
     propertyIdIdx: index("chat_rooms_property_id_idx").on(table.propertyId),
-    lastMessageAtIdx: index("chat_rooms_last_message_at_idx").on(table.lastMessageAt),
+    lastMessageAtIdx: index("chat_rooms_last_message_at_idx").on(
+      table.lastMessageAt,
+    ),
     tenantOwnerUnique: unique("chat_rooms_tenant_owner_unique").on(
       table.tenantId,
       table.ownerId,
@@ -1313,17 +1319,22 @@ export const kycVerifications = pgTable(
   },
   (table) => ({
     userIdIdx: index("kyc_verifications_user_id_idx").on(table.userId),
-    diditSessionIdIdx: index("kyc_verifications_didit_session_id_idx").on(table.diditSessionId),
+    diditSessionIdIdx: index("kyc_verifications_didit_session_id_idx").on(
+      table.diditSessionId,
+    ),
     statusIdx: index("kyc_verifications_status_idx").on(table.status),
   }),
 );
 
-export const kycVerificationsRelations = relations(kycVerifications, ({ one }) => ({
-  user: one(users, {
-    fields: [kycVerifications.userId],
-    references: [users.id],
+export const kycVerificationsRelations = relations(
+  kycVerifications,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [kycVerifications.userId],
+      references: [users.id],
+    }),
   }),
-}));
+);
 
 export const appSettings = pgTable(
   "app_settings",
@@ -1338,7 +1349,7 @@ export const appSettings = pgTable(
   },
   (table) => ({
     keyIdx: index("app_settings_key_idx").on(table.key),
-  })
+  }),
 );
 
 export const reviewReplies = pgTable(
@@ -1379,27 +1390,46 @@ export const propertyRatings = pgTable(
     propertyId: uuid("property_id")
       .notNull()
       .references(() => properties.id, { onDelete: "cascade" }),
-    averageRating: numeric("average_rating", { precision: 3, scale: 2 }).notNull().default("0"),
+    averageRating: numeric("average_rating", { precision: 3, scale: 2 })
+      .notNull()
+      .default("0"),
     totalReviews: integer("total_reviews").notNull().default(0),
-    cleanliness: numeric("cleanliness", { precision: 3, scale: 2 }).notNull().default("0"),
-    security: numeric("security", { precision: 3, scale: 2 }).notNull().default("0"),
-    accuracy: numeric("accuracy", { precision: 3, scale: 2 }).notNull().default("0"),
-    communication: numeric("communication", { precision: 3, scale: 2 }).notNull().default("0"),
-    valueForMoney: numeric("value_for_money", { precision: 3, scale: 2 }).notNull().default("0"),
-    ratingDistribution: jsonb("rating_distribution").$type<Record<number, number>>().default({}),
+    cleanliness: numeric("cleanliness", { precision: 3, scale: 2 })
+      .notNull()
+      .default("0"),
+    security: numeric("security", { precision: 3, scale: 2 })
+      .notNull()
+      .default("0"),
+    accuracy: numeric("accuracy", { precision: 3, scale: 2 })
+      .notNull()
+      .default("0"),
+    communication: numeric("communication", { precision: 3, scale: 2 })
+      .notNull()
+      .default("0"),
+    valueForMoney: numeric("value_for_money", { precision: 3, scale: 2 })
+      .notNull()
+      .default("0"),
+    ratingDistribution: jsonb("rating_distribution")
+      .$type<Record<number, number>>()
+      .default({}),
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
   },
   (table) => ({
-    propertyIdIdx: unique("property_ratings_property_id_unique").on(table.propertyId),
+    propertyIdIdx: unique("property_ratings_property_id_unique").on(
+      table.propertyId,
+    ),
   }),
 );
 
-export const propertyRatingsRelations = relations(propertyRatings, ({ one }) => ({
-  property: one(properties, {
-    fields: [propertyRatings.propertyId],
-    references: [properties.id],
+export const propertyRatingsRelations = relations(
+  propertyRatings,
+  ({ one }) => ({
+    property: one(properties, {
+      fields: [propertyRatings.propertyId],
+      references: [properties.id],
+    }),
   }),
-}));
+);
 
 export const userContracts = pgTable(
   "user_contracts",
@@ -1415,7 +1445,9 @@ export const userContracts = pgTable(
       .notNull()
       .references(() => properties.id, { onDelete: "cascade" }),
     contractUrl: text("contract_url").notNull(),
-    status: text("contract_status", { enum: ["draft", "generated", "signed", "expired"] })
+    status: text("contract_status", {
+      enum: ["draft", "generated", "signed", "expired"],
+    })
       .notNull()
       .default("generated"),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
@@ -1461,7 +1493,9 @@ export const feedbacks = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    category: text("category", { enum: ["bug", "feature", "improvement", "other"] }).notNull(),
+    category: text("category", {
+      enum: ["bug", "feature", "improvement", "other"],
+    }).notNull(),
     message: text("message").notNull(),
     rating: integer("rating"),
     status: text("status", { enum: ["pending", "reviewed", "resolved"] })
@@ -1497,14 +1531,18 @@ export const notificationSettings = pgTable(
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
   },
   (table) => ({
-    createdAtIdx: index("notification_settings_created_at_idx").on(table.createdAt),
-  })
+    createdAtIdx: index("notification_settings_created_at_idx").on(
+      table.createdAt,
+    ),
+  }),
 );
 
-export const notificationSettingsRelations = relations(notificationSettings, ({ one }) => ({
-  user: one(users, {
-    fields: [notificationSettings.id],
-    references: [users.id],
+export const notificationSettingsRelations = relations(
+  notificationSettings,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [notificationSettings.id],
+      references: [users.id],
+    }),
   }),
-}));
-
+);

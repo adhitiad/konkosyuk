@@ -37,8 +37,14 @@ function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [state, formAction, isPending] = useActionState(createReportAction, undefined);
-  const [uploadState, uploadAction] = useActionState(uploadImageAction, undefined);
+  const [state, formAction, isPending] = useActionState(
+    createReportAction,
+    undefined,
+  );
+  const [uploadState, uploadAction] = useActionState(
+    uploadImageAction,
+    undefined,
+  );
 
   useEffect(() => {
     fetch("/api/bookings?limit=100")
@@ -63,7 +69,9 @@ function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("type", "report");
-      const result = (await uploadAction(formData)) as unknown as UploadImageState;
+      const result = (await uploadAction(
+        formData,
+      )) as unknown as UploadImageState;
       if (result?.success && result.data?.url) {
         setImages((current) => [...current, result.data!.url].slice(0, 5));
       } else {

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import * as Sentry from '@sentry/nextjs';
+import * as Sentry from "@sentry/nextjs";
 
 interface AppErrorProps {
   error: Error & { digest?: string };
@@ -16,7 +16,7 @@ export default function Error({ error, reset }: AppErrorProps) {
   useEffect(() => {
     Sentry.captureException(error, {
       tags: {
-        errorBoundary: 'app',
+        errorBoundary: "app",
       },
     });
   }, [error]);

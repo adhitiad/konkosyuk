@@ -78,7 +78,8 @@ export async function createMaintenanceTicketAction(
 
     if (!activeBooking) {
       return {
-        error: "Anda hanya dapat membuat tiket maintenance untuk unit yang sedang Anda sewa",
+        error:
+          "Anda hanya dapat membuat tiket maintenance untuk unit yang sedang Anda sewa",
         success: false,
       };
     }
@@ -98,7 +99,10 @@ export async function createMaintenanceTicketAction(
     return { success: true, data: ticket };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal membuat tiket maintenance", success: false };
   }
@@ -176,7 +180,8 @@ export async function updateMaintenanceTicketAction(
 
     const updateData: Record<string, unknown> = {};
     if (validated.status) updateData.status = validated.status;
-    if (validated.ownerNotes !== undefined) updateData.ownerNotes = validated.ownerNotes;
+    if (validated.ownerNotes !== undefined)
+      updateData.ownerNotes = validated.ownerNotes;
     if (validated.priority) updateData.priority = validated.priority;
 
     const [updated] = await db
@@ -188,7 +193,10 @@ export async function updateMaintenanceTicketAction(
     return { success: true, data: updated };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     console.error("updateMaintenanceTicketAction error:", error);
     return { error: "Gagal memperbarui tiket maintenance", success: false };

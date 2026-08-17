@@ -34,15 +34,19 @@ async function checkDatabase() {
 }
 
 async function checkRedis() {
-  const started = performance.now()
+  const started = performance.now();
   try {
-    const result = await redisHealth()
-    return { 
-      status: result.ok ? 'healthy' as const : 'down' as const, 
-      latency: Math.round(performance.now() - started) 
-    }
+    const result = await redisHealth();
+    return {
+      status: result.ok ? ("healthy" as const) : ("down" as const),
+      latency: Math.round(performance.now() - started),
+    };
   } catch (error) {
-    return { status: 'down' as const, latency: Math.round(performance.now() - started), error: error instanceof Error ? error.message : 'Connection failed' }
+    return {
+      status: "down" as const,
+      latency: Math.round(performance.now() - started),
+      error: error instanceof Error ? error.message : "Connection failed",
+    };
   }
 }
 

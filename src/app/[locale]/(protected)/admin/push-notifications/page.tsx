@@ -24,7 +24,8 @@ function AdminPushNotificationsPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["push-subscriptions"],
-    queryFn: async () => (await apiClient.get("/api/admin/push/subscriptions")).data,
+    queryFn: async () =>
+      (await apiClient.get("/api/admin/push/subscriptions")).data,
   });
 
   const subscriptions: PushSubscription[] = data?.data?.subscriptions ?? [];
@@ -69,9 +70,7 @@ function AdminPushNotificationsPage() {
     <div className="container py-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">{t("title")}</h1>
-        <p className="text-muted-foreground">
-          {t("description")}
-        </p>
+        <p className="text-muted-foreground">{t("description")}</p>
       </div>
 
       {error && (
@@ -105,7 +104,10 @@ function AdminPushNotificationsPage() {
               placeholder={t("messagePlaceholder")}
             />
           </div>
-          <Button onClick={handleBroadcast} disabled={broadcastMutation.isPending}>
+          <Button
+            onClick={handleBroadcast}
+            disabled={broadcastMutation.isPending}
+          >
             {broadcastMutation.isPending ? t("sending") : t("sendBroadcast")}
           </Button>
         </CardContent>
@@ -113,7 +115,9 @@ function AdminPushNotificationsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{t("subscriptionsTitle", { count: subscriptions.length })}</CardTitle>
+          <CardTitle>
+            {t("subscriptionsTitle", { count: subscriptions.length })}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -123,7 +127,9 @@ function AdminPushNotificationsPage() {
               <Skeleton className="h-12 w-full" />
             </div>
           ) : subscriptions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("noSubscriptions")}</p>
+            <p className="text-sm text-muted-foreground">
+              {t("noSubscriptions")}
+            </p>
           ) : (
             <div className="space-y-3">
               {subscriptions.map((sub) => (
@@ -134,7 +140,9 @@ function AdminPushNotificationsPage() {
                   <div className="flex items-center gap-3">
                     <Bell className="size-4 text-primary" />
                     <div>
-                      <p className="text-sm font-medium">{t("subscriptionLabel")}</p>
+                      <p className="text-sm font-medium">
+                        {t("subscriptionLabel")}
+                      </p>
                       <p className="text-xs text-muted-foreground font-mono">
                         {sub.endpoint.slice(0, 50)}...
                       </p>

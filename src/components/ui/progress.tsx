@@ -2,7 +2,11 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-function Progress({ className, value, ...props }: React.ComponentProps<"div"> & { value?: number }) {
+function Progress({
+  className,
+  value,
+  ...props
+}: React.ComponentProps<"div"> & { value?: number }) {
   return (
     <div
       role="progressbar"

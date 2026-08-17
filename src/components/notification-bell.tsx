@@ -14,7 +14,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { markAllNotificationsReadAction, updateNotificationAction } from "@/actions/notifications";
+import {
+  markAllNotificationsReadAction,
+  updateNotificationAction,
+} from "@/actions/notifications";
 import { apiClient } from "@/lib/axios";
 
 type Notification = {
@@ -140,7 +143,10 @@ export default function NotificationBell() {
             size="sm"
             onClick={async () => {
               const formData = new FormData();
-              const result = await markAllNotificationsReadAction(undefined, formData);
+              const result = await markAllNotificationsReadAction(
+                undefined,
+                formData,
+              );
               if (result.success) {
                 queryClient.invalidateQueries({ queryKey: ["notifications"] });
               }

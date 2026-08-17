@@ -104,24 +104,22 @@ export async function POST(req: NextRequest) {
       })
       .from(users)
       .where(eq(users.role, "admin"));
-    await db
-      .insert(notifications)
-      .values([
-        {
-          userId: property.ownerId,
-          title: "Laporan Masalah Baru",
-          message: `Ada laporan "${body.category}" di properti ${property.name}. Mohon ditindaklanjuti.`,
-          type: "report",
-          referenceId: report.id,
-        },
-        ...admins.map((admin) => ({
-          userId: admin.id,
-          title: "Laporan Masalah Perlu Dipantau",
-          message: `Tenant mengirim laporan "${body.category}" di properti ${property.name}. Buka laporan untuk memantau tindak lanjut owner.`,
-          type: "report" as const,
-          referenceId: report.id,
-        })),
-      ]);
+    await db.insert(notifications).values([
+      {
+        userId: property.ownerId,
+        title: "Laporan Masalah Baru",
+        message: `Ada laporan "${body.category}" di properti ${property.name}. Mohon ditindaklanjuti.`,
+        type: "report",
+        referenceId: report.id,
+      },
+      ...admins.map((admin) => ({
+        userId: admin.id,
+        title: "Laporan Masalah Perlu Dipantau",
+        message: `Tenant mengirim laporan "${body.category}" di properti ${property.name}. Buka laporan untuk memantau tindak lanjut owner.`,
+        type: "report" as const,
+        referenceId: report.id,
+      })),
+    ]);
 
     const recipients = [owner, ...admins].filter(
       (recipient): recipient is NonNullable<typeof recipient> =>

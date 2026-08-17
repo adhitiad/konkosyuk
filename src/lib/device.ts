@@ -75,7 +75,8 @@ export function getDeviceInfoFromRequest(req: Request): DeviceInfo {
     if (eqIdx !== -1 && eqIdx < end) {
       // Trim whitespace dari key
       let keyStart = start;
-      while (keyStart < eqIdx && cookieHeader.charCodeAt(keyStart) === 32) keyStart++;
+      while (keyStart < eqIdx && cookieHeader.charCodeAt(keyStart) === 32)
+        keyStart++;
       const key = cookieHeader.slice(keyStart, eqIdx);
       const value = cookieHeader.slice(eqIdx + 1, end);
       cookies[key] = value;

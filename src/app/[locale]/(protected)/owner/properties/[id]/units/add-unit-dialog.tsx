@@ -70,13 +70,17 @@ export default function AddUnitDialog({ propertyId }: AddUnitDialogProps) {
     const formData = new FormData();
     formData.append("propertyId", payload.propertyId);
     formData.append("name", payload.name);
-    if (payload.description) formData.append("description", payload.description);
+    if (payload.description)
+      formData.append("description", payload.description);
     formData.append("price", payload.price);
     if (payload.capacity) formData.append("capacity", payload.capacity);
     if (payload.size) formData.append("size", payload.size);
     formData.append("status", payload.status || "available");
 
-    const actionResult: CreateUnitState = await createUnitAction(undefined, formData);
+    const actionResult: CreateUnitState = await createUnitAction(
+      undefined,
+      formData,
+    );
 
     if (actionResult.success) {
       queryClient.invalidateQueries({ queryKey: ["units", propertyId] });

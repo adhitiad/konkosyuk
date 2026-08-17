@@ -34,7 +34,8 @@ function NotificationSettingsPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["notification-settings"],
-    queryFn: async () => (await apiClient.get("/api/admin/settings/notifications")).data,
+    queryFn: async () =>
+      (await apiClient.get("/api/admin/settings/notifications")).data,
   });
 
   const settings = data?.data as NotificationSettings | undefined;
@@ -42,8 +43,12 @@ function NotificationSettingsPage() {
   useEffect(() => {
     if (settings) {
       setEmailSender(settings.email.sender || "");
-      setWaCreatedTemplate(settings.whatsapp.createdTemplate || "maintenance_report_created");
-      setWaUpdatedTemplate(settings.whatsapp.updatedTemplate || "maintenance_report_updated");
+      setWaCreatedTemplate(
+        settings.whatsapp.createdTemplate || "maintenance_report_created",
+      );
+      setWaUpdatedTemplate(
+        settings.whatsapp.updatedTemplate || "maintenance_report_updated",
+      );
     }
   }, [settings]);
 
@@ -86,7 +91,8 @@ function NotificationSettingsPage() {
       <div>
         <h1 className="text-3xl font-bold">Pengaturan Notifikasi</h1>
         <p className="text-muted-foreground">
-          Konfigurasi pengiriman Email dan WhatsApp. Data sensitif disimpan terenkripsi di database.
+          Konfigurasi pengiriman Email dan WhatsApp. Data sensitif disimpan
+          terenkripsi di database.
         </p>
       </div>
 
@@ -161,7 +167,9 @@ function NotificationSettingsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Template Laporan Baru</label>
+                <label className="text-sm font-medium">
+                  Template Laporan Baru
+                </label>
                 <Input
                   value={waCreatedTemplate}
                   onChange={(e) => setWaCreatedTemplate(e.target.value)}
@@ -169,14 +177,19 @@ function NotificationSettingsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Template Status Update</label>
+                <label className="text-sm font-medium">
+                  Template Status Update
+                </label>
                 <Input
                   value={waUpdatedTemplate}
                   onChange={(e) => setWaUpdatedTemplate(e.target.value)}
                   placeholder="maintenance_report_updated"
                 />
               </div>
-              <Button onClick={handleSaveWhatsApp} disabled={mutation.isPending}>
+              <Button
+                onClick={handleSaveWhatsApp}
+                disabled={mutation.isPending}
+              >
                 {mutation.isPending ? "Menyimpan..." : "Simpan WhatsApp"}
               </Button>
             </CardContent>

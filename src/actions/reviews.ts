@@ -1,7 +1,13 @@
 "use server";
 
 import { db } from "@/db";
-import { reviews, bookings, users, reviewReplies, properties } from "@/db/schema";
+import {
+  reviews,
+  bookings,
+  users,
+  reviewReplies,
+  properties,
+} from "@/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -70,7 +76,8 @@ export async function updateReviewAction(
       isEdited: true,
     };
 
-    if (validated.rating !== undefined) updateData.rating = validated.rating.toString();
+    if (validated.rating !== undefined)
+      updateData.rating = validated.rating.toString();
     if (validated.comment !== undefined) updateData.comment = validated.comment;
 
     const [updated] = await db
@@ -82,7 +89,10 @@ export async function updateReviewAction(
     return { success: true, data: updated };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal memperbarui review", success: false };
   }
@@ -245,7 +255,10 @@ export async function replyReviewAction(
     return { success: true, data: reply };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal membalas review", success: false };
   }
@@ -295,7 +308,8 @@ export async function createReviewAction(
 
     if (booking.status !== "confirmed" && booking.status !== "completed") {
       return {
-        error: "Anda hanya dapat review setelah booking dikonfirmasi atau selesai",
+        error:
+          "Anda hanya dapat review setelah booking dikonfirmasi atau selesai",
         success: false,
       };
     }
@@ -303,7 +317,10 @@ export async function createReviewAction(
     const now = new Date();
     const bookingEnd = new Date(booking.endDate);
     if (bookingEnd > now) {
-      return { error: "Anda hanya dapat review setelah periode booking berakhir", success: false };
+      return {
+        error: "Anda hanya dapat review setelah periode booking berakhir",
+        success: false,
+      };
     }
 
     const [existingReview] = await db
@@ -321,13 +338,19 @@ export async function createReviewAction(
 
     if (validated.type === "tenant") {
       if (!validated.reviewedUserId) {
-        return { error: "reviewedUserId diperlukan untuk review penyewa", success: false };
+        return {
+          error: "reviewedUserId diperlukan untuk review penyewa",
+          success: false,
+        };
       }
       reviewedUserId = validated.reviewedUserId;
       propertyId = booking.propertyId;
     } else {
       if (!validated.propertyId) {
-        return { error: "propertyId diperlukan untuk review properti", success: false };
+        return {
+          error: "propertyId diperlukan untuk review properti",
+          success: false,
+        };
       }
       reviewedUserId = undefined;
       propertyId = validated.propertyId;
@@ -377,7 +400,8 @@ export async function createReviewAction(
           const newScore =
             reviewCount === 0
               ? validated.rating
-              : (currentScore * reviewCount + validated.rating) / (reviewCount + 1);
+              : (currentScore * reviewCount + validated.rating) /
+                (reviewCount + 1);
 
           await tx
             .update(users)
@@ -392,7 +416,10 @@ export async function createReviewAction(
     return { success: true, data: result };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal membuat review", success: false };
   }

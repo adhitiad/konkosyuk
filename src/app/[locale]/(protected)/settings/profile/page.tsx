@@ -346,7 +346,9 @@ export default function ProfileSettingsPage() {
                   setCity("");
                   setDistrict("");
                 }}
-                disabled={loadingProvinces || isProfilePending || isUploadPending}
+                disabled={
+                  loadingProvinces || isProfilePending || isUploadPending
+                }
               >
                 <SelectTrigger id="province">
                   <SelectValue
@@ -374,7 +376,12 @@ export default function ProfileSettingsPage() {
                   setCity(value ?? "");
                   setDistrict("");
                 }}
-                disabled={!province || loadingCities || isProfilePending || isUploadPending}
+                disabled={
+                  !province ||
+                  loadingCities ||
+                  isProfilePending ||
+                  isUploadPending
+                }
               >
                 <SelectTrigger id="city">
                   <SelectValue
@@ -403,7 +410,12 @@ export default function ProfileSettingsPage() {
               <Select
                 value={district}
                 onValueChange={(value) => setDistrict(value ?? "")}
-                disabled={!city || loadingDistricts || isProfilePending || isUploadPending}
+                disabled={
+                  !city ||
+                  loadingDistricts ||
+                  isProfilePending ||
+                  isUploadPending
+                }
               >
                 <SelectTrigger id="district">
                   <SelectValue
@@ -431,7 +443,9 @@ export default function ProfileSettingsPage() {
               className="w-full"
               disabled={isProfilePending || isUploadPending}
             >
-              {(isProfilePending || isUploadPending) ? "Menyimpan..." : "Simpan Perubahan"}
+              {isProfilePending || isUploadPending
+                ? "Menyimpan..."
+                : "Simpan Perubahan"}
             </Button>
           </CardContent>
         </Card>

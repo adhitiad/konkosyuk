@@ -53,8 +53,12 @@ export async function updateUserAction(
       name: formData.get("name") || undefined,
       email: formData.get("email") || undefined,
       role: formData.get("role") || undefined,
-      isActive: formData.get("isActive") ? formData.get("isActive") === "true" : undefined,
-      isBanned: formData.get("isBanned") ? formData.get("isBanned") === "true" : undefined,
+      isActive: formData.get("isActive")
+        ? formData.get("isActive") === "true"
+        : undefined,
+      isBanned: formData.get("isBanned")
+        ? formData.get("isBanned") === "true"
+        : undefined,
       image: formData.get("image") || undefined,
       phone: formData.get("phone") || undefined,
       whatsapp: formData.get("whatsapp") || undefined,
@@ -108,8 +112,16 @@ export async function updateUserAction(
     }
 
     if (session.user.role !== "admin") {
-      if (validated.role !== undefined || validated.isActive !== undefined || validated.isBanned !== undefined) {
-        return { error: "Hanya admin yang bisa mengubah role, status aktif, atau status ban", success: false };
+      if (
+        validated.role !== undefined ||
+        validated.isActive !== undefined ||
+        validated.isBanned !== undefined
+      ) {
+        return {
+          error:
+            "Hanya admin yang bisa mengubah role, status aktif, atau status ban",
+          success: false,
+        };
       }
 
       if (existing.role === "admin") {
@@ -117,7 +129,10 @@ export async function updateUserAction(
       }
     }
 
-    if (validated.role && !["cust", "owner", "admin", "staff"].includes(validated.role)) {
+    if (
+      validated.role &&
+      !["cust", "owner", "admin", "staff"].includes(validated.role)
+    ) {
       return { error: "Role tidak valid", success: false };
     }
 
@@ -140,7 +155,11 @@ export async function updateUserAction(
       .where(eq(users.id, userId))
       .returning();
 
-    if (validated.role || validated.isActive !== undefined || validated.isBanned !== undefined) {
+    if (
+      validated.role ||
+      validated.isActive !== undefined ||
+      validated.isBanned !== undefined
+    ) {
       await createAuditLog({
         action: validated.role ? "approve" : "update",
         targetType: "user",
@@ -156,7 +175,10 @@ export async function updateUserAction(
     return { success: true, message: "User berhasil diperbarui" };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal memperbarui user", success: false };
   }
@@ -204,7 +226,10 @@ export async function deleteUserAction(
     }
 
     if (existing.id === session.user.id) {
-      return { error: "Anda tidak bisa menghapus akun sendiri", success: false };
+      return {
+        error: "Anda tidak bisa menghapus akun sendiri",
+        success: false,
+      };
     }
 
     await db.delete(users).where(eq(users.id, validated.id));
@@ -223,7 +248,10 @@ export async function deleteUserAction(
     return { success: true, message: "User berhasil dihapus" };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal menghapus user", success: false };
   }
@@ -275,7 +303,10 @@ export async function banUserAction(
     }
 
     if (existing.id === session.user.id) {
-      return { error: "Anda tidak bisa memblokir akun sendiri", success: false };
+      return {
+        error: "Anda tidak bisa memblokir akun sendiri",
+        success: false,
+      };
     }
 
     const [updated] = await db
@@ -301,10 +332,16 @@ export async function banUserAction(
       },
     });
 
-    return { success: true, message: `User berhasil ${validated.isBanned ? "diblokir" : "dibuka blokirnya"}` };
+    return {
+      success: true,
+      message: `User berhasil ${validated.isBanned ? "diblokir" : "dibuka blokirnya"}`,
+    };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal mengubah status blokir user", success: false };
   }
@@ -416,7 +453,10 @@ export async function createUserAction(
     return { success: true, message: "User berhasil dibuat", data: newUser };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     console.error("createUserAction error:", error);
     return { error: "Gagal membuat user", success: false };

@@ -111,7 +111,9 @@ export async function POST(req: NextRequest) {
     if (Array.isArray(facilities)) metadata.facilities = facilities;
 
     // TypeScript narrowing for unit status
-    const unitStatus = (status as "available" | "booked" | "maintenance" | null | undefined) ?? "available";
+    const unitStatus =
+      (status as "available" | "booked" | "maintenance" | null | undefined) ??
+      "available";
 
     const unitValues: NewUnit = {
       propertyId: propertyId as string,
@@ -123,10 +125,7 @@ export async function POST(req: NextRequest) {
       metadata,
     };
 
-    const [unit] = await db
-      .insert(units)
-      .values(unitValues)
-      .returning();
+    const [unit] = await db.insert(units).values(unitValues).returning();
 
     return ok(unit, 201);
   } catch (error) {

@@ -25,7 +25,7 @@ export default function FavoriteButtonClient({
   const [isPending, startTransition] = useTransition();
   const [isFavorite, setIsFavorite] = useOptimistic(
     initialFavorite,
-    (prev, newValue: boolean) => newValue
+    (prev, newValue: boolean) => newValue,
   );
 
   const handleSubmit = (formData: FormData) => {
@@ -34,7 +34,9 @@ export default function FavoriteButtonClient({
       const result = await toggleWishlist(undefined, formData);
       if (result?.success && result.favorited !== undefined) {
         setIsFavorite(result.favorited);
-        showToastInfo(result.favorited ? "Ditambahkan ke favorit" : "Dihapus dari favorit");
+        showToastInfo(
+          result.favorited ? "Ditambahkan ke favorit" : "Dihapus dari favorit",
+        );
       } else if (result?.error) {
         showToastError(result.error);
         setIsFavorite(!isFavorite);
@@ -48,12 +50,7 @@ export default function FavoriteButtonClient({
 
   return (
     <form action={handleSubmit}>
-      <Button
-        type="submit"
-        variant="ghost"
-        size="icon-sm"
-        disabled={isPending}
-      >
+      <Button type="submit" variant="ghost" size="icon-sm" disabled={isPending}>
         <HugeiconsIcon
           icon={HeartIcon}
           strokeWidth={2}

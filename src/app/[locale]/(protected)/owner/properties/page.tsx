@@ -210,14 +210,18 @@ function DeletePropertyButton({
           <DialogTitle>Konfirmasi Hapus</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Apakah Anda yakin ingin menghapus properti "{propertyName}"?
-          Tindakan ini tidak dapat dibatalkan.
+          Apakah Anda yakin ingin menghapus properti "{propertyName}"? Tindakan
+          ini tidak dapat dibatalkan.
         </p>
         <div className="flex justify-end gap-2">
           <DialogTrigger render={<Button variant="outline" />}>
             Batal
           </DialogTrigger>
-          <Button variant="destructive" disabled={isDeleting} onClick={handleDelete}>
+          <Button
+            variant="destructive"
+            disabled={isDeleting}
+            onClick={handleDelete}
+          >
             {isDeleting ? "Menghapus..." : "Hapus"}
           </Button>
         </div>

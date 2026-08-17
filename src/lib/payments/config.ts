@@ -7,7 +7,7 @@ import type { paymentProvider } from "@/db/schema";
 export type PaymentGatewayConfigData = Record<string, unknown>;
 
 export async function getPaymentGatewayConfig(
-  provider: typeof paymentProvider[number],
+  provider: (typeof paymentProvider)[number],
 ): Promise<PaymentGatewayConfigData> {
   const [config] = await db
     .select()

@@ -20,7 +20,10 @@ export async function getSetting(key: string): Promise<string | null> {
     .limit(1);
 
   if (setting) {
-    settingsCache.set(key, { value: setting.value, expiresAt: now + CACHE_TTL });
+    settingsCache.set(key, {
+      value: setting.value,
+      expiresAt: now + CACHE_TTL,
+    });
     return setting.value;
   }
 

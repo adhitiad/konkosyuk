@@ -7,7 +7,9 @@ export function usePropertyRatings(propertyId: string) {
   const { data, isLoading, error } = useQuery({
     queryKey: ["propertyRatings", propertyId],
     queryFn: async () => {
-      const response = await apiClient.get(`/api/properties/${propertyId}/ratings`);
+      const response = await apiClient.get(
+        `/api/properties/${propertyId}/ratings`,
+      );
       return response.data.data;
     },
     enabled: !!propertyId,

@@ -39,7 +39,10 @@ export default function ReviewsPage() {
   const queryClient = useQueryClient();
   const [newRating, setNewRating] = useState(0);
   const [comment, setComment] = useState("");
-  const [state, formAction, isPending] = useActionState(createReviewAction, undefined);
+  const [state, formAction, isPending] = useActionState(
+    createReviewAction,
+    undefined,
+  );
 
   const { data, isLoading, isError, error } = useQuery<ReviewsResponse>({
     queryKey: ["reviews", id],
@@ -134,7 +137,9 @@ export default function ReviewsPage() {
                 <input type="hidden" name="rating" value={newRating} />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">Comment</label>
+                <label className="text-sm font-medium mb-2 block">
+                  Comment
+                </label>
                 <textarea
                   name="comment"
                   value={comment}
@@ -146,10 +151,7 @@ export default function ReviewsPage() {
               </div>
               <input type="hidden" name="type" value="property" />
               <input type="hidden" name="bookingId" value="" />
-              <Button
-                type="submit"
-                disabled={newRating === 0 || isPending}
-              >
+              <Button type="submit" disabled={newRating === 0 || isPending}>
                 {isPending ? "Submitting..." : "Submit Review"}
               </Button>
             </form>

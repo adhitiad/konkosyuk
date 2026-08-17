@@ -82,7 +82,8 @@ export async function upsertPaymentGatewayAction(
     }
 
     const rawConfig = formData.get("config");
-    const configData = typeof rawConfig === "string" ? JSON.parse(rawConfig) : {};
+    const configData =
+      typeof rawConfig === "string" ? JSON.parse(rawConfig) : {};
 
     const validated = upsertGatewaySchema.parse({
       provider: formData.get("provider"),
@@ -112,10 +113,13 @@ export async function upsertPaymentGatewayAction(
     const existingConfig = { ...legacyConfig, ...existingSecrets };
     const mergedConfig = mergePaymentConfig(existingConfig, providerConfig);
 
-    const validation = providerConfigSchemas[validated.provider].safeParse(mergedConfig);
+    const validation =
+      providerConfigSchemas[validated.provider].safeParse(mergedConfig);
     if (!validation.success) {
       return {
-        error: validation.error.issues[0]?.message ?? "Konfigurasi gateway tidak valid",
+        error:
+          validation.error.issues[0]?.message ??
+          "Konfigurasi gateway tidak valid",
         success: false,
       };
     }
@@ -184,9 +188,15 @@ export async function upsertPaymentGatewayAction(
     return { success: true, data: safeConfig };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
-    return { error: "Gagal menyimpan konfigurasi payment gateway", success: false };
+    return {
+      error: "Gagal menyimpan konfigurasi payment gateway",
+      success: false,
+    };
   }
 }
 
@@ -240,7 +250,10 @@ export async function deletePaymentGatewayAction(
     return { success: true, message: "Payment gateway berhasil dihapus" };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal menghapus payment gateway", success: false };
   }

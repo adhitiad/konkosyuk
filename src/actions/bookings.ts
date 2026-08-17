@@ -1,7 +1,14 @@
 "use server";
 
 import { db } from "@/db";
-import { bookings, units, properties, users, balanceLogs, payments } from "@/db/schema";
+import {
+  bookings,
+  units,
+  properties,
+  users,
+  balanceLogs,
+  payments,
+} from "@/db/schema";
 import { eq, and, or, gte, lte, inArray, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -64,7 +71,10 @@ export async function createBookingAction(
     }
 
     if (session.user.role !== "cust") {
-      return { error: "Hanya tenant yang dapat membuat booking", success: false };
+      return {
+        error: "Hanya tenant yang dapat membuat booking",
+        success: false,
+      };
     }
 
     const validated = createBookingSchema.parse({
@@ -111,7 +121,10 @@ export async function createBookingAction(
       validated.customDuration,
     );
     if (!packageValidation.valid) {
-      return { error: packageValidation.error || "Paket tidak valid", success: false };
+      return {
+        error: packageValidation.error || "Paket tidak valid",
+        success: false,
+      };
     }
 
     const pkg = getPackageById(property.packages, validated.packageId);
@@ -140,7 +153,11 @@ export async function createBookingAction(
         pkg.ppnPercent,
         pkg.appFeePercent,
       );
-      endDate = calculatePackageEndDate(validated.startDate, pkg.unit, pkg.value);
+      endDate = calculatePackageEndDate(
+        validated.startDate,
+        pkg.unit,
+        pkg.value,
+      );
     }
 
     const dpAmount = Math.round(totalPrice * 0.35);
@@ -173,7 +190,10 @@ export async function createBookingAction(
       .limit(1);
 
     if (overlapping.length > 0) {
-      return { error: "Unit sudah dibooking untuk tanggal yang dipilih", success: false };
+      return {
+        error: "Unit sudah dibooking untuk tanggal yang dipilih",
+        success: false,
+      };
     }
 
     const [booking] = await db
@@ -234,7 +254,10 @@ export async function createBookingAction(
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal membuat booking", success: false };
   }
@@ -411,9 +434,7 @@ export async function reviewBookingAction(
           unit.name,
           dpAmount,
           `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/bookings`,
-        ).catch((err) =>
-          console.error("Failed to send approval email:", err),
-        );
+        ).catch((err) => console.error("Failed to send approval email:", err));
       }
 
       return { success: true, data: updated };
@@ -422,7 +443,10 @@ export async function reviewBookingAction(
     return { success: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     console.error("reviewBookingAction error:", error);
     return { error: "Gagal memproses review booking", success: false };

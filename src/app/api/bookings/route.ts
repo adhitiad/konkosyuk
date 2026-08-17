@@ -17,14 +17,19 @@ import {
   validateBookingPackage,
   calculateCustomPrice,
 } from "@/lib/packages/calculator";
-import { NotFoundError, ValidationError, AuthorizationError, RateLimitError } from "@/lib/api-error";
+import {
+  NotFoundError,
+  ValidationError,
+  AuthorizationError,
+  RateLimitError,
+} from "@/lib/api-error";
 import { ApiError } from "@/lib/api-error";
 
 type BookingStatus = (typeof bookingStatus)[number];
 
 export async function GET(req: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
     const session = await requireSession();
     const { searchParams } = new URL(req.url);
@@ -51,7 +56,9 @@ export async function GET(req: NextRequest) {
         ? and(baseWhere, eq(bookings.status, statusValue as BookingStatus))
         : baseWhere;
     } else if (session.user.role === "admin" || session.user.role === "staff") {
-      where = statusValue ? eq(bookings.status, statusValue as BookingStatus) : undefined;
+      where = statusValue
+        ? eq(bookings.status, statusValue as BookingStatus)
+        : undefined;
     } else {
       where = statusValue
         ? and(
@@ -102,13 +109,13 @@ export async function GET(req: NextRequest) {
     const totalPages = Math.ceil(total / limit);
 
     const duration = Date.now() - startTime;
-    logApiRequest('GET', '/api/bookings', 200, duration, session.user.id);
+    logApiRequest("GET", "/api/bookings", 200, duration, session.user.id);
 
     return ok({ data, meta: { total, page, limit, totalPages } });
-} catch (error) {
+  } catch (error) {
     const duration = Date.now() - startTime;
     const statusCode = error instanceof ApiError ? error.statusCode : 500;
-    logApiRequest('GET', '/api/bookings', statusCode, duration);
+    logApiRequest("GET", "/api/bookings", statusCode, duration);
     logError(error, "GET /api/bookings");
     return handleApiError(error, "GET /api/bookings");
   }
@@ -116,17 +123,20 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
-    
+
     const limited = await enforceRateLimit(req, bookingRateLimit);
     if (limited) {
-      logSecurityEvent('rate_limit_exceeded', { path: '/api/bookings', method: 'POST' });
+      logSecurityEvent("rate_limit_exceeded", {
+        path: "/api/bookings",
+        method: "POST",
+      });
       return limited;
     }
-    
+
     const session = await requireSession(["cust"]);
     const body = createBookingSchema.parse(await req.json());
 
@@ -170,10 +180,13 @@ export async function POST(req: NextRequest) {
       body.customDuration,
     );
     if (!packageValidation.valid) {
-      throw new ValidationError(packageValidation.error || "Paket tidak valid", {
-        packageId: body.packageId,
-        customDuration: body.customDuration,
-      });
+      throw new ValidationError(
+        packageValidation.error || "Paket tidak valid",
+        {
+          packageId: body.packageId,
+          customDuration: body.customDuration,
+        },
+      );
     }
 
     const pkg = getPackageById(property.packages, body.packageId);
@@ -235,11 +248,14 @@ export async function POST(req: NextRequest) {
       .limit(1);
 
     if (overlapping.length > 0) {
-      throw new ValidationError("Unit is already booked for the selected dates", {
-        unitId: body.unitId,
-        startDate: body.startDate,
-        endDate: endDate.toISOString(),
-      });
+      throw new ValidationError(
+        "Unit is already booked for the selected dates",
+        {
+          unitId: body.unitId,
+          startDate: body.startDate,
+          endDate: endDate.toISOString(),
+        },
+      );
     }
 
     const [booking] = await db
@@ -268,8 +284,8 @@ export async function POST(req: NextRequest) {
       .returning();
 
     const duration = Date.now() - startTime;
-    logApiRequest('POST', '/api/bookings', 201, duration, session.user.id);
-    logSecurityEvent('booking_created', {
+    logApiRequest("POST", "/api/bookings", 201, duration, session.user.id);
+    logSecurityEvent("booking_created", {
       userId: session.user.id,
       bookingId: booking.id,
       propertyId: property.id,
@@ -289,10 +305,10 @@ export async function POST(req: NextRequest) {
       },
       201,
     );
-} catch (error) {
+  } catch (error) {
     const duration = Date.now() - startTime;
     const statusCode = error instanceof ApiError ? error.statusCode : 500;
-    logApiRequest('POST', '/api/bookings', statusCode, duration);
+    logApiRequest("POST", "/api/bookings", statusCode, duration);
     logError(error, "POST /api/bookings");
     return handleApiError(error, "POST /api/bookings");
   }

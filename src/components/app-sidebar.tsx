@@ -87,7 +87,11 @@ const menuConfig: Record<
     { title: "webhookLog", href: "/admin/webhooks", icon: Activity },
     { title: "kycRequests", href: "/admin/kyc-requests", icon: IdCard },
     { title: "notifications", href: "/admin/notifications", icon: Bell },
-    { title: "pushNotifications", href: "/admin/push-notifications", icon: Bell },
+    {
+      title: "pushNotifications",
+      href: "/admin/push-notifications",
+      icon: Bell,
+    },
     {
       title: "notificationSettings",
       href: "/admin/settings/notifications",
@@ -114,7 +118,11 @@ const menuConfig: Record<
     { title: "webhookLog", href: "/admin/webhooks", icon: Activity },
     { title: "kycRequests", href: "/admin/kyc-requests", icon: IdCard },
     { title: "notifications", href: "/admin/notifications", icon: Bell },
-    { title: "pushNotifications", href: "/admin/push-notifications", icon: Bell },
+    {
+      title: "pushNotifications",
+      href: "/admin/push-notifications",
+      icon: Bell,
+    },
     {
       title: "notificationSettings",
       href: "/admin/settings/notifications",

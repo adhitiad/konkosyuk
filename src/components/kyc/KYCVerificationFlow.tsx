@@ -7,23 +7,48 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Upload, Camera, CheckCircle2, XCircle, ShieldCheck } from "lucide-react";
+import {
+  Loader2,
+  Upload,
+  Camera,
+  CheckCircle2,
+  XCircle,
+  ShieldCheck,
+} from "lucide-react";
 
 export type KycStep = "upload-ktp" | "selfie" | "processing" | "result";
 
 export interface KYCVerificationFlowProps {
-  onComplete?: (status: "approved" | "rejected" | "pending", reason?: string) => void;
+  onComplete?: (
+    status: "approved" | "rejected" | "pending",
+    reason?: string,
+  ) => void;
   initialStep?: KycStep;
 }
 
 const STEPS: { key: KycStep; label: string; description: string }[] = [
-  { key: "upload-ktp", label: "Upload KTP", description: "Unggah foto KTP Anda" },
-  { key: "selfie", label: "Selfie", description: "Ambil foto selfie untuk liveness detection" },
-  { key: "processing", label: "Verifikasi", description: "Menunggu proses verifikasi" },
+  {
+    key: "upload-ktp",
+    label: "Upload KTP",
+    description: "Unggah foto KTP Anda",
+  },
+  {
+    key: "selfie",
+    label: "Selfie",
+    description: "Ambil foto selfie untuk liveness detection",
+  },
+  {
+    key: "processing",
+    label: "Verifikasi",
+    description: "Menunggu proses verifikasi",
+  },
   { key: "result", label: "Hasil", description: "Hasil verifikasi KYC" },
 ];
 
-export default function KYCVerificationFlow({ onComplete, initialStep = "upload-ktp" }: KYCVerificationFlowProps) {
+export default function KYCVerificationFlow({
+  onComplete,
+  initialStep = "upload-ktp",
+}: KYCVerificationFlowProps) {
   const [currentStep, setCurrentStep] = useState<KycStep>(initialStep);
   const [ktpImage, setKtpImage] = useState<File | null>(null);
   const [ktpPreview, setKtpPreview] = useState<string | null>(null);
@@ -39,43 +64,49 @@ export default function KYCVerificationFlow({ onComplete, initialStep = "upload-
   const currentStepIndex = STEPS.findIndex((s) => s.key === currentStep);
   const progress = ((currentStepIndex + 1) / STEPS.length) * 100;
 
-  const handleKtpUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleKtpUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      setError("File harus berupa gambar");
-      return;
-    }
+      if (!file.type.startsWith("image/")) {
+        setError("File harus berupa gambar");
+        return;
+      }
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError("Ukuran file maksimal 10MB");
-      return;
-    }
+      if (file.size > 10 * 1024 * 1024) {
+        setError("Ukuran file maksimal 10MB");
+        return;
+      }
 
-    setKtpImage(file);
-    setKtpPreview(URL.createObjectURL(file));
-    setError(null);
-  }, []);
+      setKtpImage(file);
+      setKtpPreview(URL.createObjectURL(file));
+      setError(null);
+    },
+    [],
+  );
 
-  const handleSelfieUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleSelfieUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      setError("File harus berupa gambar");
-      return;
-    }
+      if (!file.type.startsWith("image/")) {
+        setError("File harus berupa gambar");
+        return;
+      }
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError("Ukuran file maksimal 10MB");
-      return;
-    }
+      if (file.size > 10 * 1024 * 1024) {
+        setError("Ukuran file maksimal 10MB");
+        return;
+      }
 
-    setSelfieImage(file);
-    setSelfiePreview(URL.createObjectURL(file));
-    setError(null);
-  }, []);
+      setSelfieImage(file);
+      setSelfiePreview(URL.createObjectURL(file));
+      setError(null);
+    },
+    [],
+  );
 
   const uploadToStorage = async (file: File): Promise<string> => {
     const formData = new FormData();
@@ -262,7 +293,8 @@ export default function KYCVerificationFlow({ onComplete, initialStep = "upload-
             <Alert>
               <ShieldCheck className="size-4" />
               <AlertDescription>
-                Pastikan wajah terlihat jelas, pencahayaan cukup, dan tidak menggunakan kacamata atau masker.
+                Pastikan wajah terlihat jelas, pencahayaan cukup, dan tidak
+                menggunakan kacamata atau masker.
               </AlertDescription>
             </Alert>
           </div>
@@ -272,7 +304,9 @@ export default function KYCVerificationFlow({ onComplete, initialStep = "upload-
         return (
           <div className="flex flex-col items-center justify-center py-12">
             <Loader2 className="size-12 animate-spin text-primary" />
-            <p className="mt-4 text-lg font-medium">Memverifikasi identitas Anda...</p>
+            <p className="mt-4 text-lg font-medium">
+              Memverifikasi identitas Anda...
+            </p>
             <p className="mt-2 text-sm text-muted-foreground">
               Proses ini biasanya memakan waktu 1-2 menit
             </p>
@@ -288,7 +322,8 @@ export default function KYCVerificationFlow({ onComplete, initialStep = "upload-
                 <CheckCircle2 className="size-16 text-green-500" />
                 <p className="mt-4 text-lg font-medium">Verifikasi Berhasil</p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Identitas Anda telah diverifikasi. Anda sekarang bisa mendaftarkan properti.
+                  Identitas Anda telah diverifikasi. Anda sekarang bisa
+                  mendaftarkan properti.
                 </p>
               </>
             ) : verificationResult?.status === "rejected" ? (
@@ -296,15 +331,19 @@ export default function KYCVerificationFlow({ onComplete, initialStep = "upload-
                 <XCircle className="size-16 text-destructive" />
                 <p className="mt-4 text-lg font-medium">Verifikasi Ditolak</p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  {verificationResult.reason || "Foto KTP atau selfie tidak jelas. Silakan coba lagi."}
+                  {verificationResult.reason ||
+                    "Foto KTP atau selfie tidak jelas. Silakan coba lagi."}
                 </p>
               </>
             ) : (
               <>
                 <Loader2 className="size-12 animate-spin text-primary" />
-                <p className="mt-4 text-lg font-medium">Menunggu Hasil Verifikasi</p>
+                <p className="mt-4 text-lg font-medium">
+                  Menunggu Hasil Verifikasi
+                </p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Hasil verifikasi akan dikirimkan melalui email dan ditampilkan di sini.
+                  Hasil verifikasi akan dikirimkan melalui email dan ditampilkan
+                  di sini.
                 </p>
               </>
             )}
@@ -324,7 +363,9 @@ export default function KYCVerificationFlow({ onComplete, initialStep = "upload-
               <div
                 key={step.key}
                 className={`flex flex-col items-center gap-1 ${
-                  index <= currentStepIndex ? "text-primary" : "text-muted-foreground"
+                  index <= currentStepIndex
+                    ? "text-primary"
+                    : "text-muted-foreground"
                 }`}
               >
                 <span className="text-xs font-medium">{step.label}</span>
@@ -352,11 +393,7 @@ export default function KYCVerificationFlow({ onComplete, initialStep = "upload-
             >
               Kembali
             </Button>
-            <Button
-              type="button"
-              onClick={handleNext}
-              disabled={isSubmitting}
-            >
+            <Button type="button" onClick={handleNext} disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />

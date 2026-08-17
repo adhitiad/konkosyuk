@@ -31,11 +31,19 @@ export default function ChatWindow({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const { messages, connectionStatus, isTyping, typingUsers, sendMessage, startTyping, stopTyping, markAsRead } =
-    useChat({
-      roomId,
-      currentUserId,
-    });
+  const {
+    messages,
+    connectionStatus,
+    isTyping,
+    typingUsers,
+    sendMessage,
+    startTyping,
+    stopTyping,
+    markAsRead,
+  } = useChat({
+    roomId,
+    currentUserId,
+  });
 
   useEffect(() => {
     markAsRead();
@@ -118,9 +126,15 @@ export default function ChatWindow({
           {messages.map((message) => {
             const own = isOwnMessage(message);
             return (
-              <Bubble key={message.id} variant="secondary" align={own ? "end" : "start"}>
+              <Bubble
+                key={message.id}
+                variant="secondary"
+                align={own ? "end" : "start"}
+              >
                 <BubbleContent>
-                  <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                  <p className="whitespace-pre-wrap break-words">
+                    {message.content}
+                  </p>
                   <p className="mt-1 text-xs opacity-70">
                     {formatMessageTime(message.createdAt)}
                   </p>

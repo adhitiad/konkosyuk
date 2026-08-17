@@ -42,7 +42,9 @@ export default function ChatPage() {
   if (!session?.user?.id) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-muted-foreground">Silakan login untuk mengakses chat.</p>
+        <p className="text-muted-foreground">
+          Silakan login untuk mengakses chat.
+        </p>
       </div>
     );
   }
@@ -73,13 +75,13 @@ export default function ChatPage() {
               <Skeleton className="h-16 w-full" />
             </div>
           ) : (
-              <ChatRoomList
-                rooms={rooms}
-                currentUserId={session.user.id}
-                currentUserRole={chatRole as "owner" | "tenant"}
-                selectedRoomId={selectedRoom ?? undefined}
-                onRoomSelect={handleRoomSelect}
-              />
+            <ChatRoomList
+              rooms={rooms}
+              currentUserId={session.user.id}
+              currentUserRole={chatRole as "owner" | "tenant"}
+              selectedRoomId={selectedRoom ?? undefined}
+              onRoomSelect={handleRoomSelect}
+            />
           )}
         </div>
 
@@ -105,7 +107,8 @@ export default function ChatPage() {
               <MessageSquare className="size-12 text-muted-foreground mb-4" />
               <p className="text-lg font-medium">Pilih percakapan</p>
               <p className="text-sm text-muted-foreground mt-2">
-                Pilih salah satu percakapan dari daftar di sebelah kiri untuk mulai chat
+                Pilih salah satu percakapan dari daftar di sebelah kiri untuk
+                mulai chat
               </p>
             </div>
           )}

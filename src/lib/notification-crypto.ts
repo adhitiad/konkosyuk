@@ -40,9 +40,7 @@ export function encryptNotificationValue(plaintext: string): EncryptedValue {
   };
 }
 
-export function decryptNotificationValue(
-  value: unknown,
-): string | null {
+export function decryptNotificationValue(value: unknown): string | null {
   if (!value || typeof value !== "string") {
     return null;
   }

@@ -207,7 +207,8 @@ describe("CsvBuffer", () => {
 
 describe("timingSafeCompare", () => {
   it("returns true for identical signatures", () => {
-    const sig = "a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0";
+    const sig =
+      "a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0";
     expect(timingSafeCompare(sig, sig)).toBe(true);
   });
 

@@ -31,7 +31,10 @@ import { ErrorState } from "@/components/ui/error-state";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import { apiClient } from "@/lib/axios";
 import { withAdminAuth } from "@/lib/with-admin-auth";
-import { upsertPaymentGatewayAction, deletePaymentGatewayAction } from "@/actions/admin/payment-gateways";
+import {
+  upsertPaymentGatewayAction,
+  deletePaymentGatewayAction,
+} from "@/actions/admin/payment-gateways";
 
 interface PaymentGatewayConfig {
   id: string;
@@ -83,7 +86,7 @@ function AdminPaymentGatewaysPage() {
       formData.append("config", JSON.stringify(payload.config));
       formData.append("environment", payload.environment);
       formData.append("isActive", String(payload.isActive));
-      
+
       const result = await upsertPaymentGatewayAction(undefined, formData);
       if (!result.success) {
         throw new Error(result.error || "Gagal menyimpan konfigurasi");
@@ -142,7 +145,7 @@ function AdminPaymentGatewaysPage() {
     mutationFn: async (provider: string) => {
       const formData = new FormData();
       formData.append("provider", provider);
-      
+
       const result = await deletePaymentGatewayAction(undefined, formData);
       if (!result.success) {
         throw new Error(result.error || "Gagal menghapus konfigurasi");

@@ -19,8 +19,7 @@ export default function AdminLayout({
     const userRole = (session?.user as SessionUserWithRole | undefined)?.role;
     if (
       !isPending &&
-      (!session ||
-        !["admin", "staff"].includes(userRole as Role))
+      (!session || !["admin", "staff"].includes(userRole as Role))
     ) {
       router.replace("/login");
     }

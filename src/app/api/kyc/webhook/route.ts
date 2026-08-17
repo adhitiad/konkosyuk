@@ -11,7 +11,9 @@ export async function POST(req: Request) {
     const session_id = req.headers.get("x-session-id");
 
     if (!signature || !session_id) {
-      console.error("KYC webhook misconfigured: missing signature or session ID");
+      console.error(
+        "KYC webhook misconfigured: missing signature or session ID",
+      );
       return fail("Missing signature or session ID", 400);
     }
 
@@ -33,10 +35,14 @@ export async function POST(req: Request) {
       key,
       { name: "HMAC", hash: "SHA-256" },
       false,
-      ["verify"]
+      ["verify"],
     );
 
-    const signatureBuffer = await crypto.subtle.sign("HMAC", cryptoKey, message);
+    const signatureBuffer = await crypto.subtle.sign(
+      "HMAC",
+      cryptoKey,
+      message,
+    );
     const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");

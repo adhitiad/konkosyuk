@@ -102,7 +102,10 @@ export default function ChatRoomList({
                 </div>
 
                 {unreadCount > 0 && (
-                  <Badge variant="default" className="size-5 rounded-full p-0 text-xs">
+                  <Badge
+                    variant="default"
+                    className="size-5 rounded-full p-0 text-xs"
+                  >
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </Badge>
                 )}

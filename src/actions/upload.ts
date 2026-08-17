@@ -8,15 +8,9 @@ const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const maxFileSize = 5 * 1024 * 1024;
 
 const magicBytes: Record<string, number[][]> = {
-  "image/jpeg": [
-    [0xff, 0xd8, 0xff],
-  ],
-  "image/png": [
-    [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
-  ],
-  "image/webp": [
-    [0x52, 0x49, 0x46, 0x46],
-  ],
+  "image/jpeg": [[0xff, 0xd8, 0xff]],
+  "image/png": [[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]],
+  "image/webp": [[0x52, 0x49, 0x46, 0x46]],
 };
 
 async function validateImageSignature(file: File): Promise<boolean> {
@@ -59,17 +53,17 @@ export async function uploadImageAction(
     const file = formData.get("file") as File | null;
     const requestedType = formData.get("type");
     const type = (requestedType || "avatar") as
-      | "avatar"
-      | "property"
-      | "ktp"
-      | "report";
+      "avatar" | "property" | "ktp" | "report";
 
     if (!file) {
       return { error: "File tidak ditemukan", success: false };
     }
 
     if (!allowedTypes.has(file.type)) {
-      return { error: "File harus berupa gambar (JPG, PNG, WebP)", success: false };
+      return {
+        error: "File harus berupa gambar (JPG, PNG, WebP)",
+        success: false,
+      };
     }
 
     if (file.size > maxFileSize) {
@@ -85,12 +79,18 @@ export async function uploadImageAction(
     }
 
     if (type === "property" && session.user.role !== "owner") {
-      return { error: "Hanya owner yang dapat mengunggah properti", success: false };
+      return {
+        error: "Hanya owner yang dapat mengunggah properti",
+        success: false,
+      };
     }
 
     const isValidSignature = await validateImageSignature(file);
     if (!isValidSignature) {
-      return { error: "File tidak valid atau tidak sesuai format gambar", success: false };
+      return {
+        error: "File tidak valid atau tidak sesuai format gambar",
+        success: false,
+      };
     }
 
     const result = await uploadFile(file, type);

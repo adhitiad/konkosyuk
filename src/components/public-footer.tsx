@@ -11,7 +11,9 @@ import { apiClient } from "@/lib/axios";
 export function PublicFooter() {
   const year = new Date().getFullYear();
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +37,10 @@ export function PublicFooter() {
               Temukan kost dan kontrakan terbaik dengan harga terjangkau.
               KonkosYuk memudahkan Anda mencari tempat tinggal ideal.
             </p>
-            <form onSubmit={handleSubscribe} className="mt-4 flex flex-col sm:flex-row gap-2">
+            <form
+              onSubmit={handleSubscribe}
+              className="mt-4 flex flex-col sm:flex-row gap-2"
+            >
               <Input
                 type="email"
                 value={email}
@@ -44,15 +49,25 @@ export function PublicFooter() {
                 className="max-w-sm"
                 required
               />
-              <Button type="submit" className="whitespace-nowrap" disabled={status === "loading"}>
-                {status === "loading" ? "Mengirim..." : "Dapatkan Info Kost Terbaru"}
+              <Button
+                type="submit"
+                className="whitespace-nowrap"
+                disabled={status === "loading"}
+              >
+                {status === "loading"
+                  ? "Mengirim..."
+                  : "Dapatkan Info Kost Terbaru"}
               </Button>
             </form>
             {status === "success" && (
-              <p className="mt-2 text-sm text-green-600">Terima kasih telah berlangganan!</p>
+              <p className="mt-2 text-sm text-green-600">
+                Terima kasih telah berlangganan!
+              </p>
             )}
             {status === "error" && (
-              <p className="mt-2 text-sm text-red-600">Gagal berlangganan. Coba lagi nanti.</p>
+              <p className="mt-2 text-sm text-red-600">
+                Gagal berlangganan. Coba lagi nanti.
+              </p>
             )}
           </div>
 

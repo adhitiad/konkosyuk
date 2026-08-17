@@ -75,7 +75,10 @@ export default function ReviewBookingDialog({
     setAction(selected);
     const formData = new FormData();
     formData.append("bookingId", bookingId);
-    formData.append("status", selected === "approve" ? "confirmed" : "rejected");
+    formData.append(
+      "status",
+      selected === "approve" ? "confirmed" : "rejected",
+    );
     if (selected === "reject") {
       formData.append("note", reason);
     }

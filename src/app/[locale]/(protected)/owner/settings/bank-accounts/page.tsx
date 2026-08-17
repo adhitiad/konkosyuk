@@ -18,7 +18,12 @@ import {
 } from "@/components/ui/dialog";
 import { KYCBankForm } from "@/components/owner/kyc-bank-form";
 import type { OwnerBankAccount } from "@/db/schema";
-import { deleteBankAccountAction, DeleteBankAccountState, updateBankAccountAction, UpdateBankAccountState } from "@/actions/bank-accounts";
+import {
+  deleteBankAccountAction,
+  DeleteBankAccountState,
+  updateBankAccountAction,
+  UpdateBankAccountState,
+} from "@/actions/bank-accounts";
 
 const KYC_STATUS_LABEL: Record<
   string,
@@ -65,7 +70,10 @@ export default function BankAccountsPage() {
     const formData = new FormData();
     formData.append("id", id);
 
-    const result: DeleteBankAccountState = await deleteBankAccountAction(undefined, formData);
+    const result: DeleteBankAccountState = await deleteBankAccountAction(
+      undefined,
+      formData,
+    );
 
     if (result.success) {
       setAccounts((prev) => prev.filter((acc) => acc.id !== id));
@@ -82,7 +90,10 @@ export default function BankAccountsPage() {
     formData.append("id", id);
     formData.append("is_primary", "true");
 
-    const result: UpdateBankAccountState = await updateBankAccountAction(undefined, formData);
+    const result: UpdateBankAccountState = await updateBankAccountAction(
+      undefined,
+      formData,
+    );
 
     if (result.success) {
       setAccounts((prev) =>

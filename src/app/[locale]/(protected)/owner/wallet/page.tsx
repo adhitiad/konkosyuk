@@ -24,7 +24,10 @@ import {
   WalletIcon,
 } from "@hugeicons/core-free-icons";
 import type { OwnerBankAccount } from "@/db/schema";
-import { createWithdrawalAction, CreateWithdrawalState } from "@/actions/withdrawals";
+import {
+  createWithdrawalAction,
+  CreateWithdrawalState,
+} from "@/actions/withdrawals";
 
 interface Withdrawal {
   id: string;
@@ -108,7 +111,10 @@ export default function WalletPage() {
       formData.append("bank_account_id", selectedAccount);
       formData.append("amount", amount);
 
-      const result: CreateWithdrawalState = await createWithdrawalAction(undefined, formData);
+      const result: CreateWithdrawalState = await createWithdrawalAction(
+        undefined,
+        formData,
+      );
 
       if (result.success) {
         setAmount("");

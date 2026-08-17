@@ -1,6 +1,4 @@
 {
-    "markdown.validate.enabled": true,
-    "markdown.validate.ignoredLinks": [
-        "#kode-etik"
-    ]
+  "markdown.validate.enabled": true,
+  "markdown.validate.ignoredLinks": ["#kode-etik"]
 }

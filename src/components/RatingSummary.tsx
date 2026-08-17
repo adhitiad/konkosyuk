@@ -49,7 +49,8 @@ export function RatingSummary({
         <div className="flex-1 space-y-1">
           {[5, 4, 3, 2, 1].map((star) => {
             const count = ratingDistribution[star] || 0;
-            const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
+            const percentage =
+              totalReviews > 0 ? (count / totalReviews) * 100 : 0;
 
             return (
               <div key={star} className="flex items-center gap-2">

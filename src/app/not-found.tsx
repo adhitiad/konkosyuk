@@ -20,8 +20,8 @@ export default function NotFound() {
           </div>
           <CardTitle className="text-2xl">Halaman Tidak Ditemukan</CardTitle>
           <CardDescription>
-            Ruko atau kost yang Anda cari tidak ditemukan. Mungkin sudah
-            dihapus atau URL yang Anda masukkan salah.
+            Ruko atau kost yang Anda cari tidak ditemukan. Mungkin sudah dihapus
+            atau URL yang Anda masukkan salah.
           </CardDescription>
         </CardHeader>
         <CardContent>

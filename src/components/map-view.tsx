@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import Map, { MapRef, Marker, Popup, NavigationControl } from "react-map-gl/maplibre";
+import Map, {
+  MapRef,
+  Marker,
+  Popup,
+  NavigationControl,
+} from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MapPinIcon } from "@hugeicons/core-free-icons";
@@ -17,7 +22,8 @@ const OSM_STYLE = {
         "https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
       ],
       tileSize: 256,
-      attribution: '© <a href="https://carto.com/">CARTO</a> © <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+      attribution:
+        '© <a href="https://carto.com/">CARTO</a> © <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
       maxzoom: 19,
     },
   },
@@ -97,7 +103,11 @@ export default function MapView({
                     className="absolute rounded-full bg-cyan-500/20"
                     style={{ width: 40, height: 40, top: -8, left: -8 }}
                   />
-                  <HugeiconsIcon icon={MapPinIcon} strokeWidth={2} className="size-6 text-cyan-500" />
+                  <HugeiconsIcon
+                    icon={MapPinIcon}
+                    strokeWidth={2}
+                    className="size-6 text-cyan-500"
+                  />
                 </div>
               </div>
               {selectedMarker?.id === marker.id && (
@@ -123,7 +133,11 @@ export default function MapView({
               latitude={marker.lat}
               onClick={() => handleMarkerClick(marker)}
             >
-              <HugeiconsIcon icon={MapPinIcon} strokeWidth={2} className="size-6 text-red-500" />
+              <HugeiconsIcon
+                icon={MapPinIcon}
+                strokeWidth={2}
+                className="size-6 text-red-500"
+              />
               {selectedMarker?.id === marker.id && (
                 <Popup
                   longitude={marker.lng}

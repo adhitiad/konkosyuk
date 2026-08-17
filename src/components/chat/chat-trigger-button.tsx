@@ -36,9 +36,10 @@ export function ChatTriggerButton({
     try {
       const { data } = await apiClient.post("/api/chat/rooms", {
         propertyId,
-        tenantId: (session?.user as { role?: string }).role === "cust"
-        ? session.user.id
-        : tenantId,
+        tenantId:
+          (session?.user as { role?: string }).role === "cust"
+            ? session.user.id
+            : tenantId,
       });
 
       const room = data?.data?.room ?? data?.room;

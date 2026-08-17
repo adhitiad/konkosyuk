@@ -7,7 +7,7 @@ export { register };
 export const onRequestError: Instrumentation.onRequestError = async (
   err,
   request,
-  context
+  context,
 ) => {
   Sentry.captureException(err, {
     tags: {

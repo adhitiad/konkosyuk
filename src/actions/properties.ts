@@ -53,7 +53,10 @@ export async function createPropertyAction(
         .limit(1);
 
       if (user?.kycStatus !== "verified") {
-        return { error: "Verifikasi KTP Anda terlebih dahulu.", success: false };
+        return {
+          error: "Verifikasi KTP Anda terlebih dahulu.",
+          success: false,
+        };
       }
 
       if (!session.user.phone) {
@@ -110,8 +113,12 @@ export async function createPropertyAction(
       status: formData.get("status") || "aktif",
       amenities,
       images,
-      latitude: formData.get("latitude") ? Number(formData.get("latitude")) : undefined,
-      longitude: formData.get("longitude") ? Number(formData.get("longitude")) : undefined,
+      latitude: formData.get("latitude")
+        ? Number(formData.get("latitude"))
+        : undefined,
+      longitude: formData.get("longitude")
+        ? Number(formData.get("longitude"))
+        : undefined,
     });
 
     const [property] = await db
@@ -140,9 +147,13 @@ export async function createPropertyAction(
         images: validated.images ?? [],
         ownerId: session.user.id,
         latitude:
-          validated.latitude !== undefined ? String(validated.latitude) : undefined,
+          validated.latitude !== undefined
+            ? String(validated.latitude)
+            : undefined,
         longitude:
-          validated.longitude !== undefined ? String(validated.longitude) : undefined,
+          validated.longitude !== undefined
+            ? String(validated.longitude)
+            : undefined,
         isActive: false,
         isFeatured: false,
         gpsVerified: false,
@@ -154,7 +165,10 @@ export async function createPropertyAction(
     return { success: true, data: property };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal menambahkan properti", success: false };
   }
@@ -280,9 +294,13 @@ export async function updatePropertyAction(
         images: validated.images,
         metadata: validated.metadata,
         latitude:
-          validated.latitude !== undefined ? String(validated.latitude) : undefined,
+          validated.latitude !== undefined
+            ? String(validated.latitude)
+            : undefined,
         longitude:
-          validated.longitude !== undefined ? String(validated.longitude) : undefined,
+          validated.longitude !== undefined
+            ? String(validated.longitude)
+            : undefined,
         updatedAt: new Date(),
       })
       .where(eq(properties.id, propertyId))
@@ -293,7 +311,10 @@ export async function updatePropertyAction(
     return { success: true, data: updated };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     console.error("updatePropertyAction error:", error);
     return { error: "Gagal memperbarui properti", success: false };
@@ -477,7 +498,10 @@ export async function approvePropertyAction(
     }
 
     if (session.user.role !== "admin") {
-      return { error: "Hanya admin yang dapat menyetujui properti", success: false };
+      return {
+        error: "Hanya admin yang dapat menyetujui properti",
+        success: false,
+      };
     }
 
     const propertyId = formData.get("propertyId") as string;
@@ -535,7 +559,10 @@ export async function approvePropertyAction(
     return { success: true, data: updated };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     console.error("approvePropertyAction error:", error);
     return { error: "Gagal memproses approval properti", success: false };
@@ -582,10 +609,16 @@ export async function checkoutFeaturedAction(
     const providerName = formData.get("paymentProvider") as string;
 
     if (!propertyId || !providerName) {
-      return { error: "propertyId dan paymentProvider wajib diisi", success: false };
+      return {
+        error: "propertyId dan paymentProvider wajib diisi",
+        success: false,
+      };
     }
 
-    const validated = checkoutFeaturedSchema.parse({ propertyId, paymentProvider: providerName });
+    const validated = checkoutFeaturedSchema.parse({
+      propertyId,
+      paymentProvider: providerName,
+    });
 
     const adapter = getPaymentProvider(validated.paymentProvider);
     if (!adapter) {
@@ -614,7 +647,10 @@ export async function checkoutFeaturedAction(
 
     const amount = parseFloat(settings?.featuredListingPrice || "50000");
     if (amount <= 0) {
-      return { error: "Harga featured listing belum dikonfigurasi", success: false };
+      return {
+        error: "Harga featured listing belum dikonfigurasi",
+        success: false,
+      };
     }
 
     const invoiceNumber = generateInvoiceNumber("FEATURED");
@@ -680,9 +716,15 @@ export async function checkoutFeaturedAction(
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     console.error("checkoutFeaturedAction error:", error);
-    return { error: "Gagal membuat pembayaran featured listing", success: false };
+    return {
+      error: "Gagal membuat pembayaran featured listing",
+      success: false,
+    };
   }
 }

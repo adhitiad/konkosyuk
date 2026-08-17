@@ -10,7 +10,10 @@ import { sendChatNotificationEmail } from "@/lib/notifications/email";
 
 const sendMessageSchema = z.object({
   roomId: z.string().uuid(),
-  content: z.string().min(1, "Pesan tidak boleh kosong").max(5000, "Pesan terlalu panjang"),
+  content: z
+    .string()
+    .min(1, "Pesan tidak boleh kosong")
+    .max(5000, "Pesan terlalu panjang"),
 });
 
 export type SendMessageState = {
@@ -101,7 +104,10 @@ export async function sendMessageAction(
     return { success: true, data: message };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal mengirim pesan", success: false };
   }

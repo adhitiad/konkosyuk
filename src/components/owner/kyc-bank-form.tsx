@@ -22,7 +22,10 @@ import {
   showToastWarning,
 } from "@/lib/use-toast-custom";
 import { Spinner } from "@/components/ui/spinner";
-import { addBankAccountAction, AddBankAccountState } from "@/actions/bank-accounts";
+import {
+  addBankAccountAction,
+  AddBankAccountState,
+} from "@/actions/bank-accounts";
 
 const PROVIDERS = [
   { value: "bank", label: "Bank", options: BANKS },
@@ -69,7 +72,10 @@ export function KYCBankForm({
       formData.append("account_number", validated.account_number);
       formData.append("account_name", validated.account_name);
 
-      const result: AddBankAccountState = await addBankAccountAction(undefined, formData);
+      const result: AddBankAccountState = await addBankAccountAction(
+        undefined,
+        formData,
+      );
 
       if (result.success) {
         showToastSuccess(

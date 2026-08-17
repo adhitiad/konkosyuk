@@ -29,7 +29,8 @@ const OSM_STYLE = {
         "https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
       ],
       tileSize: 256,
-      attribution: '© <a href="https://carto.com/">CARTO</a> © <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+      attribution:
+        '© <a href="https://carto.com/">CARTO</a> © <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
       maxzoom: 19,
     },
   },
@@ -158,7 +159,11 @@ export default function PropertyMapPicker({
                   setShowPopup(!showPopup);
                 }}
               >
-                <HugeiconsIcon icon={MapPinIcon} strokeWidth={2} className="size-8 text-red-500" />
+                <HugeiconsIcon
+                  icon={MapPinIcon}
+                  strokeWidth={2}
+                  className="size-8 text-red-500"
+                />
               </div>
               {showPopup && (
                 <Popup

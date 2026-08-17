@@ -7,7 +7,12 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const session = await requireSession(["owner", "cust", "admin", "staff"] as const);
+    const session = await requireSession([
+      "owner",
+      "cust",
+      "admin",
+      "staff",
+    ] as const);
 
     const body = await req.json().catch(() => ({}));
     const { channelName } = body as { channelName?: string };

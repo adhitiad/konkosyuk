@@ -40,20 +40,32 @@ function ReportItem({
   onUpdate,
 }: {
   report: Report;
-  onUpdate: (id: string, status: "in_progress" | "resolved" | "rejected") => void;
+  onUpdate: (
+    id: string,
+    status: "in_progress" | "resolved" | "rejected",
+  ) => void;
 }) {
-  const [state, formAction, isPending] = useActionState(updateReportAction, undefined);
+  const [state, formAction, isPending] = useActionState(
+    updateReportAction,
+    undefined,
+  );
 
   function handleUpdate(status: "in_progress" | "resolved" | "rejected") {
     const formData = new FormData();
     formData.set("id", report.id);
     formData.set("status", status);
-    formData.set("resolutionNote", status === "resolved" ? "Masalah telah ditangani." : "");
+    formData.set(
+      "resolutionNote",
+      status === "resolved" ? "Masalah telah ditangani." : "",
+    );
     formAction(formData);
   }
 
   if (state?.success) {
-    onUpdate(report.id, state.data?.status as "in_progress" | "resolved" | "rejected");
+    onUpdate(
+      report.id,
+      state.data?.status as "in_progress" | "resolved" | "rejected",
+    );
   }
 
   return (
@@ -84,9 +96,7 @@ function ReportItem({
           {statusLabels[report.status] ?? report.status}
         </Badge>
       </div>
-      <p className="text-sm whitespace-pre-wrap">
-        {report.description}
-      </p>
+      <p className="text-sm whitespace-pre-wrap">{report.description}</p>
       {report.images?.length ? (
         <div className="flex flex-wrap gap-2">
           {report.images.map((url) => (
@@ -117,7 +127,11 @@ function ReportItem({
           <form action={formAction}>
             <input type="hidden" name="id" value={report.id} />
             <input type="hidden" name="status" value="resolved" />
-            <input type="hidden" name="resolutionNote" value="Masalah telah ditangani." />
+            <input
+              type="hidden"
+              name="resolutionNote"
+              value="Masalah telah ditangani."
+            />
             <Button type="submit" size="sm" disabled={isPending}>
               <Check className="size-4" />
               {isPending ? "Memproses..." : "Tandai Selesai"}
@@ -174,7 +188,11 @@ export default function OwnerReportList() {
           </p>
         ) : (
           reports.map((report) => (
-            <ReportItem key={report.id} report={report} onUpdate={handleUpdate} />
+            <ReportItem
+              key={report.id}
+              report={report}
+              onUpdate={handleUpdate}
+            />
           ))
         )}
       </CardContent>

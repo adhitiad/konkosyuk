@@ -88,7 +88,11 @@ export function getBufferPoolStats(): Record<string, number> {
  * Encode SSE (Server-Sent Events) message langsung ke Uint8Array
  * tanpa intermediate string concatenation.
  */
-export function encodeSSE(id: string, event: string, data: unknown): Uint8Array {
+export function encodeSSE(
+  id: string,
+  event: string,
+  data: unknown,
+): Uint8Array {
   // Format: "id: {id}\nevent: {event}\ndata: {json}\n\n"
   const jsonData = JSON.stringify(data);
   const message = `id: ${id}\nevent: ${event}\ndata: ${jsonData}\n\n`;
@@ -137,7 +141,9 @@ export class CsvBuffer {
   /** Buat Blob dari buffer */
   toBlob(): Blob {
     const u8 = this.toUint8Array();
-    return new Blob([u8.buffer as ArrayBuffer], { type: "text/csv;charset=utf-8;" });
+    return new Blob([u8.buffer as ArrayBuffer], {
+      type: "text/csv;charset=utf-8;",
+    });
   }
 
   /** Jumlah bytes yang sudah di-buffer */
@@ -169,7 +175,8 @@ let sigBufB: Buffer | null = null;
  * Fallback ke Buffer.from() jika string terlalu panjang.
  */
 export function timingSafeCompare(a: string, b: string): boolean {
-  const { timingSafeEqual } = require("node:crypto") as typeof import("node:crypto");
+  const { timingSafeEqual } =
+    require("node:crypto") as typeof import("node:crypto");
 
   if (a.length !== b.length) return false;
 

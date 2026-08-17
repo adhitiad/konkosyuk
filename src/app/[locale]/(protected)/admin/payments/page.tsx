@@ -139,7 +139,9 @@ function AdminPaymentsPage() {
         const params = new URLSearchParams();
         if (statusFilter) params.set("status", statusFilter);
 
-        const response = await fetch(`/api/admin/payments?${params.toString()}`);
+        const response = await fetch(
+          `/api/admin/payments?${params.toString()}`,
+        );
         const json = await response.json();
         return { data: json.data?.data, meta: json.data?.meta };
       },
@@ -565,29 +567,29 @@ function AdminPaymentsPage() {
                                         className="w-full min-h-[80px] rounded-4xl border border-input bg-input/30 px-3 py-2 text-sm"
                                       />
                                     </div>
-                                        <div className="flex justify-end gap-2">
-                                          <Button
-                                            variant="outline"
-                                            onClick={() => {
-                                              setCancelTarget(null);
-                                              setCancelReason("");
-                                            }}
-                                          >
-                                            Batal
-                                          </Button>
-                                          <Button
-                                            variant="destructive"
-                                            disabled={
-                                              isCancelPending ||
-                                              !cancelReason.trim()
-                                            }
-                                            onClick={handleCancel}
-                                          >
-                                            {isCancelPending
-                                              ? "Memproses..."
-                                              : "Batalkan"}
-                                          </Button>
-                                        </div>
+                                    <div className="flex justify-end gap-2">
+                                      <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                          setCancelTarget(null);
+                                          setCancelReason("");
+                                        }}
+                                      >
+                                        Batal
+                                      </Button>
+                                      <Button
+                                        variant="destructive"
+                                        disabled={
+                                          isCancelPending ||
+                                          !cancelReason.trim()
+                                        }
+                                        onClick={handleCancel}
+                                      >
+                                        {isCancelPending
+                                          ? "Memproses..."
+                                          : "Batalkan"}
+                                      </Button>
+                                    </div>
                                   </div>
                                 </DialogContent>
                               </Dialog>
@@ -690,10 +692,7 @@ function AdminPaymentsPage() {
               <Button variant="outline" onClick={() => setCreateOpen(false)}>
                 Batal
               </Button>
-              <Button
-                disabled={isCreatePending}
-                onClick={handleCreate}
-              >
+              <Button disabled={isCreatePending} onClick={handleCreate}>
                 {isCreatePending ? "Menyimpan..." : "Buat Payment"}
               </Button>
             </div>

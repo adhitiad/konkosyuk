@@ -6,11 +6,15 @@ import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { logError, logApiRequest } from "@/lib/logger";
-import { getCachedData, buildCacheKey, invalidateCacheByTag } from "@/lib/cache";
+import {
+  getCachedData,
+  buildCacheKey,
+  invalidateCacheByTag,
+} from "@/lib/cache";
 
 export async function GET(req: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
     const session = await requireSession();
 
@@ -30,7 +34,7 @@ export async function GET(req: NextRequest) {
 
         return { data, meta: { total: data.length } };
       },
-      { ttlSeconds: 30, tags: ["notifications"] }
+      { ttlSeconds: 30, tags: ["notifications"] },
     );
 
     const duration = Date.now() - startTime;

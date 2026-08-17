@@ -92,13 +92,20 @@ export function PropertyImagesUpload({
           formData.append("file", file);
           formData.append("type", "property");
 
-          const result = (await uploadAction(formData)) as unknown as UploadImageState;
+          const result = (await uploadAction(
+            formData,
+          )) as unknown as UploadImageState;
 
           if (result?.success && result.data?.url) {
             setImages((prev) =>
               prev.map((img) =>
                 img.id === imageId
-                  ? { ...img, url: result.data!.url, isUploading: false, progress: 100 }
+                  ? {
+                      ...img,
+                      url: result.data!.url,
+                      isUploading: false,
+                      progress: 100,
+                    }
                   : img,
               ),
             );

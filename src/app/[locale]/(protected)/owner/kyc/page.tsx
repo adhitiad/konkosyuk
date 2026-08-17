@@ -7,9 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, ShieldCheck, Clock, XCircle, CheckCircle2, ExternalLink } from "lucide-react";
+import {
+  Loader2,
+  ShieldCheck,
+  Clock,
+  XCircle,
+  CheckCircle2,
+  ExternalLink,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import KYCVerificationFlow, { type KycStep } from "@/components/kyc/KYCVerificationFlow";
+import KYCVerificationFlow, {
+  type KycStep,
+} from "@/components/kyc/KYCVerificationFlow";
 import { withOwnerAuth } from "@/lib/with-owner-auth";
 
 function OwnerKYCPage() {
@@ -67,7 +76,10 @@ function OwnerKYCPage() {
     }
   };
 
-  const handleKycComplete = (status: "approved" | "rejected" | "pending", reason?: string) => {
+  const handleKycComplete = (
+    status: "approved" | "rejected" | "pending",
+    reason?: string,
+  ) => {
     if (status === "approved") {
       setFlowStep("result");
     } else if (status === "rejected") {
@@ -104,9 +116,12 @@ function OwnerKYCPage() {
     <div className="container py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Verifikasi Identitas (KYC)</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Verifikasi Identitas (KYC)
+          </h1>
           <p className="mt-2 text-muted-foreground">
-            Verifikasi identitas Anda untuk dapat mendaftarkan properti di platform KonkosYuk.
+            Verifikasi identitas Anda untuk dapat mendaftarkan properti di
+            platform KonkosYuk.
           </p>
         </div>
         {getStatusBadge()}
@@ -131,7 +146,10 @@ function OwnerKYCPage() {
               <li>Memenuhi persyaratan regulasi pemerintah</li>
             </ul>
             <div className="pt-4">
-              <KYCVerificationFlow onComplete={handleKycComplete} initialStep="upload-ktp" />
+              <KYCVerificationFlow
+                onComplete={handleKycComplete}
+                initialStep="upload-ktp"
+              />
             </div>
           </CardContent>
         </Card>
@@ -146,21 +164,27 @@ function OwnerKYCPage() {
             <Alert>
               <Clock className="size-4" />
               <AlertDescription>
-                Verifikasi KYC Anda sedang diproses. Proses ini biasanya memakan waktu 1-2 menit.
-                Anda akan mendapatkan notifikasi melalui email setelah verifikasi selesai.
+                Verifikasi KYC Anda sedang diproses. Proses ini biasanya memakan
+                waktu 1-2 menit. Anda akan mendapatkan notifikasi melalui email
+                setelah verifikasi selesai.
               </AlertDescription>
             </Alert>
             {verification && (
               <div className="text-sm text-muted-foreground space-y-1">
                 <p>ID Sesi: {verification.diditSessionId}</p>
                 <p>Dokumen: {verification.documentType?.toUpperCase()}</p>
-                <p>Dikirim: {new Date(verification.createdAt).toLocaleString("id-ID")}</p>
+                <p>
+                  Dikirim:{" "}
+                  {new Date(verification.createdAt).toLocaleString("id-ID")}
+                </p>
                 {verification.diditRedirectUrl && (
                   <Button
                     variant="outline"
                     size="sm"
                     className="mt-2"
-                    onClick={() => window.open(verification.diditRedirectUrl, '_blank')}
+                    onClick={() =>
+                      window.open(verification.diditRedirectUrl, "_blank")
+                    }
                   >
                     <ExternalLink className="size-4 mr-2" />
                     Buka Verifikasi Didit
@@ -168,7 +192,10 @@ function OwnerKYCPage() {
                 )}
               </div>
             )}
-            <KYCVerificationFlow onComplete={handleKycComplete} initialStep="processing" />
+            <KYCVerificationFlow
+              onComplete={handleKycComplete}
+              initialStep="processing"
+            />
           </CardContent>
         </Card>
       )}
@@ -185,19 +212,25 @@ function OwnerKYCPage() {
             <Alert variant="default" className="border-green-200 bg-green-50">
               <CheckCircle2 className="size-4 text-green-600" />
               <AlertDescription className="text-green-800">
-                Identitas Anda telah berhasil diverifikasi. Anda sekarang bisa mendaftarkan properti dan
-                menggunakan semua fitur platform.
+                Identitas Anda telah berhasil diverifikasi. Anda sekarang bisa
+                mendaftarkan properti dan menggunakan semua fitur platform.
               </AlertDescription>
             </Alert>
             {verification && (
               <div className="text-sm text-muted-foreground space-y-1">
-                <p>Diverifikasi pada: {new Date(verification.updatedAt).toLocaleString("id-ID")}</p>
+                <p>
+                  Diverifikasi pada:{" "}
+                  {new Date(verification.updatedAt).toLocaleString("id-ID")}
+                </p>
                 <p>Dokumen: {verification.documentType?.toUpperCase()}</p>
                 {verification.faceMatchScore && (
                   <p>Face Match Score: {verification.faceMatchScore}%</p>
                 )}
                 {verification.livenessPassed !== null && (
-                  <p>Liveness Detection: {verification.livenessPassed ? "Lulus" : "Tidak Lulus"}</p>
+                  <p>
+                    Liveness Detection:{" "}
+                    {verification.livenessPassed ? "Lulus" : "Tidak Lulus"}
+                  </p>
                 )}
               </div>
             )}
@@ -217,11 +250,15 @@ function OwnerKYCPage() {
             <Alert variant="destructive">
               <XCircle className="size-4" />
               <AlertDescription>
-                {verification?.rejectionReason || "Verifikasi KYC Anda ditolak. Silakan coba lagi dengan foto yang lebih jelas."}
+                {verification?.rejectionReason ||
+                  "Verifikasi KYC Anda ditolak. Silakan coba lagi dengan foto yang lebih jelas."}
               </AlertDescription>
             </Alert>
             <div className="mt-4">
-              <KYCVerificationFlow onComplete={handleKycComplete} initialStep="upload-ktp" />
+              <KYCVerificationFlow
+                onComplete={handleKycComplete}
+                initialStep="upload-ktp"
+              />
             </div>
           </CardContent>
         </Card>

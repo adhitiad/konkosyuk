@@ -130,7 +130,9 @@ function AdminAnalyticsPage() {
   const { data: featuredData } = useQuery<{ total: number }>({
     queryKey: ["admin-analytics-featured-count"],
     queryFn: async () => {
-      const { data } = await apiClient.get("/api/admin/analytics/featured-count");
+      const { data } = await apiClient.get(
+        "/api/admin/analytics/featured-count",
+      );
       return data;
     },
     staleTime: 60000,

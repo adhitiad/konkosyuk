@@ -30,7 +30,9 @@ export async function POST(req: Request) {
 
     try {
       diditApiKey = await getSettingRequired("DIDIT_API_KEY");
-      diditApiUrl = (await getSetting("NEXT_PUBLIC_DIDIT_API_URL")) || "https://api.didit.me";
+      diditApiUrl =
+        (await getSetting("NEXT_PUBLIC_DIDIT_API_URL")) ||
+        "https://api.didit.me";
     } catch {
       return fail("KYC service not configured", 500);
     }
@@ -48,23 +50,20 @@ export async function POST(req: Request) {
 
     const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/kyc/webhook`;
 
-    const diditResponse = await fetch(
-      `${diditApiUrl}/v2/kyc/session`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${diditApiKey}`,
-        },
-        body: JSON.stringify({
-          callback_url: callbackUrl,
-          redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/owner/kyc/result`,
-          document_type: documentType || "ktp",
-          front_image: ktpImageUrl,
-          portrait_image: selfieImageUrl,
-        }),
-      }
-    );
+    const diditResponse = await fetch(`${diditApiUrl}/v2/kyc/session`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${diditApiKey}`,
+      },
+      body: JSON.stringify({
+        callback_url: callbackUrl,
+        redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/owner/kyc/result`,
+        document_type: documentType || "ktp",
+        front_image: ktpImageUrl,
+        portrait_image: selfieImageUrl,
+      }),
+    });
 
     if (!diditResponse.ok) {
       const errorText = await diditResponse.text();

@@ -22,11 +22,17 @@ export function withKycVerified<P extends object>(
     const { data: session, isPending } = useSession();
     const router = useRouter();
 
-    const kycStatus = (session?.user as { kycStatus?: string } | undefined)?.kycStatus;
+    const kycStatus = (session?.user as { kycStatus?: string } | undefined)
+      ?.kycStatus;
     const userRole = (session?.user as { role?: string } | undefined)?.role;
 
     useEffect(() => {
-      if (!isPending && session && userRole === "owner" && kycStatus !== "verified") {
+      if (
+        !isPending &&
+        session &&
+        userRole === "owner" &&
+        kycStatus !== "verified"
+      ) {
         router.push(redirectTo);
       }
     }, [session, isPending, router, redirectTo, kycStatus, userRole]);
@@ -61,7 +67,8 @@ export function withKycVerified<P extends object>(
           <Alert variant="destructive" className="mb-6">
             <ShieldCheck className="size-4" />
             <AlertDescription>
-              Anda perlu menyelesaikan verifikasi KYC sebelum dapat mengakses halaman ini.
+              Anda perlu menyelesaikan verifikasi KYC sebelum dapat mengakses
+              halaman ini.
             </AlertDescription>
           </Alert>
           <div className="flex justify-center">

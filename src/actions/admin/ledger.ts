@@ -107,7 +107,10 @@ export async function createLedgerEntryAction(
     return { success: true, data: newEntry[0] };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     console.error("createLedgerEntryAction error:", error);
     return { error: "Gagal membuat entri buku besar", success: false };

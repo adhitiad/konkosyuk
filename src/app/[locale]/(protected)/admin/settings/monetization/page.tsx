@@ -50,7 +50,8 @@ function MonetizationSettingsPage() {
       );
       return json.data;
     },
-    enabled: !!session && (session.user as SessionUserWithRole).role === "admin",
+    enabled:
+      !!session && (session.user as SessionUserWithRole).role === "admin",
   });
 
   const mutation = useMutation({
@@ -61,9 +62,12 @@ function MonetizationSettingsPage() {
       const formData = new FormData();
       formData.append("platformFeePercent", String(values.platformFeePercent));
       if (values.featuredListingPrice !== undefined) {
-        formData.append("featuredListingPrice", String(values.featuredListingPrice));
+        formData.append(
+          "featuredListingPrice",
+          String(values.featuredListingPrice),
+        );
       }
-      
+
       const result = await updatePlatformFeeAction(undefined, formData);
       if (!result.success) {
         throw new Error(result.error || "Failed to update settings");

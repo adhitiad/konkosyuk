@@ -141,7 +141,7 @@ function UserEditPage() {
       if (district !== undefined) formData.append("district", district || "");
       if (city !== undefined) formData.append("city", city || "");
       if (province !== undefined) formData.append("province", province || "");
-      
+
       const result = await updateUserAction(undefined, formData);
       if (!result.success) {
         throw new Error(result.error || "Failed to update user");

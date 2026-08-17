@@ -5,7 +5,10 @@ import { cookies } from "next/headers";
 
 export type Currency = "IDR" | "USD" | "EUR" | "SGD" | "MYR";
 
-export const currencyConfig: Record<Currency, { locale: string; currency: string; symbol: string }> = {
+export const currencyConfig: Record<
+  Currency,
+  { locale: string; currency: string; symbol: string }
+> = {
   IDR: { locale: "id-ID", currency: "IDR", symbol: "Rp" },
   USD: { locale: "en-US", currency: "USD", symbol: "$" },
   EUR: { locale: "de-DE", currency: "EUR", symbol: "€" },
@@ -62,7 +65,11 @@ function CurrencyContextInner({
     }).format(value);
   };
 
-  const convertCurrency = (value: number, from: Currency, to: Currency): number => {
+  const convertCurrency = (
+    value: number,
+    from: Currency,
+    to: Currency,
+  ): number => {
     if (from === to) return value;
     const rates: Record<Currency, number> = {
       IDR: 1,

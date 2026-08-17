@@ -8,11 +8,15 @@ import { ok, fail, handleApiError } from "@/lib/api";
 import { createUnitSchema, unitQuerySchema } from "@/lib/zod";
 import type { Role } from "@/lib/auth";
 import { logError, logApiRequest } from "@/lib/logger";
-import { getCachedData, buildCacheKey, invalidateCacheByTag } from "@/lib/cache";
+import {
+  getCachedData,
+  buildCacheKey,
+  invalidateCacheByTag,
+} from "@/lib/cache";
 
 export async function GET(req: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
     const query = unitQuerySchema.parse(
       Object.fromEntries(req.nextUrl.searchParams),
@@ -64,7 +68,7 @@ export async function GET(req: NextRequest) {
           },
         };
       },
-      { ttlSeconds: 120, tags: ["units"] }
+      { ttlSeconds: 120, tags: ["units"] },
     );
 
     const duration = Date.now() - startTime;

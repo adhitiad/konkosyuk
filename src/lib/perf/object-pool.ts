@@ -72,9 +72,7 @@ export class ObjectPool<T> {
 
   /** Hit rate: persentase acquire yang bisa di-serve dari pool */
   get hitRate(): number {
-    return this.acquireCount === 0
-      ? 0
-      : this.hitCount / this.acquireCount;
+    return this.acquireCount === 0 ? 0 : this.hitCount / this.acquireCount;
   }
 
   /** Bersihkan semua objek di pool */

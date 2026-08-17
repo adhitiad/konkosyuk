@@ -80,7 +80,9 @@ export function useChat({
             token = json.token;
           }
         } catch {
-          console.warn("[useChat] Failed to fetch Ably token, falling back to settings key");
+          console.warn(
+            "[useChat] Failed to fetch Ably token, falling back to settings key",
+          );
         }
 
         let client;
@@ -118,7 +120,10 @@ export function useChat({
               const filtered = prev.filter((u) => u.clientId !== data.clientId);
               return [...filtered, data];
             });
-          } else if (presenceMessage.action === "leave" || presenceMessage.action === "update") {
+          } else if (
+            presenceMessage.action === "leave" ||
+            presenceMessage.action === "update"
+          ) {
             setTypingUsers((prev) =>
               prev.filter((u) => u.clientId !== data.clientId),
             );
@@ -165,7 +170,13 @@ export function useChat({
           setMessages((prev) => {
             const exists = prev.some((m) => m.id === result.data?.id);
             if (exists) return prev;
-            return [...prev, { ...result.data!, createdAt: result.data!.createdAt.toISOString() }];
+            return [
+              ...prev,
+              {
+                ...result.data!,
+                createdAt: result.data!.createdAt.toISOString(),
+              },
+            ];
           });
         } else {
           console.error("[useChat] Error sending message:", result.error);

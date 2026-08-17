@@ -7,10 +7,15 @@ import { ok, fail, handleApiError } from "@/lib/api";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await requireSession(["cust", "owner", "admin", "staff"] as const);
+    const session = await requireSession([
+      "cust",
+      "owner",
+      "admin",
+      "staff",
+    ] as const);
     const { id: roomId } = await params;
 
     const [room] = await db
@@ -36,7 +41,10 @@ export async function PUT(
       .where(
         and(
           eq(messages.roomId, roomId),
-          eq(messages.senderId, session.user.id === room.tenantId ? room.ownerId : room.tenantId),
+          eq(
+            messages.senderId,
+            session.user.id === room.tenantId ? room.ownerId : room.tenantId,
+          ),
         ),
       );
 

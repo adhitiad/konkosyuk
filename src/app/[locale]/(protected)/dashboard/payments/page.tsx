@@ -91,19 +91,22 @@ const statusConfig: Record<
     label: "Berhasil",
     variant: "default",
     icon: CheckCircle2,
-    badgeClass: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border-emerald-200 dark:border-emerald-800",
+    badgeClass:
+      "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border-emerald-200 dark:border-emerald-800",
   },
   pending: {
     label: "Menunggu Pembayaran",
     variant: "secondary",
     icon: Clock,
-    badgeClass: "bg-amber-500/15 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25 border-amber-200 dark:border-amber-800",
+    badgeClass:
+      "bg-amber-500/15 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25 border-amber-200 dark:border-amber-800",
   },
   failed: {
     label: "Gagal",
     variant: "destructive",
     icon: XCircle,
-    badgeClass: "bg-red-500/15 text-red-600 dark:text-red-400 hover:bg-red-500/25 border-red-200 dark:border-red-800",
+    badgeClass:
+      "bg-red-500/15 text-red-600 dark:text-red-400 hover:bg-red-500/25 border-red-200 dark:border-red-800",
   },
   expired: {
     label: "Kedaluwarsa",
@@ -115,7 +118,8 @@ const statusConfig: Record<
     label: "Dikembalikan",
     variant: "secondary",
     icon: RotateCcwIcon,
-    badgeClass: "bg-blue-500/15 text-blue-600 dark:text-blue-400 hover:bg-blue-500/25 border-blue-200 dark:border-blue-800",
+    badgeClass:
+      "bg-blue-500/15 text-blue-600 dark:text-blue-400 hover:bg-blue-500/25 border-blue-200 dark:border-blue-800",
   },
 };
 
@@ -147,7 +151,9 @@ const purposeLabel: Record<string, string> = {
 
 export default function TenantPaymentsPage() {
   const { data: session } = useSession();
-  const [selectedPayment, setSelectedPayment] = useState<PaymentItem | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<PaymentItem | null>(
+    null,
+  );
 
   const { data, isLoading, isError, error } = useQuery<{
     data: PaymentItem[];
@@ -175,14 +181,20 @@ export default function TenantPaymentsPage() {
     .filter((p) => p.status === "success")
     .reduce((sum, p) => sum + Number(p.amount), 0);
 
-  const successCount = paymentsList.filter((p) => p.status === "success").length;
-  const pendingCount = paymentsList.filter((p) => p.status === "pending").length;
+  const successCount = paymentsList.filter(
+    (p) => p.status === "success",
+  ).length;
+  const pendingCount = paymentsList.filter(
+    (p) => p.status === "pending",
+  ).length;
 
   return (
     <div className="container max-w-6xl py-8 space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Riwayat Pembayaran</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Riwayat Pembayaran
+        </h1>
         <p className="text-muted-foreground mt-1">
           Daftar seluruh riwayat transaksi dan pembayaran sewa kost Anda
         </p>
@@ -198,7 +210,9 @@ export default function TenantPaymentsPage() {
             <Wallet className="size-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalSpent)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(totalSpent)}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">
               Dari {successCount} transaksi berhasil
             </p>
@@ -270,15 +284,14 @@ export default function TenantPaymentsPage() {
           ) : paymentsList.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Receipt className="size-12 text-muted-foreground/40 mb-3" />
-              <h3 className="text-lg font-semibold">Belum Ada Riwayat Pembayaran</h3>
+              <h3 className="text-lg font-semibold">
+                Belum Ada Riwayat Pembayaran
+              </h3>
               <p className="text-sm text-muted-foreground max-w-sm mt-1 mb-6">
-                Anda belum melakukan transaksi pembayaran apa pun. Silakan ajukan
-                booking kost untuk memulai.
+                Anda belum melakukan transaksi pembayaran apa pun. Silakan
+                ajukan booking kost untuk memulai.
               </p>
-              <Button
-                render={<Link href="/properties" />}
-                nativeButton={false}
-              >
+              <Button render={<Link href="/properties" />} nativeButton={false}>
                 Jelajahi Kost <ArrowUpRight className="ml-1.5 size-4" />
               </Button>
             </div>
@@ -389,7 +402,8 @@ export default function TenantPaymentsPage() {
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Nomor Invoice</span>
                   <span className="font-mono font-medium">
-                    {selectedPayment.transactionId || selectedPayment.id.slice(0, 8)}
+                    {selectedPayment.transactionId ||
+                      selectedPayment.id.slice(0, 8)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
@@ -409,7 +423,8 @@ export default function TenantPaymentsPage() {
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Tujuan</span>
                   <span>
-                    {purposeLabel[selectedPayment.purpose] || selectedPayment.purpose}
+                    {purposeLabel[selectedPayment.purpose] ||
+                      selectedPayment.purpose}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
@@ -421,10 +436,13 @@ export default function TenantPaymentsPage() {
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Status</span>
                   <Badge
-                    variant={statusConfig[selectedPayment.status]?.variant || "outline"}
+                    variant={
+                      statusConfig[selectedPayment.status]?.variant || "outline"
+                    }
                     className={statusConfig[selectedPayment.status]?.badgeClass}
                   >
-                    {statusConfig[selectedPayment.status]?.label || selectedPayment.status}
+                    {statusConfig[selectedPayment.status]?.label ||
+                      selectedPayment.status}
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center text-sm">
@@ -445,20 +463,22 @@ export default function TenantPaymentsPage() {
                 </div>
               </div>
 
-              {selectedPayment.status === "pending" && selectedPayment.transactionId && (
-                <Button
-                  className="w-full"
-                  render={
-                    <Link
-                      href={`/mock-checkout/${selectedPayment.transactionId}`}
-                      target="_blank"
-                    />
-                  }
-                  nativeButton={false}
-                >
-                  Lanjutkan Pembayaran <ExternalLink className="ml-1.5 size-4" />
-                </Button>
-              )}
+              {selectedPayment.status === "pending" &&
+                selectedPayment.transactionId && (
+                  <Button
+                    className="w-full"
+                    render={
+                      <Link
+                        href={`/mock-checkout/${selectedPayment.transactionId}`}
+                        target="_blank"
+                      />
+                    }
+                    nativeButton={false}
+                  >
+                    Lanjutkan Pembayaran{" "}
+                    <ExternalLink className="ml-1.5 size-4" />
+                  </Button>
+                )}
             </div>
           )}
         </DialogContent>

@@ -189,13 +189,13 @@ function AdminPropertiesPage() {
     if (editBasePrice !== selectedProperty.basePrice) {
       formData.append("basePrice", editBasePrice);
     }
-      if (editIsActive !== selectedProperty.isActive) {
-        formData.append("isActive", editIsActive.toString());
-      }
-      startTransition(() => {
-        updateAction(formData);
-      });
-    };
+    if (editIsActive !== selectedProperty.isActive) {
+      formData.append("isActive", editIsActive.toString());
+    }
+    startTransition(() => {
+      updateAction(formData);
+    });
+  };
 
   const handleDelete = () => {
     if (!deleteTarget) return;
@@ -394,54 +394,54 @@ function AdminPropertiesPage() {
                                 : "Verifikasi GPS"}
                             </Button>
                           )}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => openEdit(property)}
-                  >
-                    <HugeiconsIcon
-                      icon={Edit01Icon}
-                      strokeWidth={2}
-                      className="size-4"
-                    />
-                  </Button>
-                  <Dialog>
-                    <DialogTrigger
-                      render={
-                        <Button size="sm" variant="destructive">
-                          <HugeiconsIcon
-                            icon={Delete01Icon}
-                            strokeWidth={2}
-                            className="size-4"
-                          />
-                        </Button>
-                      }
-                    />
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Konfirmasi Hapus</DialogTitle>
-                      </DialogHeader>
-                      <p className="text-sm text-muted-foreground">
-                        Apakah Anda yakin ingin menghapus properti
-                        &quot;{property.name}&quot;? Tindakan ini tidak
-                        dapat dibatalkan.
-                      </p>
-                      <div className="flex justify-end gap-2">
-                        <DialogTrigger
-                          render={
-                            <Button variant="outline">Batal</Button>
-                          }
-                        />
-                        <Button
-                          variant="destructive"
-                          disabled={isDeletePending}
-                          onClick={handleDelete}
-                        >
-                          {isDeletePending ? "Menghapus..." : "Hapus"}
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openEdit(property)}
+                          >
+                            <HugeiconsIcon
+                              icon={Edit01Icon}
+                              strokeWidth={2}
+                              className="size-4"
+                            />
+                          </Button>
+                          <Dialog>
+                            <DialogTrigger
+                              render={
+                                <Button size="sm" variant="destructive">
+                                  <HugeiconsIcon
+                                    icon={Delete01Icon}
+                                    strokeWidth={2}
+                                    className="size-4"
+                                  />
+                                </Button>
+                              }
+                            />
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Konfirmasi Hapus</DialogTitle>
+                              </DialogHeader>
+                              <p className="text-sm text-muted-foreground">
+                                Apakah Anda yakin ingin menghapus properti
+                                &quot;{property.name}&quot;? Tindakan ini tidak
+                                dapat dibatalkan.
+                              </p>
+                              <div className="flex justify-end gap-2">
+                                <DialogTrigger
+                                  render={
+                                    <Button variant="outline">Batal</Button>
+                                  }
+                                />
+                                <Button
+                                  variant="destructive"
+                                  disabled={isDeletePending}
+                                  onClick={handleDelete}
+                                >
+                                  {isDeletePending ? "Menghapus..." : "Hapus"}
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -506,10 +506,7 @@ function AdminPropertiesPage() {
                 >
                   Batal
                 </Button>
-                <Button
-                  disabled={isUpdatePending}
-                  onClick={handleSaveEdit}
-                >
+                <Button disabled={isUpdatePending} onClick={handleSaveEdit}>
                   {isUpdatePending ? "Menyimpan..." : "Simpan"}
                 </Button>
               </div>

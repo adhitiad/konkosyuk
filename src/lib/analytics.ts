@@ -59,9 +59,10 @@ function safeTrack(payload: AnalyticsPayload): void {
     va?: (name: string, properties: Record<string, unknown>) => void;
   };
 
-  const data = Object.fromEntries(
-    Object.entries(payload.data)
-  ) as Record<string, unknown>;
+  const data = Object.fromEntries(Object.entries(payload.data)) as Record<
+    string,
+    unknown
+  >;
 
   win.va?.(payload.event, data);
 }

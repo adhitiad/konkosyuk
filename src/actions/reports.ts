@@ -15,7 +15,10 @@ import {
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
-import { sendMaintenanceReportCreatedEmail, sendMaintenanceReportUpdatedEmail } from "@/lib/notifications/email";
+import {
+  sendMaintenanceReportCreatedEmail,
+  sendMaintenanceReportUpdatedEmail,
+} from "@/lib/notifications/email";
 import { sendMaintenanceWhatsApp } from "@/lib/notifications/whatsapp";
 
 const createReportSchema = z.object({
@@ -190,7 +193,12 @@ export async function createReportAction(
               recipient.phone || recipient.whatsapp || "",
               process.env.META_MAINTENANCE_CREATED_TEMPLATE ||
                 "maintenance_report_created",
-              [recipient.name, property.name, validated.category, validated.description],
+              [
+                recipient.name,
+                property.name,
+                validated.category,
+                validated.description,
+              ],
             )
           : Promise.resolve(),
       ]),
@@ -199,7 +207,10 @@ export async function createReportAction(
     return { success: true, data: report };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal membuat laporan", success: false };
   }
@@ -295,7 +306,11 @@ export async function updateReportAction(
             report.tenantPhone || report.tenantWhatsapp || "",
             process.env.META_MAINTENANCE_UPDATED_TEMPLATE ||
               "maintenance_report_updated",
-            [report.tenantName, validated.status, validated.resolutionNote || "-"],
+            [
+              report.tenantName,
+              validated.status,
+              validated.resolutionNote || "-",
+            ],
           )
         : Promise.resolve(),
     ]);
@@ -303,7 +318,10 @@ export async function updateReportAction(
     return { success: true, data: updated };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     return { error: "Gagal memperbarui laporan", success: false };
   }

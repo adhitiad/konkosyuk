@@ -53,7 +53,10 @@ export async function updateProfileAction(
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     console.error("updateProfileAction error:", error);
     return { error: "Gagal memperbarui profil", success: false };
@@ -117,7 +120,10 @@ export async function updateUserProfileAction(
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message || "Input tidak valid", success: false };
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
     }
     console.error("updateUserProfileAction error:", error);
     return { error: "Gagal memperbarui profil", success: false };

@@ -4,7 +4,7 @@
 
 **Path:** `src/components/image-uploader.tsx:92`  
 **Confidence:** high  
-**Why:** `useActionState` updates state asynchronously after the Server Action resolves. Reading `uploadState` immediately after `await uploadAction(formData)` returns the *previous* render's state, not the new result.  
+**Why:** `useActionState` updates state asynchronously after the Server Action resolves. Reading `uploadState` immediately after `await uploadAction(formData)` returns the _previous_ render's state, not the new result.  
 **Finding:** Image upload returns `null`/`undefined` URL despite successful upload because `uploadState` is stale.  
 **Suggestion:** Use the return value of `uploadAction(formData)` directly (it returns the new state), or await the promise and read from the returned state object.
 
@@ -68,7 +68,7 @@
 
 **Path:** `src/actions/properties.ts:71-99` (create), `src/actions/properties.ts:206-244` (update)  
 **Confidence:** high  
-**Why:** Server actions parse `images`, `packages`, `amenities` as JSON strings from FormData. `JSON.parse` failures silently fall back to empty arrays/undefined (lines 77, 87, 97, 212, 222, 232). Client components *must* `JSON.stringify()` these fields.  
+**Why:** Server actions parse `images`, `packages`, `amenities` as JSON strings from FormData. `JSON.parse` failures silently fall back to empty arrays/undefined (lines 77, 87, 97, 212, 222, 232). Client components _must_ `JSON.stringify()` these fields.  
 **Finding:** Any client omission of `JSON.stringify()` causes silent data loss (empty images/amenities/packages) without error.  
 **Suggestion:** Add validation to reject non-JSON array strings, or accept both JSON strings and repeated FormData entries (e.g., `formData.append("images[]", url)`).
 
@@ -106,14 +106,14 @@
 
 ## Summary
 
-| Category | Count |
-|----------|-------|
-| Race conditions (useActionState) | 4 |
-| Missing rollback/transaction | 1 |
-| Missing cache invalidation | 1 |
-| Missing CSRF protection | 1 |
-| Fragile FormData parsing | 1 |
-| Inconsistent upload path | 1 |
-| DB race condition | 1 |
-| Missing field in mutation | 1 |
-| **Total** | **11** |
+| Category                         | Count  |
+| -------------------------------- | ------ |
+| Race conditions (useActionState) | 4      |
+| Missing rollback/transaction     | 1      |
+| Missing cache invalidation       | 1      |
+| Missing CSRF protection          | 1      |
+| Fragile FormData parsing         | 1      |
+| Inconsistent upload path         | 1      |
+| DB race condition                | 1      |
+| Missing field in mutation        | 1      |
+| **Total**                        | **11** |
