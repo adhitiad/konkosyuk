@@ -1483,3 +1483,28 @@ export const feedbacksRelations = relations(feedbacks, ({ one }) => ({
   }),
 }));
 
+export const notificationSettings = pgTable(
+  "notification_settings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    resendApiKey: text("resend_api_key"),
+    resendFromEmail: text("resend_from_email"),
+    metaAccessToken: text("meta_access_token"),
+    metaPhoneNumberId: text("meta_phone_number_id"),
+    metaMaintenanceCreatedTemplate: text("meta_maintenance_created_template"),
+    metaMaintenanceUpdatedTemplate: text("meta_maintenance_updated_template"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    createdAtIdx: index("notification_settings_created_at_idx").on(table.createdAt),
+  })
+);
+
+export const notificationSettingsRelations = relations(notificationSettings, ({ one }) => ({
+  user: one(users, {
+    fields: [notificationSettings.id],
+    references: [users.id],
+  }),
+}));
+

@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { AlertCircleIcon, StarIcon } from "@hugeicons/core-free-icons";
+import { StarRating } from "@/components/StarRating";
 import { reviewType } from "@/db/schema";
 import { createReviewAction } from "@/actions/reviews";
 
@@ -17,37 +16,6 @@ interface ReviewFormProps {
   targetId: string;
   targetName: string;
   onSuccess?: () => void;
-}
-
-function StarRating({
-  rating,
-  onRatingChange,
-}: {
-  rating: number;
-  onRatingChange: (rating: number) => void;
-}) {
-  return (
-    <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          onClick={() => onRatingChange(star)}
-          className="transition-colors"
-        >
-          <HugeiconsIcon
-            icon={StarIcon}
-            strokeWidth={2}
-            className={`size-6 ${
-              star <= rating
-                ? "fill-yellow-400 text-yellow-400"
-                : "text-gray-300"
-            }`}
-          />
-        </button>
-      ))}
-    </div>
-  );
 }
 
 export default function ReviewForm({
@@ -82,11 +50,6 @@ export default function ReviewForm({
     <form action={handleSubmit} className="space-y-4">
       {state?.error && (
         <Alert variant="destructive">
-          <HugeiconsIcon
-            icon={AlertCircleIcon}
-            strokeWidth={2}
-            className="size-4"
-          />
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{state.error}</AlertDescription>
         </Alert>
@@ -103,7 +66,7 @@ export default function ReviewForm({
 
       <div className="space-y-2">
         <Label>Rating</Label>
-        <StarRating rating={rating} onRatingChange={setRating} />
+        <StarRating rating={rating} onChange={setRating} />
         <input type="hidden" name="rating" value={rating} />
       </div>
 

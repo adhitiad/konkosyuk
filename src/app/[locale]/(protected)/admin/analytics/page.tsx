@@ -127,6 +127,15 @@ function AdminAnalyticsPage() {
     staleTime: 60000,
   });
 
+  const { data: featuredData } = useQuery<{ total: number }>({
+    queryKey: ["admin-analytics-featured-count"],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/api/admin/analytics/featured-count");
+      return data;
+    },
+    staleTime: 60000,
+  });
+
   const handleApply = () => {
     refetch();
   };
@@ -234,6 +243,18 @@ function AdminAnalyticsPage() {
             <CardContent>
               <p className="text-3xl font-bold">
                 {data?.ownerProfits?.length ?? 0}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Properti Featured
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-purple-600">
+                {featuredData?.total ?? 0}
               </p>
             </CardContent>
           </Card>

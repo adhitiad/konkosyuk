@@ -1,6 +1,6 @@
 "use client";
 
-import { StarRating } from "@/components/reviews/StarRating";
+import { StarRating } from "@/components/StarRating";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
 import Image from "next/image";

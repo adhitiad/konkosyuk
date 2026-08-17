@@ -1,7 +1,7 @@
 "use client";
 
-import { StarRating } from "@/components/reviews/StarRating";
-import { ReviewCard } from "@/components/reviews/ReviewCard";
+import { StarRating } from "@/components/StarRating";
+import { ReviewCard } from "@/components/ReviewCard";
 import { ReviewCardData } from "@/lib/types/reviews";
 
 interface RatingSummaryProps {

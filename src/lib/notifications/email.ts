@@ -1,6 +1,5 @@
 import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { getNotificationSettings } from "@/lib/notification-settings";
 
 function escapeHtml(value: string): string {
   return value.replace(
@@ -16,22 +15,33 @@ function escapeHtml(value: string): string {
   );
 }
 
+async function getResendClient() {
+  const settings = await getNotificationSettings();
+  const apiKey = settings.resendApiKey || process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn("RESEND_API_KEY belum dikonfigurasi, email maintenance dilewati");
+    return null;
+  }
+  return new Resend(apiKey);
+}
+
+async function getFromEmail() {
+  const settings = await getNotificationSettings();
+  return settings.resendFromEmail || process.env.RESEND_FROM_EMAIL || "KonkosYuk <onboarding@resend.dev>";
+}
+
 async function sendMaintenanceEmail(
   to: string,
   subject: string,
   heading: string,
   content: string,
 ): Promise<void> {
-  if (!process.env.RESEND_API_KEY) {
-    console.warn(
-      "RESEND_API_KEY belum dikonfigurasi, email maintenance dilewati",
-    );
-    return;
-  }
+  const client = await getResendClient();
+  if (!client) return;
+
   try {
-    await resend.emails.send({
-      from:
-        process.env.RESEND_FROM_EMAIL || "KonkosYuk <onboarding@resend.dev>",
+    await client.emails.send({
+      from: await getFromEmail(),
       to: [to],
       subject,
       html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:20px;color:#333"><h2 style="color:#2563eb">${escapeHtml(heading)}</h2>${content}<p style="margin-top:24px;font-size:12px;color:#64748b">Email otomatis dari KonkosYuk.</p></div>`,
@@ -78,9 +88,12 @@ export async function sendApprovalEmail(
   dpAmount: number,
   invoiceUrl: string,
 ): Promise<void> {
+  const client = await getResendClient();
+  if (!client) return;
+
   try {
-    await resend.emails.send({
-      from: "KonkosYuk <onboarding@resend.dev>",
+    await client.emails.send({
+      from: await getFromEmail(),
       to: [tenantEmail],
       subject: "Permintaan Sewa Anda Disetujui - KonkosYuk",
       html: `

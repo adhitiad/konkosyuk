@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { createAblyClientFromSettings } from "@/lib/ably/client";
+import { Realtime } from "ably";
 import { sendMessageAction } from "@/actions/chat";
 
 export interface Message {
@@ -64,11 +64,38 @@ export function useChat({
     let mounted = true;
 
     const initChat = async () => {
+      if (!roomId) return;
+      const channelName = `chat:${roomId}`;
+
       try {
-        const client = await createAblyClientFromSettings();
+        let token: string | null = null;
+        try {
+          const res = await fetch("/api/auth/ably-token", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ channelName }),
+          });
+          if (res.ok) {
+            const json = await res.json();
+            token = json.token;
+          }
+        } catch {
+          console.warn("[useChat] Failed to fetch Ably token, falling back to settings key");
+        }
+
+        let client;
+        if (token) {
+          client = new Realtime({ token });
+        } else {
+          const res = await fetch("/api/auth/ably-config");
+          if (!res.ok) throw new Error("Failed to load Ably config");
+          const { key } = await res.json();
+          client = new Realtime(key);
+        }
+
         clientRef.current = client;
 
-        const channel = client.channels.get(`chat:${roomId}`);
+        const channel = client.channels.get(channelName);
         channelRef.current = channel;
 
         channel.subscribe((message: any) => {
