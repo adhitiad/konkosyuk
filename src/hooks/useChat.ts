@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { Realtime, Channel, PresenceMessage } from "ably";
+import { Realtime, RealtimeChannel, PresenceMessage } from "ably";
 import { sendMessageAction } from "@/actions/chat";
 
 export interface Message {
@@ -52,7 +52,7 @@ export function useChat({
   const [isTyping, setIsTyping] = useState(false);
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
 
-  const channelRef = useRef<Channel | null>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const clientRef = useRef<Realtime | null>(null);
 
@@ -95,7 +95,7 @@ export function useChat({
 
         clientRef.current = client;
 
-        const channel = client.channels.get(channelName);
+        const channel = client.channels.get(channelName) as RealtimeChannel;
         channelRef.current = channel;
 
         channel.subscribe((message) => {
@@ -189,10 +189,10 @@ export function useChat({
   const startTyping = useCallback(() => {
     if (!channelRef.current) return;
     setIsTyping(true);
-    channelRef.current.presence.enter(
-      { clientId: currentUserId, timestamp: Date.now() },
-      { clientId: currentUserId },
-    );
+    channelRef.current.presence.enter({
+      clientId: currentUserId,
+      timestamp: Date.now(),
+    });
 
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);

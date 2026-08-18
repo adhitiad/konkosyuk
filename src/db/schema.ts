@@ -72,7 +72,7 @@ export const maintenanceReportStatus = [
   "resolved",
   "rejected",
 ] as const;
-export const paymentProvider = ["doku", "ipaymu", "nicepay"] as const;
+export const paymentProvider = ["doku", "ipaymu", "nicepay", "mock"] as const;
 export const paymentPurpose = [
   "dp",
   "full_payment",
@@ -1082,7 +1082,7 @@ export const chartOfAccounts = pgTable("chart_of_accounts", {
     { onDelete: "set null" },
   ),
   isActive: boolean("is_active").default(true),
-});
+}) as unknown as ReturnType<typeof pgTable>;
 
 export const generalLedger = pgTable("general_ledger", {
   id: text("id").primaryKey(),

@@ -319,9 +319,10 @@ export async function POST(req: NextRequest) {
       .values({
         name: body.title,
         description: body.description,
-        address: body.address,
-        province: body.province,
-        city: body.city,
+        address: body.address ?? "",
+        province: body.province ?? "",
+        city: body.city ?? "",
+        district: body.district ?? "",
         type: body.type,
         basePrice: body.basePrice,
         packages: body.packages,

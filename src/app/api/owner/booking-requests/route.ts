@@ -6,7 +6,7 @@ import { ok, handleApiError } from "@/lib/api";
 
 export async function GET() {
   try {
-    const session = await requireSession(["owner"] as Role[]);
+    const session = await requireSession(["owner"]);
 
     const ownerProperties = await db
       .select({ id: properties.id })

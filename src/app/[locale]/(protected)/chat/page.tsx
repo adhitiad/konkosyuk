@@ -72,7 +72,6 @@ export default function ChatPage() {
           ) : (
             <ChatRoomList
               rooms={rooms}
-              currentUserId={session.user.id}
               currentUserRole={chatRole as "owner" | "tenant"}
               selectedRoomId={selectedRoom ?? undefined}
               onRoomSelect={handleRoomSelect}
@@ -92,7 +91,7 @@ export default function ChatPage() {
                   ← Kembali
                 </Button>
               </div>
-              <ChatWindow
+<ChatWindow
                 roomId={selectedRoom}
                 currentUserId={session.user.id}
               />

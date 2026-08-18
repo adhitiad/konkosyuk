@@ -44,13 +44,13 @@ export default function NotificationBell() {
     queryFn: async () => (await apiClient.get("/api/notifications")).data,
   });
   const markAsReadMutation = useMutation({
-    mutationFn: async (notificationId: string) => {
-      const formData = new FormData();
-      formData.append("notificationId", notificationId);
-      const result = await updateNotificationAction(undefined, formData);
-      if (result.error) throw new Error(result.error);
-      return result.data;
-    },
+mutationFn: async (notificationId: string) => {
+        const formData = new FormData();
+        formData.append("notificationId", notificationId);
+        const result = await updateNotificationAction(undefined, formData);
+        if (result.error) throw new Error(result.error);
+        return result.data;
+      },
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["notifications"] }),
   });
@@ -128,11 +128,7 @@ export default function NotificationBell() {
             variant="ghost"
             size="sm"
             onClick={async () => {
-              const formData = new FormData();
-              const result = await markAllNotificationsReadAction(
-                undefined,
-                formData,
-              );
+              const result = await markAllNotificationsReadAction();
               if (result.success) {
                 queryClient.invalidateQueries({ queryKey: ["notifications"] });
               }

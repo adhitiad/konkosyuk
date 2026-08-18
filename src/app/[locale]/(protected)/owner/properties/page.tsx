@@ -39,16 +39,6 @@ import type { PropertyPackages } from "@/lib/types/property-packages";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
 import { deletePropertyAction } from "@/actions/properties";
 
-interface PropertyResponse {
-  data: Property[];
-  meta: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
 const formatCurrency = (value: number | string | null | undefined) =>
   new Intl.NumberFormat("id-ID", {
     style: "currency",
@@ -233,29 +223,24 @@ function DeletePropertyButton({
 export default function PropertiesPage() {
   const { data: session } = useSession();
 
-  const { data, isLoading, isError, error } = useQuery<PropertyResponse>({
+  interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  meta?: Record<string, unknown>;
+}
+
+const { data, isLoading, isError, error } = useQuery<ApiResponse<Property[]>>({
     queryKey: ["owner-properties-v2"],
     queryFn: async () => {
       const response = await fetch("/api/owner/properties");
       const body = await response.json();
-      const items = Array.isArray(body?.data)
-        ? body.data
-        : Array.isArray(body?.data?.data)
-          ? body.data.data
-          : [];
-      return {
-        data: items,
-        meta: { page: 1, limit: 10, total: 0, totalPages: 1 },
-      };
+      return body as ApiResponse<Property[]>;
     },
     staleTime: 30000,
     enabled: !!session?.user?.id,
   });
 
-  const rawProperties = Array.isArray(data?.data)
-    ? data.data
-    : (data as { data?: { data?: unknown[] } } | undefined)?.data?.data;
-  const properties = Array.isArray(rawProperties) ? rawProperties : [];
+  const properties = data?.data ?? [];
 
   return (
     <div className="container py-4 md:py-6">

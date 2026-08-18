@@ -25,5 +25,5 @@ export default function AdminLayout({
     }
   }, [session, isPending, router]);
 
-  return <AppLayout role="admin">{children}</AppLayout>;
+  return <AppLayout>{children}</AppLayout>;
 }

@@ -7,9 +7,10 @@ import Map, {
   Popup,
   NavigationControl,
   type MapLayerMouseEvent,
-} from "react-map-gl/maplibre";
+} from "react-map-gl/maplibre"
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Loader2, AlertCircle } from "lucide-react";
+import type { StyleSpecification } from "maplibre-gl";
 
 // --- TIPE DATA ---
 interface GeoJSONFeature {
@@ -119,12 +120,12 @@ export default function IndonesiaMap({ data, filterType }: IndonesiaMapProps) {
 
   // 3. Handle Interaksi
   const handleFeatureClick = useCallback((event: MapLayerMouseEvent) => {
-    const feature = event.features?.[0];
+    const feature = event.features?.[0] as GeoJSONFeature | undefined;
     if (feature) {
       setPopupInfo({
         longitude: event.lngLat.lng,
         latitude: event.lngLat.lat,
-        feature: feature as GeoJSONFeature,
+        feature,
       });
     }
   }, []);
@@ -208,7 +209,7 @@ export default function IndonesiaMap({ data, filterType }: IndonesiaMapProps) {
                 <p className="text-xs text-gray-600">
                   Total:{" "}
                   <span className="font-bold text-primary">
-                    {popupInfo.feature.properties.count || 0}
+                    {String(popupInfo.feature.properties.count || 0)}
                   </span>
                 </p>
               </div>

@@ -24,13 +24,14 @@ export async function GET(req: NextRequest) {
 
     if (search) {
       const term = `%${search}%`;
-      conditions.push(
-        or(
-          like(properties.name, term),
-          like(properties.address, term),
-          like(properties.description, term),
-        ),
+      const searchCondition = or(
+        like(properties.name, term),
+        like(properties.address, term),
+        like(properties.description, term),
       );
+      if (searchCondition) {
+        conditions.push(searchCondition);
+      }
     }
 
     if (type) {
@@ -130,10 +131,10 @@ export async function POST(req: NextRequest) {
       .values({
         name: body.title,
         description: body.description,
-        address: body.address,
-        province: body.province,
-        city: body.city,
-        district: body.district,
+        address: body.address ?? "",
+        province: body.province ?? "",
+        city: body.city ?? "",
+        district: body.district ?? "",
         type: body.type,
         basePrice: body.basePrice,
         packages: body.packages,

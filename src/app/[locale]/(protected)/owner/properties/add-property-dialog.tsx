@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useState, useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -37,6 +37,7 @@ const PropertyMapPicker = dynamic(
 import PackageForm from "@/components/owner/package-form";
 import { createPropertyAction } from "@/actions/properties";
 import type { CreatePropertyInput } from "@/lib/zod";
+import type { PropertyPackages } from "@/lib/types/property-packages";
 
 const propertyTypeOptions = [
   { value: "kost", label: "Kost" },
@@ -73,10 +74,36 @@ export default function AddPropertyDialog() {
   const [amenityInput, setAmenityInput] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [propertyImages, setPropertyImages] = useState<string[]>([]);
+  const [packages, setPackages] = useState<PropertyPackages>({
+    predefined: [],
+    custom: {
+      enabled: false,
+      label: "Custom Duration",
+      unit: "days",
+      pricePerUnit: 0,
+      minDuration: 1,
+      maxDuration: 365,
+    },
+  });
   const [state, formAction, isPending] = useActionState(
     createPropertyAction,
     undefined,
   );
+
+  useEffect(() => {
+    const imagesInput = document.getElementById("property-images") as HTMLInputElement | null;
+    if (imagesInput) {
+      imagesInput.value = JSON.stringify(propertyImages);
+    }
+  }, [propertyImages]);
+
+  useEffect(() => {
+    const packagesInput = document.getElementById("property-packages") as HTMLInputElement | null;
+    if (packagesInput) {
+      packagesInput.value = JSON.stringify(packages);
+    }
+  }, [packages]);
 
   const addAmenity = (value: string) => {
     const trimmed = value.trim();
@@ -404,6 +431,9 @@ export default function AddPropertyDialog() {
             </div>
           </CardContent>
         </Card>
+
+        <input type="hidden" id="property-images" name="images" value={JSON.stringify(propertyImages)} />
+        <input type="hidden" id="property-packages" name="packages" value={JSON.stringify(packages)} />
 
         <div className="flex justify-end gap-3 pt-4 border-t">
           <Button

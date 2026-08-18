@@ -32,12 +32,13 @@ export async function GET(req: NextRequest) {
     }
 
     if (search) {
-      conditions.push(
-        or(
-          ilike(notifications.title, `%${search}%`),
-          ilike(notifications.message, `%${search}%`),
-        ),
+      const searchCondition = or(
+        ilike(notifications.title, `%${search}%`),
+        ilike(notifications.message, `%${search}%`),
       );
+      if (searchCondition) {
+        conditions.push(searchCondition);
+      }
     }
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;

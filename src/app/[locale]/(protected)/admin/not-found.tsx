@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function AdminNotFound() {
   return (
-    <AppLayout role="admin">
+    <AppLayout>
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
         <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10">
           <HugeiconsIcon

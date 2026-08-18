@@ -131,9 +131,14 @@ export async function POST(req: NextRequest) {
           reviewedUserId,
           propertyId,
           type: body.type,
-          rating: body.rating,
+          rating: String(body.rating),
           comment: body.comment,
           bookingId: body.bookingId,
+          cleanliness: String(body.rating),
+          security: String(body.rating),
+          accuracy: String(body.rating),
+          communication: String(body.rating),
+          valueForMoney: String(body.rating),
         } satisfies NewReview)
         .returning();
 

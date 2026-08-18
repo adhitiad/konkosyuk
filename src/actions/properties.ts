@@ -127,7 +127,7 @@ export async function createPropertyAction(
       .values({
         name: validated.title,
         description: validated.description,
-        address: validated.address,
+        address: validated.address ?? "",
         province: validated.province,
         city: validated.city,
         type: validated.type,

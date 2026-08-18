@@ -61,12 +61,16 @@ const statusConfig: Record<
   cancelled: { label: "Dibatalkan", variant: "destructive" },
 };
 
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  meta?: Record<string, unknown>;
+}
+
 export default function TenantBookingsPage() {
   const { data: session } = useSession();
 
-  const { data, isLoading, isError, error } = useQuery<{
-    data: BookingRequestItem[];
-  }>({
+  const { data, isLoading, isError, error } = useQuery<ApiResponse<BookingRequestItem[]>>({
     queryKey: ["tenant-booking-requests"],
     queryFn: async () => {
       const { data } = await apiClient.get("/api/tenant/booking-requests");
@@ -76,14 +80,7 @@ export default function TenantBookingsPage() {
     enabled: !!session?.user?.id,
   });
 
-  const rawPayload = data?.data;
-  const bookings: BookingRequestItem[] = Array.isArray(rawPayload)
-    ? rawPayload
-    : Array.isArray((rawPayload as { data?: unknown[] } | undefined)?.data)
-      ? (rawPayload as { data: BookingRequestItem[] }).data
-      : Array.isArray(data)
-        ? (data as { data: BookingRequestItem[] }).data
-        : [];
+  const bookings: BookingRequestItem[] = data?.data ?? [];
 
   return (
     <div className="container py-6">

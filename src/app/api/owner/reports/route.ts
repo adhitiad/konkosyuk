@@ -5,7 +5,7 @@ import { requireSession } from "@/lib/auth";
 import { ok, handleApiError } from "@/lib/api";
 import type { Role } from "@/lib/auth";
 import { logError } from "@/lib/logger";
-import type { PgColumn } from "drizzle-orm/pg-core";
+import type { Column, SQL } from "drizzle-orm";
 
 export async function GET() {
   try {
@@ -97,6 +97,6 @@ export async function GET() {
   }
 }
 
-function castAmount(column: PgColumn): sql.SQL<number> {
+function castAmount(column: Column): SQL<number> {
   return sql<number>`CAST(${column} AS NUMERIC)`;
 }

@@ -30,7 +30,7 @@ export async function requireSession(allowedRoles?: string[]) {
 export async function validateAdminRequest(req: NextRequest) {
   const session = await requireSession(["admin", "staff"]);
 
-  const rateLimitResult = await withAdminRateLimit(req);
+  const rateLimitResult = await withAdminRateLimit();
   if (rateLimitResult) return rateLimitResult;
 
   if (
@@ -56,7 +56,7 @@ export async function validateAdminRequest(req: NextRequest) {
 export async function validateAdminOnlyRequest(req: NextRequest) {
   const session = await requireSession(["admin"]);
 
-  const rateLimitResult = await withAdminRateLimit(req);
+  const rateLimitResult = await withAdminRateLimit();
   if (rateLimitResult) return rateLimitResult;
 
   if (

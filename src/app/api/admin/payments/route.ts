@@ -7,7 +7,7 @@ import { validateAdminRequest } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import type { Role } from "@/lib/auth";
-import { createAuditLog } from "@/lib/auth";
+import { createAuditLog } from "@/lib/audit-log";
 
 const createManualPaymentSchema = z.object({
   userId: z.string().uuid(),
