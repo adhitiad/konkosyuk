@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { bookings, units, properties, payments } from "@/db/schema";
+import { bookings, units, properties, payments, refundRequests } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
@@ -52,7 +52,13 @@ export async function GET(
       .where(eq(payments.bookingId, bookingId))
       .orderBy(desc(payments.createdAt));
 
-    return ok({ ...booking, payments: bookingPayments });
+    const bookingRefundRequests = await db
+      .select()
+      .from(refundRequests)
+      .where(eq(refundRequests.bookingId, bookingId))
+      .orderBy(desc(refundRequests.createdAt));
+
+    return ok({ ...booking, payments: bookingPayments, refundRequests: bookingRefundRequests });
   } catch (error) {
     return handleApiError(error);
   }

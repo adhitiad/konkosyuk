@@ -556,6 +556,7 @@ export const refundRequests = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     amount: text("amount").notNull(),
+    approvedAmount: text("approved_amount"),
     reason: text("reason").notNull(),
     status: text("status", { enum: refundRequestStatus })
       .notNull()

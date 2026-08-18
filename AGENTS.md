@@ -13,45 +13,54 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Commands
 
 - Use **Bun only**: `bun run dev`, `bun run build`, `bun run lint`, `bun run test`
-- Typecheck: `bun x tsc --noEmit` (ESLint 9 + TS 7.0 is incompatible; `bun run lint` currently fails)
+- Typecheck: `bun x tsc --noEmit` — currently has known errors in `src/app/api/newsletter/subscribe/__tests__/route.test.ts`, `src/app/global-not-found.tsx`, and `src/scripts/__tests__/seed.test.ts`
 - DB push: `bun run db:push` (Drizzle push, no migrations for local dev)
 - Seed: `bun run db:seed`
 - Env file: `.env.local` (not `.env`)
 
 ## Architecture
 
-- Next.js 16.3 (App Router), React 19, TypeScript strict
+- Next.js 16.3.1, React 19.2.8, TypeScript 6.0.3, strict mode
 - Path alias: `@/*` → `./src/*`
 - i18n: `next-intl` via `src/i18n/request.ts`
-- Auth: Better Auth (`src/lib/auth.ts` server, `src/lib/auth-client.ts` client)
+- Auth: Better Auth (`src/lib/auth.ts` server, `src/lib/auth-client.ts` client) with drizzle adapter, twoFactor, nextCookies plugins
 - State: TanStack Query v5 for server data, Zustand for client state
 - Charts: Recharts wrapped in `src/components/ui/chart.tsx` (`ChartContainer`, `ChartTooltipContent`)
+- Package manager: Bun 1.3.14
 
 ## API Response Shape
 
-All API routes return wrapped responses:
+Route handlers return wrapped responses via `ok()`:
 
 ```ts
-return ok({ data, meta: {...} }) // → { success: true, data, meta }
+return ok(data) // → { success: true, data }
 ```
 
-Client queries must unwrap `response.data` before using it. Many existing pages do this inconsistently — check the actual response shape before assuming `data` is the payload.
+List endpoints often add `meta` manually for pagination: `ok({ data, meta: { total, page, limit, totalPages } })`. Client queries must unwrap `response.data`. Check the actual endpoint before assuming a `meta` field exists.
 
 ## Auth Patterns
 
 - Server routes: `requireSession(['admin', 'staff'])` from `src/lib/auth.ts`
 - Admin client pages: wrapped with `withAdminAuth(Component)` HOC from `src/lib/with-admin-auth.tsx`
 - Roles: `cust | owner | admin | staff`
+- Session cookie: `session_token` (httpOnly, secure in prod, sameSite strict in prod)
 
 ## DB & Schema
 
 - Schema: `src/db/schema.ts`
 - Drizzle config: `drizzle.config.ts` reads `DATABASE_URL` from `.env.local`
-- All monetary values stored as `text` in schema, cast to `NUMERIC` in queries
+- Most monetary columns use `numeric(...)`; payment `amount` is stored as `text` and cast to `NUMERIC` in queries
+- Redis is required locally (`REDIS_URL`) for rate limiting, Ably, and caching
 
 ## Quirks
 
-- `bun run build` currently fails on `cloudinary` `fs` import in client components — pre-existing, not caused by new code
-- CSP in `next.config.ts` is strict; external map tiles and image hosts are whitelisted
+- CSP in `next.config.ts` is strict; external map tiles and image hosts are whitelisted in `remotePatterns`
 - `apiClient` (`src/lib/axios.ts`) auto-injects CSRF token on mutations and redirects to `/login` on 401
-- Admin analytics endpoints default to current month, not 12 months (unlike `revenue-trend`)
+- Admin analytics `/revenue` defaults to current month; `/revenue-trend` defaults to 12 months
+
+## Testing
+
+- Unit tests: Vitest with jsdom, setup in `src/__tests__/setup.ts`
+- E2E tests: Playwright (`playwright.config.ts`) starts `bun run dev` automatically, runs against `http://localhost:3000`
+- Coverage thresholds enforced in `vitest.config.ts` (65% default, 90% for payments/utils)
+- Running `bun run test` starts watch mode; use `bun run test -- --run` for CI

@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
 import { requestRefundAction } from "@/actions/refund-requests";
 import { ChatTriggerButton } from "@/components/chat/chat-trigger-button";
@@ -59,6 +60,17 @@ interface BookingDetail {
     paidAt: string | null;
     createdAt: string;
   }[];
+  refundRequests?: {
+    id: string;
+    amount: string;
+    approvedAmount: string | null;
+    reason: string;
+    status: string;
+    reviewNote: string | null;
+    reviewedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+  }[];
 }
 
 const formatCurrency = (value: number | string | null | undefined) =>
@@ -73,6 +85,27 @@ const formatDate = (value: string) =>
     month: "long",
     year: "numeric",
   }).format(new Date(value));
+
+const getWorkingDaysBetween = (start: Date, end: Date): number => {
+  let count = 0;
+  const current = new Date(start);
+  while (current <= end) {
+    const day = current.getDay();
+    if (day !== 0 && day !== 6) {
+      count++;
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  return count;
+};
+
+const getRemainingWorkingDays = (createdAt: string): number => {
+  const created = new Date(createdAt);
+  const deadline = new Date(created);
+  deadline.setDate(deadline.getDate() + 14);
+  const remaining = getWorkingDaysBetween(new Date(), deadline);
+  return Math.max(0, remaining);
+};
 
 const statusConfig: Record<
   string,
@@ -400,6 +433,122 @@ export default function BookingDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {booking.refundRequests && booking.refundRequests.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Status Refund</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {booking.refundRequests.map((refund) => {
+                    const remainingDays = refund.status === "pending"
+                      ? getRemainingWorkingDays(refund.createdAt)
+                      : 0;
+                    const progressValue = refund.status === "pending"
+                      ? Math.max(0, 100 - (remainingDays / 14) * 100)
+                      : refund.status === "approved"
+                        ? 100
+                        : 0;
+
+                    return (
+                      <div
+                        key={refund.id}
+                        className="flex flex-col gap-3 rounded-xl border p-4"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">
+                            Pengajuan Refund
+                          </span>
+                          <Badge
+                            variant={
+                              refund.status === "approved"
+                                ? "default"
+                                : refund.status === "rejected"
+                                  ? "destructive"
+                                  : "secondary"
+                            }
+                          >
+                            {refund.status === "pending" && "Menunggu"}
+                            {refund.status === "approved" && "Disetujui"}
+                            {refund.status === "rejected" && "Ditolak"}
+                          </Badge>
+                        </div>
+
+                        {refund.status === "pending" && (
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground">
+                                Batas proses refund
+                              </span>
+                              <span className="font-medium">
+                                {remainingDays} hari kerja tersisa
+                              </span>
+                            </div>
+                            <Progress value={progressValue} className="h-2" />
+                            <p className="text-xs text-muted-foreground">
+                              Refund akan diproses maksimal 14 hari kerja sejak pengajuan.
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <p className="text-xs text-muted-foreground">
+                              Jumlah Diajukan
+                            </p>
+                            <p className="font-medium">
+                              {formatCurrency(refund.amount)}
+                            </p>
+                          </div>
+                          {refund.approvedAmount && (
+                            <div>
+                              <p className="text-xs text-muted-foreground">
+                                Jumlah Disetujui
+                              </p>
+                              <p className="font-medium">
+                                {formatCurrency(refund.approvedAmount)}
+                              </p>
+                            </div>
+                          )}
+                          <div className="col-span-2">
+                            <p className="text-xs text-muted-foreground">Alasan</p>
+                            <p className="text-sm">{refund.reason}</p>
+                          </div>
+                          {refund.reviewNote && (
+                            <div className="col-span-2">
+                              <p className="text-xs text-muted-foreground">
+                                Catatan Admin
+                              </p>
+                              <p className="text-sm">{refund.reviewNote}</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-xs text-muted-foreground">
+                              Tanggal Pengajuan
+                            </p>
+                            <p className="font-medium">
+                              {formatDate(refund.createdAt)}
+                            </p>
+                          </div>
+                          {refund.reviewedAt && (
+                            <div>
+                              <p className="text-xs text-muted-foreground">
+                                Tanggal Review
+                              </p>
+                              <p className="font-medium">
+                                {formatDate(refund.reviewedAt)}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <div className="space-y-6">

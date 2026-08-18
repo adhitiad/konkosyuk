@@ -14,11 +14,21 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { createAuditLog } from "@/lib/audit-log";
 import { sendBookingRejectionEmail } from "@/lib/notifications/email";
+import { sendRefundApprovalWhatsApp } from "@/lib/notifications/whatsapp";
+import { createNotification } from "@/lib/notifications";
 
 const reviewRefundSchema = z.object({
   refundRequestId: z.string().uuid(),
   action: z.enum(["approve", "reject"]),
   note: z.string().optional(),
+  approvedAmount: z
+    .string()
+    .regex(/^\d+(\.\d{1,2})?$/)
+    .refine(
+      (val) => Number(val) > 0,
+      { message: "Jumlah refund harus lebih dari 0" }
+    )
+    .optional(),
 });
 
 export type ReviewRefundState = {
@@ -85,6 +95,21 @@ export async function reviewRefundAction(
     const now = new Date();
 
     if (validated.action === "approve") {
+      const fullAmount = Number(payment.amount);
+      const approvedAmount = validated.approvedAmount
+        ? Math.min(Number(validated.approvedAmount), fullAmount)
+        : fullAmount;
+
+      if (approvedAmount <= 0) {
+        return { error: "Jumlah refund tidak valid", success: false };
+      }
+
+      const platformFeeRate = 0.022;
+      const ownerFeeRate = 0.018;
+      const platformFee = Math.round(approvedAmount * platformFeeRate);
+      const ownerFee = Math.round(approvedAmount * ownerFeeRate);
+      const userRefundAmount = approvedAmount - platformFee - ownerFee;
+
       await db.transaction(async (tx) => {
         await tx
           .update(payments)
@@ -101,6 +126,7 @@ export async function reviewRefundAction(
             reviewedBy: session.user.id,
             reviewedAt: now,
             reviewNote: validated.note,
+            approvedAmount: approvedAmount.toFixed(2),
             updatedAt: now,
           })
           .where(eq(refundRequests.id, refundRequest.id));
@@ -115,39 +141,101 @@ export async function reviewRefundAction(
             .where(eq(bookings.id, booking.id));
         }
 
-        const amount = Number(payment.amount);
         await tx
           .update(users)
           .set({
-            balance: sql`${users.balance} + ${amount}`,
+            balance: sql`${users.balance} + ${userRefundAmount}`,
             updatedAt: now,
           })
           .where(eq(users.id, refundRequest.userId));
 
         await tx.insert(balanceLogs).values({
           userId: refundRequest.userId,
-          amount: amount.toFixed(2),
+          amount: userRefundAmount.toFixed(2),
           type: "refund",
-          description: `Refund disetujui - Booking #${refundRequest.bookingId.slice(0, 8)} - ${validated.note ?? "Refund disetujui admin"}`,
+          description: `Refund disetujui - Booking #${refundRequest.bookingId.slice(0, 8)} - Jumlah: ${approvedAmount.toFixed(2)} - Netto setelah potongan admin 2.2% dan owner 1.8% - ${validated.note ?? "Refund disetujui admin"}`,
           relatedId: refundRequest.id,
         });
+
+        if (booking) {
+          const [owner] = await tx
+            .select()
+            .from(users)
+            .where(eq(users.id, booking.userId))
+            .limit(1);
+
+          if (owner) {
+            await tx
+              .update(users)
+              .set({
+                balance: sql`${users.balance} + ${ownerFee}`,
+                updatedAt: now,
+              })
+              .where(eq(users.id, owner.id));
+
+            await tx.insert(balanceLogs).values({
+              userId: owner.id,
+              amount: ownerFee.toFixed(2),
+              type: "refund",
+              description: `Fee refund dari booking #${refundRequest.bookingId.slice(0, 8)} - 1.8% dari refund sebesar ${approvedAmount.toFixed(2)}`,
+              relatedId: refundRequest.id,
+            });
+          }
+        }
       });
 
       const [tenant] = await db
-        .select({ email: users.email, name: users.name })
+        .select({ email: users.email, name: users.name, phone: users.phone })
         .from(users)
         .where(eq(users.id, refundRequest.userId))
         .limit(1);
 
-      if (tenant?.email && booking) {
+      if (tenant?.email) {
         sendBookingRejectionEmail(
           tenant.email,
           tenant.name,
-          booking.propertyId,
+          booking?.propertyId ?? "",
           validated.note ?? "Booking dibatalkan karena refund disetujui",
         ).catch((err) =>
           console.error("Failed to send refund approval email:", err),
         );
+      }
+
+      if (tenant?.phone) {
+        sendRefundApprovalWhatsApp(
+          tenant.phone,
+          tenant.name,
+          userRefundAmount,
+          refundRequest.bookingId.slice(0, 8),
+        ).catch((err) =>
+          console.error("Failed to send refund approval WhatsApp:", err),
+        );
+      }
+
+      await createNotification(
+        refundRequest.userId,
+        "payment",
+        "Refund Disetujui",
+        `Refund sebesar ${new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(userRefundAmount)} telah disetujui. Dana sudah masuk ke saldo Anda.`,
+        refundRequest.id,
+      );
+
+      if (booking) {
+        const [owner] = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(eq(users.id, booking.userId))
+          .limit(1);
+
+        if (owner) {
+          await createNotification(
+            owner.id,
+            "payment",
+            "Fee Refund Masuk",
+            `Fee refund sebesar ${new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(ownerFee)} telah masuk ke saldo Anda dari refund booking #${refundRequest.bookingId.slice(0, 8)}.`,
+            refundRequest.id,
+          );
+        }
       }
 
       await createAuditLog({
@@ -159,6 +247,10 @@ export async function reviewRefundAction(
           bookingId: refundRequest.bookingId,
           paymentId: refundRequest.paymentId,
           amount: payment.amount,
+          approvedAmount: approvedAmount.toFixed(2),
+          platformFee,
+          ownerFee,
+          userRefundAmount,
           note: validated.note,
         },
       });
@@ -173,6 +265,42 @@ export async function reviewRefundAction(
           updatedAt: now,
         })
         .where(eq(refundRequests.id, refundRequest.id));
+
+      const [tenant] = await db
+        .select({ email: users.email, name: users.name, phone: users.phone })
+        .from(users)
+        .where(eq(users.id, refundRequest.userId))
+        .limit(1);
+
+      if (tenant?.email) {
+        sendBookingRejectionEmail(
+          tenant.email,
+          tenant.name,
+          booking?.propertyId ?? "",
+          validated.note ?? "Permintaan refund Anda ditolak",
+        ).catch((err) =>
+          console.error("Failed to send refund rejection email:", err),
+        );
+      }
+
+      if (tenant?.phone) {
+        sendRefundApprovalWhatsApp(
+          tenant.phone,
+          tenant.name,
+          0,
+          refundRequest.bookingId.slice(0, 8),
+        ).catch((err) =>
+          console.error("Failed to send refund rejection WhatsApp:", err),
+        );
+      }
+
+      await createNotification(
+        refundRequest.userId,
+        "payment",
+        "Refund Ditolak",
+        `Permintaan refund untuk booking #${refundRequest.bookingId.slice(0, 8)} ditolak. ${validated.note ?? "Silakan hubungi admin untuk informasi lebih lanjut."}`,
+        refundRequest.id,
+      );
 
       await createAuditLog({
         action: "refund_rejected",

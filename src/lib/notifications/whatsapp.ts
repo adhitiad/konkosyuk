@@ -123,3 +123,56 @@ export async function sendApprovalWhatsApp(
     console.error("WhatsApp API error:", status, text);
   }
 }
+
+export async function sendRefundApprovalWhatsApp(
+  tenantPhone: string,
+  tenantName: string,
+  refundAmount: number,
+  bookingCode: string,
+): Promise<void> {
+  const credentials = await getWhatsAppCredentials();
+  if (!credentials) return;
+
+  const { phoneNumberId, accessToken } = credentials;
+  const axios = getAxiosInstance();
+
+  const formattedPhone = tenantPhone.startsWith("0")
+    ? `62${tenantPhone.slice(1)}`
+    : tenantPhone;
+
+  try {
+    await axios.post(
+      `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`,
+      {
+        messaging_product: "whatsapp",
+        to: formattedPhone,
+        type: "template",
+        template: {
+          name: "refund_approved",
+          language: { code: "id" },
+          components: [
+            {
+              type: "body",
+              parameters: [
+                { type: "text", text: tenantName },
+                { type: "text", text: bookingCode },
+                { type: "text", text: new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(refundAmount) },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+  } catch (error) {
+    const axiosError = error as AxiosError<unknown>;
+    const status = axiosError.response?.status;
+    const text = axiosError.response?.data;
+    console.error("WhatsApp refund approval API error:", status, text);
+  }
+}

@@ -54,7 +54,7 @@ Platform booking kost & kontrakan modern dengan pembayaran aman, verifikasi KYC,
 
 | Layer         | Teknologi                                       |
 | ------------- | ----------------------------------------------- |
-| **Framework** | Next.js 16 (App Router), React 19, TypeScript 7 |
+| **Framework** | Next.js 16 (App Router), React 19, TypeScript 6 |
 | **Styling**   | Tailwind CSS v4, shadcn/ui                      |
 | **Database**  | PostgreSQL, Drizzle ORM                         |
 | **Auth**      | Better Auth (Email + Google OAuth)              |
@@ -103,41 +103,77 @@ Isi variabel environment yang diperlukan:
 # Database
 DATABASE_URL=postgresql://user:password@localhost:5432/konkosyuk
 
+# Redis
+REDIS_URL=redis://localhost:6379
+
 # Better Auth
-BETTER_AUTH_SECRET=your-secret-key-min-32-chars
 BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_SECRET=your-secret-key-min-32-chars
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Monitoring
+SENTRY_DSN=
+NEXT_PUBLIC_SENTRY_DSN=
+
+# Maps
+NEXT_PUBLIC_STADIA_MAPS_API_KEY=
+
+# Real-time
+ABLY_API_KEY=
+NEXT_PUBLIC_ABLY_KEY=
+
+# KYC
+DIDIT_API_KEY=
+DIDIT_WEBHOOK_SECRET=
+NEXT_PUBLIC_DIDIT_API_URL=https://api.didit.me
 
 # Google OAuth (opsional)
-AUTH_GOOGLE_ID=your-google-client-id
-AUTH_GOOGLE_SECRET=your-google-client-secret
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 
-# Payment Gateways
-DOKU_CLIENT_ID=your-doku-client-id
-DOKU_SECRET_KEY=your-doku-secret-key
-DOKU_WEBHOOK_SECRET=your-doku-webhook-secret
+# Payment - Doku (opsional)
+DOKU_BASE_URL=https://api.doku.com
+DOKU_CLIENT_ID=
+DOKU_SECRET_KEY=
+DOKU_WEBHOOK_SECRET=
 
-IPAYMU_API_KEY=your-ipaymu-api-key
-IPAYMU_SECRET_KEY=your-ipaymu-secret-key
+# Payment - iPaymu (opsional)
+IPAYMU_BASE_URL=https://api.ipaymu.com
+IPAYMU_API_KEY=
+IPAYMU_WEBHOOK_SECRET=
 
-NICEPAY_CLIENT_ID=your-nicepay-client-id
-NICEPAY_SECRET_KEY=your-nicepay-secret-key
+# Payment - Nicepay (opsional)
+NICEPAY_BASE_URL=https://api.nicepay.co.id
+NICEPAY_MERCHANT_ID=
+NICEPAY_MERCHANT_KEY=
+NICEPAY_WEBHOOK_SECRET=
+
+# Payment Mode
+PAYMENT_MODE=mock
+PAYMENT_CONFIG_ENCRYPTION_KEY=
 
 # Storage
-UPLOADTHING_SECRET=your-uploadthing-secret
-UPLOADTHING_APP_ID=your-uploadthing-app-id
-CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
-CLOUDINARY_API_KEY=your-cloudinary-api-key
-CLOUDINARY_API_SECRET=your-cloudinary-api-secret
+UPLOADTHING_TOKEN=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+STORAGE_PRIMARY=uploadthing
 
-# Redis (untuk rate limiting)
-UPSTASH_REDIS_REST_URL=your-redis-url
-UPSTASH_REDIS_REST_TOKEN=your-redis-token
+# Cron
+CRON_SECRET=your-cron-secret-min-32-chars
 
-# AI (opsional)
-OPENROUTER_API_KEY=your-openrouter-api-key
+# Web Push (VAPID)
+VAPID_SUBJECT=mailto:admin@konkosyuk.app
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
 
-# Email (opsional)
-RESEND_API_KEY=your-resend-api-key
+# Email
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=KonkosYuk <noreply@domain-anda.com>
+
+# WhatsApp
+META_ACCESS_TOKEN=
+META_PHONE_NUMBER_ID=
 ```
 
 ### 4. Setup Database

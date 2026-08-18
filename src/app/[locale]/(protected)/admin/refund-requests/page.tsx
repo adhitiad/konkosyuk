@@ -25,6 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
 import { reviewRefundAction } from "@/actions/admin/refund-requests";
@@ -58,6 +59,7 @@ function AdminRefundRequestsPage() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [activeRefundId, setActiveRefundId] = useState<string | null>(null);
   const [reviewNote, setReviewNote] = useState("");
+  const [approvedAmount, setApprovedAmount] = useState("");
   const [isPendingReview, startReviewTransition] = useTransition();
 
   const { data, isLoading, refetch } = useQuery<{
@@ -85,6 +87,9 @@ function AdminRefundRequestsPage() {
       formData.append("refundRequestId", refundId);
       formData.append("action", action);
       formData.append("note", reviewNote);
+      if (action === "approve" && approvedAmount) {
+        formData.append("approvedAmount", approvedAmount);
+      }
 
       const finalResult = await reviewRefundAction(undefined, formData);
       if (finalResult.success) {
@@ -95,6 +100,7 @@ function AdminRefundRequestsPage() {
         );
         setActiveRefundId(null);
         setReviewNote("");
+        setApprovedAmount("");
         refetch();
       } else {
         showToastError(finalResult.error ?? "Gagal memproses refund");
@@ -238,6 +244,23 @@ function AdminRefundRequestsPage() {
                                   - {item.reason}
                                 </DialogDescription>
                               </DialogHeader>
+                              <div className="space-y-2">
+                                <Label htmlFor="approvedAmount">
+                                  Jumlah Refund Disetujui (opsional)
+                                </Label>
+                                <Input
+                                  id="approvedAmount"
+                                  type="number"
+                                  value={approvedAmount}
+                                  onChange={(e) => setApprovedAmount(e.target.value)}
+                                  placeholder={`Maks: ${new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(Number(item.amount))}`}
+                                  max={Number(item.amount)}
+                                  step={1000}
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                  Kosongkan untuk refund penuh. Potongan admin 2.2% dan owner 1.8% akan dipotong dari jumlah yang disetujui.
+                                </p>
+                              </div>
                               <div className="space-y-2">
                                 <Label htmlFor="note">Catatan</Label>
                                 <Textarea

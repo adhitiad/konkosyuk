@@ -40,7 +40,7 @@ const OSM_STYLE: StyleSpecification = {
       maxzoom: 19,
     },
   ],
-} as const;
+} as StyleSpecification;
 
 interface PropertyMapPickerProps {
   lat?: number | null;

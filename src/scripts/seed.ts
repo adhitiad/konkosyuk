@@ -2,7 +2,7 @@ import { db } from "@/db";
 import { chartOfAccounts } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-const ACCOUNTS = [
+export const ACCOUNTS = [
   { code: "1000", name: "Kas", type: "asset" },
   { code: "1100", name: "Kas Bank", type: "asset" },
   { code: "1111", name: "Pajak Pemerintah", type: "liability" },

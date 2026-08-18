@@ -5,14 +5,35 @@
 > **Format:** JSON  
 > **Authentication:** Session-based (HttpOnly cookies)
 
-Semua response memiliki format standar:
+Semua response success memiliki format:
 
 ```json
 {
   "success": true,
-  "data": { ... },
-  "meta": { ... },
-  "error": "String"
+  "data": { ... }
+}
+```
+
+Beberapa endpoint list menambahkan `meta` secara manual:
+
+```json
+{
+  "success": true,
+  "data": [ ... ],
+  "meta": { "total": 50, "page": 1, "limit": 10, "totalPages": 5 }
+}
+```
+
+Response error:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "email: Email tidak valid",
+    "details": [ ... ]
+  }
 }
 ```
 
@@ -732,7 +753,10 @@ Base Path: `/api/health`
 ```json
 {
   "success": false,
-  "error": "Pesan error yang user-friendly"
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Tidak berwenang"
+  }
 }
 ```
 
@@ -754,4 +778,4 @@ Base Path: `/api/health`
 - Semua request yang membutuhkan autentikasi harus menyertakan session cookie
 - CSRF token diperlukan untuk POST, PATCH, DELETE: `x-csrf-token` header
 - Webhook signature harus diverifikasi dengan `verifyHmacHex()` dari `src/lib/payments/signature.ts`
-- Monetary values di database disimpan sebagai `text`, di-cast ke `NUMERIC` di query
+- Kolom `amount` pada tabel `payments` disimpan sebagai `text`, di-cast ke `NUMERIC` di query. Kebanyakan kolom moneter lainnya menggunakan `numeric(...)`.

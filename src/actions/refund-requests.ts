@@ -5,12 +5,15 @@ import {
   bookings,
   payments,
   refundRequests,
+  users,
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { createAuditLog } from "@/lib/audit-log";
+import { createNotification } from "@/lib/notifications";
+import { sendRefundApprovalWhatsApp } from "@/lib/notifications/whatsapp";
 
 const requestRefundSchema = z.object({
   bookingId: z.string().uuid(),
@@ -164,6 +167,35 @@ export async function requestRefundAction(
         status: "pending",
       })
       .returning();
+
+    if (booking) {
+      const [owner] = await db
+        .select({ id: users.id, name: users.name, email: users.email, phone: users.phone })
+        .from(users)
+        .where(eq(users.id, booking.userId))
+        .limit(1);
+
+      if (owner) {
+        await createNotification(
+          owner.id,
+          "booking",
+          "Pengajuan Refund Baru",
+          `Tenant mengajukan refund untuk booking #${booking.id.slice(0, 8)}. Silakan review di dashboard admin.`,
+          refundRequest.id,
+        );
+
+        if (owner.phone) {
+          sendRefundApprovalWhatsApp(
+            owner.phone,
+            owner.name,
+            0,
+            booking.id.slice(0, 8),
+          ).catch((err) =>
+            console.error("Failed to send refund request WhatsApp to owner:", err),
+          );
+        }
+      }
+    }
 
     await createAuditLog({
       action: "refund_request",
