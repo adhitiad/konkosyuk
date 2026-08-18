@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/axios";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,6 +49,15 @@ function ReportItem({
     updateReportAction,
     undefined,
   );
+
+  useEffect(() => {
+    if (state?.success) {
+      onUpdate(
+        report.id,
+        state.data?.status as "in_progress" | "resolved" | "rejected",
+      );
+    }
+  }, [state, onUpdate, report.id]);
 
   return (
     <div key={report.id} className="rounded-xl border p-4 space-y-3">
