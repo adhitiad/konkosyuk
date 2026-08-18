@@ -282,8 +282,8 @@ export default function OwnerMaintenancePage() {
                   <div className="col-span-2">
                     <p className="text-xs text-muted-foreground mb-2">Gambar</p>
                     <div className="flex flex-wrap gap-2">
-                      // eslint-disable-next-line @next/next/no-img-element
                       {selectedTicket.images.map((url, idx) => (
+                        /* eslint-disable-next-line @next/next/no-img-element */
                         <img
                           key={idx}
                           src={url}

@@ -35,7 +35,6 @@ const PropertyMapPicker = dynamic(
   },
 );
 import PackageForm from "@/components/owner/package-form";
-import type { PropertyPackages } from "@/lib/types/property-packages";
 import { createPropertyAction } from "@/actions/properties";
 import type { CreatePropertyInput } from "@/lib/zod";
 
@@ -65,13 +64,11 @@ export default function AddPropertyDialog() {
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
   const [district, setDistrict] = useState("");
-  const [propertyImages, setPropertyImages] = useState<string[]>([]);
   const [basePrice, setBasePrice] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [icalImportUrl, setIcalImportUrl] = useState("");
-  const [packages, setPackages] = useState<PropertyPackages | null>(null);
   const [amenities, setAmenities] = useState<string[]>([]);
   const [amenityInput, setAmenityInput] = useState("");
   const [description, setDescription] = useState("");

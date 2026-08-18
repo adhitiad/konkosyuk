@@ -7,7 +7,7 @@ import type { Role } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await requireSession(["admin", "staff"] as Role[]);
+    await requireSession(["admin", "staff"] as Role[]);
     const { searchParams } = new URL(req.url);
     const action = searchParams.get("action") || undefined;
     const userId = searchParams.get("userId") || undefined;

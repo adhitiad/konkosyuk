@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { payments, bookings, properties, platformSettings } from "@/db/schema";
+import { payments, bookings, properties } from "@/db/schema";
 import { eq, sql, and, gte, lte } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 import type { Role } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
@@ -27,14 +27,6 @@ export async function GET(req: NextRequest) {
       59,
       999,
     );
-
-    const [settings] = await db
-      .select()
-      .from(platformSettings)
-      .where(eq(platformSettings.id, "default"))
-      .limit(1);
-
-    const _feePercent = parseFloat(settings?.platformFeePercent || "1.8") / 100;
 
     const platformRevenue = await db
       .select({

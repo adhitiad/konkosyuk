@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { generalLedger, chartOfAccounts } from "@/db/schema";
 import { eq, desc, between, sql, and } from "drizzle-orm";
@@ -45,7 +45,7 @@ const createLedgerEntrySchema = z
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await requireSession(["admin", "staff"] as Role[]);
+    await requireSession(["admin", "staff"] as Role[]);
     const { searchParams } = new URL(req.url);
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");

@@ -40,10 +40,7 @@ function ReportItem({
   onUpdate,
 }: {
   report: Report;
-  onUpdate: (
-    _id: string,
-    _status: "in_progress" | "resolved" | "rejected",
-  ) => void;
+  onUpdate: () => void;
 }) {
   const [state, formAction, isPending] = useActionState(
     updateReportAction,
@@ -52,10 +49,7 @@ function ReportItem({
 
   useEffect(() => {
     if (state?.success) {
-      onUpdate(
-        report.id,
-        state.data?.status as "in_progress" | "resolved" | "rejected",
-      );
+      onUpdate();
     }
   }, [state, onUpdate, report.id]);
 
@@ -92,6 +86,7 @@ function ReportItem({
          
         <div className="flex flex-wrap gap-2">
           {report.images.map((url) => (
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img
               key={url}
               src={url}
@@ -157,10 +152,7 @@ export default function OwnerReportList() {
   });
   const reports: Report[] = data?.data?.data ?? [];
 
-  function handleUpdate(
-    _id: string,
-    _status: "in_progress" | "resolved" | "rejected",
-  ) {
+  function handleUpdate() {
     queryClient.invalidateQueries({ queryKey: ["maintenance-reports"] });
   }
   return (

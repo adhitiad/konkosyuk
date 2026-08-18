@@ -132,10 +132,7 @@ export type MarkAllNotificationsReadState = {
   data?: { success: boolean; count?: number };
 };
 
-export async function markAllNotificationsReadAction(
-  _prevState: MarkAllNotificationsReadState | undefined,
-  _formData: FormData,
-): Promise<MarkAllNotificationsReadState> {
+export async function markAllNotificationsReadAction(): Promise<MarkAllNotificationsReadState> {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

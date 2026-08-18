@@ -176,6 +176,7 @@ function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
                
               <div className="flex flex-wrap gap-2">
                 {images.map((url) => (
+                  /* eslint-disable-next-line @next/next/no-img-element */
                   <img
                     key={url}
                     src={url}

@@ -1072,7 +1072,7 @@ export const paymentTransactions = pgTable("payment_transactions", {
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
 });
 
-export const chartOfAccounts: string | any = pgTable("chart_of_accounts", {
+export const chartOfAccounts = pgTable("chart_of_accounts", {
   id: text("id").primaryKey(),
   accountCode: text("account_code").notNull().unique(),
   accountName: text("account_name").notNull(),

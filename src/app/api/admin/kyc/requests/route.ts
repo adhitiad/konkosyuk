@@ -1,11 +1,10 @@
-import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { users, kycVerifications } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
 import { ok, handleApiError } from "@/lib/api";
 import { eq, desc, sql } from "drizzle-orm";
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   try {
     await requireSession(["admin", "staff"]);
 

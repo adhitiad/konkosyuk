@@ -232,16 +232,18 @@ export default function MaintenanceTicketForm({
                 Tambah
               </Button>
             </div>
-            {imageUrls.length > 0 && (
+{imageUrls.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
-                // eslint-disable-next-line @next/next/no-img-element
                 {imageUrls.map((url) => (
                   <div key={url} className="relative group">
-                    <img
-                      src={url}
-                      alt="Preview"
-                      className="h-16 w-20 object-cover rounded-lg border"
-                    />
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={url}
+                        alt="Preview"
+                        className="h-16 w-20 object-cover rounded-lg border"
+                      />
+                    </>
                     <button
                       type="button"
                       onClick={() => removeImage(url)}

@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { payments, bookings, properties, platformSettings } from "@/db/schema";
-import { eq, sql, desc, gte, lte, and } from "drizzle-orm";
+import { eq, sql, gte, lte, and } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 import type { Role } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {

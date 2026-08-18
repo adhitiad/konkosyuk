@@ -26,7 +26,7 @@ export function withKycVerified<P extends object>(
       ?.kycStatus;
     const userRole = (session?.user as { role?: string } | undefined)?.role;
 
-    useEffect(() => {
+useEffect(() => {
       if (
         !isPending &&
         session &&
@@ -35,7 +35,7 @@ export function withKycVerified<P extends object>(
       ) {
         router.push(redirectTo);
       }
-     
+      
     }, [session, isPending, router, kycStatus, userRole]);
 
     if (isPending || !session) {

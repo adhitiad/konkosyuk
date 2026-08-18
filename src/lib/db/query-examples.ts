@@ -2,12 +2,11 @@ import { db } from "@/db";
 import {
   properties,
   units,
-  bookings,
   users,
   propertyTags,
   payments,
 } from "@/db/schema";
-import { eq, and, sql, desc, gte, inArray } from "drizzle-orm";
+import { eq, and, sql, desc, inArray } from "drizzle-orm";
 
 /**
  * Example: Eager Loading dengan Drizzle ORM `with`
@@ -24,11 +23,11 @@ export async function getPropertiesWithNPlusOne() {
 
   for (const property of propertiesList) {
     // Query terpisah untuk SETIAP properti = N+1
-    const propertyUnits = await db
+    void await db
       .select()
       .from(units)
       .where(eq(units.propertyId, property.id));
-    const owner = await db
+    void await db
       .select()
       .from(users)
       .where(eq(users.id, property.ownerId));

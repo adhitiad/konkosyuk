@@ -2,7 +2,6 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useSession } from "@/lib/auth-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -251,8 +250,8 @@ export default function TenantMaintenancePage() {
                 <div>
                   <p className="text-xs text-muted-foreground mb-2">Gambar</p>
                   <div className="flex flex-wrap gap-2">
-                    // eslint-disable-next-line @next/next/no-img-element
                     {selectedTicket.images.map((url, idx) => (
+                      /* eslint-disable-next-line @next/next/no-img-element */
                       <img
                         key={idx}
                         src={url}

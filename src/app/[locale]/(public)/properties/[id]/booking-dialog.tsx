@@ -48,17 +48,13 @@ const formatDuration = (value: number, unit: DurationUnit) => {
 };
 
 interface BookingDialogClientProps {
-  unitId: string;
   unitName: string;
-  propertyId: string;
   packages: PropertyPackages;
   children: React.ReactNode;
 }
 
 export default function BookingDialogClient({
-  unitId,
   unitName,
-  propertyId,
   packages,
   children,
 }: BookingDialogClientProps) {

@@ -72,9 +72,7 @@ function OwnerKYCPage() {
     }
   };
 
-  const handleKycComplete = (
-    status: "approved" | "rejected" | "pending",
-  ) => {
+  const handleKycComplete = () => {
     refetch();
   };
 

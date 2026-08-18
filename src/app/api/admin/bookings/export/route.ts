@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { bookings, users, properties } from "@/db/schema";
 import { validateAdminRequest } from "@/lib/api-auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { handleApiError } from "@/lib/api";
 import { eq } from "drizzle-orm";
 
 function escapeCsv(value: string): string {
@@ -21,7 +21,6 @@ export async function GET(req: NextRequest) {
   try {
     const authResult = await validateAdminRequest(req);
     if (authResult instanceof Response) return authResult;
-    const { session } = authResult;
 
     const data = await db
       .select({

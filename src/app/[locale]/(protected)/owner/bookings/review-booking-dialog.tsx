@@ -57,6 +57,7 @@ export default function ReviewBookingDialog({
           type: "success",
         });
       }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsRejectDialogOpen(false);
       setReason("");
       setError(null);

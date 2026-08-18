@@ -23,7 +23,7 @@ function PaymentResultContent() {
   const provider = searchParams.get("provider");
   const invoiceNumber = searchParams.get("bookingId");
 
-  const { isLoading, isSuccess, isTimeout, attempt, error } = usePaymentPolling(
+  const { isSuccess, isTimeout, attempt, error } = usePaymentPolling(
     {
       invoiceNumber: invoiceNumber ?? undefined,
       intervalMs: 5000,

@@ -47,7 +47,6 @@ export default function RequestBookingForm({
   unitCapacity,
   children,
 }: RequestBookingFormProps) {
-  const { data: _session } = useSession();
   const [open, setOpen] = useState(false);
   const [numOccupants, setNumOccupants] = useState(1);
   const [startDate, setStartDate] = useState("");

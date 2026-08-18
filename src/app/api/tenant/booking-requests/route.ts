@@ -16,7 +16,7 @@ const createBookingRequestSchema = z.object({
   startDate: z.string().datetime(),
 });
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   try {
     const session = await requireSession(["cust"] as Role[]);
 

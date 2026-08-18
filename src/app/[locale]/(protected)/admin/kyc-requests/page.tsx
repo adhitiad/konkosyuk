@@ -227,16 +227,16 @@ function AdminKYCRequestsPage() {
                       {request.ktpNumber || "-"}
                     </p>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">Preview Foto KTP</p>
-                    // eslint-disable-next-line @next/next/no-img-element
-                    {request.ktpImageUrl ? (
-                      <img
-                        src={request.ktpImageUrl}
-                        alt="KTP"
-                        className="h-32 w-auto rounded-lg border object-cover"
-                      />
-                    ) : (
+<div className="space-y-2">
+                      <p className="text-sm font-medium">Preview Foto KTP</p>
+                      {request.ktpImageUrl ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={request.ktpImageUrl}
+                          alt="KTP"
+                          className="h-32 w-auto rounded-lg border object-cover"
+                        />
+                      ) : (
                       <p className="text-sm text-muted-foreground">
                         Tidak ada foto
                       </p>

@@ -152,19 +152,22 @@ export function Dropzone({
         )}
       </div>
 
-      {currentFiles.length > 0 && (
+{currentFiles.length > 0 && (
          
-        <div className="grid grid-cols-5 gap-2">
-          {currentFiles.map((file, index) => (
-            <div
-              key={index}
-              className="relative aspect-square rounded-lg border overflow-hidden"
-            >
-              <img
-                src={URL.createObjectURL(file)}
-                alt={`Preview ${index + 1}`}
-                className="h-full w-full object-cover"
-              />
+         <div className="grid grid-cols-5 gap-2">
+{currentFiles.map((file, index) => (
+              <div
+                key={index}
+                className="relative aspect-square rounded-lg border overflow-hidden"
+              >
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt={`Preview ${index + 1}`}
+                    className="h-full w-full object-cover"
+                  />
+                </>
               <button
                 type="button"
                 onClick={() => removeFile(index)}

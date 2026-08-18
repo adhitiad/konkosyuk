@@ -7,9 +7,9 @@ import {
   users,
   platformSettings,
 } from "@/db/schema";
-import { eq, desc, sql, and, gte, lte } from "drizzle-orm";
+import { eq, desc, and, gte, lte } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 import type { Role } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {

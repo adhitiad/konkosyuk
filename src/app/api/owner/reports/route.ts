@@ -1,4 +1,3 @@
-import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { bookings, properties, units, payments } from "@/db/schema";
 import { eq, and, sql, count, sum, inArray } from "drizzle-orm";
@@ -8,7 +7,7 @@ import type { Role } from "@/lib/auth";
 import { logError } from "@/lib/logger";
 import type { PgColumn } from "drizzle-orm/pg-core";
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   try {
     const session = await requireSession(["owner", "admin"] as Role[]);
 

@@ -16,7 +16,7 @@ export function withOwnerAuth<P extends object>(
 
     const userRole = (session?.user as { role?: string } | undefined)?.role;
 
-    useEffect(() => {
+useEffect(() => {
       if (!isPending) {
         if (!session) {
           router.push("/login");
@@ -24,7 +24,7 @@ export function withOwnerAuth<P extends object>(
           router.push("/dashboard");
         }
       }
-     
+      
     }, [session, isPending, router, userRole]);
 
     return (

@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { properties } from "@/db/schema";
 import { eq, count, and } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 import type { Role } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {

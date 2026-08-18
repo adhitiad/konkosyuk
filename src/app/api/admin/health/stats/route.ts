@@ -1,13 +1,12 @@
-import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { users, webhookEvents, generalLedger } from "@/db/schema";
+import { users, webhookEvents } from "@/db/schema";
 import { eq, sql, and, gte } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { ok, handleApiError } from "@/lib/api";
 import type { Role } from "@/lib/auth";
 import { getMetricsSnapshot } from "@/lib/monitoring";
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   try {
     await requireSession(["admin"] as Role[]);
 

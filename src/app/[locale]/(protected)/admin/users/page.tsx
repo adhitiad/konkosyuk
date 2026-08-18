@@ -205,6 +205,7 @@ const AdminUsersPage = ({}: AdminUsersPageProps) => {
         description: "New user has been created.",
         type: "success",
       });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCreateOpen(false);
     } else if (createState?.error) {
       toast({

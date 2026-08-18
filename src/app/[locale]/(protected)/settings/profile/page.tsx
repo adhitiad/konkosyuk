@@ -52,7 +52,7 @@ export default function ProfileSettingsPage() {
     updateUserProfileAction,
     undefined,
   );
-  const [uploadState, uploadAction, isUploadPending] = useActionState(
+  const [uploadState, , isUploadPending] = useActionState(
     uploadImageAction,
     undefined,
   );
