@@ -35,7 +35,7 @@ export function withKycVerified<P extends object>(
       ) {
         router.push(redirectTo);
       }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     }, [session, isPending, router, kycStatus, userRole]);
 
     if (isPending || !session) {

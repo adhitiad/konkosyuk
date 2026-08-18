@@ -153,7 +153,7 @@ export function Dropzone({
       </div>
 
       {currentFiles.length > 0 && (
-        // eslint-disable-next-line @next/next/no-img-element
+         
         <div className="grid grid-cols-5 gap-2">
           {currentFiles.map((file, index) => (
             <div

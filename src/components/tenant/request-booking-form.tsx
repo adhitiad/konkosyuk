@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo, useActionState, useEffect } from "react";
-import { useSession } from "@/lib/auth-client";
 import {
   Dialog,
   DialogContent,

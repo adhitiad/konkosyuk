@@ -24,7 +24,7 @@ export function withOwnerAuth<P extends object>(
           router.push("/dashboard");
         }
       }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     }, [session, isPending, router, userRole]);
 
     return (

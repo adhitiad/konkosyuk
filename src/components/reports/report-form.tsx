@@ -173,7 +173,7 @@ function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
               }
             />
             {images.length > 0 && (
-              // eslint-disable-next-line @next/next/no-img-element
+               
               <div className="flex flex-wrap gap-2">
                 {images.map((url) => (
                   <img
