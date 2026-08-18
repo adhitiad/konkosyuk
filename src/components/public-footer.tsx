@@ -165,6 +165,14 @@ export function PublicFooter() {
                   Syarat & Ketentuan
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/refund-policy"
+                  className="text-sm text-muted-foreground transition-colors hover:text-primary hover:underline"
+                >
+                  Kebijakan Refund
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
