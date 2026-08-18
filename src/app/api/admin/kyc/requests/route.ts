@@ -2,13 +2,12 @@ import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { users, kycVerifications } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 import { eq, desc, sql } from "drizzle-orm";
-import type { Role } from "@/lib/auth";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
-    const session = await requireSession(["admin", "staff"] as Role[]);
+    await requireSession(["admin", "staff"]);
 
     const verifications = await db
       .select({

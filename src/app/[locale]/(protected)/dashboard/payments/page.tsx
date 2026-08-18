@@ -31,7 +31,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  CreditCard,
   CheckCircle2,
   Clock,
   AlertCircle,
@@ -40,7 +39,6 @@ import {
   Building2,
   ArrowUpRight,
   Wallet,
-  Calendar,
   ExternalLink,
 } from "lucide-react";
 import Link from "next/link";

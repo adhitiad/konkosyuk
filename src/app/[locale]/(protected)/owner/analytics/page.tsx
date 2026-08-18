@@ -2,16 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  BarChartIcon,
   CalendarDaysIcon,
   CurrencyIcon,
   TrendingUp,
 } from "@hugeicons/core-free-icons";
-import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/axios";
 
 interface AnalyticsData {

@@ -8,8 +8,6 @@ import { bookingRateLimit, enforceRateLimit } from "@/lib/rate-limit";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import type { Role } from "@/lib/auth";
-import { money, generateInvoiceNumber } from "@/lib/utils";
-import { calculateDp } from "@/lib/payments/calculations";
 
 const createBookingRequestSchema = z.object({
   unitId: z.string().uuid(),
@@ -18,7 +16,7 @@ const createBookingRequestSchema = z.object({
   startDate: z.string().datetime(),
 });
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const session = await requireSession(["cust"] as Role[]);
 

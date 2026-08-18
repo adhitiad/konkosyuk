@@ -4,6 +4,7 @@ import { useState, useEffect, useActionState } from "react";
 import { useSession } from "@/lib/auth-client";
 import type { SessionUserWithRole } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -23,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User, Upload, AlertTriangle } from "lucide-react";
+import { Upload, AlertTriangle } from "lucide-react";
 import imageCompression from "browser-image-compression";
 import { updateUserProfileAction } from "@/actions/profile";
 import { uploadImageAction } from "@/actions/upload";
@@ -35,16 +36,18 @@ interface RegionOption {
 }
 
 export default function ProfileSettingsPage() {
-  const { data: session, isPending, error } = useSession();
+  const { data: session, isPending } = useSession();
   const router = useRouter();
 
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [province, setProvince] = useState("");
-  const [city, setCity] = useState("");
-  const [district, setDistrict] = useState("");
+  const user = session?.user as SessionUserWithRole | undefined;
+
+  const [name, setName] = useState(user?.name || "");
+  const [phone, setPhone] = useState(user?.phone || "");
+  const [province, setProvince] = useState(user?.province || "");
+  const [city, setCity] = useState(user?.city || "");
+  const [district, setDistrict] = useState(user?.district || "");
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState(user?.image || null);
   const [profileState, profileAction, isProfilePending] = useActionState(
     updateUserProfileAction,
     undefined,
@@ -58,98 +61,83 @@ export default function ProfileSettingsPage() {
   const [provinces, setProvinces] = useState<RegionOption[]>([]);
   const [cities, setCities] = useState<RegionOption[]>([]);
   const [districts, setDistricts] = useState<RegionOption[]>([]);
-  const [loadingProvinces, setLoadingProvinces] = useState(false);
-  const [loadingCities, setLoadingCities] = useState(false);
-  const [loadingDistricts, setLoadingDistricts] = useState(false);
+
+  // Fetch provinces
+  const { data: provincesData, isLoading: provincesLoading } = useQuery<
+    RegionOption[]
+  >({
+    queryKey: ["provinces"],
+    queryFn: async () => {
+      const data = await apiGet<RegionOption[]>(
+        "/api/proxy/wilayah/provinces.json",
+      );
+      return data;
+    },
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+  });
+
+  // Fetch cities when province is selected
+  const selectedProvince = provincesData?.find((p) => p.name === province);
+  const { data: citiesData, isLoading: citiesLoading } = useQuery<RegionOption[]>({
+    queryKey: ["cities", selectedProvince?.id],
+    queryFn: async () => {
+      if (!selectedProvince) return [];
+      const data = await apiGet<RegionOption[]>(
+        `/api/proxy/wilayah/regencies/${selectedProvince.id}.json`,
+      );
+      return data;
+    },
+    enabled: !!selectedProvince,
+    staleTime: 1000 * 60 * 60 * 24,
+  });
+
+  // Fetch districts when city is selected
+  const selectedCity = citiesData?.find((c) => c.name === city);
+  const { data: districtsData, isLoading: districtsLoading } = useQuery<
+    RegionOption[]
+  >({
+    queryKey: ["districts", selectedCity?.id],
+    queryFn: async () => {
+      if (!selectedCity) return [];
+      const data = await apiGet<RegionOption[]>(
+        `/api/proxy/wilayah/districts/${selectedCity.id}.json`,
+      );
+      return data;
+    },
+    enabled: !!selectedCity,
+    staleTime: 1000 * 60 * 60 * 24,
+  });
+
+  // Sync query data to state
+  useEffect(() => {
+    if (provincesData) setProvinces(provincesData); // eslint-disable-line react-hooks/set-state-in-effect
+  }, [provincesData]);
 
   useEffect(() => {
-    if (error) {
-      setFormError("Gagal memuat sesi. Silakan login kembali.");
-      return;
-    }
-
-    if (!isPending && !session) {
-      router.push("/login");
-    }
-    if (session?.user) {
-      const user = session.user as SessionUserWithRole;
-      setName(user.name || "");
-      setPhone(user.phone || "");
-      setProvince(user.province || "");
-      setCity(user.city || "");
-      setDistrict(user.district || "");
-      setImagePreview(user.image || null);
-    }
-  }, [session, isPending, error, router]);
+    if (citiesData) setCities(citiesData); // eslint-disable-line react-hooks/set-state-in-effect
+  }, [citiesData]);
 
   useEffect(() => {
-    const fetchProvinces = async () => {
-      setLoadingProvinces(true);
-      try {
-        const data = await apiGet<RegionOption[]>(
-          "/api/proxy/wilayah/provinces.json",
-        );
-        setProvinces(data);
-      } catch (err) {
-        console.error("Gagal fetch provinsi", err);
-      } finally {
-        setLoadingProvinces(false);
-      }
-    };
-    fetchProvinces();
-  }, []);
+    if (districtsData) setDistricts(districtsData); // eslint-disable-line react-hooks/set-state-in-effect
+  }, [districtsData]);
 
+  // Reset city/district when province changes
   useEffect(() => {
     if (!province) {
-      setCities([]);
+      setCities([]); // eslint-disable-line react-hooks/set-state-in-effect
       setCity("");
       setDistricts([]);
       setDistrict("");
-      return;
     }
-    const selectedProvince = provinces.find((p) => p.name === province);
-    if (!selectedProvince) return;
+  }, [province]);
 
-    const fetchCities = async () => {
-      setLoadingCities(true);
-      try {
-        const data = await apiGet<RegionOption[]>(
-          `/api/proxy/wilayah/regencies/${selectedProvince.id}.json`,
-        );
-        setCities(data);
-      } catch (err) {
-        console.error("Gagal fetch kota", err);
-      } finally {
-        setLoadingCities(false);
-      }
-    };
-    fetchCities();
-  }, [province, provinces]);
-
+  // Reset district when city changes
   useEffect(() => {
     if (!city) {
-      setDistricts([]);
+      setDistricts([]); // eslint-disable-line react-hooks/set-state-in-effect
       setDistrict("");
-      return;
     }
-    const selectedCity = cities.find((c) => c.name === city);
-    if (!selectedCity) return;
-
-    const fetchDistricts = async () => {
-      setLoadingDistricts(true);
-      try {
-        const data = await apiGet<RegionOption[]>(
-          `/api/proxy/wilayah/districts/${selectedCity.id}.json`,
-        );
-        setDistricts(data);
-      } catch (err) {
-        console.error("Gagal fetch kecamatan", err);
-      } finally {
-        setLoadingDistricts(false);
-      }
-    };
-    fetchDistricts();
-  }, [city, cities]);
+  }, [city]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -174,32 +162,17 @@ export default function ProfileSettingsPage() {
     }
   };
 
-  const handleSubmit = (formData: FormData) => {
-    formData.append("name", name);
-    formData.append("phone", phone);
-    formData.append("province", province || "");
-    formData.append("city", city || "");
-    formData.append("district", district || "");
-
-    if (imageFile) {
-      const uploadFormData = new FormData();
-      uploadFormData.append("file", imageFile);
-      uploadFormData.append("type", "avatar");
-      uploadAction(uploadFormData);
-    } else {
-      profileAction(formData);
-    }
-  };
-
+  // Handle profile action result
   useEffect(() => {
     if (profileState?.success) {
       router.refresh();
       alert("Profil berhasil diperbarui!");
     } else if (profileState?.error) {
-      setFormError(profileState.error);
+      setFormError(profileState.error); // eslint-disable-line react-hooks/set-state-in-effect
     }
   }, [profileState, router]);
 
+  // Handle upload action result
   useEffect(() => {
     if (uploadState?.success && uploadState.data?.url) {
       const formData = new FormData();
@@ -211,7 +184,7 @@ export default function ProfileSettingsPage() {
       formData.append("district", district || "");
       profileAction(formData);
     } else if (uploadState?.error) {
-      setFormError(uploadState.error);
+      setFormError(uploadState.error); // eslint-disable-line react-hooks/set-state-in-effect
     }
   }, [uploadState, name, phone, province, city, district, profileAction]);
 
@@ -336,7 +309,7 @@ export default function ProfileSettingsPage() {
             <div className="space-y-2">
               <Label htmlFor="province">Provinsi</Label>
               <input type="hidden" name="province" value={province} />
-              <Select
+<Select
                 value={province}
                 onValueChange={(value) => {
                   setProvince(value ?? "");
@@ -344,13 +317,13 @@ export default function ProfileSettingsPage() {
                   setDistrict("");
                 }}
                 disabled={
-                  loadingProvinces || isProfilePending || isUploadPending
+                  provincesLoading || isProfilePending || isUploadPending
                 }
               >
                 <SelectTrigger id="province">
                   <SelectValue
                     placeholder={
-                      loadingProvinces ? "Memuat provinsi..." : "Pilih Provinsi"
+                      provincesLoading ? "Memuat provinsi..." : "Pilih Provinsi"
                     }
                   />
                 </SelectTrigger>
@@ -375,7 +348,7 @@ export default function ProfileSettingsPage() {
                 }}
                 disabled={
                   !province ||
-                  loadingCities ||
+                  citiesLoading ||
                   isProfilePending ||
                   isUploadPending
                 }
@@ -383,11 +356,11 @@ export default function ProfileSettingsPage() {
                 <SelectTrigger id="city">
                   <SelectValue
                     placeholder={
-                      loadingCities
+                      citiesLoading
                         ? "Memuat kota..."
                         : !province
-                          ? "Pilih provinsi dahulu"
-                          : "Pilih Kota/Kabupaten"
+                        ? "Pilih provinsi dahulu"
+                        : "Pilih Kota/Kabupaten"
                     }
                   />
                 </SelectTrigger>
@@ -409,7 +382,7 @@ export default function ProfileSettingsPage() {
                 onValueChange={(value) => setDistrict(value ?? "")}
                 disabled={
                   !city ||
-                  loadingDistricts ||
+                  districtsLoading ||
                   isProfilePending ||
                   isUploadPending
                 }
@@ -417,11 +390,11 @@ export default function ProfileSettingsPage() {
                 <SelectTrigger id="district">
                   <SelectValue
                     placeholder={
-                      loadingDistricts
+                      districtsLoading
                         ? "Memuat kecamatan..."
                         : !city
-                          ? "Pilih kota dahulu"
-                          : "Pilih Kecamatan"
+                        ? "Pilih kota dahulu"
+                        : "Pilih Kecamatan"
                     }
                   />
                 </SelectTrigger>

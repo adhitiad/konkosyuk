@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { platformSettings } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import type { Role } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit-log";

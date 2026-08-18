@@ -4,7 +4,7 @@ import { notifications } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 
 export async function PATCH(
   req: NextRequest,

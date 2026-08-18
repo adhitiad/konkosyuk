@@ -24,7 +24,8 @@ export function withOwnerAuth<P extends object>(
           router.push("/dashboard");
         }
       }
-    }, [session, isPending, router, allowedRoles, userRole]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [session, isPending, router, userRole]);
 
     return (
       <div suppressHydrationWarning>

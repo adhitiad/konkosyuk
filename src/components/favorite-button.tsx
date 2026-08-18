@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { HeartIcon } from "@hugeicons/core-free-icons";
 import {
-  showToastSuccess,
   showToastError,
   showToastInfo,
 } from "@/lib/use-toast-custom";

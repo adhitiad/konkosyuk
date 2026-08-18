@@ -2,7 +2,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -19,7 +18,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { Pagination } from "@/components/ui/pagination";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -94,8 +92,6 @@ export default function PropertiesPage() {
     lng: number;
   } | null>(null);
   const [radius, setRadius] = useState(5);
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000000]);
   const limit = 12;
 
   const search = searchParams.get("search") || "";
@@ -107,20 +103,20 @@ export default function PropertiesPage() {
 
   const debouncedSearch = useDebounce(search, 500);
 
-  useEffect(() => {
-    const amenitiesArray = amenitiesParam
-      ? amenitiesParam.split(",").filter(Boolean)
-      : [];
-    setSelectedAmenities(amenitiesArray);
+  // Compute selectedAmenities from URL param directly
+  const selectedAmenities = useMemo(() => {
+    return amenitiesParam ? amenitiesParam.split(",").filter(Boolean) : [];
   }, [amenitiesParam]);
 
-  useEffect(() => {
+  // Compute priceRange from URL params directly
+  const priceRange = useMemo(() => {
     if (minPriceParam || maxPriceParam) {
-      setPriceRange([
+      return [
         Number(minPriceParam) || 0,
         Number(maxPriceParam) || 10000000,
-      ]);
+      ];
     }
+    return [0, 10000000] as [number, number];
   }, [minPriceParam, maxPriceParam]);
 
   const params = useMemo(
@@ -228,8 +224,6 @@ export default function PropertiesPage() {
     setPage(1);
     setUserLocation(null);
     setRadius(5);
-    setSelectedAmenities([]);
-    setPriceRange([0, 10000000]);
     router.push("/properties");
   }, [router]);
 
@@ -241,8 +235,7 @@ export default function PropertiesPage() {
     [],
   );
 
-  const items = data?.data ?? [];
-  const total = data?.meta?.total ?? 0;
+  const items = useMemo(() => data?.data ?? [], [data?.data]);
   const totalPages = data?.meta?.totalPages ?? 1;
 
   const mapMarkers = useMemo(
@@ -365,7 +358,6 @@ export default function PropertiesPage() {
                 value={priceRange[0] || ""}
                 onChange={(e) => {
                   const val = Number(e.target.value);
-                  setPriceRange([val, priceRange[1]]);
                   updateFilter("minPrice", val > 0 ? String(val) : "");
                 }}
                 min={0}
@@ -377,7 +369,6 @@ export default function PropertiesPage() {
                 value={priceRange[1] || ""}
                 onChange={(e) => {
                   const val = Number(e.target.value);
-                  setPriceRange([priceRange[0], val]);
                   updateFilter("maxPrice", val > 0 ? String(val) : "");
                 }}
                 min={0}

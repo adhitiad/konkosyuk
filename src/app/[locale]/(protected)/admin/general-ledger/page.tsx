@@ -1,24 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth-client";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
-import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import { apiClient } from "@/lib/axios";
 import { withAdminAuth } from "@/lib/with-admin-auth";
@@ -72,7 +62,6 @@ const formatDate = (value: string | null | undefined) => {
 export default withAdminAuth(AdminGeneralLedgerPage);
 
 function AdminGeneralLedgerPage() {
-  const queryClient = useQueryClient();
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [accountCode, setAccountCode] = useState("");

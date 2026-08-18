@@ -1,11 +1,10 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { eq, and, ne } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { validateAdminRequest, validateAdminOnlyRequest } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
-import type { Role } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit-log";
 
 const updateUserSchema = z.object({
@@ -23,7 +22,7 @@ export async function PATCH(
   try {
     const authResult = await validateAdminRequest(req);
     if (authResult instanceof Response) return authResult;
-    const { session, ipAddress, userAgent } = authResult;
+    const { session } = authResult;
     const { id: userId } = await params;
     const body = updateUserSchema.parse(await req.json());
 
@@ -109,7 +108,7 @@ export async function DELETE(
   try {
     const authResult = await validateAdminOnlyRequest(req);
     if (authResult instanceof Response) return authResult;
-    const { session, ipAddress, userAgent } = authResult;
+    const { session } = authResult;
     const { id: userId } = await params;
 
     const [existing] = await db

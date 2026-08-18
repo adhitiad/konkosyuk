@@ -13,8 +13,9 @@ import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MapPinIcon, LoaderPinwheelIcon } from "@hugeicons/core-free-icons";
 import { getStructuredAddressFromCoords } from "@/lib/geolocation";
+import type { StyleSpecification } from "maplibre-gl";
 
-const OSM_STYLE = {
+const OSM_STYLE: StyleSpecification = {
   version: 8,
   sources: {
     "carto-tiles": {
@@ -79,7 +80,7 @@ export default function PropertyMapPicker({
           city: address.city,
           district: address.district,
         });
-      } catch (err) {
+      } catch {
         onLocationSelected({
           lat,
           lng,
@@ -140,7 +141,7 @@ export default function PropertyMapPicker({
             latitude: position ? position[0] : -6.2088,
             zoom: position ? 15 : 13,
           }}
-          mapStyle={OSM_STYLE as any}
+          mapStyle={OSM_STYLE}
           onClick={handleMapClick}
           interactive={true}
         >

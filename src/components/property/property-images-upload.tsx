@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/toast";
 import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
@@ -40,9 +39,9 @@ export function PropertyImagesUpload({
   );
   const [dragActive, setDragActive] = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-  const [uploadState, uploadAction] = useActionState(
+const [dragIndex, setDragIndex] = useState<number | null>(null);
+const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+const [, uploadAction] = useActionState(
     uploadImageAction,
     undefined,
   );
@@ -118,7 +117,7 @@ export function PropertyImagesUpload({
           } else {
             throw new Error(result?.error || "Upload gagal");
           }
-        } catch (error) {
+        } catch {
           toast({
             title: "Upload gagal",
             description: `Gagal upload ${file.name}`,

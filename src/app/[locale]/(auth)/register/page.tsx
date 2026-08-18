@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Card,
   CardContent,
   CardHeader,
   CardTitle,
@@ -83,7 +82,7 @@ export default function RegisterPage() {
       }
 
       router.push("/login?registered=1");
-    } catch (err) {
+    } catch {
       setError("Terjadi kesalahan sistem");
     } finally {
       setLoading(false);

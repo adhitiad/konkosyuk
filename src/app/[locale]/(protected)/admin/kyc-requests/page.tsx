@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +21,6 @@ import {
   Clock01Icon,
   CheckmarkCircle02Icon,
   Cancel01Icon,
-  ExternalLinkIcon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "@/components/ui/toast";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
@@ -53,12 +51,11 @@ interface KYCRequest {
 export default withAdminAuth(AdminKYCRequestsPage);
 
 function AdminKYCRequestsPage() {
-  const { data: session } = useSession();
   const queryClient = useQueryClient();
   const [rejectUserId, setRejectUserId] = useState<string | null>(null);
   const [adminNote, setAdminNote] = useState("");
 
-  const { data, isLoading, isError, error, refetch } = useQuery<{
+  const { data, isLoading, isError, error } = useQuery<{
     data: KYCRequest[];
   }>({
     queryKey: ["admin-kyc-requests"],
@@ -111,15 +108,14 @@ function AdminKYCRequestsPage() {
 
   const requests: KYCRequest[] = Array.isArray(data?.data) ? data.data : [];
 
-  // Use a stable timestamp from the component's mount/render to avoid impure function during render
-  const renderTime = useRef(Date.now());
-
+  const [now, setNow] = useState(0);
   useEffect(() => {
-    renderTime.current = Date.now();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setNow(Date.now());
   }, []);
 
   const getWaitTime = (updatedAt: string) => {
-    const diff = renderTime.current - new Date(updatedAt).getTime();
+    const diff = now - new Date(updatedAt).getTime();
     const minutes = Math.floor(diff / 60000);
     if (minutes < 60) return `${minutes} menit`;
     const hours = Math.floor(minutes / 60);
@@ -127,7 +123,7 @@ function AdminKYCRequestsPage() {
   };
 
   const isNearLimit = (updatedAt: string) => {
-    const diff = renderTime.current - new Date(updatedAt).getTime();
+    const diff = now - new Date(updatedAt).getTime();
     return diff > 20 * 60 * 1000;
   };
 
@@ -233,6 +229,7 @@ function AdminKYCRequestsPage() {
                   </div>
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Preview Foto KTP</p>
+                    // eslint-disable-next-line @next/next/no-img-element
                     {request.ktpImageUrl ? (
                       <img
                         src={request.ktpImageUrl}

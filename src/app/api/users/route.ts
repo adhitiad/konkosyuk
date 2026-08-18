@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { users } from "@/db/schema";
-import { eq, or, like, sql, desc, and } from "drizzle-orm";
+import { users, userRole } from "@/db/schema";
+import { eq, or, like, desc, and } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 import type { Role } from "@/lib/auth";
 
 const publicFields = {
@@ -48,7 +48,9 @@ export async function GET(req: NextRequest) {
       conditions.push(or(like(users.name, term), like(users.email, term)));
     }
     if (role) {
-      conditions.push(eq(users.role, role as any));
+      conditions.push(
+        eq(users.role, role as (typeof userRole)[number]),
+      );
     }
 
     const where =

@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
@@ -55,7 +53,6 @@ export default withAdminAuth(AdminPaymentGatewaysPage);
 
 function AdminPaymentGatewaysPage() {
   const queryClient = useQueryClient();
-  const { data: session } = useSession();
   const [editTarget, setEditTarget] = useState<PaymentGatewayConfig | null>(
     null,
   );
@@ -64,7 +61,7 @@ function AdminPaymentGatewaysPage() {
   const [formActive, setFormActive] = useState<boolean>(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
-  const { data, isLoading, isError, error, refetch } =
+  const { data, isError, error, refetch } =
     useQuery<PaymentGatewayResponse>({
       queryKey: ["payment-gateway-configs"],
       queryFn: async () => {

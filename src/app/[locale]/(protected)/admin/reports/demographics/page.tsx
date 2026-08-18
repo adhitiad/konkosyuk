@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -67,8 +66,6 @@ interface DemographicsResponse {
   filterType: string;
 }
 
-const REGION_API = "/api/proxy/wilayah";
-
 const PIE_COLORS = [
   "#3b82f6",
   "#10b981",
@@ -86,7 +83,6 @@ const PIE_COLORS = [
 export default withAdminAuth(AdminDemographicsPage);
 
 function AdminDemographicsPage() {
-  const { data: session } = useSession();
   const [filterType, setFilterType] = useState<"user" | "owner">("user");
   const [province, setProvince] = useState("");
   const [city, setCity] = useState("");
@@ -96,7 +92,7 @@ function AdminDemographicsPage() {
   const [provinces, setProvinces] = useState<{ id: string; name: string }[]>(
     [],
   );
-  const [cities, setCities] = useState<{ id: string; name: string }[]>([]);
+  const [cities] = useState<{ id: string; name: string }[]>([]);
   const [districts, setDistricts] = useState<{ id: string; name: string }[]>(
     [],
   );

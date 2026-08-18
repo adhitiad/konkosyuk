@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
 import { MessageSquare, User } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
@@ -11,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 
 interface ChatRoomListProps {
   rooms: ChatRoom[];
-  currentUserId: string;
   currentUserRole: "owner" | "tenant";
   selectedRoomId?: string;
   onRoomSelect?: (room: ChatRoom) => void;
@@ -20,7 +18,6 @@ interface ChatRoomListProps {
 
 export default function ChatRoomList({
   rooms,
-  currentUserId,
   currentUserRole,
   selectedRoomId,
   onRoomSelect,

@@ -19,7 +19,7 @@ export async function PATCH(
   try {
     const authResult = await validateAdminOnlyRequest(req);
     if (authResult instanceof Response) return authResult;
-    const { session, ipAddress, userAgent } = authResult;
+    const { session } = authResult;
     const { id: userId } = await params;
     const body = banUserSchema.parse(await req.json());
 

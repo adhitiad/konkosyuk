@@ -68,7 +68,8 @@ function MonetizationSettingsPage() {
         );
       }
 
-      const result = await updatePlatformFeeAction(undefined, formData);
+      const response = await updatePlatformFeeAction(undefined, formData);
+      const result = await response.json();
       if (!result.success) {
         throw new Error(result.error || "Failed to update settings");
       }

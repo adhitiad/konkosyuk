@@ -17,7 +17,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
@@ -82,7 +81,6 @@ function AdminDashboardPage() {
   const {
     data: stats,
     isLoading: statsLoading,
-    isError: statsError,
   } = useQuery<AdminStats>({
     queryKey: ["admin-stats"],
     queryFn: async () => {

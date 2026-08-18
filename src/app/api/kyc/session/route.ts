@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { kycVerifications, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
@@ -97,7 +96,7 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

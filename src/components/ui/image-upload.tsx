@@ -11,15 +11,12 @@ interface ImageUploadProps {
 
 function ImageUpload({ initialImageUrl, onUploadComplete }: ImageUploadProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(
-    initialImageUrl ?? null,
-  );
+  const [preview, setPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  useEffect(() => {
-    setPreview(initialImageUrl ?? null);
-  }, [initialImageUrl]);
+  // Derive the current preview URL: use file preview if available, otherwise initialImageUrl
+  const currentPreview = preview ?? initialImageUrl ?? null;
 
   useEffect(() => {
     if (!preview) return;
@@ -101,16 +98,17 @@ function ImageUpload({ initialImageUrl, onUploadComplete }: ImageUploadProps) {
       <div
         className={cn(
           "relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 dark:bg-neutral-900 dark:border-neutral-700 dark:hover:bg-neutral-800 transition-colors overflow-hidden",
-          (file || preview) && "p-0",
+          (file || currentPreview) && "p-0",
         )}
         onClick={() =>
-          !preview && document.getElementById("image-upload-input")?.click()
+          !currentPreview && document.getElementById("image-upload-input")?.click()
         }
       >
-        {preview ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        {currentPreview ? (
           <>
             <img
-              src={preview}
+              src={currentPreview}
               alt="Preview"
               className="h-full w-full object-cover rounded-lg"
             />

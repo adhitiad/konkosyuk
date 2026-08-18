@@ -54,7 +54,6 @@ export async function invalidateCache(key: string): Promise<void> {
 
 export async function invalidateCacheByTag(tag: string): Promise<void> {
   const client = await getRedis();
-  const pattern = `${CACHE_PREFIX}*:${tag}`;
 
   const keys = await client.get<string[]>(`tags:${tag}`);
   if (keys && Array.isArray(keys)) {

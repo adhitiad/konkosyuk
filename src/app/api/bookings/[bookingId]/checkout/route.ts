@@ -1,15 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { bookings, payments, users } from "@/db/schema";
 import type { NewPayment } from "@/db/schema";
-import { eq, and, or, gte } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { bookingRateLimit, enforceRateLimit } from "@/lib/rate-limit";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { checkoutBookingSchema } from "@/lib/zod";
 import { getPaymentProvider } from "@/lib/payments";
-import type { PaymentProviderName } from "@/lib/payments/types";
 import { generateInvoiceNumber, money } from "@/lib/utils";
 import { checkFraudFlags } from "@/lib/fraud-check";
 import type { Role } from "@/lib/auth";

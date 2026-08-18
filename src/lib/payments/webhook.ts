@@ -31,7 +31,7 @@ export async function handleWebhookRequest(
   let normalized: NormalizedWebhook;
   try {
     normalized = await adapter.normalizeWebhook(ctx);
-  } catch (error) {
+  } catch {
     return new Response("Invalid webhook payload", { status: 400 });
   }
 

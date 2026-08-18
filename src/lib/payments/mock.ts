@@ -24,12 +24,12 @@ export const mockAdapter: PaymentProviderAdapter = {
     };
   },
 
-  async getPaymentStatus(_transactionId: string) {
+  async getPaymentStatus(_: string) {
     await new Promise((resolve) => setTimeout(resolve, 300));
     return "success";
   },
 
-  async verifyWebhookSignature(_context: WebhookContext): Promise<boolean> {
+  async verifyWebhookSignature(_: WebhookContext): Promise<boolean> {
     return true;
   },
 

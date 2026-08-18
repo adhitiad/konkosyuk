@@ -1,13 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { bookings, properties, units, payments } from "@/db/schema";
-import { eq, and, sql, desc, count, sum, inArray } from "drizzle-orm";
+import { eq, and, sql, count, sum, inArray } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 import type { Role } from "@/lib/auth";
 import { logError } from "@/lib/logger";
+import type { PgColumn } from "drizzle-orm/pg-core";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const session = await requireSession(["owner", "admin"] as Role[]);
 
@@ -97,6 +98,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-function castAmount(column: any): any {
+function castAmount(column: PgColumn): sql.SQL<number> {
   return sql<number>`CAST(${column} AS NUMERIC)`;
 }

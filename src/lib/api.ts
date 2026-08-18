@@ -1,6 +1,6 @@
 import { ApiError, getAxiosInstance } from "./api.client";
 import { logError } from "./logger";
-import { z, ZodError } from "zod";
+import { ZodError } from "zod";
 import {
   ApiError as AppApiError,
   ValidationError,

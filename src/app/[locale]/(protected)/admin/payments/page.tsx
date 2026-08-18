@@ -2,8 +2,7 @@
 
 import { useState, useActionState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth-client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
@@ -132,7 +131,7 @@ function AdminPaymentsPage() {
     undefined,
   );
 
-  const { data, isLoading, isError, error, refetch } =
+  const { data, isLoading, isError, error } =
     useQuery<PaymentResponse>({
       queryKey: ["admin-payments", statusFilter],
       queryFn: async () => {

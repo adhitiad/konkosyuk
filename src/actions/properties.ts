@@ -17,9 +17,10 @@ import { createPropertySchema, updatePropertySchema } from "@/lib/zod";
 import { invalidateCacheByTag } from "@/lib/cache";
 import type { Role } from "@/lib/auth";
 import { money, generateInvoiceNumber } from "@/lib/utils";
-import { getPaymentProvider, isPaymentProviderName } from "@/lib/payments";
-import type { PaymentProviderName } from "@/lib/payments/types";
+import { getPaymentProvider } from "@/lib/payments";
 import { createAuditLog } from "@/lib/audit-log";
+import type { PropertyPackages } from "@/lib/types/property-packages";
+import type { NewProperty, NewPayment } from "@/db/schema";
 
 export type CreatePropertyState = {
   success?: boolean;
@@ -157,7 +158,7 @@ export async function createPropertyAction(
         isActive: false,
         isFeatured: false,
         gpsVerified: false,
-      } as any)
+      } satisfies NewProperty)
       .returning();
 
     await invalidateCacheByTag("properties");
@@ -228,7 +229,7 @@ export async function updatePropertyAction(
     }
 
     const packagesRaw = formData.get("packages");
-    let packages: any = undefined;
+    let packages: PropertyPackages | undefined = undefined;
     if (packagesRaw) {
       try {
         packages = JSON.parse(packagesRaw as string);
@@ -418,12 +419,6 @@ export async function featurePropertyAction(
     if (session.user.role !== "admin" && property.ownerId !== session.user.id) {
       return { error: "Dilarang", success: false };
     }
-
-    const [settings] = await db
-      .select()
-      .from(platformSettings)
-      .where(eq(platformSettings.id, "default"))
-      .limit(1);
 
     const [existingPayment] = await db
       .select({
@@ -658,7 +653,7 @@ export async function checkoutFeaturedAction(
     const [payment] = await db
       .insert(payments)
       .values({
-        ...({ bookingId: "00000000-0000-0000-0000-000000000000" } as any),
+        bookingId: "00000000-0000-0000-0000-000000000000",
         propertyId: property.id,
         provider: validated.paymentProvider,
         purpose: "featured_listing",
@@ -670,7 +665,7 @@ export async function checkoutFeaturedAction(
           propertyId: property.id,
           ownerId: property.ownerId,
         },
-      } as any)
+      } satisfies NewPayment)
       .returning();
 
     try {

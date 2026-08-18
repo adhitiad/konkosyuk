@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { validateCsrfToken, getCsrfToken } from "@/lib/csrf";
+import { validateCsrfToken } from "@/lib/csrf";
 import { withAdminRateLimit } from "@/lib/admin-rate-limit";
-import { createAuditLog } from "@/lib/audit-log";
 
 export function validateMutationCsrf(req: NextRequest) {
   const result = validateCsrfToken(req);

@@ -6,13 +6,11 @@ import { Button } from "@/components/ui/button";
 import { replySchema } from "@/lib/validations/reviews";
 
 interface OwnerReplyFormProps {
-  reviewId: string;
   onSubmit: (content: string) => Promise<void>;
   onCancel?: () => void;
 }
 
 export function OwnerReplyForm({
-  reviewId,
   onSubmit,
   onCancel,
 }: OwnerReplyFormProps) {

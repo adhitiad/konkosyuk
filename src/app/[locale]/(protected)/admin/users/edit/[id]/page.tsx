@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import Image from "next/image";
-import { randomUUID } from "crypto";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
@@ -51,19 +49,6 @@ function UserEditPage() {
   const userId = params.id as string;
   const queryClient = useQueryClient();
 
-  const [editName, setEditName] = useState("");
-  const [editEmail, setEditEmail] = useState("");
-  const [editRole, setEditRole] = useState("");
-  const [editIsActive, setEditIsActive] = useState(true);
-  const [editIsBanned, setEditIsBanned] = useState(false);
-  const [editPhone, setEditPhone] = useState("");
-  const [editWhatsapp, setEditWhatsapp] = useState("");
-  const [editTelegram, setEditTelegram] = useState("");
-  const [editDistrict, setEditDistrict] = useState("");
-  const [editCity, setEditCity] = useState("");
-  const [editProvince, setEditProvince] = useState("");
-  const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
-
   const {
     data,
     isLoading,
@@ -81,21 +66,18 @@ function UserEditPage() {
 
   const user = data?.data;
 
-  useEffect(() => {
-    if (user) {
-      setEditName(user.name);
-      setEditEmail(user.email);
-      setEditRole(user.role);
-      setEditIsActive(user.isActive);
-      setEditIsBanned(user.isBanned);
-      setEditPhone(user.phone || "");
-      setEditWhatsapp(user.whatsapp || "");
-      setEditTelegram(user.telegram || "");
-      setEditDistrict(user.district || "");
-      setEditCity(user.city || "");
-      setEditProvince(user.province || "");
-    }
-  }, [user]);
+  const [editName, setEditName] = useState(user?.name ?? "");
+  const [editEmail, setEditEmail] = useState(user?.email ?? "");
+  const [editRole, setEditRole] = useState(user?.role ?? "");
+  const [editIsActive, setEditIsActive] = useState(user?.isActive ?? true);
+  const [editIsBanned, setEditIsBanned] = useState(user?.isBanned ?? false);
+  const [editPhone, setEditPhone] = useState(user?.phone ?? "");
+  const [editWhatsapp, setEditWhatsapp] = useState(user?.whatsapp ?? "");
+  const [editTelegram, setEditTelegram] = useState(user?.telegram ?? "");
+  const [editDistrict, setEditDistrict] = useState(user?.district ?? "");
+  const [editCity, setEditCity] = useState(user?.city ?? "");
+  const [editProvince, setEditProvince] = useState(user?.province ?? "");
+  const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
 
   const editMutation = useMutation({
     mutationFn: async ({

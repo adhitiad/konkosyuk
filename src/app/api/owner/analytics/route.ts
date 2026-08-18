@@ -1,12 +1,10 @@
-import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { bookings, properties, units } from "@/db/schema";
-import { eq, sql, desc, and } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
-import { ok, fail, handleApiError } from "@/lib/api";
-import type { Role } from "@/lib/auth";
+import { ok, handleApiError } from "@/lib/api";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await requireSession(["owner", "admin", "staff"]);
 

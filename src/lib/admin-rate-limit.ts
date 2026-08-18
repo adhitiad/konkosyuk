@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { adminRateLimit } from "@/lib/rate-limit";
 import { getOrCreateDeviceId, getDeviceName } from "@/lib/device";
 
-export async function withAdminRateLimit(req: NextRequest) {
+export async function withAdminRateLimit() {
   const deviceId = await getOrCreateDeviceId();
   const deviceName = await getDeviceName();
 

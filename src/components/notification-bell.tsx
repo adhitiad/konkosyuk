@@ -36,22 +36,12 @@ export default function NotificationBell() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [mounted] = useState(true);
   const eventSourceRef = useRef<EventSource | null>(null);
   const { data, refetch } = useQuery<{ data: { data: Notification[] } }>({
     queryKey: ["notifications"],
     enabled: Boolean(session),
     queryFn: async () => (await apiClient.get("/api/notifications")).data,
-  });
-  const markAllAsRead = useMutation({
-    mutationFn: async () => {
-      const formData = new FormData();
-      const result = await markAllNotificationsReadAction(undefined, formData);
-      if (result.error) throw new Error(result.error);
-      return result.data;
-    },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["notifications"] }),
   });
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: string) => {
@@ -68,11 +58,6 @@ export default function NotificationBell() {
   const unreadCount = notifications.filter(
     (notification) => !notification.isRead,
   ).length;
-
-  useEffect(() => {
-    // Set mounted on mount - this is fine for initial mount
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (!session?.user?.id) return;

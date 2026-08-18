@@ -8,13 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Globe, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { AuthLayout } from "@/components/auth/auth-layout";
@@ -48,23 +46,23 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
 
-    try {
-      const { data, error } = await authClient.signIn.email({
-        email,
-        password,
-      });
+try {
+        const result = await authClient.signIn.email({
+          email,
+          password,
+        });
 
-      if (error) {
-        setError(error.message || "Login gagal");
-        return;
+        if (result.error) {
+          setError(result.error.message || "Login gagal");
+          return;
+        }
+
+        router.refresh();
+      } catch {
+        setError("Terjadi kesalahan sistem");
+      } finally {
+        setLoading(false);
       }
-
-      router.refresh();
-    } catch (err) {
-      setError("Terjadi kesalahan sistem");
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleGoogleLogin = async () => {

@@ -25,10 +25,8 @@ function PageSkeleton() {
 
 export function AppLayout({
   children,
-  role,
 }: {
   children: React.ReactNode;
-  role?: "cust" | "owner" | "admin" | "staff";
 }) {
   return (
     <SidebarProvider>

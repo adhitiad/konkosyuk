@@ -6,7 +6,7 @@ import { headers } from "next/headers";
 import { ok, fail, handleApiError } from "@/lib/api";
 import type { SessionUserWithRole } from "@/lib/auth-client";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

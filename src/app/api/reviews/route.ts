@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { reviews, bookings, users, properties } from "@/db/schema";
-import { eq, and, desc, sql, lt } from "drizzle-orm";
+import type { NewReview } from "@/db/schema";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
@@ -16,10 +17,10 @@ const createReviewSchema = z.object({
   propertyId: z.string().uuid().optional(),
 });
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
-    const session = await requireSession();
-    const { searchParams } = new URL(req.url);
+    await requireSession();
+    const { searchParams } = new URL(_req.url);
     const propertyId = searchParams.get("propertyId");
     const userId = searchParams.get("userId");
 
@@ -133,7 +134,7 @@ export async function POST(req: NextRequest) {
           rating: body.rating,
           comment: body.comment,
           bookingId: body.bookingId,
-        } as any)
+        } satisfies NewReview)
         .returning();
 
       if (body.type === "tenant" && reviewedUserId) {

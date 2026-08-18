@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { Realtime } from "ably";
+import { Realtime, Channel, PresenceMessage } from "ably";
 import { sendMessageAction } from "@/actions/chat";
 
 export interface Message {
@@ -29,7 +29,6 @@ export interface UseChatOptions {
   roomId: string | null;
   currentUserId: string;
   onMessageReceived?: (message: Message) => void;
-  onTypingChanged?: (typing: TypingUser[]) => void;
 }
 
 export interface UseChatReturn {
@@ -47,16 +46,15 @@ export function useChat({
   roomId,
   currentUserId,
   onMessageReceived,
-  onTypingChanged,
 }: UseChatOptions): UseChatReturn {
   const [messages, setMessages] = useState<Message[]>([]);
   const [connectionStatus, setConnectionStatus] = useState("initialized");
   const [isTyping, setIsTyping] = useState(false);
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
 
-  const channelRef = useRef<any>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const clientRef = useRef<any>(null);
+  const channelRef = useRef<Channel | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clientRef = useRef<Realtime | null>(null);
 
   useEffect(() => {
     if (!roomId) return;
@@ -100,7 +98,7 @@ export function useChat({
         const channel = client.channels.get(channelName);
         channelRef.current = channel;
 
-        channel.subscribe((message: any) => {
+        channel.subscribe((message) => {
           if (!mounted) return;
           const msg = message.data as Message;
           setMessages((prev) => {
@@ -112,7 +110,7 @@ export function useChat({
           });
         });
 
-        channel.presence.subscribe((presenceMessage: any) => {
+        channel.presence.subscribe((presenceMessage: PresenceMessage) => {
           if (!mounted) return;
           const data = presenceMessage.data as TypingUser;
           if (presenceMessage.action === "enter") {

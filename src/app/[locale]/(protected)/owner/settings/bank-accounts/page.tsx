@@ -46,7 +46,6 @@ export default function BankAccountsPage() {
   const [error, setError] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [updateLoading, setUpdateLoading] = useState(false);
 
   const fetchAccounts = async () => {
     try {
@@ -90,7 +89,6 @@ export default function BankAccountsPage() {
   };
 
   const handleSetPrimary = async (id: string) => {
-    setUpdateLoading(true);
     const formData = new FormData();
     formData.append("id", id);
     formData.append("is_primary", "true");
@@ -110,7 +108,6 @@ export default function BankAccountsPage() {
     } else {
       setError(result.error || "Gagal mengubah rekening utama");
     }
-    setUpdateLoading(false);
   };
 
   const kycStatus = (session?.user as SessionUserWithRole)?.kycStatus || "none";

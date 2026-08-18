@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 import { db } from "@/db";
 import {
   bookings,
-  units,
   properties,
   payments,
   users,

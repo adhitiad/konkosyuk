@@ -32,9 +32,6 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const nameWithoutExt = file.name.includes(".")
-      ? file.name.slice(0, file.name.lastIndexOf("."))
-      : file.name;
     const rawExt = file.name.includes(".")
       ? file.name.split(".").pop()?.toLowerCase()
       : "";

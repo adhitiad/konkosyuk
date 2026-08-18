@@ -10,7 +10,7 @@ import {
   getNicepayConfig,
   getIpaymuConfig,
 } from "@/lib/payments/config";
-import { monitor, recordMetric } from "@/lib/monitoring";
+import { monitor } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 

@@ -1,12 +1,11 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { maintenanceTickets, units, properties } from "@/db/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
-import type { Role } from "@/lib/auth";
 
 const updateTicketSchema = z.object({
   status: z

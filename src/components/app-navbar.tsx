@@ -96,6 +96,7 @@ export function AppNavbar() {
               <DropdownMenuItem
                 onClick={async () => {
                   await signOut();
+                  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                   window.location.href = "/login";
                 }}
               >

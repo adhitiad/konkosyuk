@@ -2,9 +2,7 @@ import { z } from "zod";
 import type {
   PropertyPackages,
   PackageItem,
-  DurationUnit,
 } from "@/lib/types/property-packages";
-import { BANKS, E_WALLETS } from "@/lib/constants/indonesian-payments";
 
 const packageItemSchema: z.ZodType<PackageItem> = z.object({
   id: z.string().min(1),

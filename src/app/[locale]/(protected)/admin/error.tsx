@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/ui/error-state";
 
 export default function AdminError({

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { units, properties } from "@/db/schema";
 import type { NewUnit } from "@/db/schema";
@@ -6,9 +6,7 @@ import { eq, and, desc, inArray } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
-import type { Role } from "@/lib/auth";
 import { logError } from "@/lib/logger";
-import { ApiError } from "@/lib/api-error";
 
 export async function GET(req: NextRequest) {
   try {

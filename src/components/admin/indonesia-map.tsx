@@ -6,6 +6,7 @@ import Map, {
   Layer,
   Popup,
   NavigationControl,
+  type MapLayerMouseEvent,
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Loader2, AlertCircle } from "lucide-react";
@@ -13,7 +14,7 @@ import { Loader2, AlertCircle } from "lucide-react";
 // --- TIPE DATA ---
 interface GeoJSONFeature {
   type: "Feature";
-  properties: { name: string; [key: string]: any };
+  properties: { name: string } & Record<string, unknown>;
   geometry: { type: "Polygon" | "MultiPolygon"; coordinates: number[][][] };
 }
 interface GeoJSONData {
@@ -30,10 +31,15 @@ interface IndonesiaMapProps {
   data: RegionData[];
   filterType: "user" | "owner";
 }
+interface PopupInfo {
+  longitude: number;
+  latitude: number;
+  feature: GeoJSONFeature;
+}
 
 // --- CARTO BASEMAP STYLE ---
 // Style mirip Google Maps, ringan dan bersih
-const OSM_STYLE = {
+const OSM_STYLE: StyleSpecification = {
   version: 8,
   sources: {
     "carto-tiles": {
@@ -58,14 +64,13 @@ const OSM_STYLE = {
       maxzoom: 19,
     },
   ],
-} as const;
+};
 
 export default function IndonesiaMap({ data, filterType }: IndonesiaMapProps) {
   const [geoJsonData, setGeoJsonData] = useState<GeoJSONData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [popupInfo, setPopupInfo] = useState<any>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
+  const [popupInfo, setPopupInfo] = useState<PopupInfo | null>(null);
 
   // 1. Load GeoJSON Lokal
   useEffect(() => {
@@ -113,13 +118,13 @@ export default function IndonesiaMap({ data, filterType }: IndonesiaMapProps) {
   }, [geoJsonData, data]);
 
   // 3. Handle Interaksi
-  const handleFeatureClick = useCallback((event: any) => {
+  const handleFeatureClick = useCallback((event: MapLayerMouseEvent) => {
     const feature = event.features?.[0];
     if (feature) {
       setPopupInfo({
         longitude: event.lngLat.lng,
         latitude: event.lngLat.lat,
-        feature,
+        feature: feature as GeoJSONFeature,
       });
     }
   }, []);
@@ -148,10 +153,8 @@ export default function IndonesiaMap({ data, filterType }: IndonesiaMapProps) {
         <Map
           initialViewState={{ longitude: 118, latitude: -2, zoom: 4 }}
           style={{ width: "100%", height: "100%" }}
-          mapStyle={OSM_STYLE as any}
-          onLoad={(e) => {
-            setMapLoaded(true);
-          }}
+          mapStyle={OSM_STYLE}
+          onLoad={() => {}}
           onError={(e) => {
             console.error("[Map] ❌ Map error:", e.error);
           }}
@@ -163,7 +166,7 @@ export default function IndonesiaMap({ data, filterType }: IndonesiaMapProps) {
           <Source
             id="indonesia-regions"
             type="geojson"
-            data={finalGeoJSON as any}
+            data={finalGeoJSON}
           >
             <Layer
               id="region-fill"

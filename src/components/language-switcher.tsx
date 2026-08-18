@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { type Language, languages } from "@/lib/i18n";
+import { languages } from "@/lib/i18n";
 
 export function LanguageSwitcher() {
   const locale = useLocale();

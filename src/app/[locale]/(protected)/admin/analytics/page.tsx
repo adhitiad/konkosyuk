@@ -22,9 +22,8 @@ import {
 } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { AlertCircleIcon, Analytics01Icon } from "@hugeicons/core-free-icons";
+import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
-import { toast } from "@/components/ui/toast";
 import { apiClient } from "@/lib/axios";
 import { withAdminAuth } from "@/lib/with-admin-auth";
 

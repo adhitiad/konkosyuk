@@ -14,7 +14,6 @@ import { formatCurrency } from "@/lib/utils/currency";
 import { Link } from "@/config";
 import { KONKOSYUK_MAP_STYLE } from "@/lib/maplibre-style";
 
-// --- TIPE DATA ---
 export interface MapProperty {
   id: string;
   name: string;
@@ -95,7 +94,7 @@ export default function MapLibreMap({
       const feature = event.features?.[0];
       if (!feature) return;
 
-      const props = feature.properties as Record<string, any>;
+      const props = feature.properties as Record<string, unknown>;
       const property = validProperties.find((p) => p.id === props.id);
       if (!property) return;
 
@@ -134,7 +133,7 @@ export default function MapLibreMap({
           zoom: 11,
         }}
         style={{ width: "100%", height: "100%" }}
-        mapStyle={KONKOSYUK_MAP_STYLE as any}
+        mapStyle={KONKOSYUK_MAP_STYLE}
         interactiveLayerIds={["unclustered-point"]}
         onClick={handleMapClick}
         onLoad={() => setMapLoaded(true)}

@@ -1,22 +1,20 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { notifications, users } from "@/db/schema";
-import { eq, desc, sql, and, or, ilike } from "drizzle-orm";
+import { eq, desc, and, or, ilike, type SQL } from "drizzle-orm";
 import { validateAdminRequest } from "@/lib/api-auth";
-import { ok, fail, handleApiError } from "@/lib/api";
-import type { Role } from "@/lib/auth";
+import { ok, handleApiError } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
   try {
     const authResult = await validateAdminRequest(req);
     if (authResult instanceof Response) return authResult;
-    const { session } = authResult;
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type");
     const isRead = searchParams.get("isRead");
     const search = searchParams.get("search");
 
-    const conditions: any[] = [];
+    const conditions: SQL<unknown>[] = [];
 
     if (type) {
       conditions.push(

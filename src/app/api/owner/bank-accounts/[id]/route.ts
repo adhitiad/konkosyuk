@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { ownerBankAccounts, users } from "@/db/schema";
+import { ownerBankAccounts } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
@@ -14,7 +14,7 @@ export async function GET(
   try {
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
-    const session = await requireSession(["owner"] as any);
+    const session = await requireSession(["owner"] as const);
     const { id } = await params;
 
     const [account] = await db
@@ -46,7 +46,7 @@ export async function PATCH(
   try {
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
-    const session = await requireSession(["owner"] as any);
+    const session = await requireSession(["owner"] as const);
     const { id } = await params;
     const body = await req.json();
 
@@ -90,7 +90,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await requireSession(["owner"] as any);
+    const session = await requireSession(["owner"] as const);
     const { id } = await params;
 
     const [account] = await db

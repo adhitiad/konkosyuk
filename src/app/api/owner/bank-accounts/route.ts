@@ -5,12 +5,12 @@ import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { addBankAccountSchema } from "@/lib/zod";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { logError } from "@/lib/logger";
 
 export async function GET() {
   try {
-    const session = await requireSession(["owner"] as any);
+    const session = await requireSession(["owner"] as const);
 
     const accounts = await db
       .select()
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   try {
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
-    const session = await requireSession(["owner"] as any);
+    const session = await requireSession(["owner"] as const);
     const body = addBankAccountSchema.parse(await req.json());
 
     const [user] = await db

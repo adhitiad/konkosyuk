@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import type { Theme } from "@/lib/themes";
 import { themes } from "@/lib/themes";
 
@@ -11,26 +11,26 @@ type ThemeContextType = {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("light");
-
-  // Initialize theme from localStorage on mount without setState in effect
-  useEffect(() => {
-    const stored = localStorage.getItem("theme") as Theme | null;
-    if (stored && themes[stored]) {
-      applyTheme(stored);
-      setTheme(stored);
-    } else {
-      applyTheme("light");
-      setTheme("light");
-    }
-  }, []);
-
-  function applyTheme(next: Theme) {
+function applyTheme(next: Theme) {
+  if (typeof window !== "undefined") {
     const root = document.documentElement;
     root.classList.remove("light", "dark", "aurora");
     root.classList.add(themes[next].class);
   }
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("theme") as Theme | null;
+      if (stored && themes[stored]) {
+        applyTheme(stored);
+        return stored;
+      }
+    }
+    applyTheme("light");
+    return "light";
+  });
 
   function handleSetTheme(next: Theme) {
     setTheme(next);

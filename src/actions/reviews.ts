@@ -8,7 +8,7 @@ import {
   reviewReplies,
   properties,
 } from "@/db/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";

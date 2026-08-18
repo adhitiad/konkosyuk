@@ -8,9 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 
 interface FavoriteProperty {
   id: string;

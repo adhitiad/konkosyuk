@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -111,7 +110,6 @@ const transactionTypeConfig: Record<
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { data: session } = useSession();
   const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
 
   const {

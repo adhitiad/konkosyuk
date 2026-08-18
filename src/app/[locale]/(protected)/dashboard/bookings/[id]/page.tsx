@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth-client";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -135,7 +134,6 @@ const statusSteps = [
 export default function BookingDetailPage() {
   const params = useParams();
   const bookingId = params.id as string;
-  const { data: session } = useSession();
 
   const { data, isLoading, isError, error } = useQuery<{ data: BookingDetail }>(
     {

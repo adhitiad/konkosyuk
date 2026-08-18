@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { propertyRatings, reviews } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 
 export async function GET(
   req: NextRequest,

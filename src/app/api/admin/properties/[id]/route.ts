@@ -7,7 +7,6 @@ import { eq, and, inArray } from "drizzle-orm";
 import { validateAdminOnlyRequest } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
-import type { Role } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit-log";
 
 const updatePropertySchema = z.object({
@@ -33,7 +32,7 @@ export async function PATCH(
   try {
     const authResult = await validateAdminOnlyRequest(req);
     if (authResult instanceof Response) return authResult;
-    const { session, ipAddress, userAgent } = authResult;
+    const { session } = authResult;
     const { id: propertyId } = await params;
     const body = updatePropertySchema.parse(await req.json());
 
@@ -100,7 +99,7 @@ export async function DELETE(
   try {
     const authResult = await validateAdminOnlyRequest(req);
     if (authResult instanceof Response) return authResult;
-    const { session, ipAddress, userAgent } = authResult;
+    const { session } = authResult;
     const { id: propertyId } = await params;
 
     const [existing] = await db

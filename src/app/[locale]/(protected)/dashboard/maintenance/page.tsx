@@ -22,8 +22,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon, EyeIcon } from "@hugeicons/core-free-icons";
 import MaintenanceTicketForm from "@/components/maintenance/maintenance-ticket-form";
@@ -58,7 +56,6 @@ const priorityConfig: Record<
 };
 
 export default function TenantMaintenancePage() {
-  const { data: session } = useSession();
   const queryClient = useQueryClient();
   const [selectedTicket, setSelectedTicket] =
     useState<MaintenanceTicket | null>(null);
@@ -254,6 +251,7 @@ export default function TenantMaintenancePage() {
                 <div>
                   <p className="text-xs text-muted-foreground mb-2">Gambar</p>
                   <div className="flex flex-wrap gap-2">
+                    // eslint-disable-next-line @next/next/no-img-element
                     {selectedTicket.images.map((url, idx) => (
                       <img
                         key={idx}

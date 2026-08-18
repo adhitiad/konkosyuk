@@ -2,8 +2,8 @@ import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { balanceLogs, users } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
-import { ok, fail, handleApiError } from "@/lib/api";
-import { eq, desc, and } from "drizzle-orm";
+import { ok, handleApiError } from "@/lib/api";
+import { eq, desc } from "drizzle-orm";
 import type { Role } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {

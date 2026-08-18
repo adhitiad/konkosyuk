@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { getAblyAuth } from "@/lib/ably/server";
 import { requireSession } from "@/lib/auth";
 import { ok, fail } from "@/lib/api";

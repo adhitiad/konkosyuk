@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   try {
     const authResult = await validateAdminOnlyRequest(req);
     if (authResult instanceof Response) return authResult;
-    const { session, ipAddress, userAgent } = authResult;
+    const { session } = authResult;
     const body = createUserSchema.parse(await req.json());
 
     const [existing] = await db

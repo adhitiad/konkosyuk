@@ -1,13 +1,13 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { properties, units, bookings, users } from "@/db/schema";
-import { eq, and, or, sql, desc, gte, lte, inArray } from "drizzle-orm";
+import { properties, bookings } from "@/db/schema";
+import type { NewProperty } from "@/db/schema";
+import { eq, and, or, sql } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import {
   createPropertySchema,
-  updatePropertySchema,
   propertyQuerySchema,
 } from "@/lib/zod";
 import type { Role } from "@/lib/auth";
@@ -38,7 +38,6 @@ export async function GET(req: NextRequest) {
       lat,
       lng,
       radiusKm,
-      radius,
       amenities,
       minPrice,
       maxPrice,
@@ -158,9 +157,9 @@ export async function GET(req: NextRequest) {
 
         if (minPrice !== undefined || maxPrice !== undefined) {
           data = data.filter((property) => {
-            const packages = property.packages as {
-              predefined?: { finalPrice?: number }[];
-            } | null;
+            const packages = property.packages as
+              | { predefined?: { finalPrice?: number }[] }
+              | null;
             const prices =
               packages?.predefined
                 ?.map((p) => p.finalPrice)
@@ -283,7 +282,7 @@ export async function GET(req: NextRequest) {
     const duration = Date.now() - startTime;
     const statusCode =
       error instanceof Error && "statusCode" in error
-        ? (error as any).statusCode
+        ? (error as { statusCode: number }).statusCode
         : 500;
     logApiRequest("GET", "/api/properties", statusCode, duration);
     logError(error, "GET /api/properties");
@@ -335,7 +334,7 @@ export async function POST(req: NextRequest) {
           body.latitude !== undefined ? String(body.latitude) : undefined,
         longitude:
           body.longitude !== undefined ? String(body.longitude) : undefined,
-      } as any)
+      } satisfies NewProperty)
       .returning();
 
     return ok(property, 201);

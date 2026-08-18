@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { bookings, units } from "@/db/schema";
-import { eq, sql, desc, lt, and, inArray } from "drizzle-orm";
+import { eq, desc, lt, and, inArray } from "drizzle-orm";
 import {
   createNotification,
   sendWebPushNotification,

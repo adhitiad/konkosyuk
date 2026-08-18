@@ -1,18 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
 import { ok, handleApiError } from "@/lib/api";
 import { eq } from "drizzle-orm";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await requireSession([
       "cust",
       "owner",
       "admin",
       "staff",
-    ] as any);
+    ] as const);
 
     const [user] = await db
       .select({

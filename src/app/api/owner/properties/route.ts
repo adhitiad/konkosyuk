@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { properties } from "@/db/schema";
-import { eq, desc, and, or, sql, gte, lte, like } from "drizzle-orm";
+import type { NewProperty } from "@/db/schema";
+import { eq, desc, and, or, sql, like } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
           like(properties.name, term),
           like(properties.address, term),
           like(properties.description, term),
-        ) as any,
+        ),
       );
     }
 
@@ -153,7 +154,7 @@ export async function POST(req: NextRequest) {
           : undefined,
         icalExportToken: body.icalExportToken,
         icalImportUrl: body.icalImportUrl,
-      } as any)
+      } satisfies NewProperty)
       .returning();
 
     return ok(property, 201);

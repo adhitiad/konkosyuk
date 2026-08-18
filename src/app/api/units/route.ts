@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
     const duration = Date.now() - startTime;
     const statusCode =
       error instanceof Error && "statusCode" in error
-        ? (error as any).statusCode
+        ? (error as { statusCode: number }).statusCode
         : 500;
     logApiRequest("GET", "/api/units", statusCode, duration);
     logError(error, "GET /api/units");

@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { properties } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 import { propertyQuerySchema } from "@/lib/zod";
 import { calculateDistance } from "@/lib/geolocation";
 import { logError } from "@/lib/logger";
@@ -11,12 +11,6 @@ import { enforceRateLimit, publicRateLimit } from "@/lib/rate-limit";
 import { getCachedData, buildCacheKey } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
-
-interface CursorPage {
-  data: Array<(typeof properties.$inferSelect) & { distance?: number }>;
-  nextCursor?: string;
-  hasMore: boolean;
-}
 
 export async function GET(req: NextRequest) {
   try {
@@ -35,7 +29,6 @@ export async function GET(req: NextRequest) {
       lat,
       lng,
       radiusKm,
-      radius,
       amenities,
       minPrice,
       maxPrice,
@@ -110,77 +103,151 @@ export async function GET(req: NextRequest) {
     const result = await getCachedData(
       cacheKey,
       async () => {
-        const offset = cursor ? 0 : (page - 1) * limit;
+        if (cursor) {
+          const [rows, [{ count: totalCount }]] = await Promise.all([
+            db
+              .select()
+              .from(properties)
+              .where(where)
+              .orderBy(orderBy)
+              .limit(cursorLimit + 1),
+            db
+              .select({ count: sql<number>`count(*)` })
+              .from(properties)
+              .where(where),
+          ]);
 
-        const [rows, [{ count: totalCount }]] = await Promise.all([
-          db
-            .select()
-            .from(properties)
-            .where(where)
-            .orderBy(orderBy)
-            .limit(cursorLimit + 1),
-          db
-            .select({ count: sql<number>`count(*)` })
-            .from(properties)
-            .where(where),
-        ]);
+          let data = rows.slice(0, cursorLimit);
+          const hasMore = rows.length > cursorLimit;
+          const nextCursor = hasMore ? rows[cursorLimit].id : undefined;
 
-        let data = rows.slice(0, cursorLimit);
-        const hasMore = rows.length > cursorLimit;
-        const nextCursor = hasMore ? rows[cursorLimit].id : undefined;
+          if (lat !== undefined && lng !== undefined && radiusKm !== undefined) {
+            data = data.map((property) => ({
+              ...property,
+              distance: calculateDistance(
+                lat,
+                lng,
+                Number(property.latitude),
+                Number(property.longitude),
+              ),
+            }));
+          }
 
-        if (lat !== undefined && lng !== undefined && radiusKm !== undefined) {
-          data = data.map((property) => ({
-            ...property,
-            distance: calculateDistance(
-              lat,
-              lng,
-              Number(property.latitude),
-              Number(property.longitude),
-            ),
-          }));
+          if (amenities && amenities.length > 0) {
+            data = data.filter((property) => {
+              const propertyAmenities = Array.isArray(property.amenities)
+                ? property.amenities
+                : [];
+              return amenities.every((amenity: string) =>
+                propertyAmenities.includes(amenity),
+              );
+            });
+          }
+
+          if (minPrice !== undefined || maxPrice !== undefined) {
+            data = data.filter((property) => {
+              const packages = property.packages as {
+                predefined?: { finalPrice?: number }[];
+              } | null;
+              const prices =
+                packages?.predefined
+                  ?.map((p) => p.finalPrice)
+                  .filter((p): p is number => typeof p === "number") ?? [];
+              if (prices.length === 0) return false;
+
+              const min = Math.min(...prices);
+              const max = Math.max(...prices);
+
+              if (minPrice !== undefined && max < Number(minPrice)) return false;
+              if (maxPrice !== undefined && min > Number(maxPrice)) return false;
+
+              return true;
+            });
+          }
+
+          return {
+            data,
+            meta: {
+              nextCursor,
+              hasMore,
+              total: Number(totalCount),
+            },
+          };
+        } else {
+          const offset = (page - 1) * limit;
+          const [rows, [{ count: totalCount }]] = await Promise.all([
+            db
+              .select()
+              .from(properties)
+              .where(where)
+              .orderBy(orderBy)
+              .limit(limit)
+              .offset(offset),
+            db
+              .select({ count: sql<number>`count(*)` })
+              .from(properties)
+              .where(where),
+          ]);
+
+          let data = rows;
+
+          if (lat !== undefined && lng !== undefined && radiusKm !== undefined) {
+            data = data.map((property) => ({
+              ...property,
+              distance: calculateDistance(
+                lat,
+                lng,
+                Number(property.latitude),
+                Number(property.longitude),
+              ),
+            }));
+          }
+
+          if (amenities && amenities.length > 0) {
+            data = data.filter((property) => {
+              const propertyAmenities = Array.isArray(property.amenities)
+                ? property.amenities
+                : [];
+              return amenities.every((amenity: string) =>
+                propertyAmenities.includes(amenity),
+              );
+            });
+          }
+
+          if (minPrice !== undefined || maxPrice !== undefined) {
+            data = data.filter((property) => {
+              const packages = property.packages as {
+                predefined?: { finalPrice?: number }[];
+              } | null;
+              const prices =
+                packages?.predefined
+                  ?.map((p) => p.finalPrice)
+                  .filter((p): p is number => typeof p === "number") ?? [];
+              if (prices.length === 0) return false;
+
+              const min = Math.min(...prices);
+              const max = Math.max(...prices);
+
+              if (minPrice !== undefined && max < Number(minPrice)) return false;
+              if (maxPrice !== undefined && min > Number(maxPrice)) return false;
+
+              return true;
+            });
+          }
+
+          const total = Number(totalCount);
+          const totalPages = Math.ceil(total / limit);
+
+          return {
+            data,
+            meta: {
+              page,
+              limit,
+              total,
+              totalPages,
+            },
+          };
         }
-
-        if (amenities && amenities.length > 0) {
-          data = data.filter((property) => {
-            const propertyAmenities = Array.isArray(property.amenities)
-              ? property.amenities
-              : [];
-            return amenities.every((amenity: string) =>
-              propertyAmenities.includes(amenity),
-            );
-          });
-        }
-
-        if (minPrice !== undefined || maxPrice !== undefined) {
-          data = data.filter((property) => {
-            const packages = property.packages as {
-              predefined?: { finalPrice?: number }[];
-            } | null;
-            const prices =
-              packages?.predefined
-                ?.map((p) => p.finalPrice)
-                .filter((p): p is number => typeof p === "number") ?? [];
-            if (prices.length === 0) return false;
-
-            const min = Math.min(...prices);
-            const max = Math.max(...prices);
-
-            if (minPrice !== undefined && max < Number(minPrice)) return false;
-            if (maxPrice !== undefined && min > Number(maxPrice)) return false;
-
-            return true;
-          });
-        }
-
-        return {
-          data,
-          meta: {
-            nextCursor,
-            hasMore,
-            total: Number(totalCount),
-          },
-        };
       },
       { ttlSeconds: 60, tags: ["properties"] },
     );

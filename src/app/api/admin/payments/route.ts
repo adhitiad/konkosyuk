@@ -1,13 +1,13 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { payments, bookings, units, properties, users } from "@/db/schema";
-import { eq, desc, sql, and, inArray } from "drizzle-orm";
+import { payments, bookings, units, properties, users, paymentStatus } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateAdminRequest } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import type { Role } from "@/lib/auth";
-import { createAuditLog } from "@/lib/audit-log";
+import { createAuditLog } from "@/lib/auth";
 
 const createManualPaymentSchema = z.object({
   userId: z.string().uuid(),
@@ -34,7 +34,7 @@ const createManualPaymentSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await requireSession(["admin", "staff"] as Role[]);
+    await requireSession(["admin", "staff"] as Role[]);
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
 
@@ -64,7 +64,14 @@ export async function GET(req: NextRequest) {
       .leftJoin(properties, eq(bookings.propertyId, properties.id))
       .leftJoin(units, eq(bookings.unitId, units.id))
       .leftJoin(users, eq(bookings.userId, users.id))
-      .where(statusValue ? eq(payments.status, statusValue as any) : undefined)
+      .where(
+        statusValue
+          ? eq(
+              payments.status,
+              statusValue as (typeof paymentStatus)[number],
+            )
+          : undefined,
+      )
       .orderBy(desc(payments.createdAt))
       .limit(100);
 
@@ -78,7 +85,7 @@ export async function POST(req: NextRequest) {
   try {
     const authResult = await validateAdminRequest(req);
     if (authResult instanceof Response) return authResult;
-    const { session, ipAddress, userAgent } = authResult;
+    const { session } = authResult;
     const body = createManualPaymentSchema.parse(await req.json());
 
     const [booking] = await db

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo, useActionState } from "react";
-import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -28,7 +27,6 @@ import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
 import type {
   PropertyPackages,
-  PackageItem,
   DurationUnit,
 } from "@/lib/types/property-packages";
 import { createBookingAction } from "@/actions/bookings";
@@ -65,7 +63,6 @@ export default function BookingDialogClient({
   children,
 }: BookingDialogClientProps) {
   const router = useRouter();
-  const { data: session } = useSession();
 
   const [open, setOpen] = useState(false);
   const [selectedPackageId, setSelectedPackageId] = useState<string>("");
@@ -111,17 +108,6 @@ export default function BookingDialogClient({
 
   const isStartDateValid =
     startDate === "" || new Date(startDate) >= new Date(today.slice(0, 10));
-
-  const handleSubmit = (formData: FormData) => {
-    formData.append("propertyId", propertyId);
-    formData.append("unitId", unitId);
-    formData.append("packageId", selectedPackageId);
-    formData.append("startDate", new Date(startDate).toISOString());
-    if (selectedPackageId === "custom" && packages.custom.enabled) {
-      formData.append("customDuration", customDuration.toString());
-    }
-    formAction(formData);
-  };
 
   if (state?.success) {
     showToastSuccess(

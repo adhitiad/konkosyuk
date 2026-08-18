@@ -17,7 +17,6 @@ import {
   SidebarGroupLabel,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -169,7 +168,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>{tSidebar("menu")}</SidebarGroupLabel>
           <SidebarMenu>
-            {items?.map((item: any) => (
+            {items?.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   render={

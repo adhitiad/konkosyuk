@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useActionState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon } from "@hugeicons/core-free-icons";
@@ -36,8 +35,8 @@ export default function ReviewBookingDialog({
   const queryClient = useQueryClient();
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [action, setAction] = useState<"approve" | "reject" | null>(null);
-  const [state, formAction, isPending] = useActionState(
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [state, formAction] = useActionState(
     reviewBookingAction,
     undefined,
   );
@@ -45,26 +44,26 @@ export default function ReviewBookingDialog({
   useEffect(() => {
     if (state?.success) {
       queryClient.invalidateQueries({ queryKey: ["owner-bookings"] });
-      if (action === "approve") {
-        toast({
-          title: "Booking diterima",
-          description: `Booking untuk ${unitName} telah disetujui.`,
-          type: "success",
-        });
-      } else {
+      if (isRejectDialogOpen) {
         toast({
           title: "Booking ditolak",
           description: `Booking untuk ${unitName} telah ditolak.`,
           type: "info",
         });
+      } else {
+        toast({
+          title: "Booking diterima",
+          description: `Booking untuk ${unitName} telah disetujui.`,
+          type: "success",
+        });
       }
-      setAction(null);
+      setIsRejectDialogOpen(false);
       setReason("");
       setError(null);
     } else if (state?.error) {
       setError(state.error);
     }
-  }, [state, action, queryClient, unitName]);
+  }, [state, queryClient, unitName, isRejectDialogOpen]);
 
   const handleAction = (selected: "approve" | "reject") => {
     if (selected === "reject" && !reason.trim()) {
@@ -72,7 +71,6 @@ export default function ReviewBookingDialog({
       return;
     }
     setError(null);
-    setAction(selected);
     const formData = new FormData();
     formData.append("bookingId", bookingId);
     formData.append(
@@ -81,85 +79,29 @@ export default function ReviewBookingDialog({
     );
     if (selected === "reject") {
       formData.append("note", reason);
+      setIsRejectDialogOpen(true);
     }
     formAction(formData);
   };
 
-  if (!action) {
-    return (
-      <Dialog>
-        <DialogTrigger render={children as React.ReactElement} />
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Review Booking</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="rounded-lg border p-4 space-y-2">
-              <p className="text-sm">
-                <span className="font-medium">Tenant:</span> {tenantName}
-              </p>
-              <p className="text-sm">
-                <span className="font-medium">Properti:</span> {propertyName}
-              </p>
-              <p className="text-sm">
-                <span className="font-medium">Unit:</span> {unitName}
-              </p>
-            </div>
-            {error && (
-              <Alert variant="destructive">
-                <HugeiconsIcon
-                  icon={AlertCircleIcon}
-                  strokeWidth={2}
-                  className="size-4"
-                />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <div className="flex justify-end gap-2">
-              <DialogClose
-                render={
-                  <Button type="button" variant="outline">
-                    Batal
-                  </Button>
-                }
-              />
-              <Button
-                variant="destructive"
-                onClick={() => handleAction("reject")}
-              >
-                Tolak
-              </Button>
-              <Button variant="default" onClick={() => handleAction("approve")}>
-                Terima
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
   return (
-    <Dialog
-      open={action === "reject"}
-      onOpenChange={(open) => !open && isPending && setAction(null)}
-    >
+    <Dialog>
+      <DialogTrigger render={children as React.ReactElement} />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Alasan Penolakan</DialogTitle>
+          <DialogTitle>Review Booking</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="reason">Alasan penolakan</Label>
-            <textarea
-              id="reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Berikan alasan penolakan kepada tenant..."
-              disabled={isPending}
-              className="w-full min-h-[80px] rounded-4xl border border-input bg-input/30 px-3 py-2 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-            />
+          <div className="rounded-lg border p-4 space-y-2">
+            <p className="text-sm">
+              <span className="font-medium">Tenant:</span> {tenantName}
+            </p>
+            <p className="text-sm">
+              <span className="font-medium">Properti:</span> {propertyName}
+            </p>
+            <p className="text-sm">
+              <span className="font-medium">Unit:</span> {unitName}
+            </p>
           </div>
           {error && (
             <Alert variant="destructive">
@@ -175,17 +117,22 @@ export default function ReviewBookingDialog({
           <div className="flex justify-end gap-2">
             <DialogClose
               render={
-                <Button type="button" variant="outline" disabled={isPending}>
+                <Button type="button" variant="outline">
                   Batal
                 </Button>
               }
             />
             <Button
               variant="destructive"
-              disabled={isPending || !reason.trim()}
-              onClick={() => handleAction("reject")}
+              onClick={() => {
+                setIsRejectDialogOpen(true);
+                handleAction("reject");
+              }}
             >
-              {isPending ? "Memproses..." : "Tolak Booking"}
+              Tolak
+            </Button>
+            <Button variant="default" onClick={() => handleAction("approve")}>
+              Terima
             </Button>
           </div>
         </div>

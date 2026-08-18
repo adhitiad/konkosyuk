@@ -86,9 +86,9 @@ const platformFeeSchema = z.object({
 });
 
 export async function updatePlatformFeeAction(
-  prevState: any,
+  prevState: unknown,
   formData: FormData,
-): Promise<any> {
+): Promise<Response> {
   try {
     await requireSession(["admin"] as const);
     const validated = platformFeeSchema.parse({

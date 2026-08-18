@@ -5,6 +5,8 @@
  * menyediakan pool of pre-allocated buffers yang bisa di-reuse.
  */
 
+import { timingSafeEqual } from "node:crypto";
+
 // ---------------------------------------------------------------------------
 // Shared TextEncoder / TextDecoder (singleton, bukan per-request)
 // ---------------------------------------------------------------------------
@@ -175,8 +177,6 @@ let sigBufB: Buffer | null = null;
  * Fallback ke Buffer.from() jika string terlalu panjang.
  */
 export function timingSafeCompare(a: string, b: string): boolean {
-  const { timingSafeEqual } =
-    require("node:crypto") as typeof import("node:crypto");
 
   if (a.length !== b.length) return false;
 

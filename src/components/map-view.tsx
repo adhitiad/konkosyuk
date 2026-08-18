@@ -10,8 +10,9 @@ import Map, {
 import "maplibre-gl/dist/maplibre-gl.css";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MapPinIcon } from "@hugeicons/core-free-icons";
+import type { StyleSpecification } from "maplibre-gl";
 
-const OSM_STYLE = {
+const OSM_STYLE: StyleSpecification = {
   version: 8,
   sources: {
     "carto-tiles": {
@@ -84,7 +85,7 @@ export default function MapView({
           latitude: defaultCenter.lat,
           zoom,
         }}
-        mapStyle={OSM_STYLE as any}
+        mapStyle={OSM_STYLE}
       >
         <NavigationControl position="top-right" />
         {markers.map((marker) =>

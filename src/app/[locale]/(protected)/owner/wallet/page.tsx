@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSession } from "@/lib/auth-client";
 import type { SessionUserWithRole } from "@/lib/auth-client";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,17 +18,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Clock01Icon,
-  CheckmarkCircle02Icon,
-  Cancel01Icon,
-  WalletIcon,
-} from "@hugeicons/core-free-icons";
+import { WalletIcon } from "@hugeicons/core-free-icons";
 import type { OwnerBankAccount } from "@/db/schema";
 import {
   createWithdrawalAction,
   CreateWithdrawalState,
 } from "@/actions/withdrawals";
+import { apiClient } from "@/lib/axios";
 
 interface Withdrawal {
   id: string;
@@ -61,44 +58,45 @@ const STATUS_LABEL: Record<
 export default function WalletPage() {
   const { data: session } = useSession();
   const user = session?.user as SessionUserWithRole | undefined;
-  const [accounts, setAccounts] = useState<OwnerBankAccount[]>([]);
-  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [selectedAccount, setSelectedAccount] = useState("");
+  const [amount, setAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [selectedAccount, setSelectedAccount] = useState("");
-  const [amount, setAmount] = useState("");
 
   const balance = Number(user?.balance || 0);
 
-  const fetchData = async () => {
-    try {
-      const res = await fetch("/api/owner/bank-accounts");
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Gagal memuat data");
-      const accountsItems = data.data || [];
-      setAccounts(accountsItems);
-      if (accountsItems.length > 0 && !selectedAccount) {
-        setSelectedAccount(accountsItems[0].id);
-      }
+  const { data: accountsData, isLoading: accountsLoading } = useQuery<
+    OwnerBankAccount[]
+  >({
+    queryKey: ["owner-bank-accounts"],
+    queryFn: async () => {
+      const res = await apiClient.get("/api/owner/bank-accounts");
+      return res.data.data || [];
+    },
+    staleTime: 30000,
+  });
 
-      const withdrawalsRes = await fetch("/api/owner/withdrawals");
-      const withdrawalsData = await withdrawalsRes.json();
-      if (!withdrawalsRes.ok)
-        throw new Error(withdrawalsData.error || "Gagal memuat riwayat");
-      const withdrawalsItems = withdrawalsData.data || [];
-      setWithdrawals(withdrawalsItems);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: withdrawalsData, isLoading: withdrawalsLoading } = useQuery<
+    Withdrawal[]
+  >({
+    queryKey: ["owner-withdrawals"],
+    queryFn: async () => {
+      const res = await apiClient.get("/api/owner/withdrawals");
+      return res.data.data || [];
+    },
+    staleTime: 30000,
+  });
+
+  const accounts = useMemo(() => accountsData ?? [], [accountsData]);
+  const withdrawals = withdrawalsData ?? [];
+  const loading = accountsLoading || withdrawalsLoading;
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (accounts.length > 0 && !selectedAccount) {
+      setSelectedAccount(accounts[0].id); // eslint-disable-line react-hooks/set-state-in-effect
+    }
+  }, [accounts, selectedAccount]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,7 +117,6 @@ export default function WalletPage() {
       if (result.success) {
         setAmount("");
         setSuccess("Permintaan penarikan berhasil dikirim.");
-        await fetchData();
       } else {
         setError(result.error || "Gagal mengajukan penarikan");
       }

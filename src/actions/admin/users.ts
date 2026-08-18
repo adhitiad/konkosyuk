@@ -8,7 +8,6 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { hashPassword } from "better-auth/crypto";
 import { createAuditLog } from "@/lib/audit-log";
-import { differenceInDays } from "date-fns";
 
 const updateUserSchema = z.object({
   id: z.string().uuid(),
@@ -147,14 +146,13 @@ export async function updateUserAction(
       updateData.isBanned = validated.isBanned;
     }
 
-    const [updated] = await db
+    await db
       .update(users)
       .set({
         ...updateData,
         updatedAt: new Date(),
       })
-      .where(eq(users.id, userId))
-      .returning();
+      .where(eq(users.id, userId));
 
     if (
       validated.role ||
@@ -310,15 +308,14 @@ export async function banUserAction(
       };
     }
 
-    const [updated] = await db
+    await db
       .update(users)
       .set({
         isBanned: validated.isBanned,
         banReason: validated.isBanned ? (validated.banReason ?? null) : null,
         updatedAt: new Date(),
       })
-      .where(eq(users.id, validated.id))
-      .returning();
+      .where(eq(users.id, validated.id));
 
     await createAuditLog({
       action: validated.isBanned ? "reject" : "approve",

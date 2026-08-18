@@ -89,20 +89,23 @@ function Carousel({
     [scrollPrev, scrollNext],
   );
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (!api || !setApi) return;
     setApi(api);
   }, [api, setApi]);
 
   React.useEffect(() => {
     if (!api) return;
-    onSelect(api);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCanScrollPrev(api.canScrollPrev());
+    setCanScrollNext(api.canScrollNext());
     api.on("reInit", onSelect);
     api.on("select", onSelect);
 
     return () => {
       api?.off("select", onSelect);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api]);
 
   return (

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,9 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   HeartPulse,
-  Database,
-  CreditCard,
-  Cloud,
   Activity,
   Users,
   AlertCircle,
@@ -41,15 +37,7 @@ interface SystemHealth {
 export default withAdminAuth(SystemHealthPage);
 
 function SystemHealthPage() {
-  const [mounted, setMounted] = useState(false);
-
-  // Set mounted on initial mount without setState in effect
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Alternative: just use the initial state value
-  // mounted is already false by default, and we can set it in the component
+  // No need for mounted state - use isLoading from query instead
 
   const { data, isLoading, refetch } = useQuery<SystemHealth>({
     queryKey: ["system-health"],
@@ -191,19 +179,6 @@ function SystemHealthPage() {
         );
     }
   };
-
-  if (!mounted) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-9 w-64" />
-        <div className="grid gap-4 md:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">

@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Loader2,
   ShieldCheck,
   Clock,
   XCircle,
@@ -16,14 +14,10 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import KYCVerificationFlow, {
-  type KycStep,
-} from "@/components/kyc/KYCVerificationFlow";
+import KYCVerificationFlow from "@/components/kyc/KYCVerificationFlow";
 import { withOwnerAuth } from "@/lib/with-owner-auth";
 
 function OwnerKYCPage() {
-  const [flowStep, setFlowStep] = useState<KycStep>("upload-ktp");
-
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["kyc-status"],
     queryFn: async () => {
@@ -80,13 +74,7 @@ function OwnerKYCPage() {
 
   const handleKycComplete = (
     status: "approved" | "rejected" | "pending",
-    reason?: string,
   ) => {
-    if (status === "approved") {
-      setFlowStep("result");
-    } else if (status === "rejected") {
-      setFlowStep("result");
-    }
     refetch();
   };
 

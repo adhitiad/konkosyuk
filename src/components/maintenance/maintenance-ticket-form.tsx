@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,6 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon, Add01Icon } from "@hugeicons/core-free-icons";
-import { useSession } from "@/lib/auth-client";
 import { createMaintenanceTicketAction } from "@/actions/maintenance";
 
 interface MaintenanceTicketFormProps {
@@ -33,7 +32,6 @@ interface MaintenanceTicketFormProps {
 export default function MaintenanceTicketForm({
   onSuccess,
 }: MaintenanceTicketFormProps) {
-  const { data: session } = useSession();
   const [open, setOpen] = useState(false);
   const [units, setUnits] = useState<{ id: string; name: string }[]>([]);
   const [selectedUnitId, setSelectedUnitId] = useState("");
@@ -236,6 +234,7 @@ export default function MaintenanceTicketForm({
             </div>
             {imageUrls.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
+                // eslint-disable-next-line @next/next/no-img-element
                 {imageUrls.map((url) => (
                   <div key={url} className="relative group">
                     <img

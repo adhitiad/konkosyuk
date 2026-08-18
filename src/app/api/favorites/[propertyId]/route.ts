@@ -4,7 +4,7 @@ import { favorites } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 
 export async function DELETE(
   req: NextRequest,

@@ -209,7 +209,6 @@ function NotificationSettingsPage() {
                 <label className="text-sm font-medium">VAPID Public Key</label>
                 <Input
                   value={window.location.hostname === "localhost" ? "" : ""}
-                  onChange={(e) => {}}
                   placeholder="Disediakan dari env / settings"
                   disabled
                 />

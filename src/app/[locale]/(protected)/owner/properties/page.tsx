@@ -210,7 +210,7 @@ function DeletePropertyButton({
           <DialogTitle>Konfirmasi Hapus</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Apakah Anda yakin ingin menghapus properti "{propertyName}"? Tindakan
+          Apakah Anda yakin ingin menghapus properti &quot;{propertyName}&quot;? Tindakan
           ini tidak dapat dibatalkan.
         </p>
         <div className="flex justify-end gap-2">
@@ -232,7 +232,6 @@ function DeletePropertyButton({
 
 export default function PropertiesPage() {
   const { data: session } = useSession();
-  const queryClient = useQueryClient();
 
   const { data, isLoading, isError, error } = useQuery<PropertyResponse>({
     queryKey: ["owner-properties-v2"],
@@ -255,7 +254,7 @@ export default function PropertiesPage() {
 
   const rawProperties = Array.isArray(data?.data)
     ? data.data
-    : (data as { data: any })?.data?.data;
+    : (data as { data?: { data?: unknown[] } } | undefined)?.data?.data;
   const properties = Array.isArray(rawProperties) ? rawProperties : [];
 
   return (

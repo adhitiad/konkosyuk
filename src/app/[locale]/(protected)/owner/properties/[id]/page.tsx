@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth-client";
 import { useParams, useRouter } from "next/navigation";
 import { Link } from "@/config";
 import { Button } from "@/components/ui/button";
@@ -55,20 +54,7 @@ const commonAmenities = [
 export default function PropertyDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { data: session } = useSession();
   const queryClient = useQueryClient();
-
-  const [title, setTitle] = useState("");
-  const [type, setType] = useState<UpdatePropertyInput["type"]>("kost");
-  const [city, setCity] = useState("");
-  const [address, setAddress] = useState("");
-  const [basePrice, setBasePrice] = useState("");
-  const [amenities, setAmenities] = useState<string[]>([]);
-  const [amenityInput, setAmenityInput] = useState("");
-  const [description, setDescription] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const {
     data,
@@ -88,17 +74,19 @@ export default function PropertyDetailPage() {
 
   const property = data;
 
-  useEffect(() => {
-    if (property) {
-      setTitle(property.name ?? "");
-      setType((property.type as UpdatePropertyInput["type"]) ?? "kost");
-      setCity(property.city ?? "");
-      setAddress(property.address ?? "");
-      setBasePrice(property.basePrice ?? "");
-      setAmenities(property.amenities ?? []);
-      setDescription(property.description ?? "");
-    }
-  }, [property]);
+  const [title, setTitle] = useState(property?.name ?? "");
+  const [type, setType] = useState<UpdatePropertyInput["type"]>(
+    (property?.type as UpdatePropertyInput["type"]) ?? "kost"
+  );
+  const [city, setCity] = useState(property?.city ?? "");
+  const [address, setAddress] = useState(property?.address ?? "");
+  const [basePrice, setBasePrice] = useState(property?.basePrice ?? "");
+  const [amenities, setAmenities] = useState<string[]>(property?.amenities ?? []);
+  const [amenityInput, setAmenityInput] = useState("");
+  const [description, setDescription] = useState(property?.description ?? "");
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -412,8 +400,7 @@ export default function PropertyDetailPage() {
                 <DialogTitle>Konfirmasi Hapus</DialogTitle>
               </DialogHeader>
               <p className="text-sm text-muted-foreground">
-                Apakah Anda yakin ingin menghapus properti "{property.name}
-                "? Tindakan ini tidak dapat dibatalkan.
+                Apakah Anda yakin ingin menghapus properti &quot;{property.name}&quot;? Tindakan ini tidak dapat dibatalkan.
               </p>
               <div className="flex justify-end gap-2">
                 <DialogTrigger render={<Button variant="outline" />}>

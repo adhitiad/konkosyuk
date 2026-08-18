@@ -48,7 +48,7 @@ export default function RequestBookingForm({
   unitCapacity,
   children,
 }: RequestBookingFormProps) {
-  const { data: session } = useSession();
+  const { data: _session } = useSession();
   const [open, setOpen] = useState(false);
   const [numOccupants, setNumOccupants] = useState(1);
   const [startDate, setStartDate] = useState("");
@@ -56,7 +56,7 @@ export default function RequestBookingForm({
     createBookingRequestAction,
     { success: undefined, error: undefined, data: undefined },
   );
-  const [error, setError] = useState<string | null>(null);
+  const [formKey, setFormKey] = useState(0);
 
   const capacity =
     unitCapacity ??
@@ -84,26 +84,6 @@ export default function RequestBookingForm({
     return `${year}-${month}-${day}`;
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-
-    if (!startDate) {
-      setError("Tanggal mulai harus diisi");
-      return;
-    }
-
-    if (numOccupants < 1) {
-      setError("Jumlah penghuni minimal 1");
-      return;
-    }
-
-    if (isOverCapacity) {
-      setError("Jumlah orang melebihi kapasitas kamar");
-      return;
-    }
-  };
-
   const handleFormAction = async (formData: FormData) => {
     formData.append("unitId", unitId);
     formData.append("propertyId", propertyId);
@@ -112,17 +92,18 @@ export default function RequestBookingForm({
     await formAction(formData);
   };
 
+  // Handle form action result
   useEffect(() => {
     if (formState?.error) {
-      setError(formState.error);
       showToastError(formState.error);
     } else if (formState?.success) {
       showToastSuccess(
         "Permintaan booking berhasil dikirim. Silakan tunggu approval pemilik.",
       );
-      setOpen(false);
+      setOpen(false); // eslint-disable-line react-hooks/set-state-in-effect
       setNumOccupants(1);
       setStartDate("");
+      setFormKey((k) => k + 1); // Reset form by changing key
     }
   }, [formState, setOpen]);
 
@@ -134,8 +115,8 @@ export default function RequestBookingForm({
           <DialogTitle>Minta Sewa Kamar</DialogTitle>
         </DialogHeader>
 
-        <form action={handleFormAction} className="space-y-4">
-          {error && (
+        <form key={formKey} action={handleFormAction} className="space-y-4">
+          {formState?.error && (
             <Alert variant="destructive">
               <HugeiconsIcon
                 icon={AlertCircleIcon}
@@ -143,7 +124,7 @@ export default function RequestBookingForm({
                 className="size-4"
               />
               <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>{formState.error}</AlertDescription>
             </Alert>
           )}
 

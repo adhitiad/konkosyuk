@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { apiClient } from "@/lib/axios";
@@ -15,7 +15,7 @@ export default function ChatPage() {
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["chat-rooms"],
     queryFn: async () => (await apiClient.get("/api/chat/rooms")).data,
     enabled: !!session?.user?.id,
@@ -24,14 +24,9 @@ export default function ChatPage() {
 
   const rooms = data?.data?.data ?? [];
 
-  useEffect(() => {
-    if (selectedRoom) {
-      setMobileView("chat");
-    }
-  }, [selectedRoom]);
-
   const handleRoomSelect = (room: { id: string }) => {
     setSelectedRoom(room.id);
+    setMobileView("chat");
   };
 
   const handleBackToList = () => {

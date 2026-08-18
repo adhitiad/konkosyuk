@@ -5,7 +5,6 @@ import { eq } from "drizzle-orm";
 import { validateAdminOnlyRequest } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
-import type { Role } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit-log";
 
 const reconcileSchema = z.object({
@@ -22,7 +21,7 @@ export async function POST(
   try {
     const authResult = await validateAdminOnlyRequest(req);
     if (authResult instanceof Response) return authResult;
-    const { session, ipAddress, userAgent } = authResult;
+    const { session } = authResult;
     const { id: paymentId } = await params;
     const body = reconcileSchema.parse(await req.json());
 

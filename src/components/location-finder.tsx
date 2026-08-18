@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { getCurrentPosition, calculateDistance } from "@/lib/geolocation";
+import { getCurrentPosition } from "@/lib/geolocation";
 import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MapPinIcon, LoaderPinwheelIcon } from "@hugeicons/core-free-icons";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface LocationFinderProps {
   onLocationFound: (lat: number, lng: number, radiusKm: number) => void;

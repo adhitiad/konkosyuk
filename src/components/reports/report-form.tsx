@@ -41,7 +41,7 @@ function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
     createReportAction,
     undefined,
   );
-  const [uploadState, uploadAction] = useActionState(
+  const [, uploadAction] = useActionState(
     uploadImageAction,
     undefined,
   );
@@ -84,20 +84,6 @@ function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
     } finally {
       setUploading(false);
     }
-  }
-
-  function submit(formData: FormData) {
-    const selected = stays.find((item) => item.unitId === stay);
-    if (!selected || !category || description.trim().length < 10) {
-      setMessage("Lengkapi unit, kategori, dan deskripsi minimal 10 karakter.");
-      return;
-    }
-    formData.set("propertyId", selected.propertyId);
-    formData.set("unitId", selected.unitId);
-    formData.set("category", category);
-    formData.set("description", description.trim());
-    formData.set("images", JSON.stringify(images));
-    formAction(formData);
   }
 
   if (state?.success) {
@@ -187,6 +173,7 @@ function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
               }
             />
             {images.length > 0 && (
+              // eslint-disable-next-line @next/next/no-img-element
               <div className="flex flex-wrap gap-2">
                 {images.map((url) => (
                   <img

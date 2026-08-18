@@ -4,7 +4,7 @@ import { notifications } from "@/db/schema";
 import { and, eq, desc } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 import { logError, logApiRequest } from "@/lib/logger";
 import {
   getCachedData,
@@ -12,7 +12,7 @@ import {
   invalidateCacheByTag,
 } from "@/lib/cache";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const startTime = Date.now();
 
   try {
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
     const duration = Date.now() - startTime;
     const statusCode =
       error instanceof Error && "statusCode" in error
-        ? (error as any).statusCode
+        ? (error as { statusCode: number }).statusCode
         : 500;
     logApiRequest("GET", "/api/notifications", statusCode, duration);
     logError(error, "GET /api/notifications");

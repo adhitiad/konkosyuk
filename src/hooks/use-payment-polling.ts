@@ -31,12 +31,22 @@ export function usePaymentPolling({
   const [error, setError] = useState<string | null>(null);
 
   const onSuccessRef = useRef(onSuccess);
-  onSuccessRef.current = onSuccess; // Updated outside of render in effect or event handler
   const isSuccessRef = useRef(isSuccess);
-  isSuccessRef.current = isSuccess; // Updated outside of render in effect or event handler
   const isTimeoutRef = useRef(isTimeout);
-  isTimeoutRef.current = isTimeout; // Updated outside of render in effect or event handler
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Update refs when values change
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+  }, [onSuccess]);
+
+  useEffect(() => {
+    isSuccessRef.current = isSuccess;
+  }, [isSuccess]);
+
+  useEffect(() => {
+    isTimeoutRef.current = isTimeout;
+  }, [isTimeout]);
 
   const poll = useCallback(async () => {
     if (!invoiceNumber || (isSuccessRef.current && isTimeoutRef.current)) return;

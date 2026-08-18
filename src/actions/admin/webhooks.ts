@@ -108,7 +108,7 @@ export async function reprocessWebhookAction(
     });
 
     return { success: true };
-  } catch (error) {
+  } catch {
     return { error: "Gagal memproses ulang webhook", success: false };
   }
 }

@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth-client";
-import { createPropertySchema, type CreatePropertyInput } from "@/lib/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +37,7 @@ const PropertyMapPicker = dynamic(
 import PackageForm from "@/components/owner/package-form";
 import type { PropertyPackages } from "@/lib/types/property-packages";
 import { createPropertyAction } from "@/actions/properties";
+import type { CreatePropertyInput } from "@/lib/zod";
 
 const propertyTypeOptions = [
   { value: "kost", label: "Kost" },
@@ -58,7 +57,6 @@ const commonAmenities = [
 
 export default function AddPropertyDialog() {
   const router = useRouter();
-  const { data: session } = useSession();
   const queryClient = useQueryClient();
 
   const [title, setTitle] = useState("");
@@ -93,32 +91,6 @@ export default function AddPropertyDialog() {
 
   const removeAmenity = (value: string) => {
     setAmenities(amenities.filter((a) => a !== value));
-  };
-
-  const handleSubmit = (formData: FormData) => {
-    if (propertyImages.length < 3) {
-      setError("Upload minimal 3 foto properti.");
-      return;
-    }
-
-    formData.append("title", title);
-    formData.append("type", type);
-    formData.append("address", address);
-    if (description) formData.append("description", description);
-    formData.append("province", province);
-    formData.append("city", city);
-    if (district) formData.append("district", district);
-    if (basePrice) formData.append("basePrice", basePrice);
-    if (packages) formData.append("packages", JSON.stringify(packages));
-    formData.append("amenities", JSON.stringify(amenities));
-    formData.append("images", JSON.stringify(propertyImages));
-    formData.append("status", "aktif");
-    if (latitude) formData.append("latitude", latitude);
-    if (longitude) formData.append("longitude", longitude);
-    formData.append("isActive", isActive.toString());
-    if (icalImportUrl) formData.append("icalImportUrl", icalImportUrl);
-
-    formAction(formData);
   };
 
   if (state?.success) {

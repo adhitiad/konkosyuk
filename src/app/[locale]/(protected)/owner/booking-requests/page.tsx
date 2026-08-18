@@ -54,7 +54,6 @@ export default function OwnerBookingRequestsPage() {
   const queryClient = useQueryClient();
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [agreedPrice, setAgreedPrice] = useState<string>("");
-  const [rejectReason, setRejectReason] = useState<string>("");
 
   const { data, isLoading, isError, error } = useQuery<{
     data: BookingRequestWithDetails[];
@@ -75,19 +74,14 @@ export default function OwnerBookingRequestsPage() {
   });
 
   const handleApprove = async (id: string, price: number) => {
+    const formData = new FormData();
+    formData.set("bookingRequestId", id);
+    formData.set("status", "approved");
+    formData.set("agreedPrice", String(price));
+
     const result = await reviewBookingRequestAction(
       { success: false, error: "", data: undefined },
-      {
-        get requestId() {
-          return id;
-        },
-        get status() {
-          return "approved";
-        },
-        get agreedPrice() {
-          return String(price);
-        },
-      } as any,
+      formData,
     );
     if (result.success) {
       queryClient.invalidateQueries({ queryKey: ["owner-booking-requests"] });
@@ -102,21 +96,17 @@ export default function OwnerBookingRequestsPage() {
   };
 
   const handleReject = async (id: string) => {
+    const formData = new FormData();
+    formData.set("bookingRequestId", id);
+    formData.set("status", "rejected");
+
     const result = await reviewBookingRequestAction(
       { success: false, error: "", data: undefined },
-      {
-        get requestId() {
-          return id;
-        },
-        get status() {
-          return "rejected";
-        },
-      } as any,
+      formData,
     );
     if (result.success) {
       queryClient.invalidateQueries({ queryKey: ["owner-booking-requests"] });
       setReviewingId(null);
-      setRejectReason("");
       showToastSuccess("Permintaan booking ditolak.");
     } else if (result.error) {
       showToastError(result.error);

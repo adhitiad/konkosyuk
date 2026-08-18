@@ -16,7 +16,7 @@ export async function GET() {
       latency: Math.round(performance.now() - started),
       message: "Database connected",
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { status: "down", message: "Database connection failed" },
       { status: 500 },

@@ -2,7 +2,6 @@
 
 import { useState, useActionState, useEffect, startTransition, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import {
@@ -86,7 +85,6 @@ const typeLabel: Record<string, string> = {
 export default withAdminAuth(AdminPropertiesPage);
 
 function AdminPropertiesPage() {
-  const { data: session } = useSession();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -174,7 +172,6 @@ function AdminPropertiesPage() {
   }, [deleteState, queryClient]);
 
   const properties: Property[] = Array.isArray(data?.data) ? data.data : [];
-  const total = data?.meta?.total ?? 0;
   const totalPages = data?.meta?.totalPages ?? 1;
 
   const openEdit = (property: Property) => {

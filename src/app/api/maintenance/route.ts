@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { maintenanceTickets, units, properties, bookings } from "@/db/schema";
-import { eq, and, desc, sql, inArray, gte, lte } from "drizzle-orm";
+import { eq, and, desc, inArray, gte, lte } from "drizzle-orm";
 import { maintenanceStatus } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
   try {
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
-    const session = await requireSession(["cust"] as any[]);
+    const session = await requireSession(["cust"] as const);
     const body = createTicketSchema.parse(await req.json());
 
     const [unit] = await db

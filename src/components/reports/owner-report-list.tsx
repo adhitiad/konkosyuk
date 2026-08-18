@@ -41,32 +41,14 @@ function ReportItem({
 }: {
   report: Report;
   onUpdate: (
-    id: string,
-    status: "in_progress" | "resolved" | "rejected",
+    _id: string,
+    _status: "in_progress" | "resolved" | "rejected",
   ) => void;
 }) {
   const [state, formAction, isPending] = useActionState(
     updateReportAction,
     undefined,
   );
-
-  function handleUpdate(status: "in_progress" | "resolved" | "rejected") {
-    const formData = new FormData();
-    formData.set("id", report.id);
-    formData.set("status", status);
-    formData.set(
-      "resolutionNote",
-      status === "resolved" ? "Masalah telah ditangani." : "",
-    );
-    formAction(formData);
-  }
-
-  if (state?.success) {
-    onUpdate(
-      report.id,
-      state.data?.status as "in_progress" | "resolved" | "rejected",
-    );
-  }
 
   return (
     <div key={report.id} className="rounded-xl border p-4 space-y-3">
@@ -98,6 +80,7 @@ function ReportItem({
       </div>
       <p className="text-sm whitespace-pre-wrap">{report.description}</p>
       {report.images?.length ? (
+        // eslint-disable-next-line @next/next/no-img-element
         <div className="flex flex-wrap gap-2">
           {report.images.map((url) => (
             <img
@@ -166,8 +149,8 @@ export default function OwnerReportList() {
   const reports: Report[] = data?.data?.data ?? [];
 
   function handleUpdate(
-    id: string,
-    status: "in_progress" | "resolved" | "rejected",
+    _id: string,
+    _status: "in_progress" | "resolved" | "rejected",
   ) {
     queryClient.invalidateQueries({ queryKey: ["maintenance-reports"] });
   }

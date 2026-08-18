@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth-client";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,7 +42,6 @@ interface UserDetail {
 function UserViewPage() {
   const params = useParams();
   const userId = params.id as string;
-  const { data: session } = useSession();
 
   const { data, isLoading, isError, error } = useQuery<{ data: UserDetail }>({
     queryKey: ["user", userId],

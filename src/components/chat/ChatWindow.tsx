@@ -11,7 +11,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Bubble,
   BubbleContent,
-  BubbleReactions,
   BubbleGroup,
 } from "@/components/ui/bubble";
 import { User } from "lucide-react";
@@ -34,7 +33,6 @@ export default function ChatWindow({
   const {
     messages,
     connectionStatus,
-    isTyping,
     typingUsers,
     sendMessage,
     startTyping,

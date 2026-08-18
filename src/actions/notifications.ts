@@ -21,7 +21,7 @@ export type UpdateNotificationState = {
 };
 
 export async function updateNotificationAction(
-  prevState: UpdateNotificationState | undefined,
+  _prevState: UpdateNotificationState | undefined,
   formData: FormData,
 ): Promise<UpdateNotificationState> {
   try {
@@ -73,7 +73,7 @@ export type AdminUpdateNotificationState = {
 };
 
 export async function adminUpdateNotificationAction(
-  prevState: AdminUpdateNotificationState | undefined,
+  _prevState: AdminUpdateNotificationState | undefined,
   formData: FormData,
 ): Promise<AdminUpdateNotificationState> {
   try {
@@ -133,8 +133,8 @@ export type MarkAllNotificationsReadState = {
 };
 
 export async function markAllNotificationsReadAction(
-  prevState: MarkAllNotificationsReadState | undefined,
-  formData: FormData,
+  _prevState: MarkAllNotificationsReadState | undefined,
+  _formData: FormData,
 ): Promise<MarkAllNotificationsReadState> {
   try {
     const session = await auth.api.getSession({
@@ -147,7 +147,7 @@ export async function markAllNotificationsReadAction(
 
     markAllNotificationsReadSchema.parse({});
 
-    const result = await db
+    await db
       .update(notifications)
       .set({ isRead: true })
       .where(eq(notifications.userId, session.user.id));

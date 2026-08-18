@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -96,6 +95,7 @@ export function Navbar() {
                 <DropdownMenuItem
                   onSelect={async () => {
                     await signOut();
+                    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                     window.location.href = "/login";
                   }}
                 >
@@ -175,6 +175,7 @@ export function Navbar() {
                       className="w-full"
                       onClick={async () => {
                         await signOut();
+                        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                         window.location.href = "/login";
                       }}
                     >

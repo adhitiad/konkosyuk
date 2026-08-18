@@ -1,12 +1,11 @@
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useTransition } from "react";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { HeartIcon } from "@hugeicons/core-free-icons";
 import {
-  showToastSuccess,
   showToastError,
   showToastInfo,
 } from "@/lib/use-toast-custom";

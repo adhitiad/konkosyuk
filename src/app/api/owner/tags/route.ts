@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { tags } from "@/db/schema";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 import { desc } from "drizzle-orm";
 
 export async function GET() {

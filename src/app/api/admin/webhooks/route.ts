@@ -9,7 +9,6 @@ export async function GET(req: NextRequest) {
   try {
     const authResult = await validateAdminRequest(req);
     if (authResult instanceof Response) return authResult;
-    const { session } = authResult;
     const { searchParams } = new URL(req.url);
     const provider = searchParams.get("provider");
     const status = searchParams.get("status");

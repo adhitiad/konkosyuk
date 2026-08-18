@@ -1,14 +1,13 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { bookings, units, properties, payments, users } from "@/db/schema";
+import { bookings, units, properties, users } from "@/db/schema";
 import { bookingStatus } from "@/db/schema";
 import { eq, and, or, gte, lte, sql, desc, inArray } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { bookingRateLimit, enforceRateLimit } from "@/lib/rate-limit";
 import { validateMutationCsrf } from "@/lib/api-auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 import { createBookingSchema, bookingQuerySchema } from "@/lib/zod";
-import type { Role } from "@/lib/auth";
 import { logError, logApiRequest, logSecurityEvent } from "@/lib/logger";
 import {
   getPackageById,
@@ -17,13 +16,7 @@ import {
   validateBookingPackage,
   calculateCustomPrice,
 } from "@/lib/packages/calculator";
-import {
-  NotFoundError,
-  ValidationError,
-  AuthorizationError,
-  RateLimitError,
-} from "@/lib/api-error";
-import { ApiError } from "@/lib/api-error";
+import { NotFoundError, ValidationError, ApiError } from "@/lib/api-error";
 
 type BookingStatus = (typeof bookingStatus)[number];
 

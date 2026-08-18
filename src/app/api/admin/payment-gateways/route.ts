@@ -93,12 +93,6 @@ export async function POST(req: NextRequest) {
     if (authResult instanceof Response) return authResult;
     const { session } = authResult;
 
-    const ipAddress =
-      req.headers.get("x-forwarded-for") ||
-      req.headers.get("x-real-ip") ||
-      "unknown";
-    const userAgent = req.headers.get("user-agent") || "unknown";
-
     const body = upsertGatewaySchema.parse(await req.json());
 
     const providerConfig = body.config as Record<string, unknown>;
@@ -199,12 +193,6 @@ export async function DELETE(req: NextRequest) {
     const authResult = await validateAdminOnlyRequest(req);
     if (authResult instanceof Response) return authResult;
     const { session } = authResult;
-
-    const ipAddress =
-      req.headers.get("x-forwarded-for") ||
-      req.headers.get("x-real-ip") ||
-      "unknown";
-    const userAgent = req.headers.get("user-agent") || "unknown";
 
     const { searchParams } = new URL(req.url);
     const provider = searchParams.get("provider");

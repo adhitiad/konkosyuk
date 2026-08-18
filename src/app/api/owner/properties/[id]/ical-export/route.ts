@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { properties, bookings } from "@/db/schema";
 import { eq, and, or } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { fail, handleApiError } from "@/lib/api";
 import { generateIcalString } from "@/lib/ical/ical-generator";
 import type { Role } from "@/lib/auth";
 

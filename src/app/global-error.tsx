@@ -48,7 +48,10 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             <Button onClick={reset}>Coba Lagi</Button>
             <Button
               variant="outline"
-              onClick={() => (window.location.href = "/")}
+              onClick={() => {
+                // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+                window.location.href = "/";
+              }}
             >
               Kembali ke Beranda
             </Button>

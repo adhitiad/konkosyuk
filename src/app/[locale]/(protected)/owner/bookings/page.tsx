@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -97,7 +96,6 @@ const formatDate = (value: string | Date | null | undefined) => {
 };
 
 export default function OwnerBookingsPage() {
-  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<BookingStatus | "all">("all");
   const [page, setPage] = useState(1);
   const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);

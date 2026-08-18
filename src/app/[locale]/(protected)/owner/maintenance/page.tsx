@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth-client";
+
 import { useState, useActionState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -70,7 +70,6 @@ const priorityConfig: Record<
 };
 
 export default function OwnerMaintenancePage() {
-  const { data: session } = useSession();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedTicket, setSelectedTicket] =
@@ -102,7 +101,6 @@ export default function OwnerMaintenancePage() {
   useEffect(() => {
     if (state?.success) {
       queryClient.invalidateQueries({ queryKey: ["maintenance-tickets"] });
-      setSelectedTicket(null);
     } else if (state?.error) {
       alert(state.error);
     }
@@ -284,6 +282,7 @@ export default function OwnerMaintenancePage() {
                   <div className="col-span-2">
                     <p className="text-xs text-muted-foreground mb-2">Gambar</p>
                     <div className="flex flex-wrap gap-2">
+                      // eslint-disable-next-line @next/next/no-img-element
                       {selectedTicket.images.map((url, idx) => (
                         <img
                           key={idx}

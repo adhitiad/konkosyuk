@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-import { kycVerifications, users } from "@/db/schema";
+import { kycVerifications, users, kycVerificationStatus, kycStatus } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { ok, fail, handleApiError } from "@/lib/api";
@@ -66,12 +65,15 @@ export async function POST(req: Request) {
     }
 
     const status = data.status?.toLowerCase();
-    let newKycStatus: "verified" | "rejected" = "verified";
+    let newKycVerificationStatus: (typeof kycVerificationStatus)[number] = "approved";
+    let newUserKycStatus: (typeof kycStatus)[number] = "verified";
 
     if (status === "approved" || status === "completed") {
-      newKycStatus = "verified";
+      newKycVerificationStatus = "approved";
+      newUserKycStatus = "verified";
     } else if (status === "rejected" || status === "failed") {
-      newKycStatus = "rejected";
+      newKycVerificationStatus = "rejected";
+      newUserKycStatus = "rejected";
     } else {
       return ok({ received: true });
     }
@@ -79,7 +81,7 @@ export async function POST(req: Request) {
     await db
       .update(kycVerifications)
       .set({
-        status: newKycStatus as any,
+        status: newKycVerificationStatus,
         rejectionReason: data.rejection_reason || data.rejectionReason || null,
         faceMatchScore: data.face_match_score || data.faceMatchScore || null,
         livenessPassed: data.liveness_passed ?? data.livenessPassed ?? null,
@@ -89,7 +91,7 @@ export async function POST(req: Request) {
 
     await db
       .update(users)
-      .set({ kycStatus: newKycStatus as any })
+      .set({ kycStatus: newUserKycStatus })
       .where(eq(users.id, verification.userId));
 
     return ok({ received: true });

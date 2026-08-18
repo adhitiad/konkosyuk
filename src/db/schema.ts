@@ -955,7 +955,7 @@ export const paymentsRelations = relations(payments, ({ one }) => ({
   }),
 }));
 
-export const reviewsRelations = relations(reviews, ({ one, many }) => ({
+export const reviewsRelations = relations(reviews, ({ one }) => ({
   createdBy: one(users, {
     fields: [reviews.createdById],
     references: [users.id],
@@ -1072,7 +1072,7 @@ export const paymentTransactions = pgTable("payment_transactions", {
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
 });
 
-export const chartOfAccounts = pgTable("chart_of_accounts", {
+export const chartOfAccounts: string | any = pgTable("chart_of_accounts", {
   id: text("id").primaryKey(),
   accountCode: text("account_code").notNull().unique(),
   accountName: text("account_name").notNull(),
@@ -1082,7 +1082,7 @@ export const chartOfAccounts = pgTable("chart_of_accounts", {
     { onDelete: "set null" },
   ),
   isActive: boolean("is_active").default(true),
-}) as any;
+});
 
 export const generalLedger = pgTable("general_ledger", {
   id: text("id").primaryKey(),

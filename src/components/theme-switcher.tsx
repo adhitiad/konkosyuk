@@ -2,7 +2,7 @@
 
 import { useTheme } from "@/components/theme-provider";
 import { themes } from "@/lib/themes";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,

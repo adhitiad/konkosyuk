@@ -5,16 +5,9 @@ import {
   bookings,
   users,
   propertyTags,
-  tags,
   payments,
 } from "@/db/schema";
-import { eq, and, or, sql, desc, gte, lte, inArray } from "drizzle-orm";
-import {
-  propertiesRelations,
-  unitsRelations,
-  bookingsRelations,
-  usersRelations,
-} from "@/db/schema";
+import { eq, and, sql, desc, gte, inArray } from "drizzle-orm";
 
 /**
  * Example: Eager Loading dengan Drizzle ORM `with`

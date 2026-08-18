@@ -102,7 +102,7 @@ export async function getFavorites() {
       .orderBy(desc(favorites.createdAt));
 
     return { success: true, data, meta: { total: data.length } };
-  } catch (error) {
+  } catch {
     return { error: "Gagal mengambil favorit", success: false };
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import type { SessionUserWithRole } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
@@ -37,7 +37,6 @@ export default withAdminAuth(AdminBookingsPage);
 function AdminBookingsPage() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   const { data: bookings = [], isLoading } = useQuery<Booking[]>({
     queryKey: ["admin-bookings"],

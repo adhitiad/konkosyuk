@@ -8,6 +8,7 @@ import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 export function LogoutButton() {
   async function handleLogout() {
     await signOut();
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     window.location.href = "/login";
   }
 

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useActionState } from "react";
-import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import {
@@ -32,7 +31,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Pagination } from "@/components/ui/pagination";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -72,10 +70,9 @@ interface UsersResponse {
   };
 }
 
-interface AdminUsersPageProps {}
+type AdminUsersPageProps = Record<string, never>;
 
 const AdminUsersPage = ({}: AdminUsersPageProps) => {
-  const { data: session } = useSession();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -104,7 +101,7 @@ const AdminUsersPage = ({}: AdminUsersPageProps) => {
 
   const limit = 10;
 
-  const { data, isLoading, isError, error, refetch } = useQuery<UsersResponse>({
+  const { data, isLoading, isError, error } = useQuery<UsersResponse>({
     queryKey: ["admin-users", page, search, roleFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -209,18 +206,6 @@ const AdminUsersPage = ({}: AdminUsersPageProps) => {
         type: "success",
       });
       setCreateOpen(false);
-      setCreateName("");
-      setCreateEmail("");
-      setCreateRole("cust");
-      setCreatePassword("");
-      setCreatePhone("");
-      setCreateImage("");
-      setCreateWhatsApp("");
-      setCreateTelegram("");
-      setCreateProvince("");
-      setCreateCity("");
-      setCreateDistrict("");
-      setCreateIsActive(true);
     } else if (createState?.error) {
       toast({
         title: "Gagal",
@@ -229,6 +214,21 @@ const AdminUsersPage = ({}: AdminUsersPageProps) => {
       });
     }
   }, [createState, queryClient]);
+
+  const resetCreateForm = () => {
+    setCreateName("");
+    setCreateEmail("");
+    setCreateRole("cust");
+    setCreatePassword("");
+    setCreatePhone("");
+    setCreateImage("");
+    setCreateWhatsApp("");
+    setCreateTelegram("");
+    setCreateProvince("");
+    setCreateCity("");
+    setCreateDistrict("");
+    setCreateIsActive(true);
+  };
 
   const users = Array.isArray(data?.data) ? data.data : [];
   const total = data?.meta?.total ?? 0;
@@ -266,7 +266,7 @@ const AdminUsersPage = ({}: AdminUsersPageProps) => {
         <h1 className="text-2xl font-bold tracking-tight">Manajemen User</h1>
         <p className="text-muted-foreground">Kelola semua user di sistem</p>
         <div className="mt-4">
-          <Button onClick={() => setCreateOpen(true)}>
+          <Button onClick={() => { resetCreateForm(); setCreateOpen(true); }}>
             <HugeiconsIcon
               icon={Plus}
               strokeWidth={2}

@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { users, webhookEvents, generalLedger } from "@/db/schema";
-import { eq, desc, sql, and, gte, lt } from "drizzle-orm";
+import { eq, sql, and, gte } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 import type { Role } from "@/lib/auth";
 import { getMetricsSnapshot } from "@/lib/monitoring";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     await requireSession(["admin"] as Role[]);
 
@@ -40,12 +40,6 @@ export async function GET(req: NextRequest) {
 
     const errorRate24h =
       totalWebhooks24h > 0 ? (failedWebhooks24h / totalWebhooks24h) * 100 : 0;
-
-    const ledgerEntries = await db
-      .select()
-      .from(generalLedger)
-      .where(gte(generalLedger.createdAt, last24h))
-      .limit(100);
 
     const metrics = getMetricsSnapshot();
     const metricValues = Object.values(metrics);

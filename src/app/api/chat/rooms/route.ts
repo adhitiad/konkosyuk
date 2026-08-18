@@ -1,6 +1,5 @@
-import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { chatRooms, messages, properties } from "@/db/schema";
+import { chatRooms, properties } from "@/db/schema";
 import { eq, and, desc, sql, or } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";

@@ -14,7 +14,7 @@ export async function generateContract(bookingData: {
   const pdfDoc = await PDFDocument.create();
 
   const page = pdfDoc.addPage([595.28, 841.89]);
-  const { width, height } = page.getSize();
+  const { height } = page.getSize();
   const margin = 50;
 
   page.drawText("Sewa Kontrak", {

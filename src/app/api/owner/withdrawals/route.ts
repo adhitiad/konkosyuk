@@ -4,7 +4,7 @@ import { users, ownerBankAccounts, withdrawals } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { createWithdrawalSchema } from "@/lib/zod";
 import { logError } from "@/lib/logger";
 
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   try {
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
-    const session = await requireSession(["owner"] as any);
+    const session = await requireSession(["owner"] as const);
     const body = createWithdrawalSchema.parse(await req.json());
 
     const [user] = await db
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   try {
-    const session = await requireSession(["owner"] as any);
+    const session = await requireSession(["owner"] as const);
 
     const data = await db
       .select({

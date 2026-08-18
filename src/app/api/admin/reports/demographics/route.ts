@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { users, properties } from "@/db/schema";
-import { sql, and } from "drizzle-orm";
+import { sql, and, type SQL } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 
 interface RegionItem {
   province: string;
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     const cityFilter = searchParams.get("city") || "";
     const districtFilter = searchParams.get("district") || "";
 
-    const conditions: any[] = [];
+    const conditions: SQL<unknown>[] = [];
     if (provinceFilter) {
       const field =
         filterType === "user" ? users.province : properties.province;

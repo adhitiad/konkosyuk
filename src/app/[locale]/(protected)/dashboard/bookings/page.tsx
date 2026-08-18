@@ -11,9 +11,6 @@ import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AlertCircleIcon,
-  CheckmarkCircle02Icon,
-  Clock01Icon,
-  CancelCircleIcon,
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { apiClient } from "@/lib/axios";
@@ -82,10 +79,10 @@ export default function TenantBookingsPage() {
   const rawPayload = data?.data;
   const bookings: BookingRequestItem[] = Array.isArray(rawPayload)
     ? rawPayload
-    : Array.isArray((rawPayload as any)?.data)
-      ? (rawPayload as any).data
+    : Array.isArray((rawPayload as { data?: unknown[] } | undefined)?.data)
+      ? (rawPayload as { data: BookingRequestItem[] }).data
       : Array.isArray(data)
-        ? (data as any)
+        ? (data as { data: BookingRequestItem[] }).data
         : [];
 
   return (

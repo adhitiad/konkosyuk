@@ -4,7 +4,7 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 import { z } from "zod";
 
 const updateProfileSchema = z.object({

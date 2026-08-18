@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Loader2,
@@ -204,6 +203,7 @@ export default function KYCVerificationFlow({
         return (
           <div className="space-y-4">
             <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8">
+              // eslint-disable-next-line @next/next/no-img-element
               {ktpPreview ? (
                 <div className="relative">
                   <img
@@ -253,6 +253,7 @@ export default function KYCVerificationFlow({
         return (
           <div className="space-y-4">
             <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8">
+              // eslint-disable-next-line @next/next/no-img-element
               {selfiePreview ? (
                 <div className="relative">
                   <img

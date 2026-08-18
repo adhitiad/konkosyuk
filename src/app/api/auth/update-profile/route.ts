@@ -4,9 +4,8 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 import { z } from "zod";
-import type { Role } from "@/lib/auth";
 
 const updateProfileSchema = z.object({
   name: z.string().min(3, "Nama minimal 3 karakter").max(255),

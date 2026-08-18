@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/axios";
 import { toast } from "@/components/ui/toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Role } from "@/lib/auth";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import { withAdminAuth } from "@/lib/with-admin-auth";
 
@@ -56,7 +55,7 @@ export default withAdminAuth(ActivityLogsPage);
 function ActivityLogsPage() {
   const [search, setSearch] = useState("");
   const [action, setAction] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [userId] = useState<string | null>(null);
 
   const { data, isLoading, isError, error } = useQuery<ActivityLogsResponse>({
     queryKey: ["admin-activity-logs", action, userId, search],

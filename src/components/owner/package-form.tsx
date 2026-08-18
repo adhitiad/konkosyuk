@@ -1,12 +1,9 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete01Icon, Add01Icon } from "@hugeicons/core-free-icons";
 import type {
   PropertyPackages,
   PackageItem,
