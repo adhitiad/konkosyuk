@@ -540,6 +540,40 @@ export const payments = pgTable(
   }),
 );
 
+export const refundRequestStatus = ["pending", "approved", "rejected"] as const;
+
+export const refundRequests = pgTable(
+  "refund_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    bookingId: uuid("booking_id")
+      .notNull()
+      .references(() => bookings.id, { onDelete: "cascade" }),
+    paymentId: uuid("payment_id")
+      .notNull()
+      .references(() => payments.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    amount: text("amount").notNull(),
+    reason: text("reason").notNull(),
+    status: text("status", { enum: refundRequestStatus })
+      .notNull()
+      .default("pending"),
+    reviewedBy: uuid("reviewed_by").references(() => users.id),
+    reviewedAt: timestamp("reviewed_at", { mode: "date" }),
+    reviewNote: text("review_note"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    bookingIdIdx: index("refund_requests_booking_id_idx").on(table.bookingId),
+    paymentIdIdx: index("refund_requests_payment_id_idx").on(table.paymentId),
+    userIdIdx: index("refund_requests_user_id_idx").on(table.userId),
+    statusIdx: index("refund_requests_status_idx").on(table.status),
+  }),
+);
+
 export const webhookEvents = pgTable(
   "webhook_events",
   {
@@ -805,6 +839,8 @@ export type Booking = typeof bookings.$inferSelect;
 export type NewBooking = typeof bookings.$inferInsert;
 export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
+export type RefundRequest = typeof refundRequests.$inferSelect;
+export type NewRefundRequest = typeof refundRequests.$inferInsert;
 export type WebhookEvent = typeof webhookEvents.$inferSelect;
 export type NewWebhookEvent = typeof webhookEvents.$inferInsert;
 export type Review = typeof reviews.$inferSelect;

@@ -6,10 +6,22 @@ import type { PaymentTransaction } from "@/db/schema";
 export const ACCOUNTS = {
   CASH: "1000",
   BANK: "1100",
+  TAX_PAYABLE: "1111",
+  OTHER: "2222",
   PLATFORM_FEE_REVENUE: "4000",
+  SERVER_HOSTING_COST: "4001",
+  DB_COST: "4002",
+  TRANSACTION_PG_COST: "4003",
+  REDIS_COST: "4004",
+  DOMAIN_COST: "4055",
   PAYMENT_FEES: "5000",
   REFUNDS: "5100",
   OWNER_PAYOUTS: "5200",
+  DOWN_PAYMENT: "7011",
+  CREDIT: "7001",
+  DEBIT: "8001",
+  REFUND_EXPENSE: "8010",
+  PLATFORM_ADMIN_FEE: "8021",
 } as const;
 
 export type AccountCode = (typeof ACCOUNTS)[keyof typeof ACCOUNTS];

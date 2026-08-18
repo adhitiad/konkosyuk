@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
+import { useState, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,19 @@ import {
   CancelCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { apiClient } from "@/lib/axios";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
+import { requestRefundAction } from "@/actions/refund-requests";
 import { ChatTriggerButton } from "@/components/chat/chat-trigger-button";
 
 interface BookingDetail {
@@ -148,6 +162,10 @@ export default function BookingDetailPage() {
 
   const booking = data?.data;
 
+  const [refundOpen, setRefundOpen] = useState(false);
+  const [refundReason, setRefundReason] = useState("");
+  const [isPendingRefund, startRefundTransition] = useTransition();
+
   if (isLoading) {
     return (
       <div className="container py-6 space-y-4">
@@ -183,6 +201,7 @@ export default function BookingDetailPage() {
   const remainingAmount = metadata?.remainingAmount
     ? Number(metadata.remainingAmount)
     : 0;
+  const paymentType = metadata?.paymentType as "dp" | "full" | undefined;
   const config = statusConfig[booking.status] ?? {
     label: booking.status,
     variant: "outline",
@@ -395,16 +414,29 @@ export default function BookingDetailPage() {
                   {formatCurrency(totalPrice)}
                 </span>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">DP 35%</span>
-                <span className="font-medium">{formatCurrency(dpAmount)}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Sisa 65%</span>
-                <span className="font-medium">
-                  {formatCurrency(remainingAmount)}
-                </span>
-              </div>
+              {paymentType === "full" ? (
+                <div className="flex items-center justify-between text-sm text-primary">
+                  <span>Pembayaran Lunas</span>
+                  <span className="font-medium">
+                    {formatCurrency(totalPrice)}
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">DP 35%</span>
+                    <span className="font-medium">
+                      {formatCurrency(dpAmount)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Sisa 65%</span>
+                    <span className="font-medium">
+                      {formatCurrency(remainingAmount)}
+                    </span>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -466,6 +498,86 @@ export default function BookingDetailPage() {
                   Cari Properti Lain
                 </Button>
               )}
+              {booking.status !== "rejected" &&
+                booking.status !== "cancelled" &&
+                booking.status !== "completed" &&
+                booking.startDate > new Date().toISOString() &&
+                booking.payments.some((p) => p.status === "success") && (
+                  <Dialog open={refundOpen} onOpenChange={setRefundOpen}>
+                    <DialogTrigger>
+                      <Button
+                        variant="destructive"
+                        className="w-full"
+                        nativeButton={false}
+                      >
+                        Ajukan Refund
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Ajukan Refund</DialogTitle>
+                        <DialogDescription>
+                          Ajukan pengembalian dana untuk booking ini. Refund akan
+                          diproses oleh admin.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form
+                        action={async (formData) => {
+                          startRefundTransition(async () => {
+                            const result = await requestRefundAction(
+                              undefined,
+                              formData,
+                            );
+                            if (result.success) {
+                              showToastSuccess(
+                                "Pengajuan refund berhasil dikirim",
+                              );
+                              setRefundOpen(false);
+                              setRefundReason("");
+                            } else {
+                              showToastError(result.error ?? "Gagal mengajukan refund");
+                            }
+                          });
+                        }}
+                      >
+                        <input
+                          type="hidden"
+                          name="bookingId"
+                          value={booking.id}
+                        />
+                        <input
+                          type="hidden"
+                          name="paymentId"
+                          value={
+                            booking.payments.find((p) => p.status === "success")
+                              ?.id ?? ""
+                          }
+                        />
+                        <div className="space-y-2">
+                          <Label htmlFor="reason">Alasan Refund</Label>
+                          <Textarea
+                            id="reason"
+                            name="reason"
+                            value={refundReason}
+                            onChange={(e) => setRefundReason(e.target.value)}
+                            placeholder="Jelaskan alasan refund..."
+                            required
+                            minLength={10}
+                          />
+                        </div>
+                        <DialogFooter className="mt-4">
+                          <Button
+                            type="submit"
+                            disabled={isPendingRefund || !refundReason.trim()}
+                            variant="destructive"
+                          >
+                            {isPendingRefund ? "Mengirim..." : "Ajukan Refund"}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                )}
             </CardContent>
           </Card>
         </div>

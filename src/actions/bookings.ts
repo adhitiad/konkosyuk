@@ -32,7 +32,11 @@ const createBookingSchema = z.object({
   unitId: z.string().uuid(),
   packageId: z.string().min(1),
   customDuration: z.coerce.number().int().positive().optional(),
+  bookingType: z.enum(["instant", "request"]),
   startDate: z.string().datetime(),
+  endDate: z.string().datetime().optional(),
+  paymentType: z.enum(["dp", "full"]).default("dp"),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type CreateBookingState = {
@@ -85,6 +89,7 @@ export async function createBookingAction(
         ? Number(formData.get("customDuration"))
         : undefined,
       startDate: formData.get("startDate"),
+      paymentType: formData.get("paymentType") || "dp",
     });
 
     const [unit] = await db
@@ -163,6 +168,11 @@ export async function createBookingAction(
     const dpAmount = Math.round(totalPrice * 0.35);
     const remainingAmount = totalPrice - dpAmount;
 
+    const isFullPayment = validated.paymentType === "full";
+    const bookingStatus = isFullPayment ? "awaiting_full_payment" : "pending_dp";
+    const bookingDpAmount = isFullPayment ? 0 : dpAmount;
+    const bookingRemainingAmount = isFullPayment ? totalPrice : remainingAmount;
+
     const bookingType = unit.status === "available" ? "instant" : "request";
 
     const overlapping = await db
@@ -203,19 +213,20 @@ export async function createBookingAction(
         propertyId: property.id,
         unitId: unit.id,
         bookingType,
-        status: "pending_dp",
+        status: bookingStatus,
         startDate: new Date(validated.startDate),
         endDate: endDate,
         metadata: {
           packageId: validated.packageId,
           customDuration: validated.customDuration,
           totalPrice,
-          dpAmount,
-          remainingAmount,
+          dpAmount: bookingDpAmount,
+          remainingAmount: bookingRemainingAmount,
           basePrice: pkg.basePrice,
           discountPercent: pkg.discountPercent,
           ppnPercent: pkg.ppnPercent,
           appFeePercent: pkg.appFeePercent,
+          paymentType: validated.paymentType,
         },
       })
       .returning();
@@ -247,8 +258,8 @@ export async function createBookingAction(
         ...booking,
         payment: {
           totalPrice,
-          dpAmount,
-          remainingAmount,
+          dpAmount: bookingDpAmount,
+          remainingAmount: bookingRemainingAmount,
         },
       },
     };

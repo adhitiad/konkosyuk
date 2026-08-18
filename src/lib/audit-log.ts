@@ -10,6 +10,8 @@ export type AuditAction =
   | "reject"
   | "reconcile"
   | "refund"
+  | "refund_request"
+  | "refund_rejected"
   | "login"
   | "logout"
   | "config_change";
@@ -25,7 +27,8 @@ export type AuditEntityType =
   | "payment_gateway"
   | "platform_setting"
   | "ledger"
-  | "webhook";
+  | "webhook"
+  | "refund_request";
 
 export interface AuditLogInput {
   action: AuditAction;

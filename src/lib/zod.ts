@@ -111,6 +111,7 @@ export const createBookingSchema = z.object({
   bookingType: z.enum(["instant", "request"]),
   startDate: z.string().datetime(),
   endDate: z.string().datetime().optional(),
+  paymentType: z.enum(["dp", "full"]).default("dp"),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 

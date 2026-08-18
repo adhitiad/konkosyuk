@@ -64,6 +64,7 @@ export default function BookingDialogClient({
   const [selectedPackageId, setSelectedPackageId] = useState<string>("");
   const [customDuration, setCustomDuration] = useState<number>(1);
   const [startDate, setStartDate] = useState("");
+  const [paymentType, setPaymentType] = useState<"dp" | "full">("dp");
   const [state, formAction, isPending] = useActionState(
     createBookingAction,
     undefined,
@@ -97,17 +98,22 @@ export default function BookingDialogClient({
   }, [selectedPackage, selectedPackageId, customDuration, packages.custom]);
 
   const { dpAmount, remainingAmount } = useMemo(() => {
+    if (paymentType === "full") {
+      return { dpAmount: 0, remainingAmount: totalPrice };
+    }
     const dpRatio = 0.35;
     const dp = Math.round(totalPrice * dpRatio);
     return { dpAmount: dp, remainingAmount: totalPrice - dp };
-  }, [totalPrice]);
+  }, [totalPrice, paymentType]);
 
   const isStartDateValid =
     startDate === "" || new Date(startDate) >= new Date(today.slice(0, 10));
 
   if (state?.success) {
     showToastSuccess(
-      "Booking berhasil! Silakan bayar DP 35% untuk mengunci kamar.",
+      paymentType === "full"
+        ? "Booking berhasil! Silakan lanjutkan pembayaran lunas."
+        : "Booking berhasil! Silakan bayar DP 35% untuk mengunci kamar.",
     );
     setOpen(false);
     router.push("/dashboard/bookings");
@@ -227,20 +233,64 @@ export default function BookingDialogClient({
             )}
           </div>
 
+          <div className="space-y-2">
+            <Label>Metode Pembayaran</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setPaymentType("dp")}
+                className={`rounded-4xl border p-3 text-sm transition-all ${
+                  paymentType === "dp"
+                    ? "border-primary bg-primary/5"
+                    : "hover:border-primary/50"
+                }`}
+              >
+                <p className="font-semibold">DP 35%</p>
+                <p className="text-xs text-muted-foreground">
+                  Bayar {formatCurrency(dpAmount)} sekarang
+                </p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentType("full")}
+                className={`rounded-4xl border p-3 text-sm transition-all ${
+                  paymentType === "full"
+                    ? "border-primary bg-primary/5"
+                    : "hover:border-primary/50"
+                }`}
+              >
+                <p className="font-semibold">Lunas</p>
+                <p className="text-xs text-muted-foreground">
+                  Bayar {formatCurrency(totalPrice)} sekarang
+                </p>
+              </button>
+            </div>
+            <input type="hidden" name="paymentType" value={paymentType} />
+          </div>
+
           {totalPrice > 0 && (
             <div className="rounded-4xl border p-4 space-y-2">
               <div className="flex justify-between font-semibold">
                 <span>Total</span>
                 <span>{formatCurrency(totalPrice)}</span>
               </div>
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>DP (35%)</span>
-                <span>{formatCurrency(dpAmount)}</span>
-              </div>
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Sisa</span>
-                <span>{formatCurrency(remainingAmount)}</span>
-              </div>
+              {paymentType === "dp" ? (
+                <>
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>DP (35%)</span>
+                    <span>{formatCurrency(dpAmount)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Sisa</span>
+                    <span>{formatCurrency(remainingAmount)}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between text-sm text-primary">
+                  <span>Pembayaran Lunas</span>
+                  <span>{formatCurrency(totalPrice)}</span>
+                </div>
+              )}
             </div>
           )}
 
