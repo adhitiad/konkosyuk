@@ -9,10 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  AlertCircleIcon,
-  Search01Icon,
-} from "@hugeicons/core-free-icons";
+import { AlertCircleIcon, Search01Icon } from "@hugeicons/core-free-icons";
 import { apiClient } from "@/lib/axios";
 
 interface BookingRequestItem {
@@ -70,7 +67,9 @@ interface ApiResponse<T> {
 export default function TenantBookingsPage() {
   const { data: session } = useSession();
 
-  const { data, isLoading, isError, error } = useQuery<ApiResponse<BookingRequestItem[]>>({
+  const { data, isLoading, isError, error } = useQuery<
+    ApiResponse<BookingRequestItem[]>
+  >({
     queryKey: ["tenant-booking-requests"],
     queryFn: async () => {
       const { data } = await apiClient.get("/api/tenant/booking-requests");

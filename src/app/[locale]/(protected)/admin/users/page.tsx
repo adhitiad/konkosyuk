@@ -267,7 +267,12 @@ const AdminUsersPage = ({}: AdminUsersPageProps) => {
         <h1 className="text-2xl font-bold tracking-tight">Manajemen User</h1>
         <p className="text-muted-foreground">Kelola semua user di sistem</p>
         <div className="mt-4">
-          <Button onClick={() => { resetCreateForm(); setCreateOpen(true); }}>
+          <Button
+            onClick={() => {
+              resetCreateForm();
+              setCreateOpen(true);
+            }}
+          >
             <HugeiconsIcon
               icon={Plus}
               strokeWidth={2}

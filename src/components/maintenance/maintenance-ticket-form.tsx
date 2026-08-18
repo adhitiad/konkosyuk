@@ -232,7 +232,7 @@ export default function MaintenanceTicketForm({
                 Tambah
               </Button>
             </div>
-{imageUrls.length > 0 && (
+            {imageUrls.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {imageUrls.map((url) => (
                   <div key={url} className="relative group">

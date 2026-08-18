@@ -83,7 +83,6 @@ function ReportItem({
       </div>
       <p className="text-sm whitespace-pre-wrap">{report.description}</p>
       {report.images?.length ? (
-         
         <div className="flex flex-wrap gap-2">
           {report.images.map((url) => (
             /* eslint-disable-next-line @next/next/no-img-element */

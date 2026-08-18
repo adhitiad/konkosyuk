@@ -39,12 +39,9 @@ export function PropertyImagesUpload({
   );
   const [dragActive, setDragActive] = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
-const [dragIndex, setDragIndex] = useState<number | null>(null);
-const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-const [, uploadAction] = useActionState(
-    uploadImageAction,
-    undefined,
-  );
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [, uploadAction] = useActionState(uploadImageAction, undefined);
 
   const handleFiles = useCallback(
     async (files: FileList | File[]) => {

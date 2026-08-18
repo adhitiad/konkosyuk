@@ -1,6 +1,13 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { payments, bookings, units, properties, users, paymentStatus } from "@/db/schema";
+import {
+  payments,
+  bookings,
+  units,
+  properties,
+  users,
+  paymentStatus,
+} from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateAdminRequest } from "@/lib/api-auth";
@@ -66,10 +73,7 @@ export async function GET(req: NextRequest) {
       .leftJoin(users, eq(bookings.userId, users.id))
       .where(
         statusValue
-          ? eq(
-              payments.status,
-              statusValue as (typeof paymentStatus)[number],
-            )
+          ? eq(payments.status, statusValue as (typeof paymentStatus)[number])
           : undefined,
       )
       .orderBy(desc(payments.createdAt))

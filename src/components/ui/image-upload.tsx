@@ -100,8 +100,9 @@ function ImageUpload({ initialImageUrl, onUploadComplete }: ImageUploadProps) {
           "relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 dark:bg-neutral-900 dark:border-neutral-700 dark:hover:bg-neutral-800 transition-colors overflow-hidden",
           (file || currentPreview) && "p-0",
         )}
-onClick={() =>
-          !currentPreview && document.getElementById("image-upload-input")?.click()
+        onClick={() =>
+          !currentPreview &&
+          document.getElementById("image-upload-input")?.click()
         }
       >
         {currentPreview ? (

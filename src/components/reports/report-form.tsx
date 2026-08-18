@@ -41,10 +41,7 @@ function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
     createReportAction,
     undefined,
   );
-  const [, uploadAction] = useActionState(
-    uploadImageAction,
-    undefined,
-  );
+  const [, uploadAction] = useActionState(uploadImageAction, undefined);
 
   useEffect(() => {
     fetch("/api/bookings?limit=100")
@@ -173,7 +170,6 @@ function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
               }
             />
             {images.length > 0 && (
-               
               <div className="flex flex-wrap gap-2">
                 {images.map((url) => (
                   /* eslint-disable-next-line @next/next/no-img-element */

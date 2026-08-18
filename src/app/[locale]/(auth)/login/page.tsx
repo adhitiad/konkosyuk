@@ -46,23 +46,23 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
 
-try {
-        const result = await authClient.signIn.email({
-          email,
-          password,
-        });
+    try {
+      const result = await authClient.signIn.email({
+        email,
+        password,
+      });
 
-        if (result.error) {
-          setError(result.error.message || "Login gagal");
-          return;
-        }
-
-        router.refresh();
-      } catch {
-        setError("Terjadi kesalahan sistem");
-      } finally {
-        setLoading(false);
+      if (result.error) {
+        setError(result.error.message || "Login gagal");
+        return;
       }
+
+      router.refresh();
+    } catch {
+      setError("Terjadi kesalahan sistem");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogleLogin = async () => {

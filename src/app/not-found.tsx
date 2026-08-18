@@ -25,10 +25,12 @@ export default function NotFound() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={() => {
-            // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-            window.location.href = "/";
-          }}>
+          <Button
+            onClick={() => {
+              // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+              window.location.href = "/";
+            }}
+          >
             <HomeIcon className="mr-2 h-4 w-4" />
             Kembali ke Beranda
           </Button>

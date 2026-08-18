@@ -36,10 +36,7 @@ export default function ReviewBookingDialog({
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
-  const [state, formAction] = useActionState(
-    reviewBookingAction,
-    undefined,
-  );
+  const [state, formAction] = useActionState(reviewBookingAction, undefined);
 
   useEffect(() => {
     if (state?.success) {

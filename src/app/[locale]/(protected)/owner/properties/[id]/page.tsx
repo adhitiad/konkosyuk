@@ -76,12 +76,14 @@ export default function PropertyDetailPage() {
 
   const [title, setTitle] = useState(property?.name ?? "");
   const [type, setType] = useState<UpdatePropertyInput["type"]>(
-    (property?.type as UpdatePropertyInput["type"]) ?? "kost"
+    (property?.type as UpdatePropertyInput["type"]) ?? "kost",
   );
   const [city, setCity] = useState(property?.city ?? "");
   const [address, setAddress] = useState(property?.address ?? "");
   const [basePrice, setBasePrice] = useState(property?.basePrice ?? "");
-  const [amenities, setAmenities] = useState<string[]>(property?.amenities ?? []);
+  const [amenities, setAmenities] = useState<string[]>(
+    property?.amenities ?? [],
+  );
   const [amenityInput, setAmenityInput] = useState("");
   const [description, setDescription] = useState(property?.description ?? "");
   const [error, setError] = useState<string | null>(null);
@@ -400,7 +402,8 @@ export default function PropertyDetailPage() {
                 <DialogTitle>Konfirmasi Hapus</DialogTitle>
               </DialogHeader>
               <p className="text-sm text-muted-foreground">
-                Apakah Anda yakin ingin menghapus properti &quot;{property.name}&quot;? Tindakan ini tidak dapat dibatalkan.
+                Apakah Anda yakin ingin menghapus properti &quot;{property.name}
+                &quot;? Tindakan ini tidak dapat dibatalkan.
               </p>
               <div className="flex justify-end gap-2">
                 <DialogTrigger render={<Button variant="outline" />}>

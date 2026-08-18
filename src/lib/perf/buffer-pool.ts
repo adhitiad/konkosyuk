@@ -177,7 +177,6 @@ let sigBufB: Buffer | null = null;
  * Fallback ke Buffer.from() jika string terlalu panjang.
  */
 export function timingSafeCompare(a: string, b: string): boolean {
-
   if (a.length !== b.length) return false;
 
   // Untuk string pendek, gunakan pre-allocated buffers

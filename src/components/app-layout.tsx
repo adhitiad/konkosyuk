@@ -23,11 +23,7 @@ function PageSkeleton() {
   );
 }
 
-export function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />

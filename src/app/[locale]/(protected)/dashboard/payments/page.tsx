@@ -153,7 +153,12 @@ export default function TenantPaymentsPage() {
     null,
   );
 
-  const { data: queryData, isLoading, isError, error } = useQuery({
+  const {
+    data: queryData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["tenant-payments"],
     queryFn: async () => {
       const response = await apiClient.get("/api/payments");

@@ -200,8 +200,8 @@ function DeletePropertyButton({
           <DialogTitle>Konfirmasi Hapus</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Apakah Anda yakin ingin menghapus properti &quot;{propertyName}&quot;? Tindakan
-          ini tidak dapat dibatalkan.
+          Apakah Anda yakin ingin menghapus properti &quot;{propertyName}&quot;?
+          Tindakan ini tidak dapat dibatalkan.
         </p>
         <div className="flex justify-end gap-2">
           <DialogTrigger render={<Button variant="outline" />}>
@@ -224,21 +224,23 @@ export default function PropertiesPage() {
   const { data: session } = useSession();
 
   interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  meta?: Record<string, unknown>;
-}
+    success: boolean;
+    data: T;
+    meta?: Record<string, unknown>;
+  }
 
-const { data, isLoading, isError, error } = useQuery<ApiResponse<Property[]>>({
-    queryKey: ["owner-properties-v2"],
-    queryFn: async () => {
-      const response = await fetch("/api/owner/properties");
-      const body = await response.json();
-      return body as ApiResponse<Property[]>;
+  const { data, isLoading, isError, error } = useQuery<ApiResponse<Property[]>>(
+    {
+      queryKey: ["owner-properties-v2"],
+      queryFn: async () => {
+        const response = await fetch("/api/owner/properties");
+        const body = await response.json();
+        return body as ApiResponse<Property[]>;
+      },
+      staleTime: 30000,
+      enabled: !!session?.user?.id,
     },
-    staleTime: 30000,
-    enabled: !!session?.user?.id,
-  });
+  );
 
   const properties = data?.data ?? [];
 

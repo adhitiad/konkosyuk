@@ -8,11 +8,7 @@ import { useChat, type Message } from "@/hooks/useChat";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Bubble,
-  BubbleContent,
-  BubbleGroup,
-} from "@/components/ui/bubble";
+import { Bubble, BubbleContent, BubbleGroup } from "@/components/ui/bubble";
 import { User } from "lucide-react";
 
 interface ChatWindowProps {

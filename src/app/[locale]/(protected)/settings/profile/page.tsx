@@ -78,7 +78,9 @@ export default function ProfileSettingsPage() {
 
   // Fetch cities when province is selected
   const selectedProvince = provincesData?.find((p) => p.name === province);
-  const { data: citiesData, isLoading: citiesLoading } = useQuery<RegionOption[]>({
+  const { data: citiesData, isLoading: citiesLoading } = useQuery<
+    RegionOption[]
+  >({
     queryKey: ["cities", selectedProvince?.id],
     queryFn: async () => {
       if (!selectedProvince) return [];
@@ -309,7 +311,7 @@ export default function ProfileSettingsPage() {
             <div className="space-y-2">
               <Label htmlFor="province">Provinsi</Label>
               <input type="hidden" name="province" value={province} />
-<Select
+              <Select
                 value={province}
                 onValueChange={(value) => {
                   setProvince(value ?? "");
@@ -359,8 +361,8 @@ export default function ProfileSettingsPage() {
                       citiesLoading
                         ? "Memuat kota..."
                         : !province
-                        ? "Pilih provinsi dahulu"
-                        : "Pilih Kota/Kabupaten"
+                          ? "Pilih provinsi dahulu"
+                          : "Pilih Kota/Kabupaten"
                     }
                   />
                 </SelectTrigger>
@@ -393,8 +395,8 @@ export default function ProfileSettingsPage() {
                       districtsLoading
                         ? "Memuat kecamatan..."
                         : !city
-                        ? "Pilih kota dahulu"
-                        : "Pilih Kecamatan"
+                          ? "Pilih kota dahulu"
+                          : "Pilih Kecamatan"
                     }
                   />
                 </SelectTrigger>

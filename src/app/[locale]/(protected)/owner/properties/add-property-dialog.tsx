@@ -92,14 +92,18 @@ export default function AddPropertyDialog() {
   );
 
   useEffect(() => {
-    const imagesInput = document.getElementById("property-images") as HTMLInputElement | null;
+    const imagesInput = document.getElementById(
+      "property-images",
+    ) as HTMLInputElement | null;
     if (imagesInput) {
       imagesInput.value = JSON.stringify(propertyImages);
     }
   }, [propertyImages]);
 
   useEffect(() => {
-    const packagesInput = document.getElementById("property-packages") as HTMLInputElement | null;
+    const packagesInput = document.getElementById(
+      "property-packages",
+    ) as HTMLInputElement | null;
     if (packagesInput) {
       packagesInput.value = JSON.stringify(packages);
     }
@@ -432,8 +436,18 @@ export default function AddPropertyDialog() {
           </CardContent>
         </Card>
 
-        <input type="hidden" id="property-images" name="images" value={JSON.stringify(propertyImages)} />
-        <input type="hidden" id="property-packages" name="packages" value={JSON.stringify(packages)} />
+        <input
+          type="hidden"
+          id="property-images"
+          name="images"
+          value={JSON.stringify(propertyImages)}
+        />
+        <input
+          type="hidden"
+          id="property-packages"
+          name="packages"
+          value={JSON.stringify(packages)}
+        />
 
         <div className="flex justify-end gap-3 pt-4 border-t">
           <Button

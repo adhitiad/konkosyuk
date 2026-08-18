@@ -3,10 +3,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { usePaymentPolling } from "@/hooks/use-payment-polling";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -23,13 +20,11 @@ function PaymentResultContent() {
   const provider = searchParams.get("provider");
   const invoiceNumber = searchParams.get("bookingId");
 
-  const { isSuccess, isTimeout, attempt, error } = usePaymentPolling(
-    {
-      invoiceNumber: invoiceNumber ?? undefined,
-      intervalMs: 5000,
-      maxAttempts: 60,
-    },
-  );
+  const { isSuccess, isTimeout, attempt, error } = usePaymentPolling({
+    invoiceNumber: invoiceNumber ?? undefined,
+    intervalMs: 5000,
+    maxAttempts: 60,
+  });
 
   const elapsedSeconds = attempt * 5;
   const elapsedMinutes = Math.floor(elapsedSeconds / 60);

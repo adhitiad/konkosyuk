@@ -111,10 +111,7 @@ export default function PropertiesPage() {
   // Compute priceRange from URL params directly
   const priceRange = useMemo(() => {
     if (minPriceParam || maxPriceParam) {
-      return [
-        Number(minPriceParam) || 0,
-        Number(maxPriceParam) || 10000000,
-      ];
+      return [Number(minPriceParam) || 0, Number(maxPriceParam) || 10000000];
     }
     return [0, 10000000] as [number, number];
   }, [minPriceParam, maxPriceParam]);

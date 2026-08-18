@@ -1,11 +1,5 @@
 import { db } from "@/db";
-import {
-  properties,
-  units,
-  users,
-  propertyTags,
-  payments,
-} from "@/db/schema";
+import { properties, units, users, propertyTags, payments } from "@/db/schema";
 import { eq, and, sql, desc, inArray } from "drizzle-orm";
 
 /**
@@ -23,14 +17,11 @@ export async function getPropertiesWithNPlusOne() {
 
   for (const property of propertiesList) {
     // Query terpisah untuk SETIAP properti = N+1
-    void await db
+    void (await db
       .select()
       .from(units)
-      .where(eq(units.propertyId, property.id));
-    void await db
-      .select()
-      .from(users)
-      .where(eq(users.id, property.ownerId));
+      .where(eq(units.propertyId, property.id)));
+    void (await db.select().from(users).where(eq(users.id, property.ownerId)));
   }
 }
 

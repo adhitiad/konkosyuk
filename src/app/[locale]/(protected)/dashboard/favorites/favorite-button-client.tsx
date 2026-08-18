@@ -5,10 +5,7 @@ import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { HeartIcon } from "@hugeicons/core-free-icons";
-import {
-  showToastError,
-  showToastInfo,
-} from "@/lib/use-toast-custom";
+import { showToastError, showToastInfo } from "@/lib/use-toast-custom";
 import { toggleWishlist } from "@/actions/wishlist";
 
 interface FavoriteButtonClientProps {

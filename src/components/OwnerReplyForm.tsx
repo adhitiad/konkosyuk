@@ -10,10 +10,7 @@ interface OwnerReplyFormProps {
   onCancel?: () => void;
 }
 
-export function OwnerReplyForm({
-  onSubmit,
-  onCancel,
-}: OwnerReplyFormProps) {
+export function OwnerReplyForm({ onSubmit, onCancel }: OwnerReplyFormProps) {
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

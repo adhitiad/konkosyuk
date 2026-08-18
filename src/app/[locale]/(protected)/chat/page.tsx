@@ -91,7 +91,7 @@ export default function ChatPage() {
                   ← Kembali
                 </Button>
               </div>
-<ChatWindow
+              <ChatWindow
                 roomId={selectedRoom}
                 currentUserId={session.user.id}
               />

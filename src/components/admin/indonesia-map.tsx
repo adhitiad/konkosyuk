@@ -7,7 +7,7 @@ import Map, {
   Popup,
   NavigationControl,
   type MapLayerMouseEvent,
-} from "react-map-gl/maplibre"
+} from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Loader2, AlertCircle } from "lucide-react";
 import type { StyleSpecification } from "maplibre-gl";
@@ -164,11 +164,7 @@ export default function IndonesiaMap({ data, filterType }: IndonesiaMapProps) {
         >
           <NavigationControl position="top-right" showCompass={false} />
 
-          <Source
-            id="indonesia-regions"
-            type="geojson"
-            data={finalGeoJSON}
-          >
+          <Source id="indonesia-regions" type="geojson" data={finalGeoJSON}>
             <Layer
               id="region-fill"
               type="fill"

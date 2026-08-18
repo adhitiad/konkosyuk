@@ -6,10 +6,7 @@ import { eq, and, or, sql } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
-import {
-  createPropertySchema,
-  propertyQuerySchema,
-} from "@/lib/zod";
+import { createPropertySchema, propertyQuerySchema } from "@/lib/zod";
 import type { Role } from "@/lib/auth";
 import { calculateDistance } from "@/lib/geolocation";
 import { jitterCoordinates } from "@/lib/utils/location";
@@ -157,9 +154,9 @@ export async function GET(req: NextRequest) {
 
         if (minPrice !== undefined || maxPrice !== undefined) {
           data = data.filter((property) => {
-            const packages = property.packages as
-              | { predefined?: { finalPrice?: number }[] }
-              | null;
+            const packages = property.packages as {
+              predefined?: { finalPrice?: number }[];
+            } | null;
             const prices =
               packages?.predefined
                 ?.map((p) => p.finalPrice)

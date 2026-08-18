@@ -48,9 +48,7 @@ export async function GET(req: NextRequest) {
       conditions.push(or(like(users.name, term), like(users.email, term)));
     }
     if (role) {
-      conditions.push(
-        eq(users.role, role as (typeof userRole)[number]),
-      );
+      conditions.push(eq(users.role, role as (typeof userRole)[number]));
     }
 
     const where =

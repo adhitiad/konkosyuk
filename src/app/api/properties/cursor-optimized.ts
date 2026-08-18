@@ -121,7 +121,11 @@ export async function GET(req: NextRequest) {
           const hasMore = rows.length > cursorLimit;
           const nextCursor = hasMore ? rows[cursorLimit].id : undefined;
 
-          if (lat !== undefined && lng !== undefined && radiusKm !== undefined) {
+          if (
+            lat !== undefined &&
+            lng !== undefined &&
+            radiusKm !== undefined
+          ) {
             data = data.map((property) => ({
               ...property,
               distance: calculateDistance(
@@ -158,8 +162,10 @@ export async function GET(req: NextRequest) {
               const min = Math.min(...prices);
               const max = Math.max(...prices);
 
-              if (minPrice !== undefined && max < Number(minPrice)) return false;
-              if (maxPrice !== undefined && min > Number(maxPrice)) return false;
+              if (minPrice !== undefined && max < Number(minPrice))
+                return false;
+              if (maxPrice !== undefined && min > Number(maxPrice))
+                return false;
 
               return true;
             });
@@ -191,7 +197,11 @@ export async function GET(req: NextRequest) {
 
           let data = rows;
 
-          if (lat !== undefined && lng !== undefined && radiusKm !== undefined) {
+          if (
+            lat !== undefined &&
+            lng !== undefined &&
+            radiusKm !== undefined
+          ) {
             data = data.map((property) => ({
               ...property,
               distance: calculateDistance(
@@ -228,8 +238,10 @@ export async function GET(req: NextRequest) {
               const min = Math.min(...prices);
               const max = Math.max(...prices);
 
-              if (minPrice !== undefined && max < Number(minPrice)) return false;
-              if (maxPrice !== undefined && min > Number(maxPrice)) return false;
+              if (minPrice !== undefined && max < Number(minPrice))
+                return false;
+              if (maxPrice !== undefined && min > Number(maxPrice))
+                return false;
 
               return true;
             });

@@ -1,4 +1,9 @@
-import { kycVerifications, users, kycVerificationStatus, kycStatus } from "@/db/schema";
+import {
+  kycVerifications,
+  users,
+  kycVerificationStatus,
+  kycStatus,
+} from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { ok, fail, handleApiError } from "@/lib/api";
@@ -65,7 +70,8 @@ export async function POST(req: Request) {
     }
 
     const status = data.status?.toLowerCase();
-    let newKycVerificationStatus: (typeof kycVerificationStatus)[number] = "approved";
+    let newKycVerificationStatus: (typeof kycVerificationStatus)[number] =
+      "approved";
     let newUserKycStatus: (typeof kycStatus)[number] = "verified";
 
     if (status === "approved" || status === "completed") {

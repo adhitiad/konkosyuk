@@ -131,21 +131,18 @@ function AdminPaymentsPage() {
     undefined,
   );
 
-  const { data, isLoading, isError, error } =
-    useQuery<PaymentResponse>({
-      queryKey: ["admin-payments", statusFilter],
-      queryFn: async () => {
-        const params = new URLSearchParams();
-        if (statusFilter) params.set("status", statusFilter);
+  const { data, isLoading, isError, error } = useQuery<PaymentResponse>({
+    queryKey: ["admin-payments", statusFilter],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (statusFilter) params.set("status", statusFilter);
 
-        const response = await fetch(
-          `/api/admin/payments?${params.toString()}`,
-        );
-        const json = await response.json();
-        return { data: json.data?.data, meta: json.data?.meta };
-      },
-      staleTime: 30000,
-    });
+      const response = await fetch(`/api/admin/payments?${params.toString()}`);
+      const json = await response.json();
+      return { data: json.data?.data, meta: json.data?.meta };
+    },
+    staleTime: 30000,
+  });
 
   const createOpenRef = useRef(createOpen);
   const manualUserIdRef = useRef(manualUserId);

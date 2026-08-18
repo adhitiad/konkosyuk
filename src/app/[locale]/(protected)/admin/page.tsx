@@ -78,10 +78,7 @@ export default withAdminAuth(AdminDashboardPage);
 function AdminDashboardPage() {
   const queryClient = useQueryClient();
 
-  const {
-    data: stats,
-    isLoading: statsLoading,
-  } = useQuery<AdminStats>({
+  const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
     queryKey: ["admin-stats"],
     queryFn: async () => {
       const [usersRes, propertiesRes, bookingsRes] = await Promise.all([

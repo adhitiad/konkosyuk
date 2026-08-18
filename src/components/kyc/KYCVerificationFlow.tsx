@@ -203,16 +203,16 @@ export default function KYCVerificationFlow({
         return (
           <div className="space-y-4">
             <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8">
-{ktpPreview ? (
-              <div className="relative">
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={ktpPreview}
-                    alt="Preview KTP"
-                    className="max-h-64 rounded-lg object-contain"
-                  />
-                </>
+              {ktpPreview ? (
+                <div className="relative">
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={ktpPreview}
+                      alt="Preview KTP"
+                      className="max-h-64 rounded-lg object-contain"
+                    />
+                  </>
                   <button
                     type="button"
                     onClick={() => {
@@ -255,16 +255,16 @@ export default function KYCVerificationFlow({
         return (
           <div className="space-y-4">
             <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8">
-{selfiePreview ? (
-              <div className="relative">
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={selfiePreview}
-                    alt="Preview Selfie"
-                    className="max-h-64 rounded-lg object-contain"
-                  />
-                </>
+              {selfiePreview ? (
+                <div className="relative">
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={selfiePreview}
+                      alt="Preview Selfie"
+                      className="max-h-64 rounded-lg object-contain"
+                    />
+                  </>
                   <button
                     type="button"
                     onClick={() => {

@@ -49,7 +49,8 @@ export function usePaymentPolling({
   }, [isTimeout]);
 
   const poll = useCallback(async () => {
-    if (!invoiceNumber || (isSuccessRef.current && isTimeoutRef.current)) return;
+    if (!invoiceNumber || (isSuccessRef.current && isTimeoutRef.current))
+      return;
 
     setIsLoading(true);
     setError(null);

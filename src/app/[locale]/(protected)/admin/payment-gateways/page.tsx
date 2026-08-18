@@ -61,15 +61,14 @@ function AdminPaymentGatewaysPage() {
   const [formActive, setFormActive] = useState<boolean>(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
-  const { data, isError, error, refetch } =
-    useQuery<PaymentGatewayResponse>({
-      queryKey: ["payment-gateway-configs"],
-      queryFn: async () => {
-        const res = await apiClient.get("/api/admin/payment-gateways");
-        return res.data as PaymentGatewayResponse;
-      },
-      staleTime: 30000,
-    });
+  const { data, isError, error, refetch } = useQuery<PaymentGatewayResponse>({
+    queryKey: ["payment-gateway-configs"],
+    queryFn: async () => {
+      const res = await apiClient.get("/api/admin/payment-gateways");
+      return res.data as PaymentGatewayResponse;
+    },
+    staleTime: 30000,
+  });
 
   const saveMutation = useMutation({
     mutationFn: async (payload: {
