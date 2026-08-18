@@ -32,6 +32,7 @@ export async function GET(req: NextRequest) {
       amenities,
       minPrice,
       maxPrice,
+      isFeatured,
     } = query;
 
     const cursor = req.nextUrl.searchParams.get("cursor");
@@ -55,6 +56,9 @@ export async function GET(req: NextRequest) {
     }
     if (city) {
       conditions.push(eq(properties.city, city));
+    }
+    if (isFeatured !== undefined) {
+      conditions.push(eq(properties.isFeatured, isFeatured));
     }
     if (search) {
       const searchCondition = sql`

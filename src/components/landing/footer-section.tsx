@@ -14,25 +14,25 @@ export function FooterSection() {
           </div>
 
           <nav className="flex flex-wrap justify-center gap-6 text-sm text-slate-300">
+            <Link href="/" className="transition-colors hover:text-white">
+              Beranda
+            </Link>
+            <Link href="/properties?type=kost" className="transition-colors hover:text-white">
+              Kost
+            </Link>
+            <Link href="/properties?type=kontrakan" className="transition-colors hover:text-white">
+              Kontrakan
+            </Link>
             <Link href="/about" className="transition-colors hover:text-white">
               Tentang Kami
             </Link>
-            <Link
-              href="/contact"
-              className="transition-colors hover:text-white"
-            >
+            <Link href="/contact" className="transition-colors hover:text-white">
               Kontak
             </Link>
-            <Link
-              href="/umum/syarat-dan-ketentuan"
-              className="transition-colors hover:text-white"
-            >
+            <Link href="/umum/syarat-dan-ketentuan" className="transition-colors hover:text-white">
               Syarat &amp; Ketentuan
             </Link>
-            <Link
-              href="/privacy"
-              className="transition-colors hover:text-white"
-            >
+            <Link href="/privacy" className="transition-colors hover:text-white">
               Kebijakan Privasi
             </Link>
           </nav>

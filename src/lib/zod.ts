@@ -93,6 +93,7 @@ export const propertyQuerySchema = z.object({
   amenities: z.array(z.string()).optional(),
   minPrice: z.coerce.number().nonnegative().optional(),
   maxPrice: z.coerce.number().nonnegative().optional(),
+  isFeatured: z.coerce.boolean().optional(),
 });
 
 export const unitQuerySchema = z.object({
