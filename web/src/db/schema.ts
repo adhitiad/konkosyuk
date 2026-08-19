@@ -2148,6 +2148,105 @@ export const neighborhoodPlacesRelations = relations(neighborhoodPlaces, ({ one 
   }),
 }));
 
+export const referrals = pgTable("referrals", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  referrerId: uuid("referrer_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  refereeId: uuid("referee_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  code: text("code").notNull(),
+  status: text("status", { enum: ["pending", "completed", "cancelled"] }).notNull().default("pending"),
+  propertyId: uuid("property_id").references(() => properties.id).optional(),
+  rewardAmount: numeric("reward_amount", { precision: 12, scale: 2 }).default("0"),
+  completedAt: timestamp("completed_at", { mode: "date" }).optional(),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+}, (table) => ({
+  referrerIdx: index("referrals_referrer_id_idx").on(table.referrerId),
+  refereeIdx: index("referrals_referee_id_idx").on(table.refereeId),
+  codeIdx: uniqueIndex("referrals_code_idx").on(table.code),
+}));
+
+export const loyaltyTransactions = pgTable("loyalty_transactions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  amount: integer("amount").notNull(),
+  type: text("type", { enum: ["earn", "redeem", "expire", "bonus"] }).notNull(),
+  description: text("description").notNull(),
+  referenceId: uuid("reference_id").optional(),
+  referenceType: text("reference_type").optional(),
+  expiresAt: timestamp("expires_at", { mode: "date" }).optional(),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index("loyalty_transactions_user_id_idx").on(table.userId),
+}));
+
+export const rewards = pgTable("rewards", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").optional(),
+  pointsCost: integer("points_cost").notNull(),
+  value: numeric("value", { precision: 12, scale: 2 }).notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const rewardRedemptions = pgTable("reward_redemptions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  rewardId: uuid("reward_id")
+    .notNull()
+    .references(() => rewards.id, { onDelete: "cascade" }),
+  pointsUsed: integer("points_used").notNull(),
+  status: text("status", { enum: ["pending", "completed", "cancelled"] }).notNull().default("pending"),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index("reward_redemptions_user_id_idx").on(table.userId),
+}));
+
+export const referralsRelations = relations(referrals, ({ one }) => ({
+  referrer: one(users, {
+    fields: [referrals.referrerId],
+    references: [users.id],
+    relationName: "referrer",
+  }),
+  referee: one(users, {
+    fields: [referrals.refereeId],
+    references: [users.id],
+    relationName: "referee",
+  }),
+  property: one(properties, {
+    fields: [referrals.propertyId],
+    references: [properties.id],
+  }),
+}));
+
+export const loyaltyTransactionsRelations = relations(loyaltyTransactions, ({ one }) => ({
+  user: one(users, {
+    fields: [loyaltyTransactions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const rewardsRelations = relations(rewards, () => ({
+}));
+
+export const rewardRedemptionsRelations = relations(rewardRedemptions, ({ one }) => ({
+  user: one(users, {
+    fields: [rewardRedemptions.userId],
+    references: [users.id],
+  }),
+  reward: one(rewards, {
+    fields: [rewardRedemptions.rewardId],
+    references: [rewards.id],
+  }),
+}));
+
 export const userNotificationPreferencesRelations = relations(userNotificationPreferences, ({ one }) => ({
   user: one(users, {
     fields: [userNotificationPreferences.userId],
