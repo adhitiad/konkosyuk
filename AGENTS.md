@@ -35,8 +35,8 @@ cd web && bun x tsc --noEmit
 
 ## Deploy
 
-- Vercel root directory is `web/`; repo has root `vercel.json` with `"rootDirectory": "web"`
-- If Vercel still builds from root, set Root Directory to `web` in project settings
+- Vercel project Root Directory must be set to `web` in project settings
+- `web/vercel.json` contains build config, regions, functions, and crons
 
 ## Mobile
 
