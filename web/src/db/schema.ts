@@ -51,6 +51,12 @@ export const notificationType = [
   "booking_reminder_1h",
   "pricing_alert",
   "referral_reward_earned",
+  "referral_verifying",
+  "referral_eligible",
+  "referral_failed",
+  "referral_completed",
+  "referral_voucher_converted",
+  "referral_offset_applied",
   "group_booking_invite",
   "group_booking_updated",
 ] as const;
@@ -504,16 +510,6 @@ export const bookingRequests = pgTable(
   }),
 );
 
-export const referrals = pgTable("referrals", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  referrerId: uuid("referrer_id").references(() => users.id).notNull(),
-  refereeId: uuid("referee_id").references(() => users.id).notNull(),
-  code: text("code").notNull().unique(),
-  status: text("status", { enum: ["pending", "completed", "expired"] as const }).default("pending"),
-  rewardPoints: integer("reward_points").default(0),
-  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
-});
-
 export const loyaltyPoints = pgTable("loyalty_points", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id").references(() => users.id).notNull(),
@@ -523,28 +519,6 @@ export const loyaltyPoints = pgTable("loyalty_points", {
   referenceId: text("reference_id"),
   description: text("description"),
   expiresAt: timestamp("expires_at", { mode: "date" }),
-  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
-});
-
-export const rewards = pgTable("rewards", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  pointsCost: integer("points_cost").notNull(),
-  type: text("type", { enum: ["discount", "cashback", "free_booking", "featured_listing"] as const }).notNull(),
-  value: numeric("value", { precision: 12, scale: 2 }),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
-});
-
-export const rewardRedemptions = pgTable("reward_redemptions", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id").references(() => users.id).notNull(),
-  rewardId: uuid("reward_id").references(() => rewards.id).notNull(),
-  pointsUsed: integer("points_used").notNull(),
-  status: text("status", { enum: ["pending", "used", "expired", "cancelled"] as const }).default("pending"),
-  bookingId: uuid("booking_id").references(() => bookings.id),
-  usedAt: timestamp("used_at", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
 });
 
@@ -1948,42 +1922,10 @@ export const notificationSettingsRelations = relations(
   }),
 );
 
-export const referralsRelations = relations(referrals, ({ one }) => ({
-  referrer: one(users, {
-    fields: [referrals.referrerId],
-    references: [users.id],
-    relationName: "referrer",
-  }),
-  referee: one(users, {
-    fields: [referrals.refereeId],
-    references: [users.id],
-    relationName: "referee",
-  }),
-}));
-
 export const loyaltyPointsRelations = relations(loyaltyPoints, ({ one }) => ({
   user: one(users, {
     fields: [loyaltyPoints.userId],
     references: [users.id],
-  }),
-}));
-
-export const rewardsRelations = relations(rewards, ({ many }) => ({
-  redemptions: many(rewardRedemptions),
-}));
-
-export const rewardRedemptionsRelations = relations(rewardRedemptions, ({ one }) => ({
-  user: one(users, {
-    fields: [rewardRedemptions.userId],
-    references: [users.id],
-  }),
-  reward: one(rewards, {
-    fields: [rewardRedemptions.rewardId],
-    references: [rewards.id],
-  }),
-  booking: one(bookings, {
-    fields: [rewardRedemptions.bookingId],
-    references: [bookings.id],
   }),
 }));
 
@@ -2154,13 +2096,22 @@ export const referrals = pgTable("referrals", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   refereeId: uuid("referee_id")
-    .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   code: text("code").notNull(),
-  status: text("status", { enum: ["pending", "completed", "cancelled"] }).notNull().default("pending"),
-  propertyId: uuid("property_id").references(() => properties.id).optional(),
-  rewardAmount: numeric("reward_amount", { precision: 12, scale: 2 }).default("0"),
-  completedAt: timestamp("completed_at", { mode: "date" }).optional(),
+  category: text("category", { enum: ["owner", "tenant"] }).notNull().default("tenant"),
+  status: text("status", { enum: ["pending", "verifying", "eligible", "failed", "completed", "cancelled"] }).notNull().default("pending"),
+  propertyId: uuid("property_id").references(() => properties.id),
+  baseAmount: numeric("base_amount", { precision: 12, scale: 2 }).default("0"),
+  commissionRate: numeric("commission_rate", { precision: 5, scale: 2 }).default("0"),
+  commissionAmount: numeric("commission_amount", { precision: 12, scale: 2 }).default("0"),
+  refereeTransactionId: uuid("referee_transaction_id"),
+  eligibleAt: timestamp("eligible_at", { mode: "date" }),
+  payoutScheduledAt: timestamp("payout_scheduled_at", { mode: "date" }),
+  voucherCode: text("voucher_code"),
+  offsetApplied: boolean("offset_applied").default(false),
+  tier: integer("tier").default(1),
+  metadata: jsonb("metadata").default({}),
+  completedAt: timestamp("completed_at", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 }, (table) => ({
   referrerIdx: index("referrals_referrer_id_idx").on(table.referrerId),
@@ -2176,9 +2127,9 @@ export const loyaltyTransactions = pgTable("loyalty_transactions", {
   amount: integer("amount").notNull(),
   type: text("type", { enum: ["earn", "redeem", "expire", "bonus"] }).notNull(),
   description: text("description").notNull(),
-  referenceId: uuid("reference_id").optional(),
-  referenceType: text("reference_type").optional(),
-  expiresAt: timestamp("expires_at", { mode: "date" }).optional(),
+  referenceId: uuid("reference_id"),
+  referenceType: text("reference_type"),
+  expiresAt: timestamp("expires_at", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 }, (table) => ({
   userIdIdx: index("loyalty_transactions_user_id_idx").on(table.userId),
@@ -2187,7 +2138,7 @@ export const loyaltyTransactions = pgTable("loyalty_transactions", {
 export const rewards = pgTable("rewards", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
-  description: text("description").optional(),
+  description: text("description"),
   pointsCost: integer("points_cost").notNull(),
   value: numeric("value", { precision: 12, scale: 2 }).notNull(),
   isActive: boolean("is_active").notNull().default(true),

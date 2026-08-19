@@ -557,3 +557,37 @@ export async function reviewBookingAction(
     return { error: "Gagal memproses review booking", success: false };
   }
 }
+
+export async function createBookingOrGroupAction(
+  prevState: CreateBookingState | undefined,
+  formData: FormData,
+): Promise<CreateBookingState> {
+  const isGroupBooking = formData.get("isGroupBooking") === "true";
+
+  if (isGroupBooking) {
+    const memberEmailsRaw = formData.get("memberEmails");
+    const memberEmails = memberEmailsRaw
+      ? String(memberEmailsRaw)
+          .split(",")
+          .map((e) => e.trim())
+          .filter(Boolean)
+      : [];
+
+    if (memberEmails.length === 0) {
+      return { error: "Minimal 1 anggota lain harus diundang", success: false };
+    }
+
+    const groupFormData = new FormData();
+    groupFormData.set("propertyId", String(formData.get("propertyId") || ""));
+    groupFormData.set("unitId", String(formData.get("unitId") || ""));
+    groupFormData.set("startDate", String(formData.get("startDate") || ""));
+    groupFormData.set("endDate", String(formData.get("startDate") || ""));
+    groupFormData.set("maxMembers", String(memberEmails.length + 1));
+    groupFormData.set("memberEmails", JSON.stringify(memberEmails));
+
+    const createGroupBooking = (await import("./group-bookings")).createGroupBookingAction;
+    return createGroupBooking(undefined, groupFormData) as Promise<CreateBookingState>;
+  }
+
+  return createBookingAction(prevState, formData);
+}

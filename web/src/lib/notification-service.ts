@@ -58,6 +58,13 @@ const DEFAULT_PREFERENCES: Record<string, ChannelPreferences> = {
   booking_reminder_24h: { inApp: true, email: true, push: true },
   booking_reminder_1h: { inApp: true, email: false, push: true },
   pricing_alert: { inApp: true, email: false, push: true },
+  referral_created: { inApp: true, email: true, push: false },
+  referral_verifying: { inApp: true, email: true, push: true },
+  referral_eligible: { inApp: true, email: true, push: true },
+  referral_failed: { inApp: true, email: true, push: true },
+  referral_completed: { inApp: true, email: true, push: true },
+  referral_voucher_converted: { inApp: true, email: true, push: true },
+  referral_offset_applied: { inApp: true, email: true, push: true },
   referral_reward_earned: { inApp: true, email: true, push: true },
   group_booking_invite: { inApp: true, email: true, push: true },
   group_booking_updated: { inApp: true, email: false, push: true },
@@ -249,6 +256,68 @@ export async function dispatchReferralReward(
     title: "Referral Reward Diterima",
     message: `Anda mendapatkan reward Rp ${rewardAmount.toLocaleString("id-ID")} dari kode referral ${referralCode}.`,
     actionUrl: "/dashboard/referrals",
+  });
+}
+
+export async function dispatchReferralStatusUpdate(
+  userId: string,
+  referralCode: string,
+  status: "verifying" | "eligible" | "failed" | "completed",
+  meta?: Record<string, unknown>,
+) {
+  const titles: Record<string, string> = {
+    verifying: "Referral Sedang Diverifikasi",
+    eligible: "Referral Layak Cair",
+    failed: "Referral Gagal",
+    completed: "Referral Selesai",
+  };
+  const messages: Record<string, string> = {
+    verifying: `Referral ${referralCode} sedang dalam masa verifikasi 5 hari tanpa refund.`,
+    eligible: `Referral ${referralCode} lolos verifikasi dan layak dicairkan.`,
+    failed: `Referral ${referralCode} gagal karena refund/pembatalan/dispute.`,
+    completed: `Referral ${referralCode} telah selesai dan dana telah masuk saldo.`,
+  };
+
+  await dispatchNotification({
+    userId,
+    type: `referral_${status}`,
+    category: "system",
+    priority: status === "eligible" ? "high" : "normal",
+    title: titles[status] || "Update Referral",
+    message: messages[status] || `Status referral ${referralCode} diperbarui.`,
+    actionUrl: "/dashboard/referrals",
+    metadata: meta,
+  });
+}
+
+export async function dispatchReferralVoucherConverted(
+  userId: string,
+  referralCode: string,
+  voucherCode: string,
+) {
+  await dispatchNotification({
+    userId,
+    type: "referral_voucher_converted",
+    category: "system",
+    priority: "normal",
+    title: "Voucher Referral Aktif",
+    message: `Saldo referral ${referralCode} berhasil dikonversi menjadi voucher ${voucherCode}.`,
+    actionUrl: "/dashboard/referrals",
+  });
+}
+
+export async function dispatchReferralOffsetApplied(
+  userId: string,
+  referralCode: string,
+) {
+  await dispatchNotification({
+    userId,
+    type: "referral_offset_applied",
+    category: "system",
+    priority: "normal",
+    title: "Offset Tagihan Referral",
+    message: `Saldo referral ${referralCode} berhasil dipotong dari tagihan sewa Anda.`,
+    actionUrl: "/dashboard/bookings",
   });
 }
 

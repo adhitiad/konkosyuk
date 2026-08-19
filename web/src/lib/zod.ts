@@ -216,13 +216,22 @@ export type IpaymuWebhookInput = z.infer<typeof ipaymuWebhookSchema>;
 export type PackageItemInput = z.infer<typeof packageItemSchema>;
 export type PropertyPackagesInput = z.infer<typeof propertyPackagesSchema>;
 
-export const referralStatus = ["pending", "completed", "cancelled"] as const;
+export const referralStatus = ["pending", "verifying", "eligible", "failed", "completed", "cancelled"] as const;
+export const referralCategory = ["owner", "tenant"] as const;
 
 export const createReferralSchema = z.object({
   refereeEmail: z.string().email("Format email tidak valid"),
   refereeName: z.string().min(1, "Nama harus diisi"),
+  category: z.enum(referralCategory).default("tenant"),
   propertyId: z.string().uuid().optional(),
   message: z.string().optional(),
+});
+
+export const referralQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  category: z.enum(referralCategory).optional(),
+  status: z.enum(referralStatus).optional(),
 });
 
 export const redeemRewardSchema = z.object({
@@ -284,5 +293,6 @@ export type CreateGroupBookingInput = z.infer<typeof createGroupBookingSchema>;
 export type UpdateGroupBookingInput = z.infer<typeof updateGroupBookingSchema>;
 export type GroupBookingQuery = z.infer<typeof groupBookingQuerySchema>;
 export type ReferralStatus = (typeof referralStatus)[number];
+export type ReferralCategory = (typeof referralCategory)[number];
 export type LoyaltyTransactionType = (typeof loyaltyTransactionType)[number];
 export type GroupBookingStatus = (typeof groupBookingStatus)[number];

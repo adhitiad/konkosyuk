@@ -1,15 +1,19 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { referrals, users, properties } from "@/db/schema";
+import { referrals, users } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import { eq, desc, and, sql } from "drizzle-orm";
-import { dispatchReferralReward } from "@/lib/notification-service";
+import { dispatchReferralStatusUpdate, dispatchReferralVoucherConverted, dispatchReferralOffsetApplied } from "@/lib/notification-service";
+
+export const referralStatus = ["pending", "verifying", "eligible", "failed", "completed", "cancelled"] as const;
+export const referralCategory = ["owner", "tenant"] as const;
 
 const createReferralSchema = z.object({
   refereeEmail: z.string().email("Format email tidak valid"),
   refereeName: z.string().min(1, "Nama harus diisi"),
+  category: z.enum(referralCategory).default("tenant"),
   propertyId: z.string().uuid().optional(),
   message: z.string().optional(),
 });
@@ -17,7 +21,8 @@ const createReferralSchema = z.object({
 const referralQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
-  status: z.enum(["pending", "completed", "cancelled"]).optional(),
+  category: z.enum(referralCategory).optional(),
+  status: z.enum(referralStatus).optional(),
 });
 
 function generateReferralCode(length = 8): string {
@@ -29,14 +34,30 @@ function generateReferralCode(length = 8): string {
   return result;
 }
 
+function getTierForCategory(category: "owner" | "tenant", completedCount: number): number {
+  if (category === "owner") {
+    if (completedCount >= 847) return 4;
+    if (completedCount >= 373) return 3;
+    if (completedCount >= 101) return 2;
+    return 1;
+  }
+  if (completedCount >= 847) return 4;
+  if (completedCount >= 373) return 3;
+  if (completedCount >= 101) return 2;
+  return 1;
+}
+
 export async function GET(req: NextRequest) {
   try {
     const session = await requireSession();
     const url = new URL(req.url);
     const query = referralQuerySchema.parse(Object.fromEntries(url.searchParams));
-    const { page, limit, status } = query;
+    const { page, limit, category, status } = query;
 
     const conditions = [eq(referrals.referrerId, session.user.id)];
+    if (category) {
+      conditions.push(eq(referrals.category, category));
+    }
     if (status) {
       conditions.push(eq(referrals.status, status));
     }
@@ -52,10 +73,23 @@ export async function GET(req: NextRequest) {
       db.select({ count: sql<number>`count(*)` }).from(referrals).where(and(...conditions)),
     ]);
 
+    const completedCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(referrals)
+      .where(and(eq(referrals.referrerId, session.user.id), eq(referrals.status, "completed")));
+
+    const totalCompleted = Number(completedCount[0]?.count ?? 0);
+    const currentTier = getTierForCategory(data[0]?.category || "tenant", totalCompleted);
+
     const total = Number(totalResult[0]?.count ?? 0);
     const totalPages = Math.ceil(total / limit);
 
-    return ok({ data, meta: { page, limit, total, totalPages } });
+    return ok({ 
+      data, 
+      meta: { page, limit, total, totalPages },
+      tier: currentTier,
+      completedCount: totalCompleted,
+    });
   } catch (error) {
     return handleApiError(error, "GET /api/referrals");
   }
@@ -76,30 +110,51 @@ export async function POST(req: NextRequest) {
       return fail("Tidak dapat mereferensikan diri sendiri", 400);
     }
 
+    const existingReferral = await db
+      .select()
+      .from(referrals)
+      .where(
+        and(
+          eq(referrals.referrerId, session.user.id),
+          eq(referrals.refereeId, existingUser?.id || ""),
+        ),
+      )
+      .limit(1);
+
+    if (existingReferral.length > 0) {
+      return fail("Referral untuk pengguna ini sudah ada", 400);
+    }
+
     const code = generateReferralCode();
+    const completedCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(referrals)
+      .where(and(eq(referrals.referrerId, session.user.id), eq(referrals.status, "completed")));
+
+    const totalCompleted = Number(completedCount[0]?.count ?? 0);
+    const tier = getTierForCategory(body.category, totalCompleted);
+
     const [referral] = await db
       .insert(referrals)
       .values({
         referrerId: session.user.id,
         refereeId: existingUser?.id || null,
         code,
+        category: body.category,
         propertyId: body.propertyId || null,
-        status: existingUser ? "completed" : "pending",
-        completedAt: existingUser ? new Date() : null,
+        status: existingUser ? "verifying" : "pending",
+        tier,
+        metadata: { refereeName: body.refereeName, message: body.message },
       })
       .returning();
 
     if (existingUser) {
-      await db.insert(loyaltyTransactions).values({
-        userId: session.user.id,
-        amount: 10000,
-        type: "earn",
-        description: `Referral reward: ${body.refereeName}`,
-        referenceId: referral.id,
-        referenceType: "referral",
-      });
-
-      dispatchReferralReward(session.user.id, 10000, code).catch(() => {});
+      dispatchReferralStatusUpdate(
+        session.user.id,
+        code,
+        "verifying",
+        { refereeEmail: body.refereeEmail },
+      ).catch(() => {});
     }
 
     return ok(referral, 201);
@@ -108,5 +163,74 @@ export async function POST(req: NextRequest) {
       return fail(error.issues[0]?.message || "Input tidak valid", 400);
     }
     return handleApiError(error, "POST /api/referrals");
+  }
+}
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const session = await requireSession();
+    const { id } = await params;
+    const body = await req.json();
+
+    const [referral] = await db
+      .select()
+      .from(referrals)
+      .where(eq(referrals.id, id))
+      .limit(1);
+
+    if (!referral) {
+      return fail("Referral tidak ditemukan", 404);
+    }
+
+    if (referral.referrerId !== session.user.id && session.user.role !== "admin") {
+      return fail("Forbidden", 403);
+    }
+
+    if (body.action === "convert_voucher" && referral.category === "owner") {
+      if (referral.status !== "eligible") {
+        return fail("Referral belum eligible untuk dikonversi", 400);
+      }
+      const voucherCode = `VOUCHER-${referral.code}`;
+      await db
+        .update(referrals)
+        .set({
+          status: "completed",
+          voucherCode,
+          completedAt: new Date(),
+        })
+        .where(eq(referrals.id, id));
+
+      dispatchReferralVoucherConverted(session.user.id, referral.code, voucherCode).catch(() => {});
+
+      return ok({ ...referral, status: "completed", voucherCode });
+    }
+
+    if (body.action === "apply_offset" && referral.category === "tenant") {
+      if (referral.status !== "eligible") {
+        return fail("Referral belum eligible untuk dipotong", 400);
+      }
+      if (referral.offsetApplied) {
+        return fail("Offset sudah diterapkan", 400);
+      }
+      await db
+        .update(referrals)
+        .set({
+          offsetApplied: true,
+          status: "completed",
+          completedAt: new Date(),
+        })
+        .where(eq(referrals.id, id));
+
+      dispatchReferralOffsetApplied(session.user.id, referral.code).catch(() => {});
+
+      return ok({ ...referral, status: "completed", offsetApplied: true });
+    }
+
+    return fail("Action tidak dikenali", 400);
+  } catch (error) {
+    return handleApiError(error, "PUT /api/referrals/[id]");
   }
 }

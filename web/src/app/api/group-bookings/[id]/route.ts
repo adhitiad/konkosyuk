@@ -118,7 +118,7 @@ export async function PUT(
           propertyId: groupBooking.propertyId,
           unitId: groupBooking.unitId,
           bookingType: "instant",
-          status: member.userId === groupBooking.leadUserId ? "confirmed" : "pending_dp",
+          status: "pending_dp",
           startDate: new Date(groupBooking.startDate),
           endDate: new Date(groupBooking.endDate),
           metadata: {

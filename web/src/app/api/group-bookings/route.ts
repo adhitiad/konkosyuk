@@ -1,11 +1,11 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { groupBookings, groupBookingMembers, bookings, users, properties, units } from "@/db/schema";
-import { requireSession } from "@/lib/auth";
+import { groupBookings, groupBookingMembers, users, properties, units } from "@/db/schema";
+import { requireSession, Role } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
-import { eq, desc, and, sql, inArray, or } from "drizzle-orm";
-import { dispatchGroupBookingInvite, dispatchGroupBookingUpdated } from "@/lib/notification-service";
+import { eq, desc, and, sql, or } from "drizzle-orm";
+import { dispatchGroupBookingInvite } from "@/lib/notification-service";
 
 const createGroupBookingSchema = z.object({
   propertyId: z.string().uuid(),
@@ -88,7 +88,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requireSession(["cust", "owner", "admin", "staff"] as string[]);
+    const session = await requireSession(["cust", "owner", "admin", "staff"] as Role[]);
     const body = createGroupBookingSchema.parse(await req.json());
 
     const [property] = await db
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
           startDate: new Date(body.startDate),
           endDate: new Date(body.endDate),
           metadata: body.metadata || {},
-        })
+        } satisfies GroupBookingInsert)
         .returning();
 
       await tx.insert(groupBookingMembers).values({
@@ -141,9 +141,9 @@ export async function POST(req: NextRequest) {
         shareAmount: 0,
         paidAmount: 0,
         status: "accepted",
-      });
+      } satisfies GroupBookingMemberInsert);
 
-      return gb;
+      return [gb];
     });
 
     for (const email of body.memberEmails) {
@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
           shareAmount: 0,
           paidAmount: 0,
           status: "invited",
-        });
+        } satisfies GroupBookingMemberInsert);
 
         dispatchGroupBookingInvite(
           user.id,

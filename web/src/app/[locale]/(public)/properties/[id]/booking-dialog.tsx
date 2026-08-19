@@ -29,7 +29,7 @@ import type {
   PropertyPackages,
   DurationUnit,
 } from "@/lib/types/property-packages";
-import { createBookingAction } from "@/actions/bookings";
+import { createBookingOrGroupAction } from "@/actions/bookings";
 import { calculatePackageEndDate } from "@/lib/packages/calculator";
 import type { AppliedSeasonalRule } from "@/lib/pricing/seasonal";
 
@@ -86,8 +86,10 @@ export default function BookingDialogClient({
   const [customDuration, setCustomDuration] = useState<number>(1);
   const [startDate, setStartDate] = useState("");
   const [paymentType, setPaymentType] = useState<"dp" | "full">("dp");
+  const [isGroupBooking, setIsGroupBooking] = useState(false);
+  const [memberEmails, setMemberEmails] = useState("");
   const [state, formAction, isPending] = useActionState(
-    createBookingAction,
+    createBookingOrGroupAction,
     undefined,
   );
   const [error, setError] = useState<string | null>(null);
@@ -201,6 +203,12 @@ export default function BookingDialogClient({
     return Math.round(final);
   }, [selectedPackage, selectedPackageId, customDuration, packages, seasonalPriceResult]);
 
+  const groupTotalPrice = useMemo(() => {
+    if (!isGroupBooking || totalPrice <= 0) return 0;
+    const memberCount = memberEmails.split(",").filter((e) => e.trim()).length + 1;
+    return totalPrice * memberCount;
+  }, [isGroupBooking, totalPrice, memberEmails]);
+
   const { dpAmount, remainingAmount } = useMemo(() => {
     if (paymentType === "full") {
       return { dpAmount: 0, remainingAmount: totalPrice };
@@ -215,12 +223,16 @@ export default function BookingDialogClient({
 
   if (state?.success) {
     showToastSuccess(
-      paymentType === "full"
-        ? "Booking berhasil! Silakan lanjutkan pembayaran lunas."
-        : "Booking berhasil! Silakan bayar DP 35% untuk mengunci kamar.",
+      isGroupBooking
+        ? "Group booking berhasil dibuat! Undangan telah dikirim ke anggota."
+        : paymentType === "full"
+          ? "Booking berhasil! Silakan lanjutkan pembayaran lunas."
+          : "Booking berhasil! Silakan bayar DP 35% untuk mengunci kamar.",
     );
     setOpen(false);
-    router.push("/dashboard/bookings");
+    setIsGroupBooking(false);
+    setMemberEmails("");
+    router.push(isGroupBooking ? "/dashboard/group-bookings" : "/dashboard/bookings");
   } else if (state?.error) {
     setError(state.error);
     showToastError(state.error);
@@ -252,6 +264,10 @@ export default function BookingDialogClient({
 
           <input type="hidden" name="propertyId" value={propertyId} />
           <input type="hidden" name="unitId" value={selectedUnitId} />
+          <input type="hidden" name="isGroupBooking" value={isGroupBooking ? "true" : "false"} />
+          {isGroupBooking && (
+            <input type="hidden" name="memberEmails" value={memberEmails} />
+          )}
 
           {units.length > 1 && (
             <div className="space-y-2">
@@ -381,6 +397,19 @@ export default function BookingDialogClient({
             )}
           </div>
 
+          <div className="flex items-center gap-2">
+            <input
+              id="isGroupBooking"
+              type="checkbox"
+              checked={isGroupBooking}
+              onChange={(e) => setIsGroupBooking(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300"
+            />
+            <Label htmlFor="isGroupBooking" className="cursor-pointer">
+              Buat sebagai Group Booking
+            </Label>
+          </div>
+
           <div className="space-y-2">
             <Label>Metode Pembayaran</Label>
             <div className="grid grid-cols-2 gap-3">
@@ -415,6 +444,21 @@ export default function BookingDialogClient({
             </div>
             <input type="hidden" name="paymentType" value={paymentType} />
           </div>
+
+          {isGroupBooking && (
+            <div className="space-y-2">
+              <Label htmlFor="memberEmails">Email Anggota (pisah dengan koma)</Label>
+              <Input
+                id="memberEmails"
+                value={memberEmails}
+                onChange={(e) => setMemberEmails(e.target.value)}
+                placeholder="friend1@example.com, friend2@example.com"
+              />
+              <p className="text-xs text-muted-foreground">
+                Total {groupTotalPrice > 0 ? formatCurrency(groupTotalPrice) : formatCurrency(totalPrice)} untuk {memberEmails.split(",").filter((e) => e.trim()).length + 1} orang
+              </p>
+            </div>
+          )}
 
           {totalPrice > 0 && (
             <div className="rounded-4xl border p-4 space-y-2">

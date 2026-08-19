@@ -1,0 +1,155 @@
+"use server";
+
+import { db } from "@/db";
+import { groupBookings, groupBookingMembers, users, properties } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { z } from "zod";
+import { invalidateCacheByTag } from "@/lib/cache";
+import { dispatchGroupBookingInvite } from "@/lib/notification-service";
+
+type GroupBookingInsert = typeof groupBookings.$inferInsert;
+type GroupBookingMemberInsert = typeof groupBookingMembers.$inferInsert;
+
+export type CreateGroupBookingState = {
+  success?: boolean;
+  error?: string;
+  data?: {
+    id: string;
+    propertyId: string;
+    unitId: string;
+    status: string;
+    startDate: Date;
+    endDate: Date;
+  };
+};
+
+const createGroupBookingSchema = z.object({
+  propertyId: z.string().uuid(),
+  unitId: z.string().uuid(),
+  startDate: z.string().datetime(),
+  endDate: z.string().datetime(),
+  maxMembers: z.coerce.number().int().positive().max(50),
+  memberEmails: z.array(z.string().email()).min(1, "Minimal 1 anggota"),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+export async function createGroupBookingAction(
+  prevState: CreateGroupBookingState | undefined,
+  formData: FormData,
+): Promise<CreateGroupBookingState> {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user?.id) {
+      return { error: "Tidak terotorisasi", success: false };
+    }
+
+    const rawMemberEmails = formData.get("memberEmails");
+    const memberEmails = rawMemberEmails
+      ? JSON.parse(String(rawMemberEmails))
+      : [];
+
+    const validated = createGroupBookingSchema.parse({
+      propertyId: formData.get("propertyId"),
+      unitId: formData.get("unitId"),
+      startDate: formData.get("startDate"),
+      endDate: formData.get("endDate"),
+      maxMembers: formData.get("maxMembers"),
+      memberEmails,
+    });
+
+    const [property] = await db
+      .select()
+      .from(properties)
+      .where(eq(properties.id, validated.propertyId))
+      .limit(1);
+
+    if (!property) {
+      return { error: "Properti tidak ditemukan", success: false };
+    }
+
+    const memberCount = validated.memberEmails.length + 1;
+    const sharePercentage = memberCount > 0 ? 100 / memberCount : 100;
+
+    const [groupBooking] = await db.transaction(async (tx) => {
+      const [gb] = await tx
+        .insert(groupBookings)
+        .values({
+          leadUserId: session.user.id,
+          propertyId: validated.propertyId,
+          unitId: validated.unitId,
+          status: "pending",
+          totalAmount: 0,
+          depositAmount: 0,
+          startDate: new Date(validated.startDate),
+          endDate: new Date(validated.endDate),
+          metadata: validated.metadata || {},
+        } satisfies GroupBookingInsert)
+        .returning();
+
+      await tx.insert(groupBookingMembers).values({
+        groupBookingId: gb.id,
+        userId: session.user.id,
+        sharePercentage: sharePercentage,
+        shareAmount: 0,
+        paidAmount: 0,
+        status: "accepted",
+      } satisfies GroupBookingMemberInsert);
+
+      return [gb];
+    });
+
+    for (const email of validated.memberEmails) {
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1);
+
+      if (user) {
+        await db.insert(groupBookingMembers).values({
+          groupBookingId: groupBooking.id,
+          userId: user.id,
+          sharePercentage: sharePercentage,
+          shareAmount: 0,
+          paidAmount: 0,
+          status: "invited",
+        } satisfies GroupBookingMemberInsert);
+
+        dispatchGroupBookingInvite(
+          user.id,
+          groupBooking.id,
+          property.name,
+          session.user.name,
+        ).catch(() => {});
+      }
+    }
+
+    await invalidateCacheByTag("group-bookings");
+
+    return {
+      success: true,
+      data: {
+        id: groupBooking.id,
+        propertyId: groupBooking.propertyId,
+        unitId: groupBooking.unitId,
+        status: (groupBooking.status as string) || "pending",
+        startDate: groupBooking.startDate,
+        endDate: groupBooking.endDate,
+      },
+    };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return {
+        error: error.issues[0]?.message || "Input tidak valid",
+        success: false,
+      };
+    }
+    console.error("createGroupBookingAction error:", error);
+    return { error: "Gagal membuat group booking", success: false };
+  }
+}

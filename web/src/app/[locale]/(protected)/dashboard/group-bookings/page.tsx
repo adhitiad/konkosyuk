@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -53,6 +53,7 @@ const STATUS_CONFIG = {
 };
 
 export default function GroupBookingsPage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [selectedGroup, setSelectedGroup] = useState<GroupBooking | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -106,9 +107,16 @@ export default function GroupBookingsPage() {
       const res = await apiClient.put(`/group-bookings/${groupId}/members/me`, { status });
       return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (_, { status }) => {
       queryClient.invalidateQueries({ queryKey: ["group-bookings"] });
-      showToastSuccess("Respon berhasil dikirim!");
+      if (status === "accepted") {
+        showToastSuccess("Undangan diterima! Silakan lanjutkan pembayaran di halaman bookings.");
+        setTimeout(() => {
+          router.push("/dashboard/bookings");
+        }, 1500);
+      } else {
+        showToastSuccess("Undangan ditolak");
+      }
     },
     onError: () => {
       showToastError("Gagal mengirim respon");
@@ -244,14 +252,14 @@ export default function GroupBookingsPage() {
                           <div className="flex gap-1">
                             <Button
                               size="sm"
-                              onClick={() => handleRespond(member.groupBookingId || selectedGroup.id, "accepted")}
+                              onClick={() => handleRespond(selectedGroup.id, "accepted")}
                             >
                               Terima
                             </Button>
                             <Button
                               size="sm"
                               variant="destructive"
-                              onClick={() => handleRespond(member.groupBookingId || selectedGroup.id, "rejected")}
+                              onClick={() => handleRespond(selectedGroup.id, "rejected")}
                             >
                               Tolak
                             </Button>
