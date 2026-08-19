@@ -47,6 +47,12 @@ export const notificationType = [
   "maintenance",
   "chat",
   "review",
+  "booking_reminder_24h",
+  "booking_reminder_1h",
+  "pricing_alert",
+  "referral_reward_earned",
+  "group_booking_invite",
+  "group_booking_updated",
 ] as const;
 export const notificationCategory = [
   "booking",

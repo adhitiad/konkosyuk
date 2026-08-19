@@ -1,23 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { PaymentTransaction } from "@/db/schema";
 
 interface LedgerEntry {
   accountCode: string;
   debit: string;
   credit: string;
-}
-
-interface Payment {
-  id: string;
-  invoiceNumber: string;
-  amount: string;
-  paidAt: string;
-}
-
-interface Refund {
-  id: string;
-  invoiceNumber: string;
-  amount: number;
-  paidAt: string;
 }
 
 const mockDb = vi.hoisted(() => ({
@@ -72,11 +59,18 @@ describe("createPaymentLedgerEntry", () => {
   });
 
   it("should create 3 ledger entries for a payment", async () => {
-    const payment: Payment = {
+    const payment: PaymentTransaction = {
       id: "payment-123",
       invoiceNumber: "INV-001",
+      bookingId: null,
+      provider: "mock",
       amount: "100000",
-      paidAt: new Date().toISOString(),
+      status: "success",
+      gatewayResponse: null,
+      webhookPayload: null,
+      paidAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     await createPaymentLedgerEntry(payment);

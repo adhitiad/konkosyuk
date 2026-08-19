@@ -26,13 +26,9 @@ const envSchema = z.object({
   PAYMENT_CONFIG_ENCRYPTION_KEY: z.string().optional(),
 
   // Storage Configuration
-  UPLOADTHING_SECRET: z.string().optional(),
-  UPLOADTHING_APP_ID: z.string().optional(),
-  UPLOADTHING_TOKEN: z.string().optional(),
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
-  STORAGE_PRIMARY: z.enum(["uploadthing", "cloudinary"]).default("uploadthing"),
 
   // Notifications
   RESEND_API_KEY: z.string().optional(),

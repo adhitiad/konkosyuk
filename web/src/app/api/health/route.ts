@@ -3,7 +3,6 @@ import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { redisHealth } from "@/lib/redis";
 import { checkCloudinaryConnection } from "@/lib/cloudinary";
-import { UTApi } from "uploadthing/server";
 import { env } from "@/lib/env";
 import {
   getDokuConfig,
@@ -53,18 +52,6 @@ async function checkRedis() {
 async function checkStorage() {
   const started = performance.now();
   const providers = await Promise.all([
-    monitor("health.storage.uploadthing", async () => {
-      if (!env.UPLOADTHING_TOKEN) return { status: "not_configured" as const };
-      try {
-        await new UTApi().listFiles({ limit: 1 });
-        return { status: "healthy" as const };
-      } catch (error) {
-        return {
-          status: "down" as const,
-          error: error instanceof Error ? error.message : "Connection failed",
-        };
-      }
-    }),
     monitor("health.storage.cloudinary", async () => {
       if (
         !env.CLOUDINARY_CLOUD_NAME ||

@@ -53,7 +53,7 @@ export async function uploadImageAction(
     const file = formData.get("file") as File | null;
     const requestedType = formData.get("type");
     const type = (requestedType || "avatar") as
-      "avatar" | "property" | "ktp" | "report";
+      "avatar" | "property" | "ktp" | "report" | "inspection";
 
     if (!file) {
       return { error: "File tidak ditemukan", success: false };

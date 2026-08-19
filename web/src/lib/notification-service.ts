@@ -3,6 +3,8 @@ import { userNotificationPreferences, notificationType } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { createNotification } from "./notifications";
 import { sendWebPushNotification } from "./notifications";
+import { format } from "date-fns";
+import { id as idLocale } from "date-fns/locale";
 
 export type NotificationCategory = "booking" | "payment" | "maintenance" | "inspection" | "chat" | "review" | "system";
 export type NotificationPriority = "low" | "normal" | "high" | "urgent";
@@ -53,6 +55,12 @@ const DEFAULT_PREFERENCES: Record<string, ChannelPreferences> = {
   inspection_disputed: { inApp: true, email: true, push: true },
   chat_message: { inApp: true, email: false, push: true },
   review_received: { inApp: true, email: false, push: false },
+  booking_reminder_24h: { inApp: true, email: true, push: true },
+  booking_reminder_1h: { inApp: true, email: false, push: true },
+  pricing_alert: { inApp: true, email: false, push: true },
+  referral_reward_earned: { inApp: true, email: true, push: true },
+  group_booking_invite: { inApp: true, email: true, push: true },
+  group_booking_updated: { inApp: true, email: false, push: true },
   system: { inApp: true, email: false, push: false },
 };
 
@@ -182,6 +190,104 @@ export async function dispatchNotification(event: NotificationEvent): Promise<vo
   if (channels.email) {
     await sendEmailNotification(event);
   }
+}
+
+export async function dispatchBookingReminder(
+  userId: string,
+  bookingId: string,
+  propertyName: string,
+  unitName: string,
+  startDate: Date,
+  reminderType: "24h" | "1h",
+) {
+  const type = reminderType === "24h" ? "booking_reminder_24h" : "booking_reminder_1h";
+  const title = reminderType === "24h" ? "Booking Dimulai Besok" : "Booking Dimulai Segera";
+  const message = `Booking Anda untuk ${propertyName} - ${unitName} akan dimulai pada ${format(startDate, "dd MMMM yyyy", { locale: idLocale })}.`;
+
+  await dispatchNotification({
+    userId,
+    type,
+    category: "booking",
+    priority: reminderType === "1h" ? "high" : "normal",
+    title,
+    message,
+    actionUrl: "/dashboard/bookings",
+    referenceId: bookingId,
+    referenceType: "booking",
+  });
+}
+
+export async function dispatchPricingAlert(
+  userId: string,
+  propertyId: string,
+  propertyName: string,
+  alertMessage: string,
+) {
+  await dispatchNotification({
+    userId,
+    type: "pricing_alert",
+    category: "system",
+    priority: "normal",
+    title: `Pricing Alert: ${propertyName}`,
+    message: alertMessage,
+    actionUrl: `/properties/${propertyId}`,
+    referenceId: propertyId,
+    referenceType: "property",
+  });
+}
+
+export async function dispatchReferralReward(
+  userId: string,
+  rewardAmount: number,
+  referralCode: string,
+) {
+  await dispatchNotification({
+    userId,
+    type: "referral_reward_earned",
+    category: "system",
+    priority: "normal",
+    title: "Referral Reward Diterima",
+    message: `Anda mendapatkan reward Rp ${rewardAmount.toLocaleString("id-ID")} dari kode referral ${referralCode}.`,
+    actionUrl: "/dashboard/referrals",
+  });
+}
+
+export async function dispatchGroupBookingInvite(
+  userId: string,
+  groupId: string,
+  groupName: string,
+  inviterName: string,
+) {
+  await dispatchNotification({
+    userId,
+    type: "group_booking_invite",
+    category: "booking",
+    priority: "normal",
+    title: "Undangan Group Booking",
+    message: `${inviterName} mengundang Anda ke group booking "${groupName}".`,
+    actionUrl: `/group-bookings/${groupId}`,
+    referenceId: groupId,
+    referenceType: "group_booking",
+  });
+}
+
+export async function dispatchGroupBookingUpdated(
+  userId: string,
+  groupId: string,
+  groupName: string,
+  updateMessage: string,
+) {
+  await dispatchNotification({
+    userId,
+    type: "group_booking_updated",
+    category: "booking",
+    priority: "normal",
+    title: `Group Booking Updated: ${groupName}`,
+    message: updateMessage,
+    actionUrl: `/group-bookings/${groupId}`,
+    referenceId: groupId,
+    referenceType: "group_booking",
+  });
 }
 
 async function sendEmailNotification(event: NotificationEvent): Promise<void> {

@@ -2,15 +2,8 @@ import { NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { checkCloudinaryConnection } from "@/lib/cloudinary";
 import { monitor, recordMetric } from "@/lib/monitoring";
-import { UTApi } from "uploadthing/server";
 
 export const dynamic = "force-dynamic";
-
-async function checkUploadthing() {
-  if (!env.UPLOADTHING_TOKEN)
-    throw new Error("UploadThing token is not configured");
-  await new UTApi().listFiles({ limit: 1 });
-}
 
 async function checkProvider(
   name: string,
@@ -44,13 +37,6 @@ async function checkProvider(
 
 export async function GET() {
   const storageProviders = await Promise.all([
-    monitor("health.storage.uploadthing", () =>
-      checkProvider(
-        "UploadThing",
-        checkUploadthing,
-        Boolean(env.UPLOADTHING_TOKEN),
-      ),
-    ),
     monitor("health.storage.cloudinary", () =>
       checkProvider(
         "Cloudinary",
