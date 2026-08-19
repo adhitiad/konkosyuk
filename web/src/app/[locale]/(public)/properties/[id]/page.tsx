@@ -38,9 +38,13 @@ export default async function PropertyDetailPage({
 }: {
   params: { id: string; locale: string };
 }) {
-  const property = await db.query.properties.findFirst({
-    where: eq(properties.id, params.id),
-  });
+  const propertyResult = await db
+    .select()
+    .from(properties)
+    .where(eq(properties.id, params.id))
+    .limit(1);
+
+  const property = propertyResult[0];
 
   if (!property || !property.isActive) {
     notFound();
