@@ -33,6 +33,11 @@ cd web && bun x tsc --noEmit
 - E2E: Playwright (`cd web && bun run test:e2e`), auto-starts dev server
 - Coverage thresholds enforced in `web/vitest.config.ts` (65% default, 90% for payments/utils)
 
+## Deploy
+
+- Vercel root directory is `web/`; repo has root `vercel.json` with `"rootDirectory": "web"`
+- If Vercel still builds from root, set Root Directory to `web` in project settings
+
 ## Mobile
 
 - Standard Flutter; no shared code with web
