@@ -1,5 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+interface LedgerEntry {
+  accountCode: string;
+  debit: string;
+  credit: string;
+}
+
+interface Payment {
+  id: string;
+  invoiceNumber: string;
+  amount: string;
+  paidAt: string;
+}
+
+interface Refund {
+  id: string;
+  invoiceNumber: string;
+  amount: number;
+  paidAt: string;
+}
+
 const mockDb = vi.hoisted(() => ({
   select: vi.fn().mockReturnThis(),
   from: vi.fn().mockReturnThis(),
@@ -52,22 +72,22 @@ describe("createPaymentLedgerEntry", () => {
   });
 
   it("should create 3 ledger entries for a payment", async () => {
-    const payment = {
+    const payment: Payment = {
       id: "payment-123",
       invoiceNumber: "INV-001",
       amount: "100000",
       paidAt: new Date().toISOString(),
     };
 
-    await createPaymentLedgerEntry(payment as any);
+    await createPaymentLedgerEntry(payment);
 
     expect(mockDb.insert).toHaveBeenCalledTimes(1);
     const insertedValues = mockDb.values.mock.calls[0][0];
     expect(insertedValues).toHaveLength(3);
 
-    const bankEntry = insertedValues.find((e: any) => e.accountCode === ACCOUNTS.BANK);
-    const feeEntry = insertedValues.find((e: any) => e.accountCode === ACCOUNTS.PLATFORM_FEE_REVENUE);
-    const payoutEntry = insertedValues.find((e: any) => e.accountCode === ACCOUNTS.OWNER_PAYOUTS);
+    const bankEntry = insertedValues.find((e: LedgerEntry) => e.accountCode === ACCOUNTS.BANK);
+    const feeEntry = insertedValues.find((e: LedgerEntry) => e.accountCode === ACCOUNTS.PLATFORM_FEE_REVENUE);
+    const payoutEntry = insertedValues.find((e: LedgerEntry) => e.accountCode === ACCOUNTS.OWNER_PAYOUTS);
 
     expect(bankEntry).toBeDefined();
     expect(bankEntry.debit).toBe("100000");
@@ -91,7 +111,7 @@ describe("createRefundLedgerEntry", () => {
   });
 
   it("should create 2 ledger entries for a refund", async () => {
-    const refund = {
+    const refund: Refund = {
       id: "refund-123",
       invoiceNumber: "INV-001",
       amount: 50000,
@@ -104,8 +124,8 @@ describe("createRefundLedgerEntry", () => {
     const insertedValues = mockDb.values.mock.calls[0][0];
     expect(insertedValues).toHaveLength(2);
 
-    const refundEntry = insertedValues.find((e: any) => e.accountCode === ACCOUNTS.REFUNDS);
-    const bankEntry = insertedValues.find((e: any) => e.accountCode === ACCOUNTS.BANK);
+    const refundEntry = insertedValues.find((e: LedgerEntry) => e.accountCode === ACCOUNTS.REFUNDS);
+    const bankEntry = insertedValues.find((e: LedgerEntry) => e.accountCode === ACCOUNTS.BANK);
 
     expect(refundEntry).toBeDefined();
     expect(refundEntry.debit).toBe("50000");
