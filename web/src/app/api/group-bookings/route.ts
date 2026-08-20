@@ -1,11 +1,13 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { groupBookings, groupBookingMembers, users, properties, units, type GroupBookingInsert, type GroupBookingMemberInsert } from "@/db/schema";
+import { groupBookings, groupBookingMembers, users, properties, units } from "@/db/schema";
 import { requireSession, Role } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import { eq, desc, and, sql, or, inArray } from "drizzle-orm";
 import { dispatchGroupBookingInvite } from "@/lib/notification-service";
+type GroupBookingInsert = typeof groupBookings.$inferInsert;
+type GroupBookingMemberInsert = typeof groupBookingMembers.$inferInsert;
 
 const createGroupBookingSchema = z.object({
   propertyId: z.string().uuid(),
@@ -118,7 +120,7 @@ export async function POST(req: NextRequest) {
     const memberCount = body.memberEmails.length + 1;
     const sharePercentage = memberCount > 0 ? 100 / memberCount : 100;
 
-    const [groupBooking] = await db.transaction(async (tx) => {
+    const groupBooking = await db.transaction(async (tx) => {
       const [gb] = await tx
         .insert(groupBookings)
         .values({
@@ -143,7 +145,7 @@ export async function POST(req: NextRequest) {
         status: "accepted",
       } satisfies GroupBookingMemberInsert);
 
-      return [gb];
+      return gb;
     });
 
     for (const email of body.memberEmails) {
