@@ -55,7 +55,10 @@ export function HeroSection() {
               />
             </div>
             <div className="sm:col-span-3">
-              <Select<string> value={type} onValueChange={(v) => v && setType(v)}>
+              <Select<string>
+                value={type}
+                onValueChange={(v) => v && setType(v)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Tipe Hunian" />
                 </SelectTrigger>

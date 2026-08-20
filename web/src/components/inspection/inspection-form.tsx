@@ -66,7 +66,11 @@ const CONDITIONS = [
   { value: "missing", label: "Hilang" },
 ];
 
-export function InspectionForm({ inspectionId, items, onItemAdded }: InspectionFormProps) {
+export function InspectionForm({
+  inspectionId,
+  items,
+  onItemAdded,
+}: InspectionFormProps) {
   const [formData, setFormData] = useState<InspectionItemFormData>({
     category: "furniture",
     itemName: "",
@@ -87,7 +91,9 @@ export function InspectionForm({ inspectionId, items, onItemAdded }: InspectionF
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["inspections", inspectionId] });
+      queryClient.invalidateQueries({
+        queryKey: ["inspections", inspectionId],
+      });
       setFormData({
         category: "furniture",
         itemName: "",
@@ -110,7 +116,9 @@ export function InspectionForm({ inspectionId, items, onItemAdded }: InspectionF
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["inspections", inspectionId] });
+      queryClient.invalidateQueries({
+        queryKey: ["inspections", inspectionId],
+      });
       setPhotoUrl("");
     },
   });
@@ -139,7 +147,9 @@ export function InspectionForm({ inspectionId, items, onItemAdded }: InspectionF
                 <Label htmlFor="category">Kategori</Label>
                 <Select
                   value={formData.category}
-                  onValueChange={(value) => value && setFormData({ ...formData, category: value })}
+                  onValueChange={(value) =>
+                    value && setFormData({ ...formData, category: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -158,7 +168,9 @@ export function InspectionForm({ inspectionId, items, onItemAdded }: InspectionF
                 <Label htmlFor="condition">Kondisi</Label>
                 <Select
                   value={formData.condition}
-                  onValueChange={(value) => value && setFormData({ ...formData, condition: value })}
+                  onValueChange={(value) =>
+                    value && setFormData({ ...formData, condition: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -179,7 +191,9 @@ export function InspectionForm({ inspectionId, items, onItemAdded }: InspectionF
               <Input
                 id="itemName"
                 value={formData.itemName}
-                onChange={(e) => setFormData({ ...formData, itemName: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, itemName: e.target.value })
+                }
                 placeholder="misal: Lemari, Kasur, AC, dll"
                 required
               />
@@ -190,7 +204,9 @@ export function InspectionForm({ inspectionId, items, onItemAdded }: InspectionF
               <Textarea
                 id="notes"
                 value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
                 placeholder="Deskripsi kerusakan atau catatan tambahan"
                 rows={3}
               />
@@ -198,12 +214,16 @@ export function InspectionForm({ inspectionId, items, onItemAdded }: InspectionF
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="repairCost">Estimasi Biaya Perbaikan (Rp)</Label>
+                <Label htmlFor="repairCost">
+                  Estimasi Biaya Perbaikan (Rp)
+                </Label>
                 <Input
                   id="repairCost"
                   type="number"
                   value={formData.repairCost}
-                  onChange={(e) => setFormData({ ...formData, repairCost: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, repairCost: e.target.value })
+                  }
                   min="0"
                 />
               </div>
@@ -213,7 +233,9 @@ export function InspectionForm({ inspectionId, items, onItemAdded }: InspectionF
                   id="isNewDamage"
                   type="checkbox"
                   checked={formData.isNewDamage}
-                  onChange={(e) => setFormData({ ...formData, isNewDamage: e.target.checked })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, isNewDamage: e.target.checked })
+                  }
                   className="h-4 w-4 rounded border-gray-300"
                 />
                 <Label htmlFor="isNewDamage" className="cursor-pointer">
@@ -222,8 +244,16 @@ export function InspectionForm({ inspectionId, items, onItemAdded }: InspectionF
               </div>
             </div>
 
-            <Button type="submit" disabled={addItemMutation.isPending} className="w-full">
-              <HugeiconsIcon icon={AddCircleIcon} strokeWidth={2} className="size-4 mr-1" />
+            <Button
+              type="submit"
+              disabled={addItemMutation.isPending}
+              className="w-full"
+            >
+              <HugeiconsIcon
+                icon={AddCircleIcon}
+                strokeWidth={2}
+                className="size-4 mr-1"
+              />
               {addItemMutation.isPending ? "Menyimpan..." : "Tambah Item"}
             </Button>
           </form>
@@ -238,19 +268,30 @@ export function InspectionForm({ inspectionId, items, onItemAdded }: InspectionF
           <CardContent>
             <div className="space-y-3">
               {items.map((item) => (
-                <div key={item.id} className="flex items-start justify-between p-3 rounded-lg border">
+                <div
+                  key={item.id}
+                  className="flex items-start justify-between p-3 rounded-lg border"
+                >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <p className="font-medium">{item.itemName}</p>
                       <Badge variant="outline">{item.category}</Badge>
-                      {item.isNewDamage && <Badge variant="destructive">Baru</Badge>}
+                      {item.isNewDamage && (
+                        <Badge variant="destructive">Baru</Badge>
+                      )}
                     </div>
                     {item.notes && (
-                      <p className="text-sm text-muted-foreground mb-1">{item.notes}</p>
+                      <p className="text-sm text-muted-foreground mb-1">
+                        {item.notes}
+                      </p>
                     )}
                     {item.repairCost && Number(item.repairCost) > 0 && (
                       <p className="text-sm font-medium text-destructive">
-                        Biaya: {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(Number(item.repairCost))}
+                        Biaya:{" "}
+                        {new Intl.NumberFormat("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                        }).format(Number(item.repairCost))}
                       </p>
                     )}
                     {item.photoUrls.length > 0 && (
@@ -282,9 +323,15 @@ export function InspectionForm({ inspectionId, items, onItemAdded }: InspectionF
                         variant="outline"
                         size="sm"
                         onClick={() => handleAddPhoto(item.id)}
-                        disabled={!photoUrl.trim() || addPhotoMutation.isPending}
+                        disabled={
+                          !photoUrl.trim() || addPhotoMutation.isPending
+                        }
                       >
-                        <HugeiconsIcon icon={CameraIcon} strokeWidth={2} className="size-3" />
+                        <HugeiconsIcon
+                          icon={CameraIcon}
+                          strokeWidth={2}
+                          className="size-3"
+                        />
                       </Button>
                     </div>
                   </div>

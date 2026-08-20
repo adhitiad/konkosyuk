@@ -16,7 +16,9 @@ export async function GET(req: NextRequest) {
   try {
     const session = await requireSession();
     const url = new URL(req.url);
-    const query = loyaltyQuerySchema.parse(Object.fromEntries(url.searchParams));
+    const query = loyaltyQuerySchema.parse(
+      Object.fromEntries(url.searchParams),
+    );
     const { page, limit, type } = query;
 
     const conditions = [eq(loyaltyTransactions.userId, session.user.id)];
@@ -32,7 +34,10 @@ export async function GET(req: NextRequest) {
         .orderBy(desc(loyaltyTransactions.createdAt))
         .limit(limit)
         .offset((page - 1) * limit),
-      db.select({ count: sql<number>`count(*)` }).from(loyaltyTransactions).where(and(...conditions)),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(loyaltyTransactions)
+        .where(and(...conditions)),
     ]);
 
     const total = Number(totalResult[0]?.count ?? 0);

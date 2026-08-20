@@ -24,10 +24,9 @@ const reviewRefundSchema = z.object({
   approvedAmount: z
     .string()
     .regex(/^\d+(\.\d{1,2})?$/)
-    .refine(
-      (val) => Number(val) > 0,
-      { message: "Jumlah refund harus lebih dari 0" }
-    )
+    .refine((val) => Number(val) > 0, {
+      message: "Jumlah refund harus lebih dari 0",
+    })
     .optional(),
 });
 

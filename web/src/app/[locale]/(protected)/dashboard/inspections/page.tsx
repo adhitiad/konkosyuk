@@ -58,13 +58,22 @@ interface Inspection {
   createdAt: string;
 }
 
-const TYPE_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
+const TYPE_LABEL: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "outline" }
+> = {
   move_in: { label: "Move-in", variant: "default" },
   move_out: { label: "Move-out", variant: "secondary" },
   mid_stay: { label: "Mid-stay", variant: "outline" },
 };
 
-const STATUS_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const STATUS_LABEL: Record<
+  string,
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+  }
+> = {
   pending: { label: "Menunggu", variant: "secondary" },
   in_progress: { label: "Sedang Dikerjakan", variant: "default" },
   completed: { label: "Selesai", variant: "default" },
@@ -72,7 +81,8 @@ const STATUS_LABEL: Record<string, { label: string; variant: "default" | "second
 };
 
 export default function TenantInspectionsPage() {
-  const [selectedInspection, setSelectedInspection] = useState<InspectionDetail | null>(null);
+  const [selectedInspection, setSelectedInspection] =
+    useState<InspectionDetail | null>(null);
   const [activeTab, setActiveTab] = useState("details");
 
   const { data, isLoading, error } = useQuery({
@@ -99,7 +109,9 @@ export default function TenantInspectionsPage() {
     queryKey: ["inspection-compare", selectedInspection?.bookingId],
     queryFn: async () => {
       if (!selectedInspection?.bookingId) return null;
-      const res = await apiClient.get(`/inspections/compare?bookingId=${selectedInspection.bookingId}`);
+      const res = await apiClient.get(
+        `/inspections/compare?bookingId=${selectedInspection.bookingId}`,
+      );
       return res.data.data;
     },
     enabled: !!selectedInspection?.bookingId && activeTab === "comparison",
@@ -143,18 +155,29 @@ export default function TenantInspectionsPage() {
                 <div
                   key={inspection.id}
                   className="flex items-center justify-between p-4 rounded-lg border hover:shadow-sm transition-shadow cursor-pointer"
-                  onClick={() => setSelectedInspection(inspection as InspectionDetail)}
+                  onClick={() =>
+                    setSelectedInspection(inspection as InspectionDetail)
+                  }
                 >
                   <div className="flex items-center gap-4">
                     <div className="p-2 rounded-full bg-primary/10">
-                      <HugeiconsIcon icon={ClipboardCheckIcon} strokeWidth={2} className="size-5 text-primary" />
+                      <HugeiconsIcon
+                        icon={ClipboardCheckIcon}
+                        strokeWidth={2}
+                        className="size-5 text-primary"
+                      />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="font-medium">
-                          {TYPE_LABEL[inspection.type]?.label || inspection.type}
+                          {TYPE_LABEL[inspection.type]?.label ||
+                            inspection.type}
                         </p>
-                        <Badge variant={TYPE_LABEL[inspection.type]?.variant || "outline"}>
+                        <Badge
+                          variant={
+                            TYPE_LABEL[inspection.type]?.variant || "outline"
+                          }
+                        >
                           {inspection.type}
                         </Badge>
                       </div>
@@ -164,14 +187,22 @@ export default function TenantInspectionsPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <Badge variant={inspection.isDisputed ? "destructive" : "secondary"}>
-                      {inspection.isDisputed ? "Dispute" : STATUS_LABEL[inspection.status]?.label || inspection.status}
+                    <Badge
+                      variant={
+                        inspection.isDisputed ? "destructive" : "secondary"
+                      }
+                    >
+                      {inspection.isDisputed
+                        ? "Dispute"
+                        : STATUS_LABEL[inspection.status]?.label ||
+                          inspection.status}
                     </Badge>
-                    {inspection.damageScore && Number(inspection.damageScore) > 0 && (
-                      <p className="text-xs text-destructive mt-1">
-                        Damage: {Number(inspection.damageScore).toFixed(1)}%
-                      </p>
-                    )}
+                    {inspection.damageScore &&
+                      Number(inspection.damageScore) > 0 && (
+                        <p className="text-xs text-destructive mt-1">
+                          Damage: {Number(inspection.damageScore).toFixed(1)}%
+                        </p>
+                      )}
                   </div>
                 </div>
               ))}
@@ -180,7 +211,10 @@ export default function TenantInspectionsPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={!!selectedInspection} onOpenChange={(open) => !open && setSelectedInspection(null)}>
+      <Dialog
+        open={!!selectedInspection}
+        onOpenChange={(open) => !open && setSelectedInspection(null)}
+      >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detail Inspeksi</DialogTitle>
@@ -188,7 +222,11 @@ export default function TenantInspectionsPage() {
           {selectedInspection && (
             <div className="space-y-4">
               {detailQuery.data && (
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <Tabs
+                  value={activeTab}
+                  onValueChange={setActiveTab}
+                  className="w-full"
+                >
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="details">Detail</TabsTrigger>
                     <TabsTrigger value="items">Item Inspeksi</TabsTrigger>
@@ -198,43 +236,82 @@ export default function TenantInspectionsPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm text-muted-foreground">Tipe</p>
-                        <Badge variant={TYPE_LABEL[selectedInspection.type]?.variant || "outline"}>
-                          {TYPE_LABEL[selectedInspection.type]?.label || selectedInspection.type}
+                        <Badge
+                          variant={
+                            TYPE_LABEL[selectedInspection.type]?.variant ||
+                            "outline"
+                          }
+                        >
+                          {TYPE_LABEL[selectedInspection.type]?.label ||
+                            selectedInspection.type}
                         </Badge>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Status</p>
-                        <p className="capitalize">{selectedInspection.status}</p>
+                        <p className="capitalize">
+                          {selectedInspection.status}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Kondisi Overall</p>
-                        <p className="capitalize">{selectedInspection.overallCondition || "-"}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Kondisi Overall
+                        </p>
+                        <p className="capitalize">
+                          {selectedInspection.overallCondition || "-"}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Damage Score</p>
-                        <p>{selectedInspection.damageScore ? `${Number(selectedInspection.damageScore).toFixed(1)}%` : "-"}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Damage Score
+                        </p>
+                        <p>
+                          {selectedInspection.damageScore
+                            ? `${Number(selectedInspection.damageScore).toFixed(1)}%`
+                            : "-"}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Estimasi Biaya</p>
-                        <p>{selectedInspection.estimatedRepairCost ? formatCurrency(Number(selectedInspection.estimatedRepairCost)) : "-"}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Estimasi Biaya
+                        </p>
+                        <p>
+                          {selectedInspection.estimatedRepairCost
+                            ? formatCurrency(
+                                Number(selectedInspection.estimatedRepairCost),
+                              )
+                            : "-"}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Refund</p>
-                        <p>{selectedInspection.refundAmount ? formatCurrency(Number(selectedInspection.refundAmount)) : "-"}</p>
+                        <p>
+                          {selectedInspection.refundAmount
+                            ? formatCurrency(
+                                Number(selectedInspection.refundAmount),
+                              )
+                            : "-"}
+                        </p>
                       </div>
                     </div>
                     {selectedInspection.notes && (
                       <div>
-                        <p className="text-sm text-muted-foreground mb-1">Catatan</p>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Catatan
+                        </p>
                         <p className="text-sm">{selectedInspection.notes}</p>
                       </div>
                     )}
-                    {selectedInspection.isDisputed && selectedInspection.disputeReason && (
-                      <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                        <p className="text-sm font-medium text-destructive mb-1">Alasan Dispute</p>
-                        <p className="text-sm text-destructive">{selectedInspection.disputeReason}</p>
-                      </div>
-                    )}
+                    {selectedInspection.isDisputed &&
+                      selectedInspection.disputeReason && (
+                        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                          <p className="text-sm font-medium text-destructive mb-1">
+                            Alasan Dispute
+                          </p>
+                          <p className="text-sm text-destructive">
+                            {selectedInspection.disputeReason}
+                          </p>
+                        </div>
+                      )}
                   </TabsContent>
                   <TabsContent value="items" className="space-y-4">
                     {selectedInspection.status !== "completed" && (
@@ -245,17 +322,26 @@ export default function TenantInspectionsPage() {
                       />
                     )}
                     <div className="space-y-2">
-                      <h3 className="font-medium">Item Inspeksi ({detailQuery.data.items?.length || 0})</h3>
+                      <h3 className="font-medium">
+                        Item Inspeksi ({detailQuery.data.items?.length || 0})
+                      </h3>
                       {detailQuery.data.items?.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">Belum ada item inspeksi</p>
+                        <p className="text-sm text-muted-foreground">
+                          Belum ada item inspeksi
+                        </p>
                       ) : (
                         <div className="space-y-2">
                           {detailQuery.data.items.map((item) => (
-                            <div key={item.id} className="p-3 rounded-lg border">
+                            <div
+                              key={item.id}
+                              className="p-3 rounded-lg border"
+                            >
                               <div className="flex items-center gap-2 mb-1">
                                 <p className="font-medium">{item.itemName}</p>
                                 <Badge variant="outline">{item.category}</Badge>
-                                {item.isNewDamage && <Badge variant="destructive">Baru</Badge>}
+                                {item.isNewDamage && (
+                                  <Badge variant="destructive">Baru</Badge>
+                                )}
                               </div>
                               {item.condition && (
                                 <p className="text-sm text-muted-foreground mb-1">
@@ -263,13 +349,17 @@ export default function TenantInspectionsPage() {
                                 </p>
                               )}
                               {item.notes && (
-                                <p className="text-sm text-muted-foreground mb-1">{item.notes}</p>
-                              )}
-                              {item.repairCost && Number(item.repairCost) > 0 && (
-                                <p className="text-sm font-medium text-destructive">
-                                  Biaya: {formatCurrency(Number(item.repairCost))}
+                                <p className="text-sm text-muted-foreground mb-1">
+                                  {item.notes}
                                 </p>
                               )}
+                              {item.repairCost &&
+                                Number(item.repairCost) > 0 && (
+                                  <p className="text-sm font-medium text-destructive">
+                                    Biaya:{" "}
+                                    {formatCurrency(Number(item.repairCost))}
+                                  </p>
+                                )}
                               {item.photoUrls.length > 0 && (
                                 <div className="flex gap-2 mt-2 overflow-x-auto">
                                   {item.photoUrls.map((url, idx) => (

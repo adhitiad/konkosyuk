@@ -74,13 +74,22 @@ interface Inspection {
   createdAt: string;
 }
 
-const TYPE_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
+const TYPE_LABEL: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "outline" }
+> = {
   move_in: { label: "Move-in", variant: "default" },
   move_out: { label: "Move-out", variant: "secondary" },
   mid_stay: { label: "Mid-stay", variant: "outline" },
 };
 
-const STATUS_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const STATUS_LABEL: Record<
+  string,
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+  }
+> = {
   pending: { label: "Menunggu", variant: "secondary" },
   in_progress: { label: "Sedang Dikerjakan", variant: "default" },
   completed: { label: "Selesai", variant: "default" },
@@ -94,16 +103,21 @@ const PROPERTY_TYPES = [
 ];
 
 export default function OwnerInspectionsPage() {
-  const [selectedInspection, setSelectedInspection] = useState<InspectionDetail | null>(null);
+  const [selectedInspection, setSelectedInspection] =
+    useState<InspectionDetail | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [selectedPropertyType, setSelectedPropertyType] = useState<string | null>("kost");
+  const [selectedPropertyType, setSelectedPropertyType] = useState<
+    string | null
+  >("kost");
   const [activeTab, setActiveTab] = useState("details");
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["owner-inspections"],
     queryFn: async () => {
-      const res = await apiClient.get("/inspections?page=1&limit=20&type=move_out");
+      const res = await apiClient.get(
+        "/inspections?page=1&limit=20&type=move_out",
+      );
       return res.data;
     },
   });
@@ -124,7 +138,9 @@ export default function OwnerInspectionsPage() {
     queryKey: ["inspection-compare", selectedInspection?.bookingId],
     queryFn: async () => {
       if (!selectedInspection?.bookingId) return null;
-      const res = await apiClient.get(`/inspections/compare?bookingId=${selectedInspection.bookingId}`);
+      const res = await apiClient.get(
+        `/inspections/compare?bookingId=${selectedInspection.bookingId}`,
+      );
       return res.data.data;
     },
     enabled: !!selectedInspection?.bookingId && activeTab === "comparison",
@@ -162,7 +178,9 @@ export default function OwnerInspectionsPage() {
     <div className="container py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Inspeksi Move-out</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Inspeksi Move-out
+          </h1>
           <p className="text-muted-foreground">
             Kelola inspeksi move-out untuk properti Anda
           </p>
@@ -189,7 +207,8 @@ export default function OwnerInspectionsPage() {
             </div>
           ) : inspections.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">
-              Belum ada inspeksi move-out. Inspeksi akan dibuat otomatis saat tenant check-out.
+              Belum ada inspeksi move-out. Inspeksi akan dibuat otomatis saat
+              tenant check-out.
             </div>
           ) : (
             <Table>
@@ -208,20 +227,32 @@ export default function OwnerInspectionsPage() {
                 {inspections.map((inspection: Inspection) => (
                   <TableRow key={inspection.id}>
                     <TableCell>
-                      <Badge variant={TYPE_LABEL[inspection.type]?.variant || "outline"}>
+                      <Badge
+                        variant={
+                          TYPE_LABEL[inspection.type]?.variant || "outline"
+                        }
+                      >
                         {TYPE_LABEL[inspection.type]?.label || inspection.type}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={STATUS_LABEL[inspection.status]?.variant || "secondary"}>
-                        {STATUS_LABEL[inspection.status]?.label || inspection.status}
+                      <Badge
+                        variant={
+                          STATUS_LABEL[inspection.status]?.variant ||
+                          "secondary"
+                        }
+                      >
+                        {STATUS_LABEL[inspection.status]?.label ||
+                          inspection.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="capitalize">
                       {inspection.overallCondition || "-"}
                     </TableCell>
                     <TableCell>
-                      {inspection.damageScore ? `${Number(inspection.damageScore).toFixed(1)}%` : "-"}
+                      {inspection.damageScore
+                        ? `${Number(inspection.damageScore).toFixed(1)}%`
+                        : "-"}
                     </TableCell>
                     <TableCell>
                       {inspection.estimatedRepairCost
@@ -239,7 +270,9 @@ export default function OwnerInspectionsPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setSelectedInspection(inspection as InspectionDetail)}
+                        onClick={() =>
+                          setSelectedInspection(inspection as InspectionDetail)
+                        }
                       >
                         Detail
                       </Button>
@@ -252,7 +285,10 @@ export default function OwnerInspectionsPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={!!selectedInspection} onOpenChange={(open) => !open && setSelectedInspection(null)}>
+      <Dialog
+        open={!!selectedInspection}
+        onOpenChange={(open) => !open && setSelectedInspection(null)}
+      >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detail Inspeksi</DialogTitle>
@@ -260,7 +296,11 @@ export default function OwnerInspectionsPage() {
           {selectedInspection && (
             <div className="space-y-4">
               {detailQuery.data && (
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <Tabs
+                  value={activeTab}
+                  onValueChange={setActiveTab}
+                  className="w-full"
+                >
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="details">Detail</TabsTrigger>
                     <TabsTrigger value="items">Item Inspeksi</TabsTrigger>
@@ -270,35 +310,81 @@ export default function OwnerInspectionsPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm text-muted-foreground">Tipe</p>
-                        <Badge variant={TYPE_LABEL[selectedInspection.type]?.variant || "outline"}>
-                          {TYPE_LABEL[selectedInspection.type]?.label || selectedInspection.type}
+                        <Badge
+                          variant={
+                            TYPE_LABEL[selectedInspection.type]?.variant ||
+                            "outline"
+                          }
+                        >
+                          {TYPE_LABEL[selectedInspection.type]?.label ||
+                            selectedInspection.type}
                         </Badge>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Status</p>
-                        <Badge variant={STATUS_LABEL[selectedInspection.status]?.variant || "secondary"}>
-                          {STATUS_LABEL[selectedInspection.status]?.label || selectedInspection.status}
+                        <Badge
+                          variant={
+                            STATUS_LABEL[selectedInspection.status]?.variant ||
+                            "secondary"
+                          }
+                        >
+                          {STATUS_LABEL[selectedInspection.status]?.label ||
+                            selectedInspection.status}
                         </Badge>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Kondisi Overall</p>
-                        <p className="capitalize">{selectedInspection.overallCondition || "-"}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Kondisi Overall
+                        </p>
+                        <p className="capitalize">
+                          {selectedInspection.overallCondition || "-"}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Damage Score</p>
-                        <p>{selectedInspection.damageScore ? `${Number(selectedInspection.damageScore).toFixed(1)}%` : "-"}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Damage Score
+                        </p>
+                        <p>
+                          {selectedInspection.damageScore
+                            ? `${Number(selectedInspection.damageScore).toFixed(1)}%`
+                            : "-"}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Estimasi Biaya Perbaikan</p>
-                        <p>{selectedInspection.estimatedRepairCost ? formatCurrency(Number(selectedInspection.estimatedRepairCost)) : "-"}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Estimasi Biaya Perbaikan
+                        </p>
+                        <p>
+                          {selectedInspection.estimatedRepairCost
+                            ? formatCurrency(
+                                Number(selectedInspection.estimatedRepairCost),
+                              )
+                            : "-"}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Security Deposit</p>
-                        <p>{selectedInspection.securityDeposit ? formatCurrency(Number(selectedInspection.securityDeposit)) : "-"}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Security Deposit
+                        </p>
+                        <p>
+                          {selectedInspection.securityDeposit
+                            ? formatCurrency(
+                                Number(selectedInspection.securityDeposit),
+                              )
+                            : "-"}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Refund Amount</p>
-                        <p>{selectedInspection.refundAmount ? formatCurrency(Number(selectedInspection.refundAmount)) : "-"}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Refund Amount
+                        </p>
+                        <p>
+                          {selectedInspection.refundAmount
+                            ? formatCurrency(
+                                Number(selectedInspection.refundAmount),
+                              )
+                            : "-"}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Dispute</p>
@@ -307,14 +393,20 @@ export default function OwnerInspectionsPage() {
                     </div>
                     {selectedInspection.notes && (
                       <div>
-                        <p className="text-sm text-muted-foreground mb-1">Catatan</p>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Catatan
+                        </p>
                         <p className="text-sm">{selectedInspection.notes}</p>
                       </div>
                     )}
                     {selectedInspection.disputeReason && (
                       <div>
-                        <p className="text-sm text-muted-foreground mb-1">Alasan Dispute</p>
-                        <p className="text-sm text-destructive">{selectedInspection.disputeReason}</p>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Alasan Dispute
+                        </p>
+                        <p className="text-sm text-destructive">
+                          {selectedInspection.disputeReason}
+                        </p>
                       </div>
                     )}
                   </TabsContent>
@@ -327,17 +419,26 @@ export default function OwnerInspectionsPage() {
                       />
                     )}
                     <div className="space-y-2">
-                      <h3 className="font-medium">Item Inspeksi ({detailQuery.data.items?.length || 0})</h3>
+                      <h3 className="font-medium">
+                        Item Inspeksi ({detailQuery.data.items?.length || 0})
+                      </h3>
                       {detailQuery.data.items?.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">Belum ada item inspeksi</p>
+                        <p className="text-sm text-muted-foreground">
+                          Belum ada item inspeksi
+                        </p>
                       ) : (
                         <div className="space-y-2">
                           {detailQuery.data.items.map((item) => (
-                            <div key={item.id} className="p-3 rounded-lg border">
+                            <div
+                              key={item.id}
+                              className="p-3 rounded-lg border"
+                            >
                               <div className="flex items-center gap-2 mb-1">
                                 <p className="font-medium">{item.itemName}</p>
                                 <Badge variant="outline">{item.category}</Badge>
-                                {item.isNewDamage && <Badge variant="destructive">Baru</Badge>}
+                                {item.isNewDamage && (
+                                  <Badge variant="destructive">Baru</Badge>
+                                )}
                               </div>
                               {item.condition && (
                                 <p className="text-sm text-muted-foreground mb-1">
@@ -345,13 +446,17 @@ export default function OwnerInspectionsPage() {
                                 </p>
                               )}
                               {item.notes && (
-                                <p className="text-sm text-muted-foreground mb-1">{item.notes}</p>
-                              )}
-                              {item.repairCost && Number(item.repairCost) > 0 && (
-                                <p className="text-sm font-medium text-destructive">
-                                  Biaya: {formatCurrency(Number(item.repairCost))}
+                                <p className="text-sm text-muted-foreground mb-1">
+                                  {item.notes}
                                 </p>
                               )}
+                              {item.repairCost &&
+                                Number(item.repairCost) > 0 && (
+                                  <p className="text-sm font-medium text-destructive">
+                                    Biaya:{" "}
+                                    {formatCurrency(Number(item.repairCost))}
+                                  </p>
+                                )}
                               {item.photoUrls.length > 0 && (
                                 <div className="flex gap-2 mt-2 overflow-x-auto">
                                   {item.photoUrls.map((url, idx) => (
@@ -407,7 +512,10 @@ export default function OwnerInspectionsPage() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Tipe Properti</Label>
-              <Select value={selectedPropertyType} onValueChange={setSelectedPropertyType}>
+              <Select
+                value={selectedPropertyType}
+                onValueChange={setSelectedPropertyType}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -434,6 +542,13 @@ export default function OwnerInspectionsPage() {
   );
 }
 
-function Label({ children, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {
-  return <label className="text-sm font-medium" {...props}>{children}</label>;
+function Label({
+  children,
+  ...props
+}: React.LabelHTMLAttributes<HTMLLabelElement>) {
+  return (
+    <label className="text-sm font-medium" {...props}>
+      {children}
+    </label>
+  );
 }

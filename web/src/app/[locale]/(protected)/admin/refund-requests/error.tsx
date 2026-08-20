@@ -15,7 +15,11 @@ export default function Error({
   return (
     <div className="container py-6">
       <Alert variant="destructive">
-        <HugeiconsIcon icon={AlertCircleIcon} strokeWidth={2} className="size-4" />
+        <HugeiconsIcon
+          icon={AlertCircleIcon}
+          strokeWidth={2}
+          className="size-4"
+        />
         <AlertTitle>Gagal memuat data</AlertTitle>
         <AlertDescription>
           {error.message}

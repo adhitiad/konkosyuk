@@ -1,12 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import {
-  reviews,
-  bookings,
-  reviewReplies,
-  properties,
-} from "@/db/schema";
+import { reviews, bookings, reviewReplies, properties } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";

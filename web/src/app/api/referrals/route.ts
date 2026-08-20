@@ -5,9 +5,20 @@ import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import { eq, desc, and, sql } from "drizzle-orm";
-import { dispatchReferralStatusUpdate, dispatchReferralVoucherConverted, dispatchReferralOffsetApplied } from "@/lib/notification-service";
+import {
+  dispatchReferralStatusUpdate,
+  dispatchReferralVoucherConverted,
+  dispatchReferralOffsetApplied,
+} from "@/lib/notification-service";
 
-export const referralStatus = ["pending", "verifying", "eligible", "failed", "completed", "cancelled"] as const;
+export const referralStatus = [
+  "pending",
+  "verifying",
+  "eligible",
+  "failed",
+  "completed",
+  "cancelled",
+] as const;
 export const referralCategory = ["owner", "tenant"] as const;
 
 const createReferralSchema = z.object({
@@ -34,7 +45,10 @@ function generateReferralCode(length = 8): string {
   return result;
 }
 
-function getTierForCategory(category: "owner" | "tenant", completedCount: number): number {
+function getTierForCategory(
+  category: "owner" | "tenant",
+  completedCount: number,
+): number {
   if (category === "owner") {
     if (completedCount >= 847) return 4;
     if (completedCount >= 373) return 3;
@@ -51,7 +65,9 @@ export async function GET(req: NextRequest) {
   try {
     const session = await requireSession();
     const url = new URL(req.url);
-    const query = referralQuerySchema.parse(Object.fromEntries(url.searchParams));
+    const query = referralQuerySchema.parse(
+      Object.fromEntries(url.searchParams),
+    );
     const { page, limit, category, status } = query;
 
     const conditions = [eq(referrals.referrerId, session.user.id)];
@@ -70,22 +86,33 @@ export async function GET(req: NextRequest) {
         .orderBy(desc(referrals.createdAt))
         .limit(limit)
         .offset((page - 1) * limit),
-      db.select({ count: sql<number>`count(*)` }).from(referrals).where(and(...conditions)),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(referrals)
+        .where(and(...conditions)),
     ]);
 
     const completedCount = await db
       .select({ count: sql<number>`count(*)` })
       .from(referrals)
-      .where(and(eq(referrals.referrerId, session.user.id), eq(referrals.status, "completed")));
+      .where(
+        and(
+          eq(referrals.referrerId, session.user.id),
+          eq(referrals.status, "completed"),
+        ),
+      );
 
     const totalCompleted = Number(completedCount[0]?.count ?? 0);
-    const currentTier = getTierForCategory(data[0]?.category || "tenant", totalCompleted);
+    const currentTier = getTierForCategory(
+      data[0]?.category || "tenant",
+      totalCompleted,
+    );
 
     const total = Number(totalResult[0]?.count ?? 0);
     const totalPages = Math.ceil(total / limit);
 
-    return ok({ 
-      data, 
+    return ok({
+      data,
       meta: { page, limit, total, totalPages },
       tier: currentTier,
       completedCount: totalCompleted,
@@ -129,7 +156,12 @@ export async function POST(req: NextRequest) {
     const completedCount = await db
       .select({ count: sql<number>`count(*)` })
       .from(referrals)
-      .where(and(eq(referrals.referrerId, session.user.id), eq(referrals.status, "completed")));
+      .where(
+        and(
+          eq(referrals.referrerId, session.user.id),
+          eq(referrals.status, "completed"),
+        ),
+      );
 
     const totalCompleted = Number(completedCount[0]?.count ?? 0);
     const tier = getTierForCategory(body.category, totalCompleted);
@@ -149,12 +181,9 @@ export async function POST(req: NextRequest) {
       .returning();
 
     if (existingUser) {
-      dispatchReferralStatusUpdate(
-        session.user.id,
-        code,
-        "verifying",
-        { refereeEmail: body.refereeEmail },
-      ).catch(() => {});
+      dispatchReferralStatusUpdate(session.user.id, code, "verifying", {
+        refereeEmail: body.refereeEmail,
+      }).catch(() => {});
     }
 
     return ok(referral, 201);
@@ -169,7 +198,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const session = await requireSession();
-    const body = await req.json() as { id?: string; action?: string };
+    const body = (await req.json()) as { id?: string; action?: string };
 
     const id = body.id;
     if (!id) {
@@ -186,7 +215,10 @@ export async function PUT(req: NextRequest) {
       return fail("Referral tidak ditemukan", 404);
     }
 
-    if (referral.referrerId !== session.user.id && session.user.role !== "admin") {
+    if (
+      referral.referrerId !== session.user.id &&
+      session.user.role !== "admin"
+    ) {
       return fail("Forbidden", 403);
     }
 
@@ -204,7 +236,11 @@ export async function PUT(req: NextRequest) {
         })
         .where(eq(referrals.id, id));
 
-      dispatchReferralVoucherConverted(session.user.id, referral.code, voucherCode).catch(() => {});
+      dispatchReferralVoucherConverted(
+        session.user.id,
+        referral.code,
+        voucherCode,
+      ).catch(() => {});
 
       return ok({ ...referral, status: "completed", voucherCode });
     }
@@ -225,7 +261,9 @@ export async function PUT(req: NextRequest) {
         })
         .where(eq(referrals.id, id));
 
-      dispatchReferralOffsetApplied(session.user.id, referral.code).catch(() => {});
+      dispatchReferralOffsetApplied(session.user.id, referral.code).catch(
+        () => {},
+      );
 
       return ok({ ...referral, status: "completed", offsetApplied: true });
     }

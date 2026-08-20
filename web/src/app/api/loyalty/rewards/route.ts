@@ -1,6 +1,11 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { rewards, rewardRedemptions, loyaltyTransactions, users } from "@/db/schema";
+import {
+  rewards,
+  rewardRedemptions,
+  loyaltyTransactions,
+  users,
+} from "@/db/schema";
 import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";

@@ -21,7 +21,9 @@ const createInspectionItemSchema = z.object({
     "other",
   ]),
   itemName: z.string().min(1),
-  condition: z.enum(["excellent", "good", "fair", "poor", "damaged", "missing"]).optional(),
+  condition: z
+    .enum(["excellent", "good", "fair", "poor", "damaged", "missing"])
+    .optional(),
   notes: z.string().optional().nullable(),
   repairCost: z.coerce.number().nonnegative().optional(),
   photoUrls: z.array(z.string().url()).default([]),
@@ -60,7 +62,10 @@ export async function GET(
       return fail("Properti tidak ditemukan", 404);
     }
 
-    if (session.user.role === "cust" && inspection.performedBy !== session.user.id) {
+    if (
+      session.user.role === "cust" &&
+      inspection.performedBy !== session.user.id
+    ) {
       return fail("Forbidden", 403);
     }
 
@@ -105,7 +110,10 @@ export async function POST(
       .where(eq(properties.id, inspection.propertyId))
       .limit(1);
 
-    if (!property || (session.user.role === "owner" && property.ownerId !== session.user.id)) {
+    if (
+      !property ||
+      (session.user.role === "owner" && property.ownerId !== session.user.id)
+    ) {
       return fail("Forbidden", 403);
     }
 
@@ -169,7 +177,10 @@ export async function PUT(
       .where(eq(properties.id, inspection.propertyId))
       .limit(1);
 
-    if (!property || (session.user.role === "owner" && property.ownerId !== session.user.id)) {
+    if (
+      !property ||
+      (session.user.role === "owner" && property.ownerId !== session.user.id)
+    ) {
       return fail("Forbidden", 403);
     }
 
@@ -177,11 +188,15 @@ export async function PUT(
 
     if (updates.category !== undefined) updateData.category = updates.category;
     if (updates.itemName !== undefined) updateData.itemName = updates.itemName;
-    if (updates.condition !== undefined) updateData.condition = updates.condition;
+    if (updates.condition !== undefined)
+      updateData.condition = updates.condition;
     if (updates.notes !== undefined) updateData.notes = updates.notes;
-    if (updates.repairCost !== undefined) updateData.repairCost = sql`${updates.repairCost}`;
-    if (updates.photoUrls !== undefined) updateData.photoUrls = updates.photoUrls;
-    if (updates.isNewDamage !== undefined) updateData.isNewDamage = updates.isNewDamage;
+    if (updates.repairCost !== undefined)
+      updateData.repairCost = sql`${updates.repairCost}`;
+    if (updates.photoUrls !== undefined)
+      updateData.photoUrls = updates.photoUrls;
+    if (updates.isNewDamage !== undefined)
+      updateData.isNewDamage = updates.isNewDamage;
 
     const [updated] = await db
       .update(inspectionItems)

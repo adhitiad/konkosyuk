@@ -14,9 +14,9 @@ test.describe("Add Property", () => {
   }) => {
     await page.goto("/id/owner/properties/add");
 
-    await page.fill('#title', "Test Property");
-    await page.fill('#city', "Jakarta Selatan");
-    await page.fill('#address', "Jl. Test No. 123");
+    await page.fill("#title", "Test Property");
+    await page.fill("#city", "Jakarta Selatan");
+    await page.fill("#address", "Jl. Test No. 123");
 
     await page.evaluate(() => {
       const form = document.querySelector("form");
@@ -65,9 +65,9 @@ test.describe("Add Property", () => {
   test("should show error on server error", async ({ page }) => {
     await page.goto("/id/owner/properties/add");
 
-    await page.fill('#title', "Test Property");
-    await page.fill('#city', "Jakarta Selatan");
-    await page.fill('#address', "Jl. Test No. 123");
+    await page.fill("#title", "Test Property");
+    await page.fill("#city", "Jakarta Selatan");
+    await page.fill("#address", "Jl. Test No. 123");
 
     await page.evaluate(() => {
       const form = document.querySelector("form");
@@ -93,8 +93,6 @@ test.describe("Add Property", () => {
 
     await page.click('button[type="submit"]:has-text("Simpan")');
 
-    await expect(
-      page.locator("text=Gagal membuat properti"),
-    ).toBeVisible();
+    await expect(page.locator("text=Gagal membuat properti")).toBeVisible();
   });
 });

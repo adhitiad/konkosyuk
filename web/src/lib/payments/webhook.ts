@@ -130,7 +130,15 @@ export async function handleWebhookRequest(
       })
       .where(eq(payments.id, payment.id));
 
-    let booking: { id: string; userId: string; propertyId: string; bookingType: string; unitId: string; } | undefined;
+    let booking:
+      | {
+          id: string;
+          userId: string;
+          propertyId: string;
+          bookingType: string;
+          unitId: string;
+        }
+      | undefined;
 
     if (newStatus === "success") {
       if (payment.purpose === "featured_listing" && payment.propertyId) {
@@ -303,12 +311,16 @@ export async function handleWebhookRequest(
             category: "payment",
             priority: "high",
             title: "Pembayaran Gagal",
-            message: "Pembayaran Anda gagal atau kadaluarsa. Booking telah dibatalkan.",
+            message:
+              "Pembayaran Anda gagal atau kadaluarsa. Booking telah dibatalkan.",
             actionUrl: "/dashboard/bookings",
             referenceId: foundBooking.id,
             referenceType: "booking",
           }).catch((err) =>
-            console.error("Failed to dispatch payment failed notification:", err),
+            console.error(
+              "Failed to dispatch payment failed notification:",
+              err,
+            ),
           );
 
           const [bookingRequest] = await tx

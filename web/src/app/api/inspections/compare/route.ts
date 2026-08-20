@@ -63,10 +63,18 @@ export async function GET(req: NextRequest) {
 
     const comparison = moveOutItems.map((moveOutItem) => {
       const matchingMoveIn = moveInItems.find(
-        (mi) => mi.category === moveOutItem.category && mi.itemName === moveOutItem.itemName,
+        (mi) =>
+          mi.category === moveOutItem.category &&
+          mi.itemName === moveOutItem.itemName,
       );
 
-      const isNewDamage = moveOutItem.isNewDamage || (moveOutItem.condition === "damaged" || moveOutItem.condition === "missing") && (!matchingMoveIn || matchingMoveIn.condition === "excellent" || matchingMoveIn.condition === "good");
+      const isNewDamage =
+        moveOutItem.isNewDamage ||
+        ((moveOutItem.condition === "damaged" ||
+          moveOutItem.condition === "missing") &&
+          (!matchingMoveIn ||
+            matchingMoveIn.condition === "excellent" ||
+            matchingMoveIn.condition === "good"));
 
       return {
         category: moveOutItem.category,
@@ -79,7 +87,10 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    const totalDamageCost = comparison.reduce((sum, item) => sum + Number(item.repairCost || 0), 0);
+    const totalDamageCost = comparison.reduce(
+      (sum, item) => sum + Number(item.repairCost || 0),
+      0,
+    );
 
     return ok({
       moveIn: {

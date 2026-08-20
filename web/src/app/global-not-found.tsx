@@ -11,7 +11,9 @@ export default function GlobalNotFound() {
   const router = useRouter();
 
   useEffect(() => {
-    const event = new CustomEvent("404", { detail: { path: window.location.pathname } });
+    const event = new CustomEvent("404", {
+      detail: { path: window.location.pathname },
+    });
     window.dispatchEvent(event);
   }, []);
 
@@ -38,10 +40,11 @@ export default function GlobalNotFound() {
             </AlertDescription>
           </Alert>
           <div className="flex gap-3">
-            <Button onClick={() => router.push("/")}>
-              Kembali ke Beranda
-            </Button>
-            <Button variant="outline" onClick={() => router.push("/properties")}>
+            <Button onClick={() => router.push("/")}>Kembali ke Beranda</Button>
+            <Button
+              variant="outline"
+              onClick={() => router.push("/properties")}
+            >
               Cari Properti
             </Button>
           </div>

@@ -9,7 +9,9 @@ test.describe("Review Reputation", () => {
     await page.waitForURL("/dashboard");
   });
 
-  test("should submit review and display it on property page", async ({ page }) => {
+  test("should submit review and display it on property page", async ({
+    page,
+  }) => {
     await page.goto("/id/properties/123/reviews");
 
     const reviewForm = page.locator("form").filter({
@@ -19,7 +21,10 @@ test.describe("Review Reputation", () => {
       test.skip(true, "Review form not available for this property");
     }
 
-    await page.fill('textarea[name="comment"]', "Great property, highly recommended!");
+    await page.fill(
+      'textarea[name="comment"]',
+      "Great property, highly recommended!",
+    );
     await page.click('input[name="rating"][value="5"]');
     await page.click('button[type="submit"]');
 
@@ -27,10 +32,14 @@ test.describe("Review Reputation", () => {
 
     await page.reload();
 
-    await expect(page.locator("text=Great property, highly recommended!")).toBeVisible();
+    await expect(
+      page.locator("text=Great property, highly recommended!"),
+    ).toBeVisible();
   });
 
-  test("should update average rating after review submission", async ({ page }) => {
+  test("should update average rating after review submission", async ({
+    page,
+  }) => {
     await page.goto("/id/properties/123/reviews");
 
     const avgRatingElement = page.locator(".text-4xl.font-bold");
@@ -40,7 +49,10 @@ test.describe("Review Reputation", () => {
 
     const beforeRating = await avgRatingElement.textContent();
 
-    await page.fill('textarea[name="comment"]', "Testing reputation score update");
+    await page.fill(
+      'textarea[name="comment"]',
+      "Testing reputation score update",
+    );
     await page.click('input[name="rating"][value="5"]');
     await page.click('button[type="submit"]');
 

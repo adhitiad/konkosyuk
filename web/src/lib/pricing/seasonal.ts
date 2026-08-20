@@ -27,7 +27,8 @@ export function findApplicableSeasonalRules(
     const bookingEndsInRule = checkOut >= start && checkOut <= end;
     const ruleOverlapsBooking = start <= checkIn && end >= checkOut;
 
-    const overlaps = bookingStartsInRule || bookingEndsInRule || ruleOverlapsBooking;
+    const overlaps =
+      bookingStartsInRule || bookingEndsInRule || ruleOverlapsBooking;
     if (!overlaps) return false;
 
     if (rule.minNights !== null && nights < rule.minNights) return false;
@@ -46,7 +47,10 @@ export function getHighestPriorityRule(
     const currentPriority = current.priority ?? 0;
     const highestPriority = highest.priority ?? 0;
     if (currentPriority > highestPriority) return current;
-    if (currentPriority === highestPriority && new Date(current.createdAt ?? 0) > new Date(highest.createdAt ?? 0)) {
+    if (
+      currentPriority === highestPriority &&
+      new Date(current.createdAt ?? 0) > new Date(highest.createdAt ?? 0)
+    ) {
       return current;
     }
     return highest;
@@ -77,8 +81,15 @@ export function calculateSeasonalPrice(
   checkIn: Date,
   checkOut: Date,
 ): AppliedSeasonalRule | null {
-  const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
-  const applicableRules = findApplicableSeasonalRules(rules, checkIn, checkOut, nights);
+  const nights = Math.ceil(
+    (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24),
+  );
+  const applicableRules = findApplicableSeasonalRules(
+    rules,
+    checkIn,
+    checkOut,
+    nights,
+  );
   const highestRule = getHighestPriorityRule(applicableRules);
 
   if (!highestRule) return null;

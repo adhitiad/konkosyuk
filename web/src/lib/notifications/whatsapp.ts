@@ -156,7 +156,13 @@ export async function sendRefundApprovalWhatsApp(
               parameters: [
                 { type: "text", text: tenantName },
                 { type: "text", text: bookingCode },
-                { type: "text", text: new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(refundAmount) },
+                {
+                  type: "text",
+                  text: new Intl.NumberFormat("id-ID", {
+                    style: "currency",
+                    currency: "IDR",
+                  }).format(refundAmount),
+                },
               ],
             },
           ],

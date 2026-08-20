@@ -18,7 +18,9 @@ export function validateMutationCsrf(req: NextRequest) {
   return result.success ? null : (result.error as NextResponse);
 }
 
-export async function validateActionCsrf(formData: FormData): Promise<string | null> {
+export async function validateActionCsrf(
+  formData: FormData,
+): Promise<string | null> {
   const token = formData.get("csrf") as string | null;
   const cookieStore = await cookies();
   const cookieToken = cookieStore.get("csrf_token")?.value ?? null;

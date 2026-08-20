@@ -442,14 +442,16 @@ export default function BookingDetailPage() {
               <CardContent>
                 <div className="space-y-4">
                   {booking.refundRequests.map((refund) => {
-                    const remainingDays = refund.status === "pending"
-                      ? getRemainingWorkingDays(refund.createdAt)
-                      : 0;
-                    const progressValue = refund.status === "pending"
-                      ? Math.max(0, 100 - (remainingDays / 14) * 100)
-                      : refund.status === "approved"
-                        ? 100
+                    const remainingDays =
+                      refund.status === "pending"
+                        ? getRemainingWorkingDays(refund.createdAt)
                         : 0;
+                    const progressValue =
+                      refund.status === "pending"
+                        ? Math.max(0, 100 - (remainingDays / 14) * 100)
+                        : refund.status === "approved"
+                          ? 100
+                          : 0;
 
                     return (
                       <div
@@ -487,7 +489,8 @@ export default function BookingDetailPage() {
                             </div>
                             <Progress value={progressValue} className="h-2" />
                             <p className="text-xs text-muted-foreground">
-                              Refund akan diproses maksimal 14 hari kerja sejak pengajuan.
+                              Refund akan diproses maksimal 14 hari kerja sejak
+                              pengajuan.
                             </p>
                           </div>
                         )}
@@ -512,7 +515,9 @@ export default function BookingDetailPage() {
                             </div>
                           )}
                           <div className="col-span-2">
-                            <p className="text-xs text-muted-foreground">Alasan</p>
+                            <p className="text-xs text-muted-foreground">
+                              Alasan
+                            </p>
                             <p className="text-sm">{refund.reason}</p>
                           </div>
                           {refund.reviewNote && (
@@ -666,8 +671,8 @@ export default function BookingDetailPage() {
                       <DialogHeader>
                         <DialogTitle>Ajukan Refund</DialogTitle>
                         <DialogDescription>
-                          Ajukan pengembalian dana untuk booking ini. Refund akan
-                          diproses oleh admin.
+                          Ajukan pengembalian dana untuk booking ini. Refund
+                          akan diproses oleh admin.
                         </DialogDescription>
                       </DialogHeader>
                       <form
@@ -684,7 +689,9 @@ export default function BookingDetailPage() {
                               setRefundOpen(false);
                               setRefundReason("");
                             } else {
-                              showToastError(result.error ?? "Gagal mengajukan refund");
+                              showToastError(
+                                result.error ?? "Gagal mengajukan refund",
+                              );
                             }
                           });
                         }}

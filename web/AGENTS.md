@@ -33,7 +33,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 Route handlers return wrapped responses via `ok()`:
 
 ```ts
-return ok(data) // → { success: true, data }
+return ok(data); // → { success: true, data }
 ```
 
 List endpoints often add `meta` manually for pagination: `ok({ data, meta: { total, page, limit, totalPages } })`. Client queries must unwrap `response.data`. Check the actual endpoint before assuming a `meta` field exists.

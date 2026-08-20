@@ -1,12 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import {
-  bookings,
-  payments,
-  refundRequests,
-  users,
-} from "@/db/schema";
+import { bookings, payments, refundRequests, users } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -80,7 +75,8 @@ export async function requestRefundAction(
 
     if (booking.startDate < new Date()) {
       return {
-        error: "Booking sudah dimulai, refund hanya bisa diajukan sebelum tanggal mulai",
+        error:
+          "Booking sudah dimulai, refund hanya bisa diajukan sebelum tanggal mulai",
         success: false,
       };
     }
@@ -108,7 +104,11 @@ export async function requestRefundAction(
     const payment = paymentWithBooking.payment;
     const paymentBooking = paymentWithBooking.booking;
 
-    if (paymentBooking.status === "completed" || paymentBooking.status === "cancelled" || paymentBooking.status === "rejected") {
+    if (
+      paymentBooking.status === "completed" ||
+      paymentBooking.status === "cancelled" ||
+      paymentBooking.status === "rejected"
+    ) {
       return {
         error: `Booking dalam status ${paymentBooking.status} tidak dapat diajukan refund`,
         success: false,
@@ -117,7 +117,8 @@ export async function requestRefundAction(
 
     if (paymentBooking.startDate < new Date()) {
       return {
-        error: "Booking sudah dimulai, refund hanya bisa diajukan sebelum tanggal mulai",
+        error:
+          "Booking sudah dimulai, refund hanya bisa diajukan sebelum tanggal mulai",
         success: false,
       };
     }
@@ -170,7 +171,12 @@ export async function requestRefundAction(
 
     if (booking) {
       const [owner] = await db
-        .select({ id: users.id, name: users.name, email: users.email, phone: users.phone })
+        .select({
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          phone: users.phone,
+        })
         .from(users)
         .where(eq(users.id, booking.userId))
         .limit(1);
@@ -191,7 +197,10 @@ export async function requestRefundAction(
             0,
             booking.id.slice(0, 8),
           ).catch((err) =>
-            console.error("Failed to send refund request WhatsApp to owner:", err),
+            console.error(
+              "Failed to send refund request WhatsApp to owner:",
+              err,
+            ),
           );
         }
       }

@@ -7,7 +7,13 @@ import { validateActionCsrf } from "@/lib/api-auth";
 
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const maxFileSize = 5 * 1024 * 1024;
-const VALID_UPLOAD_TYPES = ["avatar", "property", "ktp", "report", "inspection"] as const;
+const VALID_UPLOAD_TYPES = [
+  "avatar",
+  "property",
+  "ktp",
+  "report",
+  "inspection",
+] as const;
 
 const magicBytes: Record<string, number[][]> = {
   "image/jpeg": [[0xff, 0xd8, 0xff]],
@@ -63,8 +69,8 @@ export async function uploadImageAction(
 
     const file = formData.get("file") as File | null;
     const requestedType = formData.get("type");
-    const type = (requestedType || "avatar") as
-      typeof VALID_UPLOAD_TYPES[number];
+    const type = (requestedType ||
+      "avatar") as (typeof VALID_UPLOAD_TYPES)[number];
 
     if (!file) {
       return { error: "File tidak ditemukan", success: false };

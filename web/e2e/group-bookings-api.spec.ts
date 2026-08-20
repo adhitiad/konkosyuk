@@ -7,7 +7,9 @@ async function getCsrfToken(page: typeof test.prototype.page): Promise<string> {
   expect(data.success).toBe(true);
 
   const cookies = await page.context().cookies();
-  const csrfCookie = cookies.find((c: { name: string }) => c.name === "csrf_token");
+  const csrfCookie = cookies.find(
+    (c: { name: string }) => c.name === "csrf_token",
+  );
   expect(csrfCookie).toBeDefined();
   return csrfCookie!.value;
 }
@@ -142,7 +144,9 @@ test.describe("Group Bookings API", () => {
         propertyId: testPropertyId,
         unitId: testUnitId,
         startDate: futureDate.toISOString(),
-        endDate: new Date(futureDate.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date(
+          futureDate.getTime() + 7 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
         maxMembers: 4,
         memberEmails: ["member1@test.com", "member2@test.com"],
       },

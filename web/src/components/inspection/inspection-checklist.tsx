@@ -39,7 +39,13 @@ const CATEGORY_LABEL: Record<string, string> = {
   other: "Lainnya",
 };
 
-const CONDITION_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const CONDITION_LABEL: Record<
+  string,
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+  }
+> = {
   excellent: { label: "Sangat Baik", variant: "default" },
   good: { label: "Baik", variant: "secondary" },
   fair: { label: "Cukup", variant: "outline" },
@@ -57,7 +63,10 @@ export function InspectionChecklist({
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const categories = Array.from(new Set(items.map((i) => i.category)));
-  const filteredItems = selectedCategory === "all" ? items : items.filter((i) => i.category === selectedCategory);
+  const filteredItems =
+    selectedCategory === "all"
+      ? items
+      : items.filter((i) => i.category === selectedCategory);
 
   return (
     <div className="space-y-4">
@@ -92,7 +101,11 @@ export function InspectionChecklist({
                 </p>
               </div>
               {item.condition && (
-                <Badge variant={CONDITION_LABEL[item.condition]?.variant || "outline"}>
+                <Badge
+                  variant={
+                    CONDITION_LABEL[item.condition]?.variant || "outline"
+                  }
+                >
                   {CONDITION_LABEL[item.condition]?.label || item.condition}
                 </Badge>
               )}
@@ -100,7 +113,11 @@ export function InspectionChecklist({
 
             {item.isNewDamage && (
               <Badge variant="destructive" className="gap-1">
-                <HugeiconsIcon icon={Cancel02Icon} strokeWidth={2} className="size-3" />
+                <HugeiconsIcon
+                  icon={Cancel02Icon}
+                  strokeWidth={2}
+                  className="size-3"
+                />
                 Kerusakan Baru
               </Badge>
             )}
@@ -111,7 +128,11 @@ export function InspectionChecklist({
 
             {item.repairCost && Number(item.repairCost) > 0 && (
               <p className="text-sm font-medium text-destructive">
-                Estimasi Biaya: {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(Number(item.repairCost))}
+                Estimasi Biaya:{" "}
+                {new Intl.NumberFormat("id-ID", {
+                  style: "currency",
+                  currency: "IDR",
+                }).format(Number(item.repairCost))}
               </p>
             )}
 
@@ -136,7 +157,9 @@ export function InspectionChecklist({
                 <select
                   className="text-sm border rounded px-2 py-1"
                   value={item.condition || ""}
-                  onChange={(e) => onUpdateItem(item.id, { condition: e.target.value })}
+                  onChange={(e) =>
+                    onUpdateItem(item.id, { condition: e.target.value })
+                  }
                 >
                   <option value="">Pilih kondisi</option>
                   <option value="excellent">Sangat Baik</option>
@@ -156,7 +179,11 @@ export function InspectionChecklist({
                     }
                   }}
                 >
-                  <HugeiconsIcon icon={CameraIcon} strokeWidth={2} className="size-3 mr-1" />
+                  <HugeiconsIcon
+                    icon={CameraIcon}
+                    strokeWidth={2}
+                    className="size-3 mr-1"
+                  />
                   Foto
                 </Button>
               </div>

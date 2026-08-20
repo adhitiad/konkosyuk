@@ -27,7 +27,12 @@ vi.mock("@/db", () => ({
   db: mockDb,
 }));
 
-import { ACCOUNTS, createPaymentLedgerEntry, createRefundLedgerEntry, createWithdrawalLedgerEntry } from "@/lib/accounting/auto-ledger";
+import {
+  ACCOUNTS,
+  createPaymentLedgerEntry,
+  createRefundLedgerEntry,
+  createWithdrawalLedgerEntry,
+} from "@/lib/accounting/auto-ledger";
 
 describe("ACCOUNTS", () => {
   it("should have unique account codes", () => {
@@ -86,9 +91,15 @@ describe("createPaymentLedgerEntry", () => {
     const insertedValues = mockDb.values.mock.calls[0][0];
     expect(insertedValues).toHaveLength(3);
 
-    const bankEntry = insertedValues.find((e: LedgerEntry) => e.accountCode === ACCOUNTS.BANK);
-    const feeEntry = insertedValues.find((e: LedgerEntry) => e.accountCode === ACCOUNTS.PLATFORM_FEE_REVENUE);
-    const payoutEntry = insertedValues.find((e: LedgerEntry) => e.accountCode === ACCOUNTS.OWNER_PAYOUTS);
+    const bankEntry = insertedValues.find(
+      (e: LedgerEntry) => e.accountCode === ACCOUNTS.BANK,
+    );
+    const feeEntry = insertedValues.find(
+      (e: LedgerEntry) => e.accountCode === ACCOUNTS.PLATFORM_FEE_REVENUE,
+    );
+    const payoutEntry = insertedValues.find(
+      (e: LedgerEntry) => e.accountCode === ACCOUNTS.OWNER_PAYOUTS,
+    );
 
     expect(bankEntry).toBeDefined();
     expect(bankEntry.debit).toBe("100000");
@@ -125,8 +136,12 @@ describe("createRefundLedgerEntry", () => {
     const insertedValues = mockDb.values.mock.calls[0][0];
     expect(insertedValues).toHaveLength(2);
 
-    const refundEntry = insertedValues.find((e: LedgerEntry) => e.accountCode === ACCOUNTS.REFUNDS);
-    const bankEntry = insertedValues.find((e: LedgerEntry) => e.accountCode === ACCOUNTS.BANK);
+    const refundEntry = insertedValues.find(
+      (e: LedgerEntry) => e.accountCode === ACCOUNTS.REFUNDS,
+    );
+    const bankEntry = insertedValues.find(
+      (e: LedgerEntry) => e.accountCode === ACCOUNTS.BANK,
+    );
 
     expect(refundEntry).toBeDefined();
     expect(refundEntry.debit).toBe("50000");

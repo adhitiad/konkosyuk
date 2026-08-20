@@ -81,7 +81,9 @@ export default function BookingDialogClient({
 }: BookingDialogClientProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [selectedUnitId, setSelectedUnitId] = useState<string>(units[0]?.id || "");
+  const [selectedUnitId, setSelectedUnitId] = useState<string>(
+    units[0]?.id || "",
+  );
   const [selectedPackageId, setSelectedPackageId] = useState<string>("");
   const [customDuration, setCustomDuration] = useState<number>(1);
   const [startDate, setStartDate] = useState("");
@@ -184,28 +186,46 @@ export default function BookingDialogClient({
       originalPrice: basePrice,
       adjustedPrice: adjustedBase,
     } satisfies AppliedSeasonalRule;
-  }, [selectedPackage, selectedPackageId, startDate, customDuration, packages, seasonalRules]);
+  }, [
+    selectedPackage,
+    selectedPackageId,
+    startDate,
+    customDuration,
+    packages,
+    seasonalRules,
+  ]);
 
-  const effectiveBasePrice = seasonalPriceResult?.adjustedPrice ?? selectedPackage?.basePrice ?? 0;
+  const effectiveBasePrice =
+    seasonalPriceResult?.adjustedPrice ?? selectedPackage?.basePrice ?? 0;
 
   const totalPrice = useMemo(() => {
     if (!selectedPackage) return 0;
     if (selectedPackageId === "custom" && packages.custom.enabled) {
-      const base = seasonalPriceResult?.adjustedPrice ?? packages.custom.pricePerUnit * customDuration;
+      const base =
+        seasonalPriceResult?.adjustedPrice ??
+        packages.custom.pricePerUnit * customDuration;
       return Math.round(base + (base * 11) / 100 + (base * 0.63) / 100);
     }
-    const base = seasonalPriceResult?.adjustedPrice ?? selectedPackage.basePrice;
+    const base =
+      seasonalPriceResult?.adjustedPrice ?? selectedPackage.basePrice;
     const discounted = base - (base * selectedPackage.discountPercent) / 100;
     const final =
       discounted +
       (discounted * selectedPackage.ppnPercent) / 100 +
       (discounted * selectedPackage.appFeePercent) / 100;
     return Math.round(final);
-  }, [selectedPackage, selectedPackageId, customDuration, packages, seasonalPriceResult]);
+  }, [
+    selectedPackage,
+    selectedPackageId,
+    customDuration,
+    packages,
+    seasonalPriceResult,
+  ]);
 
   const groupTotalPrice = useMemo(() => {
     if (!isGroupBooking || totalPrice <= 0) return 0;
-    const memberCount = memberEmails.split(",").filter((e) => e.trim()).length + 1;
+    const memberCount =
+      memberEmails.split(",").filter((e) => e.trim()).length + 1;
     return totalPrice * memberCount;
   }, [isGroupBooking, totalPrice, memberEmails]);
 
@@ -232,7 +252,9 @@ export default function BookingDialogClient({
     setOpen(false);
     setIsGroupBooking(false);
     setMemberEmails("");
-    router.push(isGroupBooking ? "/dashboard/group-bookings" : "/dashboard/bookings");
+    router.push(
+      isGroupBooking ? "/dashboard/group-bookings" : "/dashboard/bookings",
+    );
   } else if (state?.error) {
     setError(state.error);
     showToastError(state.error);
@@ -264,7 +286,11 @@ export default function BookingDialogClient({
 
           <input type="hidden" name="propertyId" value={propertyId} />
           <input type="hidden" name="unitId" value={selectedUnitId} />
-          <input type="hidden" name="isGroupBooking" value={isGroupBooking ? "true" : "false"} />
+          <input
+            type="hidden"
+            name="isGroupBooking"
+            value={isGroupBooking ? "true" : "false"}
+          />
           {isGroupBooking && (
             <input type="hidden" name="memberEmails" value={memberEmails} />
           )}
@@ -344,11 +370,16 @@ export default function BookingDialogClient({
               </div>
               {seasonalPriceResult && (
                 <div className="flex justify-between text-sm text-orange-600">
-                  <span>Penyesuaian Musiman ({seasonalPriceResult.ruleType})</span>
                   <span>
-                    {seasonalPriceResult.ruleType === "percentage" && `+${seasonalPriceResult.adjustmentValue}%`}
-                    {seasonalPriceResult.ruleType === "fixed" && `+${formatCurrency(seasonalPriceResult.adjustmentValue)}`}
-                    {seasonalPriceResult.ruleType === "multiplier" && `x${seasonalPriceResult.adjustmentValue}`}
+                    Penyesuaian Musiman ({seasonalPriceResult.ruleType})
+                  </span>
+                  <span>
+                    {seasonalPriceResult.ruleType === "percentage" &&
+                      `+${seasonalPriceResult.adjustmentValue}%`}
+                    {seasonalPriceResult.ruleType === "fixed" &&
+                      `+${formatCurrency(seasonalPriceResult.adjustmentValue)}`}
+                    {seasonalPriceResult.ruleType === "multiplier" &&
+                      `x${seasonalPriceResult.adjustmentValue}`}
                   </span>
                 </div>
               )}
@@ -373,7 +404,11 @@ export default function BookingDialogClient({
               </div>
               {seasonalPriceResult && (
                 <div className="flex items-center gap-1 text-xs text-orange-600">
-                  <HugeiconsIcon icon={TagIcon} strokeWidth={2} className="h-3 w-3" />
+                  <HugeiconsIcon
+                    icon={TagIcon}
+                    strokeWidth={2}
+                    className="h-3 w-3"
+                  />
                   Harga musiman diterapkan berdasarkan tanggal booking
                 </div>
               )}
@@ -447,7 +482,9 @@ export default function BookingDialogClient({
 
           {isGroupBooking && (
             <div className="space-y-2">
-              <Label htmlFor="memberEmails">Email Anggota (pisah dengan koma)</Label>
+              <Label htmlFor="memberEmails">
+                Email Anggota (pisah dengan koma)
+              </Label>
               <Input
                 id="memberEmails"
                 value={memberEmails}
@@ -455,7 +492,13 @@ export default function BookingDialogClient({
                 placeholder="friend1@example.com, friend2@example.com"
               />
               <p className="text-xs text-muted-foreground">
-                Total {groupTotalPrice > 0 ? formatCurrency(groupTotalPrice) : formatCurrency(totalPrice)} untuk {memberEmails.split(",").filter((e) => e.trim()).length + 1} orang
+                Total{" "}
+                {groupTotalPrice > 0
+                  ? formatCurrency(groupTotalPrice)
+                  : formatCurrency(totalPrice)}{" "}
+                untuk{" "}
+                {memberEmails.split(",").filter((e) => e.trim()).length + 1}{" "}
+                orang
               </p>
             </div>
           )}
@@ -489,7 +532,9 @@ export default function BookingDialogClient({
           <DialogFooter>
             <Button
               type="submit"
-              disabled={isPending || !selectedPackageId || !startDate || !selectedUnitId}
+              disabled={
+                isPending || !selectedPackageId || !startDate || !selectedUnitId
+              }
             >
               {isPending ? "Memproses..." : "Booking Sekarang"}
             </Button>

@@ -16,7 +16,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
-import { CalendarIcon, Users, Clock, CheckCircle2, XCircle } from "lucide-react";
+import {
+  CalendarIcon,
+  Users,
+  Clock,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import { apiClient } from "@/lib/axios";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
@@ -47,9 +53,21 @@ interface GroupBooking {
 
 const STATUS_CONFIG = {
   pending: { label: "Menunggu", variant: "secondary" as const, icon: Clock },
-  confirmed: { label: "Dikonfirmasi", variant: "default" as const, icon: CheckCircle2 },
-  cancelled: { label: "Dibatalkan", variant: "destructive" as const, icon: XCircle },
-  completed: { label: "Selesai", variant: "default" as const, icon: CheckCircle2 },
+  confirmed: {
+    label: "Dikonfirmasi",
+    variant: "default" as const,
+    icon: CheckCircle2,
+  },
+  cancelled: {
+    label: "Dibatalkan",
+    variant: "destructive" as const,
+    icon: XCircle,
+  },
+  completed: {
+    label: "Selesai",
+    variant: "default" as const,
+    icon: CheckCircle2,
+  },
 };
 
 export default function GroupBookingsPage() {
@@ -79,7 +97,10 @@ export default function GroupBookingsPage() {
     mutationFn: async (data: typeof formData) => {
       const res = await apiClient.post("/group-bookings", {
         ...data,
-        memberEmails: data.memberEmails.split(",").map((e) => e.trim()).filter(Boolean),
+        memberEmails: data.memberEmails
+          .split(",")
+          .map((e) => e.trim())
+          .filter(Boolean),
       });
       return res.data;
     },
@@ -103,14 +124,24 @@ export default function GroupBookingsPage() {
   });
 
   const respondMutation = useMutation({
-    mutationFn: async ({ groupId, status }: { groupId: string; status: "accepted" | "rejected" }) => {
-      const res = await apiClient.put(`/group-bookings/${groupId}/members/me`, { status });
+    mutationFn: async ({
+      groupId,
+      status,
+    }: {
+      groupId: string;
+      status: "accepted" | "rejected";
+    }) => {
+      const res = await apiClient.put(`/group-bookings/${groupId}/members/me`, {
+        status,
+      });
       return res.data;
     },
     onSuccess: (_, { status }) => {
       queryClient.invalidateQueries({ queryKey: ["group-bookings"] });
       if (status === "accepted") {
-        showToastSuccess("Undangan diterima! Silakan lanjutkan pembayaran di halaman bookings.");
+        showToastSuccess(
+          "Undangan diterima! Silakan lanjutkan pembayaran di halaman bookings.",
+        );
         setTimeout(() => {
           router.push("/dashboard/bookings");
         }, 1500);
@@ -124,7 +155,12 @@ export default function GroupBookingsPage() {
   });
 
   const handleCreateGroup = () => {
-    if (!formData.propertyId || !formData.unitId || !formData.startDate || !formData.endDate) {
+    if (
+      !formData.propertyId ||
+      !formData.unitId ||
+      !formData.startDate ||
+      !formData.endDate
+    ) {
       showToastError("Mohon lengkapi semua field yang required");
       return;
     }
@@ -142,9 +178,7 @@ export default function GroupBookingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Group Booking</h1>
-          <p className="text-muted-foreground">
-            Kelola booking kelompok Anda
-          </p>
+          <p className="text-muted-foreground">Kelola booking kelompok Anda</p>
         </div>
         <Button onClick={() => setCreateDialogOpen(true)}>
           <Users className="mr-2 size-4" />
@@ -168,7 +202,10 @@ export default function GroupBookingsPage() {
                   <CardTitle className="text-base">
                     Group Booking #{group.id.slice(0, 8)}
                   </CardTitle>
-                  <Badge variant={statusConfig.variant} className="flex items-center gap-1">
+                  <Badge
+                    variant={statusConfig.variant}
+                    className="flex items-center gap-1"
+                  >
                     <StatusIcon className="size-3" />
                     {statusConfig.label}
                   </Badge>
@@ -177,14 +214,24 @@ export default function GroupBookingsPage() {
               <CardContent className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CalendarIcon className="size-4" />
-                  {format(new Date(group.startDate), "dd MMM yyyy", { locale: idLocale })} - {format(new Date(group.endDate), "dd MMM yyyy", { locale: idLocale })}
+                  {format(new Date(group.startDate), "dd MMM yyyy", {
+                    locale: idLocale,
+                  })}{" "}
+                  -{" "}
+                  {format(new Date(group.endDate), "dd MMM yyyy", {
+                    locale: idLocale,
+                  })}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Users className="size-4" />
                   {group.members?.length || 0} anggota
                 </div>
                 <div className="text-sm font-medium">
-                  Total: {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(Number(group.totalAmount))}
+                  Total:{" "}
+                  {new Intl.NumberFormat("id-ID", {
+                    style: "currency",
+                    currency: "IDR",
+                  }).format(Number(group.totalAmount))}
                 </div>
               </CardContent>
             </Card>
@@ -200,7 +247,10 @@ export default function GroupBookingsPage() {
         </Card>
       )}
 
-      <Dialog open={!!selectedGroup} onOpenChange={() => setSelectedGroup(null)}>
+      <Dialog
+        open={!!selectedGroup}
+        onOpenChange={() => setSelectedGroup(null)}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Detail Group Booking</DialogTitle>
@@ -210,56 +260,94 @@ export default function GroupBookingsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Status</p>
-                  <Badge variant={STATUS_CONFIG[selectedGroup.status]?.variant || "secondary"}>
-                    {STATUS_CONFIG[selectedGroup.status]?.label || selectedGroup.status}
+                  <Badge
+                    variant={
+                      STATUS_CONFIG[selectedGroup.status]?.variant ||
+                      "secondary"
+                    }
+                  >
+                    {STATUS_CONFIG[selectedGroup.status]?.label ||
+                      selectedGroup.status}
                   </Badge>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Amount</p>
                   <p className="font-medium">
-                    {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(Number(selectedGroup.totalAmount))}
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                    }).format(Number(selectedGroup.totalAmount))}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Start Date</p>
-                  <p>{format(new Date(selectedGroup.startDate), "dd MMMM yyyy", { locale: idLocale })}</p>
+                  <p>
+                    {format(new Date(selectedGroup.startDate), "dd MMMM yyyy", {
+                      locale: idLocale,
+                    })}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">End Date</p>
-                  <p>{format(new Date(selectedGroup.endDate), "dd MMMM yyyy", { locale: idLocale })}</p>
+                  <p>
+                    {format(new Date(selectedGroup.endDate), "dd MMMM yyyy", {
+                      locale: idLocale,
+                    })}
+                  </p>
                 </div>
               </div>
 
               <div>
-                <p className="text-sm text-muted-foreground mb-2">Anggota ({selectedGroup.members?.length || 0})</p>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Anggota ({selectedGroup.members?.length || 0})
+                </p>
                 <div className="space-y-2">
                   {selectedGroup.members?.map((member) => (
-                    <div key={member.id} className="flex items-center justify-between p-3 rounded-lg border">
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between p-3 rounded-lg border"
+                    >
                       <div>
-                        <p className="font-medium">{member.userName || member.userEmail}</p>
+                        <p className="font-medium">
+                          {member.userName || member.userEmail}
+                        </p>
                         <p className="text-sm text-muted-foreground">
-                          {member.sharePercentage}% · {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(Number(member.shareAmount))}
+                          {member.sharePercentage}% ·{" "}
+                          {new Intl.NumberFormat("id-ID", {
+                            style: "currency",
+                            currency: "IDR",
+                          }).format(Number(member.shareAmount))}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant={
-                          member.status === "accepted" || member.status === "paid" ? "default" :
-                          member.status === "rejected" ? "destructive" : "secondary"
-                        }>
+                        <Badge
+                          variant={
+                            member.status === "accepted" ||
+                            member.status === "paid"
+                              ? "default"
+                              : member.status === "rejected"
+                                ? "destructive"
+                                : "secondary"
+                          }
+                        >
                           {member.status}
                         </Badge>
                         {member.status === "invited" && (
                           <div className="flex gap-1">
                             <Button
                               size="sm"
-                              onClick={() => handleRespond(selectedGroup.id, "accepted")}
+                              onClick={() =>
+                                handleRespond(selectedGroup.id, "accepted")
+                              }
                             >
                               Terima
                             </Button>
                             <Button
                               size="sm"
                               variant="destructive"
-                              onClick={() => handleRespond(selectedGroup.id, "rejected")}
+                              onClick={() =>
+                                handleRespond(selectedGroup.id, "rejected")
+                              }
                             >
                               Tolak
                             </Button>
@@ -286,7 +374,9 @@ export default function GroupBookingsPage() {
               <Input
                 id="propertyId"
                 value={formData.propertyId}
-                onChange={(e) => setFormData({ ...formData, propertyId: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, propertyId: e.target.value })
+                }
                 placeholder="UUID properti"
               />
             </div>
@@ -295,7 +385,9 @@ export default function GroupBookingsPage() {
               <Input
                 id="unitId"
                 value={formData.unitId}
-                onChange={(e) => setFormData({ ...formData, unitId: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, unitId: e.target.value })
+                }
                 placeholder="UUID unit"
               />
             </div>
@@ -306,7 +398,9 @@ export default function GroupBookingsPage() {
                   id="startDate"
                   type="datetime-local"
                   value={formData.startDate}
-                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, startDate: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -315,16 +409,22 @@ export default function GroupBookingsPage() {
                   id="endDate"
                   type="datetime-local"
                   value={formData.endDate}
-                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, endDate: e.target.value })
+                  }
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="memberEmails">Email Anggota (pisah dengan koma)</Label>
+              <Label htmlFor="memberEmails">
+                Email Anggota (pisah dengan koma)
+              </Label>
               <Textarea
                 id="memberEmails"
                 value={formData.memberEmails}
-                onChange={(e) => setFormData({ ...formData, memberEmails: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, memberEmails: e.target.value })
+                }
                 placeholder="friend1@example.com, friend2@example.com"
                 rows={3}
               />

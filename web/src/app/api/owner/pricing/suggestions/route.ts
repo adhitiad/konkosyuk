@@ -41,10 +41,16 @@ export async function GET(req: NextRequest) {
       .where(
         and(
           eq(pricingSuggestions.propertyId, effectivePropertyId),
-          eq(pricingSuggestions.status, status as "pending" | "accepted" | "rejected" | "expired"),
+          eq(
+            pricingSuggestions.status,
+            status as "pending" | "accepted" | "rejected" | "expired",
+          ),
         ),
       )
-      .orderBy(desc(pricingSuggestions.priority), desc(pricingSuggestions.createdAt));
+      .orderBy(
+        desc(pricingSuggestions.priority),
+        desc(pricingSuggestions.createdAt),
+      );
 
     return ok({ data });
   } catch (error) {

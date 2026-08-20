@@ -7,7 +7,9 @@ describe("seed chart of accounts", () => {
     for (const account of ACCOUNTS) {
       expect(account.code).toMatch(/^\d+$/);
       expect(account.name.length).toBeGreaterThan(0);
-      expect(["asset", "liability", "equity", "revenue", "expense"]).toContain(account.type);
+      expect(["asset", "liability", "equity", "revenue", "expense"]).toContain(
+        account.type,
+      );
     }
   });
 

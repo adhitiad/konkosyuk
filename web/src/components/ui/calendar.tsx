@@ -1,7 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, startOfWeek, endOfWeek, endOfDay, startOfDay } from "date-fns";
+import {
+  format,
+  addMonths,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
+  isToday,
+  startOfWeek,
+  endOfWeek,
+  endOfDay,
+  startOfDay,
+} from "date-fns";
 import { id } from "date-fns/locale";
 import { ChevronLeftIcon, ChevronRightIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -15,7 +29,11 @@ interface CalendarProps {
   minDate?: Date;
   maxDate?: Date;
   disabledDates?: Date[];
-  markedDates?: Array<{ date: Date; type: "available" | "booked" | "pricing" | "inspection"; label?: string }>;
+  markedDates?: Array<{
+    date: Date;
+    type: "available" | "booked" | "pricing" | "inspection";
+    label?: string;
+  }>;
   className?: string;
   showMonthPicker?: boolean;
   mode?: "single" | "range" | "multiple";
@@ -61,7 +79,10 @@ export function Calendar({
     } else if (mode === "range" && onSelectRange) {
       if (!selectedRange) {
         onSelectRange({ start: date, end: date });
-      } else if (!selectedRange.end || selectedRange.end.getTime() !== selectedRange.start.getTime()) {
+      } else if (
+        !selectedRange.end ||
+        selectedRange.end.getTime() !== selectedRange.start.getTime()
+      ) {
         if (date < selectedRange.start) {
           onSelectRange({ start: date, end: selectedRange.start });
         } else {
@@ -85,11 +106,18 @@ export function Calendar({
   };
 
   const isRangeStart = (date: Date) => {
-    return mode === "range" && selectedRange && isSameDay(date, selectedRange.start);
+    return (
+      mode === "range" && selectedRange && isSameDay(date, selectedRange.start)
+    );
   };
 
   const isRangeEnd = (date: Date) => {
-    return mode === "range" && selectedRange && selectedRange.end && isSameDay(date, selectedRange.end);
+    return (
+      mode === "range" &&
+      selectedRange &&
+      selectedRange.end &&
+      isSameDay(date, selectedRange.end)
+    );
   };
 
   const getMarkColor = (type: string) => {
@@ -116,7 +144,11 @@ export function Calendar({
             onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
             className="p-2 rounded-lg hover:bg-muted transition-colors"
           >
-            <HugeiconsIcon icon={ChevronLeftIcon} strokeWidth={2} className="size-4" />
+            <HugeiconsIcon
+              icon={ChevronLeftIcon}
+              strokeWidth={2}
+              className="size-4"
+            />
           </button>
           <h3 className="font-semibold text-lg">
             {format(currentMonth, "MMMM yyyy", { locale: id })}
@@ -126,14 +158,21 @@ export function Calendar({
             onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
             className="p-2 rounded-lg hover:bg-muted transition-colors"
           >
-            <HugeiconsIcon icon={ChevronRightIcon} strokeWidth={2} className="size-4" />
+            <HugeiconsIcon
+              icon={ChevronRightIcon}
+              strokeWidth={2}
+              className="size-4"
+            />
           </button>
         </div>
       )}
 
       <div className="grid grid-cols-7 gap-1 mb-2">
         {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map((day) => (
-          <div key={day} className="text-center text-xs font-medium text-muted-foreground py-1">
+          <div
+            key={day}
+            className="text-center text-xs font-medium text-muted-foreground py-1"
+          >
             {day}
           </div>
         ))}
@@ -159,18 +198,28 @@ export function Calendar({
                 !isCurrentMonth && "text-muted-foreground/50",
                 isCurrentMonth && "hover:bg-muted",
                 disabled && "opacity-30 cursor-not-allowed",
-                selected && "bg-primary text-primary-foreground hover:bg-primary/90",
+                selected &&
+                  "bg-primary text-primary-foreground hover:bg-primary/90",
                 !selected && isCurrentMonth && !disabled && "hover:bg-muted",
                 rangeStart && "rounded-r-none",
                 rangeEnd && "rounded-l-none",
                 rangeStart && rangeEnd && "rounded-lg",
               )}
             >
-              <span className={cn(isToday(date) && !selected && "font-bold text-primary")}>
+              <span
+                className={cn(
+                  isToday(date) && !selected && "font-bold text-primary",
+                )}
+              >
                 {format(date, "d")}
               </span>
               {mark && (
-                <span className={cn("text-[10px] px-1 rounded-full mt-0.5 truncate w-full", getMarkColor(mark.type))}>
+                <span
+                  className={cn(
+                    "text-[10px] px-1 rounded-full mt-0.5 truncate w-full",
+                    getMarkColor(mark.type),
+                  )}
+                >
                   {mark.label || ""}
                 </span>
               )}

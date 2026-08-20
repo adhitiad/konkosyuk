@@ -18,7 +18,10 @@ import { BellIcon, MailIcon, SmartphoneIcon, ClockIcon } from "lucide-react";
 import { apiClient } from "@/lib/axios";
 
 interface NotificationPreferences {
-  preferences: Record<string, { inApp: boolean; email: boolean; push: boolean }>;
+  preferences: Record<
+    string,
+    { inApp: boolean; email: boolean; push: boolean }
+  >;
   emailDigest: string;
   quietHoursStart: string | null;
   quietHoursEnd: string | null;
@@ -31,11 +34,31 @@ const NOTIFICATION_CATEGORIES = [
     label: "Booking",
     description: "Notifikasi terkait booking dan permintaan sewa",
     events: [
-      { key: "booking_created", label: "Booking Dibuat", description: "Saat ada booking baru" },
-      { key: "booking_approved", label: "Booking Disetujui", description: "Saat owner menyetujui booking" },
-      { key: "booking_rejected", label: "Booking Ditolak", description: "Saat owner menolak booking" },
-      { key: "booking_completed", label: "Booking Selesai", description: "Saat masa sewa berakhir" },
-      { key: "booking_cancelled", label: "Booking Dibatalkan", description: "Saat booking dibatalkan" },
+      {
+        key: "booking_created",
+        label: "Booking Dibuat",
+        description: "Saat ada booking baru",
+      },
+      {
+        key: "booking_approved",
+        label: "Booking Disetujui",
+        description: "Saat owner menyetujui booking",
+      },
+      {
+        key: "booking_rejected",
+        label: "Booking Ditolak",
+        description: "Saat owner menolak booking",
+      },
+      {
+        key: "booking_completed",
+        label: "Booking Selesai",
+        description: "Saat masa sewa berakhir",
+      },
+      {
+        key: "booking_cancelled",
+        label: "Booking Dibatalkan",
+        description: "Saat booking dibatalkan",
+      },
     ],
   },
   {
@@ -43,10 +66,26 @@ const NOTIFICATION_CATEGORIES = [
     label: "Pembayaran",
     description: "Notifikasi terkait pembayaran dan refund",
     events: [
-      { key: "payment_dp_paid", label: "DP Dibayar", description: "Saat DP diterima" },
-      { key: "payment_full_paid", label: "Pembayaran Lengkap", description: "Saat pelunasan diterima" },
-      { key: "payment_failed", label: "Pembayaran Gagal", description: "Saat pembayaran gagal/kadaluarsa" },
-      { key: "payment_refunded", label: "Refund", description: "Saat refund diproses" },
+      {
+        key: "payment_dp_paid",
+        label: "DP Dibayar",
+        description: "Saat DP diterima",
+      },
+      {
+        key: "payment_full_paid",
+        label: "Pembayaran Lengkap",
+        description: "Saat pelunasan diterima",
+      },
+      {
+        key: "payment_failed",
+        label: "Pembayaran Gagal",
+        description: "Saat pembayaran gagal/kadaluarsa",
+      },
+      {
+        key: "payment_refunded",
+        label: "Refund",
+        description: "Saat refund diproses",
+      },
     ],
   },
   {
@@ -54,9 +93,21 @@ const NOTIFICATION_CATEGORIES = [
     label: "Maintenance",
     description: "Notifikasi terkait laporan maintenance",
     events: [
-      { key: "maintenance_created", label: "Laporan Dibuat", description: "Saat ada laporan maintenance baru" },
-      { key: "maintenance_updated", label: "Laporan Diperbarui", description: "Saat status maintenance berubah" },
-      { key: "maintenance_resolved", label: "Maintenance Selesai", description: "Saat maintenance selesai dikerjakan" },
+      {
+        key: "maintenance_created",
+        label: "Laporan Dibuat",
+        description: "Saat ada laporan maintenance baru",
+      },
+      {
+        key: "maintenance_updated",
+        label: "Laporan Diperbarui",
+        description: "Saat status maintenance berubah",
+      },
+      {
+        key: "maintenance_resolved",
+        label: "Maintenance Selesai",
+        description: "Saat maintenance selesai dikerjakan",
+      },
     ],
   },
   {
@@ -64,9 +115,21 @@ const NOTIFICATION_CATEGORIES = [
     label: "Inspeksi",
     description: "Notifikasi terkait inspeksi properti",
     events: [
-      { key: "inspection_created", label: "Inspeksi Dibuat", description: "Saat inspeksi dibuat" },
-      { key: "inspection_completed", label: "Inspeksi Selesai", description: "Saat inspeksi selesai" },
-      { key: "inspection_disputed", label: "Inspeksi Di-dispute", description: "Saat ada sengketa inspeksi" },
+      {
+        key: "inspection_created",
+        label: "Inspeksi Dibuat",
+        description: "Saat inspeksi dibuat",
+      },
+      {
+        key: "inspection_completed",
+        label: "Inspeksi Selesai",
+        description: "Saat inspeksi selesai",
+      },
+      {
+        key: "inspection_disputed",
+        label: "Inspeksi Di-dispute",
+        description: "Saat ada sengketa inspeksi",
+      },
     ],
   },
   {
@@ -74,7 +137,11 @@ const NOTIFICATION_CATEGORIES = [
     label: "Chat",
     description: "Notifikasi pesan chat",
     events: [
-      { key: "chat_message", label: "Pesan Baru", description: "Saat ada pesan chat baru" },
+      {
+        key: "chat_message",
+        label: "Pesan Baru",
+        description: "Saat ada pesan chat baru",
+      },
     ],
   },
   {
@@ -82,7 +149,11 @@ const NOTIFICATION_CATEGORIES = [
     label: "Review",
     description: "Notifikasi review dan rating",
     events: [
-      { key: "review_received", label: "Review Baru", description: "Saat ada review baru" },
+      {
+        key: "review_received",
+        label: "Review Baru",
+        description: "Saat ada review baru",
+      },
     ],
   },
 ];
@@ -126,7 +197,10 @@ export default function NotificationSettingsPage() {
     },
   });
 
-  const handleToggle = (eventKey: string, channel: "inApp" | "email" | "push") => {
+  const handleToggle = (
+    eventKey: string,
+    channel: "inApp" | "email" | "push",
+  ) => {
     if (!prefs) return;
     updateMutation.mutate({
       preferences: {
@@ -157,7 +231,10 @@ export default function NotificationSettingsPage() {
     if (value) updateMutation.mutate({ emailDigest: value });
   };
 
-  const handleQuietHoursChange = (field: "quietHoursStart" | "quietHoursEnd", value: string | null) => {
+  const handleQuietHoursChange = (
+    field: "quietHoursStart" | "quietHoursEnd",
+    value: string | null,
+  ) => {
     updateMutation.mutate({ [field]: value || null });
   };
 
@@ -186,7 +263,9 @@ export default function NotificationSettingsPage() {
   if (!prefs) {
     return (
       <div className="container py-6">
-        <p className="text-muted-foreground">Gagal memuat preferensi notifikasi</p>
+        <p className="text-muted-foreground">
+          Gagal memuat preferensi notifikasi
+        </p>
       </div>
     );
   }
@@ -194,7 +273,9 @@ export default function NotificationSettingsPage() {
   return (
     <div className="container py-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Preferensi Notifikasi</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Preferensi Notifikasi
+        </h1>
         <p className="text-muted-foreground">
           Kelola cara Anda menerima notifikasi
         </p>
@@ -217,32 +298,46 @@ export default function NotificationSettingsPage() {
             <Card key={category.key}>
               <CardHeader>
                 <CardTitle className="text-lg">{category.label}</CardTitle>
-                <p className="text-sm text-muted-foreground">{category.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  {category.description}
+                </p>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {category.events.map((event) => {
                     const eventPrefs = prefs.preferences[event.key];
-                    const isEnabled = eventPrefs?.inApp || eventPrefs?.email || eventPrefs?.push;
+                    const isEnabled =
+                      eventPrefs?.inApp ||
+                      eventPrefs?.email ||
+                      eventPrefs?.push;
 
                     return (
-                      <div key={event.key} className="flex items-start justify-between p-4 rounded-lg border">
+                      <div
+                        key={event.key}
+                        className="flex items-start justify-between p-4 rounded-lg border"
+                      >
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <p className="font-medium">{event.label}</p>
                             <Switch
                               checked={isEnabled}
-                              onCheckedChange={(checked) => handleGlobalToggle(event.key, checked)}
+                              onCheckedChange={(checked) =>
+                                handleGlobalToggle(event.key, checked)
+                              }
                             />
                           </div>
-                          <p className="text-sm text-muted-foreground">{event.description}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {event.description}
+                          </p>
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-2">
                             <BellIcon className="size-4 text-muted-foreground" />
                             <Switch
                               checked={eventPrefs?.inApp ?? true}
-                              onCheckedChange={() => handleToggle(event.key, "inApp")}
+                              onCheckedChange={() =>
+                                handleToggle(event.key, "inApp")
+                              }
                               disabled={!isEnabled}
                             />
                           </div>
@@ -250,7 +345,9 @@ export default function NotificationSettingsPage() {
                             <MailIcon className="size-4 text-muted-foreground" />
                             <Switch
                               checked={eventPrefs?.email ?? false}
-                              onCheckedChange={() => handleToggle(event.key, "email")}
+                              onCheckedChange={() =>
+                                handleToggle(event.key, "email")
+                              }
                               disabled={!isEnabled}
                             />
                           </div>
@@ -258,7 +355,9 @@ export default function NotificationSettingsPage() {
                             <SmartphoneIcon className="size-4 text-muted-foreground" />
                             <Switch
                               checked={eventPrefs?.push ?? false}
-                              onCheckedChange={() => handleToggle(event.key, "push")}
+                              onCheckedChange={() =>
+                                handleToggle(event.key, "push")
+                              }
                               disabled={!isEnabled}
                             />
                           </div>
@@ -284,7 +383,10 @@ export default function NotificationSettingsPage() {
               </p>
             </CardHeader>
             <CardContent>
-              <Select value={prefs.emailDigest || "immediate"} onValueChange={handleEmailDigestChange}>
+              <Select
+                value={prefs.emailDigest || "immediate"}
+                onValueChange={handleEmailDigestChange}
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -316,7 +418,9 @@ export default function NotificationSettingsPage() {
                   <input
                     type="time"
                     value={prefs.quietHoursStart || ""}
-                    onChange={(e) => handleQuietHoursChange("quietHoursStart", e.target.value)}
+                    onChange={(e) =>
+                      handleQuietHoursChange("quietHoursStart", e.target.value)
+                    }
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   />
                 </div>
@@ -325,7 +429,9 @@ export default function NotificationSettingsPage() {
                   <input
                     type="time"
                     value={prefs.quietHoursEnd || ""}
-                    onChange={(e) => handleQuietHoursChange("quietHoursEnd", e.target.value)}
+                    onChange={(e) =>
+                      handleQuietHoursChange("quietHoursEnd", e.target.value)
+                    }
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   />
                 </div>
@@ -341,7 +447,10 @@ export default function NotificationSettingsPage() {
               </p>
             </CardHeader>
             <CardContent>
-              <Select value={prefs.timezone || "Asia/Jakarta"} onValueChange={handleTimezoneChange}>
+              <Select
+                value={prefs.timezone || "Asia/Jakarta"}
+                onValueChange={handleTimezoneChange}
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>

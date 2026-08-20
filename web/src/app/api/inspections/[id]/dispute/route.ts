@@ -40,7 +40,10 @@ export async function POST(
       return fail("Properti tidak ditemukan", 404);
     }
 
-    if (session.user.role === "cust" && inspection.performedBy !== session.user.id) {
+    if (
+      session.user.role === "cust" &&
+      inspection.performedBy !== session.user.id
+    ) {
       return fail("Forbidden", 403);
     }
 
@@ -69,11 +72,17 @@ export async function POST(
         priority: "high",
         title: "Inspeksi Di-dispute",
         message: `Inspeksi ${inspection.type === "move_in" ? "move-in" : inspection.type === "move_out" ? "move-out" : "mid-stay"} sedang di-dispute.`,
-        actionUrl: session.user.role === "owner" ? "/owner/inspections" : "/dashboard/inspections",
+        actionUrl:
+          session.user.role === "owner"
+            ? "/owner/inspections"
+            : "/dashboard/inspections",
         referenceId: inspection.id,
         referenceType: "inspection",
       }).catch((err) =>
-        console.error("Failed to dispatch inspection disputed notification:", err),
+        console.error(
+          "Failed to dispatch inspection disputed notification:",
+          err,
+        ),
       );
     }
 

@@ -29,7 +29,10 @@ export function PopularCitiesSection() {
 
         <div className="mt-10 flex flex-wrap justify-center gap-3">
           {POPULAR_CITIES.map((city) => (
-            <Link key={city} href={`/properties?city=${encodeURIComponent(city)}`}>
+            <Link
+              key={city}
+              href={`/properties?city=${encodeURIComponent(city)}`}
+            >
               <Button variant="outline" className="rounded-full">
                 {city}
               </Button>

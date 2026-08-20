@@ -9,7 +9,8 @@ import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
 const MAX_COMPARE = 4;
 
 function getComparisonState(propertyId: string) {
-  if (typeof window === "undefined") return { isComparing: false, compareCount: 0 };
+  if (typeof window === "undefined")
+    return { isComparing: false, compareCount: 0 };
   try {
     const stored = localStorage.getItem("comparison_list");
     if (!stored) return { isComparing: false, compareCount: 0 };

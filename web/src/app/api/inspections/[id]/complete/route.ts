@@ -42,7 +42,10 @@ export async function POST(
       .where(eq(properties.id, inspection.propertyId))
       .limit(1);
 
-    if (!property || (session.user.role === "owner" && property.ownerId !== session.user.id)) {
+    if (
+      !property ||
+      (session.user.role === "owner" && property.ownerId !== session.user.id)
+    ) {
       return fail("Forbidden", 403);
     }
 
@@ -75,7 +78,10 @@ export async function POST(
         referenceId: inspection.id,
         referenceType: "inspection",
       }).catch((err) =>
-        console.error("Failed to dispatch inspection completed notification:", err),
+        console.error(
+          "Failed to dispatch inspection completed notification:",
+          err,
+        ),
       );
     }
 

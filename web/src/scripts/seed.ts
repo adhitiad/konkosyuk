@@ -25,7 +25,7 @@ export const ACCOUNTS = [
 
 async function seed() {
   console.log("Seeding chart of accounts...");
-  
+
   for (const account of ACCOUNTS) {
     const [existing] = await db
       .select()
@@ -34,7 +34,9 @@ async function seed() {
       .limit(1);
 
     if (existing) {
-      console.log(`  Skipping ${account.code} - ${account.name} (already exists)`);
+      console.log(
+        `  Skipping ${account.code} - ${account.name} (already exists)`,
+      );
       continue;
     }
 

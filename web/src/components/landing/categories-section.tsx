@@ -37,7 +37,9 @@ export function CategoriesSection() {
                     <category.icon className="h-8 w-8" />
                   </div>
                   <h3 className="text-xl font-semibold">{category.title}</h3>
-                  <p className="text-muted-foreground">{category.description}</p>
+                  <p className="text-muted-foreground">
+                    {category.description}
+                  </p>
                 </div>
               </Card>
             </Link>

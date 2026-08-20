@@ -98,7 +98,9 @@ export function InspectionPhotoUpload({
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        onClick={() => document.getElementById("inspection-photo-input")?.click()}
+        onClick={() =>
+          document.getElementById("inspection-photo-input")?.click()
+        }
         className={cn(
           "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
           dragActive
@@ -126,7 +128,10 @@ export function InspectionPhotoUpload({
       {photos.length > 0 && (
         <div className="grid grid-cols-4 gap-3">
           {photos.map((url, idx) => (
-            <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border group">
+            <div
+              key={idx}
+              className="relative aspect-square rounded-lg overflow-hidden border group"
+            >
               <Image
                 src={url}
                 alt={`Inspection photo ${idx + 1}`}

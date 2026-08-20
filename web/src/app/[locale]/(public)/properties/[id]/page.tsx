@@ -78,7 +78,10 @@ export default async function PropertyDetailPage({
         eq(seasonalPricingRules.isActive, true),
       ),
     )
-    .orderBy(desc(seasonalPricingRules.priority), desc(seasonalPricingRules.createdAt))
+    .orderBy(
+      desc(seasonalPricingRules.priority),
+      desc(seasonalPricingRules.createdAt),
+    )
     .limit(5);
 
   const hasSeasonalPricing = seasonalRules.length > 0;
@@ -89,9 +92,10 @@ export default async function PropertyDetailPage({
     .where(eq(units.propertyId, property.id))
     .limit(20);
 
-  const bookingUnits = propertyUnits.length > 0
-    ? propertyUnits.map((u) => ({ id: u.id, name: u.name }))
-    : [{ id: "unknown", name: "Unit" }];
+  const bookingUnits =
+    propertyUnits.length > 0
+      ? propertyUnits.map((u) => ({ id: u.id, name: u.name }))
+      : [{ id: "unknown", name: "Unit" }];
 
   const seasonalRulePayload = seasonalRules.map((r) => ({
     id: r.id,
@@ -237,7 +241,10 @@ export default async function PropertyDetailPage({
                   packages={property.packages}
                   seasonalRules={seasonalRulePayload}
                 >
-                  <Button className="w-full h-12 text-lg font-semibold" size="lg">
+                  <Button
+                    className="w-full h-12 text-lg font-semibold"
+                    size="lg"
+                  >
                     Ajukan Booking Sekarang
                   </Button>
                 </BookingDialogClient>

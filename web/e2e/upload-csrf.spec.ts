@@ -44,7 +44,10 @@ test.describe("Upload CSRF Protection", () => {
       const request = route.request();
       const postData = request.postData();
       if (postData && !postData.includes("csrf")) {
-        await route.fulfill({ status: 403, body: JSON.stringify({ error: "Invalid CSRF token" }) });
+        await route.fulfill({
+          status: 403,
+          body: JSON.stringify({ error: "Invalid CSRF token" }),
+        });
         return;
       }
       await route.continue();
@@ -73,7 +76,9 @@ test.describe("Upload CSRF Protection", () => {
     await expect(page.locator("text=Invalid CSRF token")).toBeVisible();
   });
 
-  test("should reject fake WebP file with WAV magic bytes", async ({ page }) => {
+  test("should reject fake WebP file with WAV magic bytes", async ({
+    page,
+  }) => {
     await page.goto("/id/owner/properties/add");
 
     const wavHeader = Buffer.from("52494646", "hex");

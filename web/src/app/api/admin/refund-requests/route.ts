@@ -19,7 +19,12 @@ export async function GET(req: NextRequest) {
 
     const conditions = [];
     if (status) {
-      conditions.push(eq(refundRequests.status, status as typeof refundRequestStatus[number]));
+      conditions.push(
+        eq(
+          refundRequests.status,
+          status as (typeof refundRequestStatus)[number],
+        ),
+      );
     }
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;
@@ -52,7 +57,10 @@ export async function GET(req: NextRequest) {
         .orderBy(desc(refundRequests.createdAt))
         .limit(limit)
         .offset(offset),
-      db.select({ count: sql<number>`count(*)` }).from(refundRequests).where(where),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(refundRequests)
+        .where(where),
     ]);
 
     return ok({ items, total: Number(count), limit, offset });

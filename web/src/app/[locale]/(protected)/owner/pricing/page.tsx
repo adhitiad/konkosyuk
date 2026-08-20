@@ -23,7 +23,12 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   TrendingUpDownIcon,
@@ -75,7 +80,9 @@ interface PricingSuggestion {
 }
 
 export default function OwnerPricingPage() {
-  const [activeTab, setActiveTab] = useState<"rules" | "analytics" | "suggestions">("rules");
+  const [activeTab, setActiveTab] = useState<
+    "rules" | "analytics" | "suggestions"
+  >("rules");
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>("");
   const [isRuleDialogOpen, setIsRuleDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<PricingRule | null>(null);
@@ -135,7 +142,13 @@ export default function OwnerPricingPage() {
   });
 
   const updateRuleMutation = useMutation({
-    mutationFn: async ({ id, rule }: { id: string; rule: Partial<PricingRule> }) => {
+    mutationFn: async ({
+      id,
+      rule,
+    }: {
+      id: string;
+      rule: Partial<PricingRule>;
+    }) => {
       const res = await apiClient.put(`/owner/pricing/${id}`, rule);
       return res.data;
     },
@@ -167,7 +180,9 @@ export default function OwnerPricingPage() {
     <div className="container py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Manajemen Pricing</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Manajemen Pricing
+          </h1>
           <p className="text-muted-foreground">
             Kelola harga musiman dan lihat rekomendasi pricing
           </p>
@@ -195,7 +210,11 @@ export default function OwnerPricingPage() {
             }}
             disabled={!selectedPropertyId}
           >
-            <HugeiconsIcon icon={AddCircleIcon} strokeWidth={2} className="size-4 mr-1" />
+            <HugeiconsIcon
+              icon={AddCircleIcon}
+              strokeWidth={2}
+              className="size-4 mr-1"
+            />
             Tambah Rule
           </Button>
         </div>
@@ -206,21 +225,33 @@ export default function OwnerPricingPage() {
           variant={activeTab === "rules" ? "default" : "ghost"}
           onClick={() => setActiveTab("rules")}
         >
-          <HugeiconsIcon icon={Tag01Icon} strokeWidth={2} className="size-4 mr-1" />
+          <HugeiconsIcon
+            icon={Tag01Icon}
+            strokeWidth={2}
+            className="size-4 mr-1"
+          />
           Aturan Pricing
         </Button>
         <Button
           variant={activeTab === "analytics" ? "default" : "ghost"}
           onClick={() => setActiveTab("analytics")}
         >
-          <HugeiconsIcon icon={TrendingUpDownIcon} strokeWidth={2} className="size-4 mr-1" />
+          <HugeiconsIcon
+            icon={TrendingUpDownIcon}
+            strokeWidth={2}
+            className="size-4 mr-1"
+          />
           Analytics
         </Button>
         <Button
           variant={activeTab === "suggestions" ? "default" : "ghost"}
           onClick={() => setActiveTab("suggestions")}
         >
-          <HugeiconsIcon icon={LightbulbOffIcon} strokeWidth={2} className="size-4 mr-1" />
+          <HugeiconsIcon
+            icon={LightbulbOffIcon}
+            strokeWidth={2}
+            className="size-4 mr-1"
+          />
           Rekomendasi
         </Button>
       </div>
@@ -258,9 +289,12 @@ export default function OwnerPricingPage() {
                         <Badge variant="outline">{rule.ruleType}</Badge>
                       </TableCell>
                       <TableCell>
-                        {rule.ruleType === "percentage" && `${rule.adjustmentValue}%`}
-                        {rule.ruleType === "fixed" && formatCurrency(Number(rule.adjustmentValue))}
-                        {rule.ruleType === "multiplier" && `${rule.adjustmentValue}x`}
+                        {rule.ruleType === "percentage" &&
+                          `${rule.adjustmentValue}%`}
+                        {rule.ruleType === "fixed" &&
+                          formatCurrency(Number(rule.adjustmentValue))}
+                        {rule.ruleType === "multiplier" &&
+                          `${rule.adjustmentValue}x`}
                       </TableCell>
                       <TableCell>
                         {new Date(rule.startDate).toLocaleDateString("id-ID")} -{" "}
@@ -268,7 +302,9 @@ export default function OwnerPricingPage() {
                       </TableCell>
                       <TableCell>{rule.priority}</TableCell>
                       <TableCell>
-                        <Badge variant={rule.isActive ? "default" : "secondary"}>
+                        <Badge
+                          variant={rule.isActive ? "default" : "secondary"}
+                        >
                           {rule.isActive ? "Aktif" : "Nonaktif"}
                         </Badge>
                       </TableCell>
@@ -282,14 +318,22 @@ export default function OwnerPricingPage() {
                               setIsRuleDialogOpen(true);
                             }}
                           >
-                            <HugeiconsIcon icon={Edit01Icon} strokeWidth={2} className="size-4" />
+                            <HugeiconsIcon
+                              icon={Edit01Icon}
+                              strokeWidth={2}
+                              className="size-4"
+                            />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon-xs"
                             onClick={() => deleteRuleMutation.mutate(rule.id)}
                           >
-                            <HugeiconsIcon icon={Delete01Icon} strokeWidth={2} className="size-4" />
+                            <HugeiconsIcon
+                              icon={Delete01Icon}
+                              strokeWidth={2}
+                              className="size-4"
+                            />
                           </Button>
                         </div>
                       </TableCell>
@@ -299,7 +343,8 @@ export default function OwnerPricingPage() {
               </Table>
             ) : (
               <div className="py-8 text-center text-muted-foreground">
-                Belum ada aturan pricing. Klik &quot;Tambah Rule&quot; untuk membuat aturan baru.
+                Belum ada aturan pricing. Klik &quot;Tambah Rule&quot; untuk
+                membuat aturan baru.
               </div>
             )}
           </CardContent>
@@ -334,22 +379,34 @@ export default function OwnerPricingPage() {
                 <TableBody>
                   {analyticsData.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.month}</TableCell>
-                      <TableCell>
-                        {item.avgOccupancy ? `${Number(item.avgOccupancy).toFixed(1)}%` : "-"}
+                      <TableCell className="font-medium">
+                        {item.month}
                       </TableCell>
                       <TableCell>
-                        {item.avgBookingValue ? formatCurrency(Number(item.avgBookingValue)) : "-"}
+                        {item.avgOccupancy
+                          ? `${Number(item.avgOccupancy).toFixed(1)}%`
+                          : "-"}
+                      </TableCell>
+                      <TableCell>
+                        {item.avgBookingValue
+                          ? formatCurrency(Number(item.avgBookingValue))
+                          : "-"}
                       </TableCell>
                       <TableCell>{item.totalBookings}</TableCell>
                       <TableCell>
-                        {item.recommendedPrice ? formatCurrency(Number(item.recommendedPrice)) : "-"}
+                        {item.recommendedPrice
+                          ? formatCurrency(Number(item.recommendedPrice))
+                          : "-"}
                       </TableCell>
                       <TableCell>
-                        {item.recommendedAdjustment ? `${item.recommendedAdjustment}%` : "-"}
+                        {item.recommendedAdjustment
+                          ? `${item.recommendedAdjustment}%`
+                          : "-"}
                       </TableCell>
                       <TableCell>
-                        {item.confidenceScore ? `${item.confidenceScore}%` : "-"}
+                        {item.confidenceScore
+                          ? `${item.confidenceScore}%`
+                          : "-"}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -412,7 +469,9 @@ export default function OwnerPricingPage() {
                       </TableCell>
                       <TableCell>
                         {suggestion.expiresAt
-                          ? new Date(suggestion.expiresAt).toLocaleDateString("id-ID")
+                          ? new Date(suggestion.expiresAt).toLocaleDateString(
+                              "id-ID",
+                            )
                           : "-"}
                       </TableCell>
                     </TableRow>
@@ -467,8 +526,12 @@ function PricingRuleForm({
     name: rule?.name || "",
     ruleType: rule?.ruleType || "percentage",
     adjustmentValue: rule?.adjustmentValue || "",
-    startDate: rule?.startDate ? new Date(rule.startDate).toISOString().slice(0, 16) : "",
-    endDate: rule?.endDate ? new Date(rule.endDate).toISOString().slice(0, 16) : "",
+    startDate: rule?.startDate
+      ? new Date(rule.startDate).toISOString().slice(0, 16)
+      : "",
+    endDate: rule?.endDate
+      ? new Date(rule.endDate).toISOString().slice(0, 16)
+      : "",
     minNights: rule?.minNights || "",
     maxNights: rule?.maxNights || "",
     priority: rule?.priority || 0,
@@ -505,7 +568,10 @@ function PricingRuleForm({
           <Select
             value={formData.ruleType}
             onValueChange={(value) =>
-              setFormData({ ...formData, ruleType: value as "percentage" | "fixed" | "multiplier" })
+              setFormData({
+                ...formData,
+                ruleType: value as "percentage" | "fixed" | "multiplier",
+              })
             }
           >
             <SelectTrigger>
@@ -530,7 +596,9 @@ function PricingRuleForm({
             type="number"
             step="0.01"
             value={formData.adjustmentValue}
-            onChange={(e) => setFormData({ ...formData, adjustmentValue: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, adjustmentValue: e.target.value })
+            }
             required
           />
         </div>
@@ -543,7 +611,9 @@ function PricingRuleForm({
             id="startDate"
             type="datetime-local"
             value={formData.startDate}
-            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, startDate: e.target.value })
+            }
             required
           />
         </div>
@@ -554,7 +624,9 @@ function PricingRuleForm({
             id="endDate"
             type="datetime-local"
             value={formData.endDate}
-            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, endDate: e.target.value })
+            }
             required
           />
         </div>
@@ -567,7 +639,9 @@ function PricingRuleForm({
             id="minNights"
             type="number"
             value={formData.minNights}
-            onChange={(e) => setFormData({ ...formData, minNights: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, minNights: e.target.value })
+            }
           />
         </div>
 
@@ -577,7 +651,9 @@ function PricingRuleForm({
             id="maxNights"
             type="number"
             value={formData.maxNights}
-            onChange={(e) => setFormData({ ...formData, maxNights: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, maxNights: e.target.value })
+            }
           />
         </div>
       </div>
@@ -587,7 +663,9 @@ function PricingRuleForm({
           id="isActive"
           type="checkbox"
           checked={formData.isActive}
-          onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+          onChange={(e) =>
+            setFormData({ ...formData, isActive: e.target.checked })
+          }
         />
         <Label htmlFor="isActive">Aktif</Label>
       </div>

@@ -6,7 +6,14 @@ import { sendWebPushNotification } from "./notifications";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 
-export type NotificationCategory = "booking" | "payment" | "maintenance" | "inspection" | "chat" | "review" | "system";
+export type NotificationCategory =
+  | "booking"
+  | "payment"
+  | "maintenance"
+  | "inspection"
+  | "chat"
+  | "review"
+  | "system";
 export type NotificationPriority = "low" | "normal" | "high" | "urgent";
 
 export interface NotificationEvent {
@@ -71,7 +78,9 @@ const DEFAULT_PREFERENCES: Record<string, ChannelPreferences> = {
   system: { inApp: true, email: false, push: false },
 };
 
-export async function getUserPreferences(userId: string): Promise<UserPreferences> {
+export async function getUserPreferences(
+  userId: string,
+): Promise<UserPreferences> {
   const [prefs] = await db
     .select()
     .from(userNotificationPreferences)
@@ -87,7 +96,10 @@ export async function getUserPreferences(userId: string): Promise<UserPreference
   }
 
   return {
-    preferences: { ...DEFAULT_PREFERENCES, ...(prefs.preferences as Record<string, ChannelPreferences>) },
+    preferences: {
+      ...DEFAULT_PREFERENCES,
+      ...(prefs.preferences as Record<string, ChannelPreferences>),
+    },
     emailDigest: prefs.emailDigest,
     quietHoursStart: prefs.quietHoursStart,
     quietHoursEnd: prefs.quietHoursEnd,
@@ -97,7 +109,16 @@ export async function getUserPreferences(userId: string): Promise<UserPreference
 
 export async function updateUserPreferences(
   userId: string,
-  updates: Partial<Pick<UserPreferences, "preferences" | "emailDigest" | "quietHoursStart" | "quietHoursEnd" | "timezone">>,
+  updates: Partial<
+    Pick<
+      UserPreferences,
+      | "preferences"
+      | "emailDigest"
+      | "quietHoursStart"
+      | "quietHoursEnd"
+      | "timezone"
+    >
+  >,
 ): Promise<void> {
   const existing = await db
     .select()
@@ -108,9 +129,12 @@ export async function updateUserPreferences(
   const currentPrefs = existing.length > 0 ? existing[0] : null;
 
   const updateData: Record<string, unknown> = {
-    preferences: updates.preferences ?? currentPrefs?.preferences ?? { ...DEFAULT_PREFERENCES },
-    emailDigest: updates.emailDigest ?? currentPrefs?.emailDigest ?? "immediate",
-    quietHoursStart: updates.quietHoursStart ?? currentPrefs?.quietHoursStart ?? null,
+    preferences: updates.preferences ??
+      currentPrefs?.preferences ?? { ...DEFAULT_PREFERENCES },
+    emailDigest:
+      updates.emailDigest ?? currentPrefs?.emailDigest ?? "immediate",
+    quietHoursStart:
+      updates.quietHoursStart ?? currentPrefs?.quietHoursStart ?? null,
     quietHoursEnd: updates.quietHoursEnd ?? currentPrefs?.quietHoursEnd ?? null,
     timezone: updates.timezone ?? currentPrefs?.timezone ?? "Asia/Jakarta",
     updatedAt: new Date(),
@@ -140,10 +164,14 @@ function isInQuietHours(prefs: UserPreferences): boolean {
   const currentTime = now.toTimeString().slice(0, 5);
 
   if (prefs.quietHoursStart > prefs.quietHoursEnd) {
-    return currentTime >= prefs.quietHoursStart || currentTime <= prefs.quietHoursEnd;
+    return (
+      currentTime >= prefs.quietHoursStart || currentTime <= prefs.quietHoursEnd
+    );
   }
 
-  return currentTime >= prefs.quietHoursStart && currentTime <= prefs.quietHoursEnd;
+  return (
+    currentTime >= prefs.quietHoursStart && currentTime <= prefs.quietHoursEnd
+  );
 }
 
 export async function shouldSendNotification(
@@ -153,7 +181,8 @@ export async function shouldSendNotification(
 ): Promise<{ inApp: boolean; email: boolean; push: boolean }> {
   const prefs = await getUserPreferences(userId);
 
-  const typePrefs = prefs.preferences[type] || DEFAULT_PREFERENCES[type] || { inApp: true, email: false, push: false };
+  const typePrefs = prefs.preferences[type] ||
+    DEFAULT_PREFERENCES[type] || { inApp: true, email: false, push: false };
 
   if (!typePrefs.inApp && !typePrefs.email && !typePrefs.push) {
     return { inApp: false, email: false, push: false };
@@ -161,7 +190,8 @@ export async function shouldSendNotification(
 
   if (isInQuietHours(prefs) && priority !== "urgent") {
     if (typePrefs.push) typePrefs.push = false;
-    if (typePrefs.email && prefs.emailDigest !== "immediate") typePrefs.email = false;
+    if (typePrefs.email && prefs.emailDigest !== "immediate")
+      typePrefs.email = false;
   }
 
   if (prefs.emailDigest !== "immediate") {
@@ -171,8 +201,14 @@ export async function shouldSendNotification(
   return { ...typePrefs };
 }
 
-export async function dispatchNotification(event: NotificationEvent): Promise<void> {
-  const channels = await shouldSendNotification(event.userId, event.type, event.priority);
+export async function dispatchNotification(
+  event: NotificationEvent,
+): Promise<void> {
+  const channels = await shouldSendNotification(
+    event.userId,
+    event.type,
+    event.priority,
+  );
 
   if (!channels.inApp && !channels.email && !channels.push) {
     return;
@@ -182,13 +218,21 @@ export async function dispatchNotification(event: NotificationEvent): Promise<vo
 
   if (channels.inApp) {
     promises.push(
-      createNotification(event.userId, event.type as typeof notificationType[number], event.title, event.message, event.referenceId),
+      createNotification(
+        event.userId,
+        event.type as (typeof notificationType)[number],
+        event.title,
+        event.message,
+        event.referenceId,
+      ),
     );
   }
 
   if (channels.push) {
     promises.push(
-      sendWebPushNotification(event.userId, event.title, event.message).catch(() => {}),
+      sendWebPushNotification(event.userId, event.title, event.message).catch(
+        () => {},
+      ),
     );
   }
 
@@ -207,8 +251,10 @@ export async function dispatchBookingReminder(
   startDate: Date,
   reminderType: "24h" | "1h",
 ) {
-  const type = reminderType === "24h" ? "booking_reminder_24h" : "booking_reminder_1h";
-  const title = reminderType === "24h" ? "Booking Dimulai Besok" : "Booking Dimulai Segera";
+  const type =
+    reminderType === "24h" ? "booking_reminder_24h" : "booking_reminder_1h";
+  const title =
+    reminderType === "24h" ? "Booking Dimulai Besok" : "Booking Dimulai Segera";
   const message = `Booking Anda untuk ${propertyName} - ${unitName} akan dimulai pada ${format(startDate, "dd MMMM yyyy", { locale: idLocale })}.`;
 
   await dispatchNotification({
@@ -360,11 +406,24 @@ export async function dispatchGroupBookingUpdated(
 }
 
 async function sendEmailNotification(event: NotificationEvent): Promise<void> {
-  const { sendApprovalEmail, sendBookingRequestEmail, sendBookingRejectionEmail, sendPaymentReceivedEmail, sendChatNotificationEmail } = await import("./notifications/email");
+  const {
+    sendApprovalEmail,
+    sendBookingRequestEmail,
+    sendBookingRejectionEmail,
+    sendPaymentReceivedEmail,
+    sendChatNotificationEmail,
+  } = await import("./notifications/email");
 
   switch (event.type) {
     case "booking_approved":
-      if (event.metadata?.tenantEmail && event.metadata?.tenantName && event.metadata?.propertyName && event.metadata?.unitName && event.metadata?.dpAmount && event.metadata?.invoiceUrl) {
+      if (
+        event.metadata?.tenantEmail &&
+        event.metadata?.tenantName &&
+        event.metadata?.propertyName &&
+        event.metadata?.unitName &&
+        event.metadata?.dpAmount &&
+        event.metadata?.invoiceUrl
+      ) {
         await sendApprovalEmail(
           event.metadata.tenantEmail as string,
           event.metadata.tenantName as string,
@@ -376,7 +435,14 @@ async function sendEmailNotification(event: NotificationEvent): Promise<void> {
       }
       break;
     case "booking_created":
-      if (event.metadata?.ownerEmail && event.metadata?.ownerName && event.metadata?.tenantName && event.metadata?.propertyName && event.metadata?.unitName && event.metadata?.bookingUrl) {
+      if (
+        event.metadata?.ownerEmail &&
+        event.metadata?.ownerName &&
+        event.metadata?.tenantName &&
+        event.metadata?.propertyName &&
+        event.metadata?.unitName &&
+        event.metadata?.bookingUrl
+      ) {
         await sendBookingRequestEmail(
           event.metadata.ownerEmail as string,
           event.metadata.ownerName as string,
@@ -388,7 +454,12 @@ async function sendEmailNotification(event: NotificationEvent): Promise<void> {
       }
       break;
     case "booking_rejected":
-      if (event.metadata?.tenantEmail && event.metadata?.tenantName && event.metadata?.propertyName && event.metadata?.unitName) {
+      if (
+        event.metadata?.tenantEmail &&
+        event.metadata?.tenantName &&
+        event.metadata?.propertyName &&
+        event.metadata?.unitName
+      ) {
         await sendBookingRejectionEmail(
           event.metadata.tenantEmail as string,
           event.metadata.tenantName as string,
@@ -399,7 +470,14 @@ async function sendEmailNotification(event: NotificationEvent): Promise<void> {
       break;
     case "payment_full_paid":
     case "payment_dp_paid":
-      if (event.metadata?.ownerEmail && event.metadata?.ownerName && event.metadata?.propertyName && event.metadata?.unitName && event.metadata?.amount && event.metadata?.paymentUrl) {
+      if (
+        event.metadata?.ownerEmail &&
+        event.metadata?.ownerName &&
+        event.metadata?.propertyName &&
+        event.metadata?.unitName &&
+        event.metadata?.amount &&
+        event.metadata?.paymentUrl
+      ) {
         await sendPaymentReceivedEmail(
           event.metadata.ownerEmail as string,
           event.metadata.ownerName as string,
@@ -411,7 +489,12 @@ async function sendEmailNotification(event: NotificationEvent): Promise<void> {
       }
       break;
     case "chat_message":
-      if (event.metadata?.email && event.metadata?.senderName && event.metadata?.propertyName && event.metadata?.chatUrl) {
+      if (
+        event.metadata?.email &&
+        event.metadata?.senderName &&
+        event.metadata?.propertyName &&
+        event.metadata?.chatUrl
+      ) {
         await sendChatNotificationEmail(
           event.metadata.email as string,
           event.metadata.senderName as string,

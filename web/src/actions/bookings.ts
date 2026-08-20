@@ -158,7 +158,10 @@ export async function createBookingAction(
           ),
         ),
       )
-      .orderBy(desc(seasonalPricingRules.priority), desc(seasonalPricingRules.createdAt));
+      .orderBy(
+        desc(seasonalPricingRules.priority),
+        desc(seasonalPricingRules.createdAt),
+      );
 
     if (validated.packageId === "custom" && property.packages.custom.enabled) {
       const customResult = calculateCustomPrice(
@@ -196,7 +199,9 @@ export async function createBookingAction(
     const remainingAmount = totalPrice - dpAmount;
 
     const isFullPayment = validated.paymentType === "full";
-    const bookingStatus = isFullPayment ? "awaiting_full_payment" : "pending_dp";
+    const bookingStatus = isFullPayment
+      ? "awaiting_full_payment"
+      : "pending_dp";
     const bookingDpAmount = isFullPayment ? 0 : dpAmount;
     const bookingRemainingAmount = isFullPayment ? totalPrice : remainingAmount;
 
@@ -474,7 +479,10 @@ export async function reviewBookingAction(
           referenceId: booking.id,
           referenceType: "booking",
         }).catch((err) =>
-          console.error("Failed to dispatch booking rejected notification:", err),
+          console.error(
+            "Failed to dispatch booking rejected notification:",
+            err,
+          ),
         );
 
         return updated;
@@ -532,15 +540,20 @@ export async function reviewBookingAction(
         console.error("Failed to dispatch booking approved notification:", err),
       );
 
-      await db.insert(inspections).values({
-        bookingId: booking.id,
-        propertyId: property.id,
-        unitId: unit.id,
-        type: "move_in",
-        performedBy: booking.userId,
-        witnessId: property.ownerId,
-        notes: `Auto-created move-in inspection for booking ${booking.id.slice(0, 8)}`,
-      }).catch((err) => console.error("Failed to create move-in inspection:", err));
+      await db
+        .insert(inspections)
+        .values({
+          bookingId: booking.id,
+          propertyId: property.id,
+          unitId: unit.id,
+          type: "move_in",
+          performedBy: booking.userId,
+          witnessId: property.ownerId,
+          notes: `Auto-created move-in inspection for booking ${booking.id.slice(0, 8)}`,
+        })
+        .catch((err) =>
+          console.error("Failed to create move-in inspection:", err),
+        );
 
       return { success: true, data: updated };
     }
@@ -585,8 +598,12 @@ export async function createBookingOrGroupAction(
     groupFormData.set("maxMembers", String(memberEmails.length + 1));
     groupFormData.set("memberEmails", JSON.stringify(memberEmails));
 
-    const createGroupBooking = (await import("./group-bookings")).createGroupBookingAction;
-    return createGroupBooking(undefined, groupFormData) as Promise<CreateBookingState>;
+    const createGroupBooking = (await import("./group-bookings"))
+      .createGroupBookingAction;
+    return createGroupBooking(
+      undefined,
+      groupFormData,
+    ) as Promise<CreateBookingState>;
   }
 
   return createBookingAction(prevState, formData);

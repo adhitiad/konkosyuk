@@ -108,10 +108,20 @@ export function calculateCustomPrice(
   let seasonal: AppliedSeasonalRule | undefined;
 
   if (seasonalRules?.length && checkIn && checkOut) {
-    const result = calculateSeasonalPrice(basePrice, seasonalRules, checkIn, checkOut);
+    const result = calculateSeasonalPrice(
+      basePrice,
+      seasonalRules,
+      checkIn,
+      checkOut,
+    );
     if (result) {
       seasonal = result;
-      finalPrice = calculatePackageFinalPrice(result.adjustedPrice, 0, 11, 0.63);
+      finalPrice = calculatePackageFinalPrice(
+        result.adjustedPrice,
+        0,
+        11,
+        0.63,
+      );
     }
   }
 
@@ -130,7 +140,12 @@ export function calculatePackagePriceWithSeasonal(
   let seasonal: AppliedSeasonalRule | undefined;
 
   if (seasonalRules?.length && checkIn && checkOut) {
-    const result = calculateSeasonalPrice(basePrice, seasonalRules, checkIn, checkOut);
+    const result = calculateSeasonalPrice(
+      basePrice,
+      seasonalRules,
+      checkIn,
+      checkOut,
+    );
     if (result) {
       seasonal = result;
       const adjustedBase = result.adjustedPrice;
@@ -139,10 +154,19 @@ export function calculatePackagePriceWithSeasonal(
         discounted +
         (discounted * ppnPercent) / 100 +
         (discounted * appFeePercent) / 100;
-      return { basePrice: adjustedBase, finalPrice: Math.round(final), seasonal };
+      return {
+        basePrice: adjustedBase,
+        finalPrice: Math.round(final),
+        seasonal,
+      };
     }
   }
 
-  const finalPrice = calculatePackageFinalPrice(basePrice, discountPercent, ppnPercent, appFeePercent);
+  const finalPrice = calculatePackageFinalPrice(
+    basePrice,
+    discountPercent,
+    ppnPercent,
+    appFeePercent,
+  );
   return { basePrice, finalPrice, seasonal };
 }

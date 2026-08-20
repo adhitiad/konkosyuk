@@ -68,8 +68,7 @@ export default function RefundPolicyPage() {
       <p>
         Untuk pertanyaan lebih lanjut tentang refund, silakan hubungi kami di{" "}
         <a href="mailto:support@konkosyuk.com">support@konkosyuk.com</a> atau
-        melalui halaman{" "}
-        <Link href="/contact">Hubungi Kami</Link>.
+        melalui halaman <Link href="/contact">Hubungi Kami</Link>.
       </p>
     </StaticPageLayout>
   );

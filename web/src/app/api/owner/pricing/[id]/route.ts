@@ -130,7 +130,9 @@ export async function DELETE(
       }
     }
 
-    await db.delete(seasonalPricingRules).where(eq(seasonalPricingRules.id, id));
+    await db
+      .delete(seasonalPricingRules)
+      .where(eq(seasonalPricingRules.id, id));
 
     return ok({ success: true });
   } catch (error) {

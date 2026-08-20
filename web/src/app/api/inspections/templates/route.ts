@@ -7,7 +7,8 @@ import { eq, and, desc } from "drizzle-orm";
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const propertyType = searchParams.get("propertyType") as "kost" | "kontrakan" | "ruko" | null;
+    const propertyType = searchParams.get("propertyType") as
+      "kost" | "kontrakan" | "ruko" | null;
 
     const conditions = [];
     if (propertyType) {
@@ -20,7 +21,10 @@ export async function GET(req: NextRequest) {
       .select()
       .from(inspectionTemplates)
       .where(where)
-      .orderBy(desc(inspectionTemplates.isDefault), desc(inspectionTemplates.createdAt));
+      .orderBy(
+        desc(inspectionTemplates.isDefault),
+        desc(inspectionTemplates.createdAt),
+      );
 
     return ok(templates);
   } catch (error) {

@@ -7,11 +7,14 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 
 const preferencesSchema = z.object({
-  preferences: z.record(z.string(), z.object({
-    inApp: z.boolean(),
-    email: z.boolean(),
-    push: z.boolean(),
-  })),
+  preferences: z.record(
+    z.string(),
+    z.object({
+      inApp: z.boolean(),
+      email: z.boolean(),
+      push: z.boolean(),
+    }),
+  ),
   emailDigest: z.enum(["immediate", "daily", "weekly", "never"]).optional(),
   quietHoursStart: z.string().optional(),
   quietHoursEnd: z.string().optional(),
@@ -62,7 +65,13 @@ export async function GET(request: NextRequest) {
     }
 
     return ok({
-      preferences: { ...defaultPrefs, ...(prefs[0].preferences as Record<string, { inApp: boolean; email: boolean; push: boolean }>) },
+      preferences: {
+        ...defaultPrefs,
+        ...(prefs[0].preferences as Record<
+          string,
+          { inApp: boolean; email: boolean; push: boolean }
+        >),
+      },
       emailDigest: prefs[0].emailDigest,
       quietHoursStart: prefs[0].quietHoursStart,
       quietHoursEnd: prefs[0].quietHoursEnd,

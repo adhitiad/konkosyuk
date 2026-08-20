@@ -74,14 +74,19 @@ function AdminRefundRequestsPage() {
       if (filterStatus !== "all") {
         params.set("status", filterStatus);
       }
-      const res = await apiClient.get(`/api/admin/refund-requests?${params.toString()}`);
+      const res = await apiClient.get(
+        `/api/admin/refund-requests?${params.toString()}`,
+      );
       return res.data as { items: RefundRequestItem[]; total: number };
     },
     staleTime: 30000,
     enabled: !!session,
   });
 
-  const handleReview = async (refundId: string, action: "approve" | "reject") => {
+  const handleReview = async (
+    refundId: string,
+    action: "approve" | "reject",
+  ) => {
     startReviewTransition(async () => {
       const formData = new FormData();
       formData.append("refundRequestId", refundId);
@@ -94,9 +99,7 @@ function AdminRefundRequestsPage() {
       const finalResult = await reviewRefundAction(undefined, formData);
       if (finalResult.success) {
         showToastSuccess(
-          action === "approve"
-            ? "Refund disetujui"
-            : "Refund ditolak",
+          action === "approve" ? "Refund disetujui" : "Refund ditolak",
         );
         setActiveRefundId(null);
         setReviewNote("");
@@ -190,7 +193,10 @@ function AdminRefundRequestsPage() {
               <TableBody>
                 {data?.items?.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground">
+                    <TableCell
+                      colSpan={7}
+                      className="text-center text-muted-foreground"
+                    >
                       Tidak ada pengajuan refund
                     </TableCell>
                   </TableRow>
@@ -198,11 +204,14 @@ function AdminRefundRequestsPage() {
                   data?.items?.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-mono text-xs">
-                        {item.bookingCode?.slice(0, 8) ?? item.bookingId?.slice(0, 8)}
+                        {item.bookingCode?.slice(0, 8) ??
+                          item.bookingId?.slice(0, 8)}
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-medium">{item.userName ?? "-"}</span>
+                          <span className="font-medium">
+                            {item.userName ?? "-"}
+                          </span>
                           <span className="text-xs text-muted-foreground">
                             {item.userEmail}
                           </span>
@@ -228,11 +237,11 @@ function AdminRefundRequestsPage() {
                               setReviewNote("");
                             }}
                           >
-                          <DialogTrigger>
-                            <Button size="sm" variant="outline">
-                              Review
-                            </Button>
-                          </DialogTrigger>
+                            <DialogTrigger>
+                              <Button size="sm" variant="outline">
+                                Review
+                              </Button>
+                            </DialogTrigger>
                             <DialogContent>
                               <DialogHeader>
                                 <DialogTitle>Review Refund</DialogTitle>
@@ -252,13 +261,17 @@ function AdminRefundRequestsPage() {
                                   id="approvedAmount"
                                   type="number"
                                   value={approvedAmount}
-                                  onChange={(e) => setApprovedAmount(e.target.value)}
+                                  onChange={(e) =>
+                                    setApprovedAmount(e.target.value)
+                                  }
                                   placeholder={`Maks: ${new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(Number(item.amount))}`}
                                   max={Number(item.amount)}
                                   step={1000}
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                  Kosongkan untuk refund penuh. Potongan admin 2.2% dan owner 1.8% akan dipotong dari jumlah yang disetujui.
+                                  Kosongkan untuk refund penuh. Potongan admin
+                                  2.2% dan owner 1.8% akan dipotong dari jumlah
+                                  yang disetujui.
                                 </p>
                               </div>
                               <div className="space-y-2">
@@ -266,20 +279,26 @@ function AdminRefundRequestsPage() {
                                 <Textarea
                                   id="note"
                                   value={reviewNote}
-                                  onChange={(e) => setReviewNote(e.target.value)}
+                                  onChange={(e) =>
+                                    setReviewNote(e.target.value)
+                                  }
                                   placeholder="Tambahkan catatan..."
                                 />
                               </div>
                               <DialogFooter className="gap-2">
                                 <Button
                                   variant="destructive"
-                                  onClick={() => handleReview(item.id, "reject")}
+                                  onClick={() =>
+                                    handleReview(item.id, "reject")
+                                  }
                                   disabled={isPendingReview}
                                 >
                                   Tolak
                                 </Button>
                                 <Button
-                                  onClick={() => handleReview(item.id, "approve")}
+                                  onClick={() =>
+                                    handleReview(item.id, "approve")
+                                  }
                                   disabled={isPendingReview}
                                 >
                                   Setujui

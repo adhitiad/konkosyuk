@@ -51,7 +51,15 @@ export async function GET(req: NextRequest) {
         .from(properties)
         .where(inArray(properties.id, ids));
 
-      return ok({ data: rows, meta: { page: 1, limit: rows.length, total: rows.length, totalPages: 1 } });
+      return ok({
+        data: rows,
+        meta: {
+          page: 1,
+          limit: rows.length,
+          total: rows.length,
+          totalPages: 1,
+        },
+      });
     }
 
     let isOwner = false;
@@ -284,7 +292,10 @@ export async function GET(req: NextRequest) {
 
           const seasonalCounts = new Map<string, number>();
           for (const rule of activeSeasonalRules) {
-            seasonalCounts.set(rule.propertyId, (seasonalCounts.get(rule.propertyId) || 0) + 1);
+            seasonalCounts.set(
+              rule.propertyId,
+              (seasonalCounts.get(rule.propertyId) || 0) + 1,
+            );
           }
 
           data = data.map((property) => ({

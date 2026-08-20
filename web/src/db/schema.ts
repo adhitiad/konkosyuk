@@ -69,7 +69,12 @@ export const notificationCategory = [
   "review",
   "system",
 ] as const;
-export const notificationPriority = ["low", "normal", "high", "urgent"] as const;
+export const notificationPriority = [
+  "low",
+  "normal",
+  "high",
+  "urgent",
+] as const;
 export const maintenancePriority = ["low", "medium", "high", "urgent"] as const;
 export const maintenanceStatus = [
   "reported",
@@ -512,9 +517,13 @@ export const bookingRequests = pgTable(
 
 export const loyaltyPoints = pgTable("loyalty_points", {
   id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id").references(() => users.id).notNull(),
+  userId: uuid("user_id")
+    .references(() => users.id)
+    .notNull(),
   points: integer("points").notNull().default(0),
-  type: text("type", { enum: ["earned", "redeemed", "expired", "bonus"] as const }).notNull(),
+  type: text("type", {
+    enum: ["earned", "redeemed", "expired", "bonus"] as const,
+  }).notNull(),
   source: text("source"),
   referenceId: text("reference_id"),
   description: text("description"),
@@ -524,10 +533,18 @@ export const loyaltyPoints = pgTable("loyalty_points", {
 
 export const groupBookings = pgTable("group_bookings", {
   id: uuid("id").defaultRandom().primaryKey(),
-  leadUserId: uuid("lead_user_id").references(() => users.id).notNull(),
-  propertyId: uuid("property_id").references(() => properties.id).notNull(),
-  unitId: uuid("unit_id").references(() => units.id).notNull(),
-  status: text("status", { enum: ["pending", "confirmed", "cancelled", "completed"] as const }).default("pending"),
+  leadUserId: uuid("lead_user_id")
+    .references(() => users.id)
+    .notNull(),
+  propertyId: uuid("property_id")
+    .references(() => properties.id)
+    .notNull(),
+  unitId: uuid("unit_id")
+    .references(() => units.id)
+    .notNull(),
+  status: text("status", {
+    enum: ["pending", "confirmed", "cancelled", "completed"] as const,
+  }).default("pending"),
   totalAmount: numeric("total_amount").notNull(),
   depositAmount: numeric("deposit_amount").notNull(),
   startDate: timestamp("start_date", { mode: "date" }).notNull(),
@@ -538,19 +555,31 @@ export const groupBookings = pgTable("group_bookings", {
 
 export const groupBookingMembers = pgTable("group_booking_members", {
   id: uuid("id").defaultRandom().primaryKey(),
-  groupBookingId: uuid("group_booking_id").references(() => groupBookings.id, { onDelete: "cascade" }).notNull(),
-  userId: uuid("user_id").references(() => users.id).notNull(),
-  sharePercentage: numeric("share_percentage", { precision: 5, scale: 2 }).notNull(),
+  groupBookingId: uuid("group_booking_id")
+    .references(() => groupBookings.id, { onDelete: "cascade" })
+    .notNull(),
+  userId: uuid("user_id")
+    .references(() => users.id)
+    .notNull(),
+  sharePercentage: numeric("share_percentage", {
+    precision: 5,
+    scale: 2,
+  }).notNull(),
   shareAmount: numeric("share_amount").notNull(),
   paidAmount: numeric("paid_amount").default("0"),
-  status: text("status", { enum: ["invited", "accepted", "rejected", "paid"] as const }).default("invited"),
+  status: text("status", {
+    enum: ["invited", "accepted", "rejected", "paid"] as const,
+  }).default("invited"),
   joinedAt: timestamp("joined_at", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
 });
 
 export const roommatePreferences = pgTable("roommate_preferences", {
   id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id").references(() => users.id).notNull().unique(),
+  userId: uuid("user_id")
+    .references(() => users.id)
+    .notNull()
+    .unique(),
   budgetMin: numeric("budget_min", { precision: 12, scale: 2 }),
   budgetMax: numeric("budget_max", { precision: 12, scale: 2 }),
   preferredLocation: text("preferred_location"),
@@ -564,11 +593,18 @@ export const roommatePreferences = pgTable("roommate_preferences", {
 
 export const seasonalPricingRules = pgTable("seasonal_pricing_rules", {
   id: uuid("id").defaultRandom().primaryKey(),
-  propertyId: uuid("property_id").references(() => properties.id, { onDelete: "cascade" }).notNull(),
+  propertyId: uuid("property_id")
+    .references(() => properties.id, { onDelete: "cascade" })
+    .notNull(),
   unitId: uuid("unit_id").references(() => units.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  ruleType: text("rule_type", { enum: seasonalRuleType }).notNull().default("percentage"),
-  adjustmentValue: numeric("adjustment_value", { precision: 12, scale: 2 }).notNull(),
+  ruleType: text("rule_type", { enum: seasonalRuleType })
+    .notNull()
+    .default("percentage"),
+  adjustmentValue: numeric("adjustment_value", {
+    precision: 12,
+    scale: 2,
+  }).notNull(),
   startDate: timestamp("start_date", { mode: "date" }).notNull(),
   endDate: timestamp("end_date", { mode: "date" }).notNull(),
   minNights: integer("min_nights"),
@@ -582,13 +618,18 @@ export const seasonalPricingRules = pgTable("seasonal_pricing_rules", {
 
 export const pricingAnalytics = pgTable("pricing_analytics", {
   id: uuid("id").defaultRandom().primaryKey(),
-  propertyId: uuid("property_id").references(() => properties.id, { onDelete: "cascade" }).notNull(),
+  propertyId: uuid("property_id")
+    .references(() => properties.id, { onDelete: "cascade" })
+    .notNull(),
   month: text("month").notNull(),
   avgOccupancy: numeric("avg_occupancy", { precision: 5, scale: 2 }),
   avgBookingValue: numeric("avg_booking_value", { precision: 12, scale: 2 }),
   totalBookings: integer("total_bookings").default(0),
   recommendedPrice: numeric("recommended_price", { precision: 12, scale: 2 }),
-  recommendedAdjustment: numeric("recommended_adjustment", { precision: 5, scale: 2 }),
+  recommendedAdjustment: numeric("recommended_adjustment", {
+    precision: 5,
+    scale: 2,
+  }),
   confidenceScore: numeric("confidence_score", { precision: 3, scale: 2 }),
   factors: jsonb("factors").default({}),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
@@ -596,12 +637,21 @@ export const pricingAnalytics = pgTable("pricing_analytics", {
 
 export const pricingSuggestions = pgTable("pricing_suggestions", {
   id: uuid("id").defaultRandom().primaryKey(),
-  propertyId: uuid("property_id").references(() => properties.id, { onDelete: "cascade" }).notNull(),
+  propertyId: uuid("property_id")
+    .references(() => properties.id, { onDelete: "cascade" })
+    .notNull(),
   ruleId: uuid("rule_id").references(() => seasonalPricingRules.id),
-  suggestedValue: numeric("suggested_value", { precision: 12, scale: 2 }).notNull(),
+  suggestedValue: numeric("suggested_value", {
+    precision: 12,
+    scale: 2,
+  }).notNull(),
   reason: text("reason").notNull(),
-  priority: text("priority", { enum: ["high", "medium", "low"] as const }).default("medium"),
-  status: text("status", { enum: ["pending", "accepted", "rejected", "expired"] as const }).default("pending"),
+  priority: text("priority", {
+    enum: ["high", "medium", "low"] as const,
+  }).default("medium"),
+  status: text("status", {
+    enum: ["pending", "accepted", "rejected", "expired"] as const,
+  }).default("pending"),
   expiresAt: timestamp("expires_at", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
 });
@@ -609,16 +659,29 @@ export const pricingSuggestions = pgTable("pricing_suggestions", {
 export const inspections = pgTable("inspections", {
   id: uuid("id").defaultRandom().primaryKey(),
   bookingId: uuid("booking_id").notNull(),
-  propertyId: uuid("property_id").references(() => properties.id, { onDelete: "cascade" }).notNull(),
-  unitId: uuid("unit_id").references(() => units.id, { onDelete: "cascade" }).notNull(),
-  type: text("type", { enum: ["move_in", "move_out", "mid_stay"] as const }).notNull(),
+  propertyId: uuid("property_id")
+    .references(() => properties.id, { onDelete: "cascade" })
+    .notNull(),
+  unitId: uuid("unit_id")
+    .references(() => units.id, { onDelete: "cascade" })
+    .notNull(),
+  type: text("type", {
+    enum: ["move_in", "move_out", "mid_stay"] as const,
+  }).notNull(),
   status: text("status", { enum: inspectionInstanceStatus }).default("pending"),
-  performedBy: uuid("performed_by").references(() => users.id).notNull(),
+  performedBy: uuid("performed_by")
+    .references(() => users.id)
+    .notNull(),
   witnessId: uuid("witness_id").references(() => users.id),
-  overallCondition: text("overall_condition", { enum: ["excellent", "good", "fair", "poor", "damaged"] as const }),
+  overallCondition: text("overall_condition", {
+    enum: ["excellent", "good", "fair", "poor", "damaged"] as const,
+  }),
   notes: text("notes"),
   damageScore: numeric("damage_score", { precision: 5, scale: 2 }),
-  estimatedRepairCost: numeric("estimated_repair_cost", { precision: 12, scale: 2 }),
+  estimatedRepairCost: numeric("estimated_repair_cost", {
+    precision: 12,
+    scale: 2,
+  }),
   securityDeposit: numeric("security_deposit", { precision: 12, scale: 2 }),
   refundAmount: numeric("refund_amount", { precision: 12, scale: 2 }),
   isDisputed: boolean("is_disputed").default(false),
@@ -629,10 +692,27 @@ export const inspections = pgTable("inspections", {
 
 export const inspectionItems = pgTable("inspection_items", {
   id: uuid("id").defaultRandom().primaryKey(),
-  inspectionId: uuid("inspection_id").references(() => inspections.id, { onDelete: "cascade" }).notNull(),
-  category: text("category", { enum: ["furniture", "electrical", "plumbing", "walls", "floor", "doors_windows", "ac", "kitchen", "bathroom", "other"] as const }).notNull(),
+  inspectionId: uuid("inspection_id")
+    .references(() => inspections.id, { onDelete: "cascade" })
+    .notNull(),
+  category: text("category", {
+    enum: [
+      "furniture",
+      "electrical",
+      "plumbing",
+      "walls",
+      "floor",
+      "doors_windows",
+      "ac",
+      "kitchen",
+      "bathroom",
+      "other",
+    ] as const,
+  }).notNull(),
   itemName: text("item_name").notNull(),
-  condition: text("condition", { enum: ["excellent", "good", "fair", "poor", "damaged", "missing"] as const }),
+  condition: text("condition", {
+    enum: ["excellent", "good", "fair", "poor", "damaged", "missing"] as const,
+  }),
   notes: text("notes"),
   repairCost: numeric("repair_cost", { precision: 12, scale: 2 }),
   photoUrls: jsonb("photo_urls").$type<string[]>().default([]),
@@ -642,9 +722,15 @@ export const inspectionItems = pgTable("inspection_items", {
 
 export const inspectionPhotos = pgTable("inspection_photos", {
   id: uuid("id").defaultRandom().primaryKey(),
-  inspectionId: uuid("inspection_id").references(() => inspections.id, { onDelete: "cascade" }).notNull(),
-  itemId: uuid("item_id").references(() => inspectionItems.id, { onDelete: "cascade" }),
-  type: text("type", { enum: ["overview", "damage", "receipt", "document"] as const }).notNull(),
+  inspectionId: uuid("inspection_id")
+    .references(() => inspections.id, { onDelete: "cascade" })
+    .notNull(),
+  itemId: uuid("item_id").references(() => inspectionItems.id, {
+    onDelete: "cascade",
+  }),
+  type: text("type", {
+    enum: ["overview", "damage", "receipt", "document"] as const,
+  }).notNull(),
   url: text("url").notNull(),
   caption: text("caption"),
   metadata: jsonb("metadata").default({}),
@@ -653,14 +739,28 @@ export const inspectionPhotos = pgTable("inspection_photos", {
 
 export const damageReports = pgTable("damage_reports", {
   id: uuid("id").defaultRandom().primaryKey(),
-  inspectionId: uuid("inspection_id").references(() => inspections.id, { onDelete: "cascade" }).notNull(),
+  inspectionId: uuid("inspection_id")
+    .references(() => inspections.id, { onDelete: "cascade" })
+    .notNull(),
   itemId: uuid("item_id").references(() => inspectionItems.id),
-  reportedBy: uuid("reported_by").references(() => users.id).notNull(),
-  severity: text("severity", { enum: ["minor", "moderate", "major", "critical"] as const }).notNull(),
+  reportedBy: uuid("reported_by")
+    .references(() => users.id)
+    .notNull(),
+  severity: text("severity", {
+    enum: ["minor", "moderate", "major", "critical"] as const,
+  }).notNull(),
   description: text("description").notNull(),
   estimatedCost: numeric("estimated_cost", { precision: 12, scale: 2 }),
   actualCost: numeric("actual_cost", { precision: 12, scale: 2 }),
-  status: text("status", { enum: ["reported", "acknowledged", "disputed", "resolved", "waived"] as const }).default("reported"),
+  status: text("status", {
+    enum: [
+      "reported",
+      "acknowledged",
+      "disputed",
+      "resolved",
+      "waived",
+    ] as const,
+  }).default("reported"),
   resolution: text("resolution"),
   resolvedBy: uuid("resolved_by").references(() => users.id),
   resolvedAt: timestamp("resolved_at", { mode: "date" }),
@@ -669,20 +769,28 @@ export const damageReports = pgTable("damage_reports", {
 
 export const inspectionTemplates = pgTable("inspection_templates", {
   id: uuid("id").defaultRandom().primaryKey(),
-  propertyType: text("property_type", { enum: ["kost", "kontrakan", "ruko"] as const }).notNull(),
-  items: jsonb("items").$type<{
-    category: string;
-    itemName: string;
-    description: string;
-    isRequired: boolean;
-  }[]>().notNull(),
+  propertyType: text("property_type", {
+    enum: ["kost", "kontrakan", "ruko"] as const,
+  }).notNull(),
+  items: jsonb("items")
+    .$type<
+      {
+        category: string;
+        itemName: string;
+        description: string;
+        isRequired: boolean;
+      }[]
+    >()
+    .notNull(),
   isDefault: boolean("is_default").default(false),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
 });
 
 export const propertyComparisons = pgTable("property_comparisons", {
   id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id").references(() => users.id).notNull(),
+  userId: uuid("user_id")
+    .references(() => users.id)
+    .notNull(),
   propertyIds: jsonb("property_ids").$type<string[]>().notNull(),
   name: text("name"),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
@@ -690,11 +798,26 @@ export const propertyComparisons = pgTable("property_comparisons", {
 
 export const neighborhoodInsights = pgTable("neighborhood_insights", {
   id: uuid("id").defaultRandom().primaryKey(),
-  propertyId: uuid("property_id").references(() => properties.id, { onDelete: "cascade" }).notNull(),
-  category: text("category", { enum: ["safety", "transport", "food", "atm", "healthcare", "shopping", "noise", "parking"] as const }).notNull(),
+  propertyId: uuid("property_id")
+    .references(() => properties.id, { onDelete: "cascade" })
+    .notNull(),
+  category: text("category", {
+    enum: [
+      "safety",
+      "transport",
+      "food",
+      "atm",
+      "healthcare",
+      "shopping",
+      "noise",
+      "parking",
+    ] as const,
+  }).notNull(),
   rating: numeric("rating", { precision: 3, scale: 2 }),
   description: text("description"),
-  source: text("source", { enum: ["tenant", "owner", "admin", "auto"] as const }).default("tenant"),
+  source: text("source", {
+    enum: ["tenant", "owner", "admin", "auto"] as const,
+  }).default("tenant"),
   submittedBy: uuid("submitted_by").references(() => users.id),
   isVerified: boolean("is_verified").default(false),
   helpfulCount: integer("helpful_count").default(0),
@@ -703,8 +826,21 @@ export const neighborhoodInsights = pgTable("neighborhood_insights", {
 
 export const neighborhoodPlaces = pgTable("neighborhood_places", {
   id: uuid("id").defaultRandom().primaryKey(),
-  propertyId: uuid("property_id").references(() => properties.id, { onDelete: "cascade" }).notNull(),
-  type: text("type", { enum: ["warung", "atm", "halte", "rumah_sakit", "apotek", "supermarket", "masjid", "pasar"] as const }).notNull(),
+  propertyId: uuid("property_id")
+    .references(() => properties.id, { onDelete: "cascade" })
+    .notNull(),
+  type: text("type", {
+    enum: [
+      "warung",
+      "atm",
+      "halte",
+      "rumah_sakit",
+      "apotek",
+      "supermarket",
+      "masjid",
+      "pasar",
+    ] as const,
+  }).notNull(),
   name: text("name").notNull(),
   distance: numeric("distance", { precision: 5, scale: 2 }),
   walkingMinutes: integer("walking_minutes"),
@@ -737,8 +873,13 @@ export const bookings = pgTable(
     rejectionReason: text("rejection_reason"),
     isGroupBooking: boolean("is_group_booking").default(false),
     groupBookingId: uuid("group_booking_id").references(() => groupBookings.id),
-    pricingRuleId: uuid("pricing_rule_id").references(() => seasonalPricingRules.id),
-    basePriceAtBooking: numeric("base_price_at_booking", { precision: 12, scale: 2 }),
+    pricingRuleId: uuid("pricing_rule_id").references(
+      () => seasonalPricingRules.id,
+    ),
+    basePriceAtBooking: numeric("base_price_at_booking", {
+      precision: 12,
+      scale: 2,
+    }),
     securityDeposit: numeric("security_deposit", { precision: 12, scale: 2 }),
     moveInInspectionId: uuid("move_in_inspection_id"),
     moveOutInspectionId: uuid("move_out_inspection_id"),
@@ -1009,7 +1150,9 @@ export const userNotificationPreferences = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     preferences: jsonb("preferences").notNull().default({}),
-    emailDigest: text("email_digest", { enum: ["immediate", "daily", "weekly", "never"] })
+    emailDigest: text("email_digest", {
+      enum: ["immediate", "daily", "weekly", "never"],
+    })
       .notNull()
       .default("immediate"),
     quietHoursStart: text("quiet_hours_start"),
@@ -1929,69 +2072,87 @@ export const loyaltyPointsRelations = relations(loyaltyPoints, ({ one }) => ({
   }),
 }));
 
-export const groupBookingsRelations = relations(groupBookings, ({ one, many }) => ({
-  leadUser: one(users, {
-    fields: [groupBookings.leadUserId],
-    references: [users.id],
+export const groupBookingsRelations = relations(
+  groupBookings,
+  ({ one, many }) => ({
+    leadUser: one(users, {
+      fields: [groupBookings.leadUserId],
+      references: [users.id],
+    }),
+    property: one(properties, {
+      fields: [groupBookings.propertyId],
+      references: [properties.id],
+    }),
+    unit: one(units, {
+      fields: [groupBookings.unitId],
+      references: [units.id],
+    }),
+    members: many(groupBookingMembers),
   }),
-  property: one(properties, {
-    fields: [groupBookings.propertyId],
-    references: [properties.id],
-  }),
-  unit: one(units, {
-    fields: [groupBookings.unitId],
-    references: [units.id],
-  }),
-  members: many(groupBookingMembers),
-}));
+);
 
-export const groupBookingMembersRelations = relations(groupBookingMembers, ({ one }) => ({
-  groupBooking: one(groupBookings, {
-    fields: [groupBookingMembers.groupBookingId],
-    references: [groupBookings.id],
+export const groupBookingMembersRelations = relations(
+  groupBookingMembers,
+  ({ one }) => ({
+    groupBooking: one(groupBookings, {
+      fields: [groupBookingMembers.groupBookingId],
+      references: [groupBookings.id],
+    }),
+    user: one(users, {
+      fields: [groupBookingMembers.userId],
+      references: [users.id],
+    }),
   }),
-  user: one(users, {
-    fields: [groupBookingMembers.userId],
-    references: [users.id],
-  }),
-}));
+);
 
-export const roommatePreferencesRelations = relations(roommatePreferences, ({ one }) => ({
-  user: one(users, {
-    fields: [roommatePreferences.userId],
-    references: [users.id],
+export const roommatePreferencesRelations = relations(
+  roommatePreferences,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [roommatePreferences.userId],
+      references: [users.id],
+    }),
   }),
-}));
+);
 
-export const seasonalPricingRulesRelations = relations(seasonalPricingRules, ({ one, many }) => ({
-  property: one(properties, {
-    fields: [seasonalPricingRules.propertyId],
-    references: [properties.id],
+export const seasonalPricingRulesRelations = relations(
+  seasonalPricingRules,
+  ({ one, many }) => ({
+    property: one(properties, {
+      fields: [seasonalPricingRules.propertyId],
+      references: [properties.id],
+    }),
+    unit: one(units, {
+      fields: [seasonalPricingRules.unitId],
+      references: [units.id],
+    }),
+    suggestions: many(pricingSuggestions),
   }),
-  unit: one(units, {
-    fields: [seasonalPricingRules.unitId],
-    references: [units.id],
-  }),
-  suggestions: many(pricingSuggestions),
-}));
+);
 
-export const pricingAnalyticsRelations = relations(pricingAnalytics, ({ one }) => ({
-  property: one(properties, {
-    fields: [pricingAnalytics.propertyId],
-    references: [properties.id],
+export const pricingAnalyticsRelations = relations(
+  pricingAnalytics,
+  ({ one }) => ({
+    property: one(properties, {
+      fields: [pricingAnalytics.propertyId],
+      references: [properties.id],
+    }),
   }),
-}));
+);
 
-export const pricingSuggestionsRelations = relations(pricingSuggestions, ({ one }) => ({
-  property: one(properties, {
-    fields: [pricingSuggestions.propertyId],
-    references: [properties.id],
+export const pricingSuggestionsRelations = relations(
+  pricingSuggestions,
+  ({ one }) => ({
+    property: one(properties, {
+      fields: [pricingSuggestions.propertyId],
+      references: [properties.id],
+    }),
+    rule: one(seasonalPricingRules, {
+      fields: [pricingSuggestions.ruleId],
+      references: [seasonalPricingRules.id],
+    }),
   }),
-  rule: one(seasonalPricingRules, {
-    fields: [pricingSuggestions.ruleId],
-    references: [seasonalPricingRules.id],
-  }),
-}));
+);
 
 export const inspectionsRelations = relations(inspections, ({ one, many }) => ({
   booking: one(bookings, {
@@ -2020,25 +2181,31 @@ export const inspectionsRelations = relations(inspections, ({ one, many }) => ({
   damageReports: many(damageReports),
 }));
 
-export const inspectionItemsRelations = relations(inspectionItems, ({ one, many }) => ({
-  inspection: one(inspections, {
-    fields: [inspectionItems.inspectionId],
-    references: [inspections.id],
+export const inspectionItemsRelations = relations(
+  inspectionItems,
+  ({ one, many }) => ({
+    inspection: one(inspections, {
+      fields: [inspectionItems.inspectionId],
+      references: [inspections.id],
+    }),
+    photos: many(inspectionPhotos),
+    damageReports: many(damageReports),
   }),
-  photos: many(inspectionPhotos),
-  damageReports: many(damageReports),
-}));
+);
 
-export const inspectionPhotosRelations = relations(inspectionPhotos, ({ one }) => ({
-  inspection: one(inspections, {
-    fields: [inspectionPhotos.inspectionId],
-    references: [inspections.id],
+export const inspectionPhotosRelations = relations(
+  inspectionPhotos,
+  ({ one }) => ({
+    inspection: one(inspections, {
+      fields: [inspectionPhotos.inspectionId],
+      references: [inspections.id],
+    }),
+    item: one(inspectionItems, {
+      fields: [inspectionPhotos.itemId],
+      references: [inspectionItems.id],
+    }),
   }),
-  item: one(inspectionItems, {
-    fields: [inspectionPhotos.itemId],
-    references: [inspectionItems.id],
-  }),
-}));
+);
 
 export const damageReportsRelations = relations(damageReports, ({ one }) => ({
   inspection: one(inspections, {
@@ -2061,79 +2228,122 @@ export const damageReportsRelations = relations(damageReports, ({ one }) => ({
   }),
 }));
 
-export const inspectionTemplatesRelations = relations(inspectionTemplates, () => ({
-}));
+export const inspectionTemplatesRelations = relations(
+  inspectionTemplates,
+  () => ({}),
+);
 
-export const propertyComparisonsRelations = relations(propertyComparisons, ({ one }) => ({
-  user: one(users, {
-    fields: [propertyComparisons.userId],
-    references: [users.id],
+export const propertyComparisonsRelations = relations(
+  propertyComparisons,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [propertyComparisons.userId],
+      references: [users.id],
+    }),
   }),
-}));
+);
 
-export const neighborhoodInsightsRelations = relations(neighborhoodInsights, ({ one }) => ({
-  property: one(properties, {
-    fields: [neighborhoodInsights.propertyId],
-    references: [properties.id],
+export const neighborhoodInsightsRelations = relations(
+  neighborhoodInsights,
+  ({ one }) => ({
+    property: one(properties, {
+      fields: [neighborhoodInsights.propertyId],
+      references: [properties.id],
+    }),
+    submittedByUser: one(users, {
+      fields: [neighborhoodInsights.submittedBy],
+      references: [users.id],
+      relationName: "submittedBy",
+    }),
   }),
-  submittedByUser: one(users, {
-    fields: [neighborhoodInsights.submittedBy],
-    references: [users.id],
-    relationName: "submittedBy",
+);
+
+export const neighborhoodPlacesRelations = relations(
+  neighborhoodPlaces,
+  ({ one }) => ({
+    property: one(properties, {
+      fields: [neighborhoodPlaces.propertyId],
+      references: [properties.id],
+    }),
   }),
-}));
+);
 
-export const neighborhoodPlacesRelations = relations(neighborhoodPlaces, ({ one }) => ({
-  property: one(properties, {
-    fields: [neighborhoodPlaces.propertyId],
-    references: [properties.id],
+export const referrals = pgTable(
+  "referrals",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    referrerId: uuid("referrer_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    refereeId: uuid("referee_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    code: text("code").notNull(),
+    category: text("category", { enum: ["owner", "tenant"] })
+      .notNull()
+      .default("tenant"),
+    status: text("status", {
+      enum: [
+        "pending",
+        "verifying",
+        "eligible",
+        "failed",
+        "completed",
+        "cancelled",
+      ],
+    })
+      .notNull()
+      .default("pending"),
+    propertyId: uuid("property_id").references(() => properties.id),
+    baseAmount: numeric("base_amount", { precision: 12, scale: 2 }).default(
+      "0",
+    ),
+    commissionRate: numeric("commission_rate", {
+      precision: 5,
+      scale: 2,
+    }).default("0"),
+    commissionAmount: numeric("commission_amount", {
+      precision: 12,
+      scale: 2,
+    }).default("0"),
+    refereeTransactionId: uuid("referee_transaction_id"),
+    eligibleAt: timestamp("eligible_at", { mode: "date" }),
+    payoutScheduledAt: timestamp("payout_scheduled_at", { mode: "date" }),
+    voucherCode: text("voucher_code"),
+    offsetApplied: boolean("offset_applied").default(false),
+    tier: integer("tier").default(1),
+    metadata: jsonb("metadata").default({}),
+    completedAt: timestamp("completed_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    referrerIdx: index("referrals_referrer_id_idx").on(table.referrerId),
+    refereeIdx: index("referrals_referee_id_idx").on(table.refereeId),
+    codeIdx: uniqueIndex("referrals_code_idx").on(table.code),
   }),
-}));
+);
 
-export const referrals = pgTable("referrals", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  referrerId: uuid("referrer_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  refereeId: uuid("referee_id")
-    .references(() => users.id, { onDelete: "cascade" }),
-  code: text("code").notNull(),
-  category: text("category", { enum: ["owner", "tenant"] }).notNull().default("tenant"),
-  status: text("status", { enum: ["pending", "verifying", "eligible", "failed", "completed", "cancelled"] }).notNull().default("pending"),
-  propertyId: uuid("property_id").references(() => properties.id),
-  baseAmount: numeric("base_amount", { precision: 12, scale: 2 }).default("0"),
-  commissionRate: numeric("commission_rate", { precision: 5, scale: 2 }).default("0"),
-  commissionAmount: numeric("commission_amount", { precision: 12, scale: 2 }).default("0"),
-  refereeTransactionId: uuid("referee_transaction_id"),
-  eligibleAt: timestamp("eligible_at", { mode: "date" }),
-  payoutScheduledAt: timestamp("payout_scheduled_at", { mode: "date" }),
-  voucherCode: text("voucher_code"),
-  offsetApplied: boolean("offset_applied").default(false),
-  tier: integer("tier").default(1),
-  metadata: jsonb("metadata").default({}),
-  completedAt: timestamp("completed_at", { mode: "date" }),
-  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-}, (table) => ({
-  referrerIdx: index("referrals_referrer_id_idx").on(table.referrerId),
-  refereeIdx: index("referrals_referee_id_idx").on(table.refereeId),
-  codeIdx: uniqueIndex("referrals_code_idx").on(table.code),
-}));
-
-export const loyaltyTransactions = pgTable("loyalty_transactions", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  amount: integer("amount").notNull(),
-  type: text("type", { enum: ["earn", "redeem", "expire", "bonus"] }).notNull(),
-  description: text("description").notNull(),
-  referenceId: uuid("reference_id"),
-  referenceType: text("reference_type"),
-  expiresAt: timestamp("expires_at", { mode: "date" }),
-  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-}, (table) => ({
-  userIdIdx: index("loyalty_transactions_user_id_idx").on(table.userId),
-}));
+export const loyaltyTransactions = pgTable(
+  "loyalty_transactions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    amount: integer("amount").notNull(),
+    type: text("type", {
+      enum: ["earn", "redeem", "expire", "bonus"],
+    }).notNull(),
+    description: text("description").notNull(),
+    referenceId: uuid("reference_id"),
+    referenceType: text("reference_type"),
+    expiresAt: timestamp("expires_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("loyalty_transactions_user_id_idx").on(table.userId),
+  }),
+);
 
 export const rewards = pgTable("rewards", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -2145,20 +2355,26 @@ export const rewards = pgTable("rewards", {
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 });
 
-export const rewardRedemptions = pgTable("reward_redemptions", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  rewardId: uuid("reward_id")
-    .notNull()
-    .references(() => rewards.id, { onDelete: "cascade" }),
-  pointsUsed: integer("points_used").notNull(),
-  status: text("status", { enum: ["pending", "completed", "cancelled"] }).notNull().default("pending"),
-  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-}, (table) => ({
-  userIdIdx: index("reward_redemptions_user_id_idx").on(table.userId),
-}));
+export const rewardRedemptions = pgTable(
+  "reward_redemptions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    rewardId: uuid("reward_id")
+      .notNull()
+      .references(() => rewards.id, { onDelete: "cascade" }),
+    pointsUsed: integer("points_used").notNull(),
+    status: text("status", { enum: ["pending", "completed", "cancelled"] })
+      .notNull()
+      .default("pending"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("reward_redemptions_user_id_idx").on(table.userId),
+  }),
+);
 
 export const referralsRelations = relations(referrals, ({ one }) => ({
   referrer: one(users, {
@@ -2177,30 +2393,38 @@ export const referralsRelations = relations(referrals, ({ one }) => ({
   }),
 }));
 
-export const loyaltyTransactionsRelations = relations(loyaltyTransactions, ({ one }) => ({
-  user: one(users, {
-    fields: [loyaltyTransactions.userId],
-    references: [users.id],
+export const loyaltyTransactionsRelations = relations(
+  loyaltyTransactions,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [loyaltyTransactions.userId],
+      references: [users.id],
+    }),
   }),
-}));
+);
 
-export const rewardsRelations = relations(rewards, () => ({
-}));
+export const rewardsRelations = relations(rewards, () => ({}));
 
-export const rewardRedemptionsRelations = relations(rewardRedemptions, ({ one }) => ({
-  user: one(users, {
-    fields: [rewardRedemptions.userId],
-    references: [users.id],
+export const rewardRedemptionsRelations = relations(
+  rewardRedemptions,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [rewardRedemptions.userId],
+      references: [users.id],
+    }),
+    reward: one(rewards, {
+      fields: [rewardRedemptions.rewardId],
+      references: [rewards.id],
+    }),
   }),
-  reward: one(rewards, {
-    fields: [rewardRedemptions.rewardId],
-    references: [rewards.id],
-  }),
-}));
+);
 
-export const userNotificationPreferencesRelations = relations(userNotificationPreferences, ({ one }) => ({
-  user: one(users, {
-    fields: [userNotificationPreferences.userId],
-    references: [users.id],
+export const userNotificationPreferencesRelations = relations(
+  userNotificationPreferences,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userNotificationPreferences.userId],
+      references: [users.id],
+    }),
   }),
-}));
+);

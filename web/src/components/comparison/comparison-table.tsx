@@ -105,7 +105,11 @@ export function ComparisonTable({ propertyIds }: { propertyIds: string[] }) {
               ? property.images
               : property.metadata?.image
                 ? [property.metadata.image as string]
-                : [property.type === "kost" ? PLACEHOLDER_KOST : PLACEHOLDER_KONTRAKAN];
+                : [
+                    property.type === "kost"
+                      ? PLACEHOLDER_KOST
+                      : PLACEHOLDER_KONTRAKAN,
+                  ];
 
           const price = property.basePrice ? Number(property.basePrice) : null;
 
@@ -136,7 +140,11 @@ export function ComparisonTable({ propertyIds }: { propertyIds: string[] }) {
                 {property.amenities && property.amenities.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
                     {property.amenities.slice(0, 5).map((amenity) => (
-                      <Badge key={amenity} variant="outline" className="text-xs">
+                      <Badge
+                        key={amenity}
+                        variant="outline"
+                        className="text-xs"
+                      >
                         {amenity}
                       </Badge>
                     ))}
@@ -162,7 +170,10 @@ export function ComparisonTable({ propertyIds }: { propertyIds: string[] }) {
                 <tr className="border-b">
                   <th className="text-left py-3 px-4 font-medium">Kategori</th>
                   {properties.map((p) => (
-                    <th key={p.id} className="text-left py-3 px-4 font-medium min-w-[200px]">
+                    <th
+                      key={p.id}
+                      className="text-left py-3 px-4 font-medium min-w-[200px]"
+                    >
                       {p.name}
                     </th>
                   ))}
@@ -177,7 +188,9 @@ export function ComparisonTable({ propertyIds }: { propertyIds: string[] }) {
                     {properties.map((p) => (
                       <td key={p.id} className="py-3 px-4">
                         {category.key === "price" &&
-                          (p.basePrice ? formatCurrency(Number(p.basePrice)) : "-")}
+                          (p.basePrice
+                            ? formatCurrency(Number(p.basePrice))
+                            : "-")}
                         {category.key === "type" && (
                           <Badge variant="outline">
                             {p.type === "kost" ? "Kost" : "Kontrakan"}
@@ -193,7 +206,11 @@ export function ComparisonTable({ propertyIds }: { propertyIds: string[] }) {
                           <div className="flex flex-wrap gap-1">
                             {p.amenities?.length > 0 ? (
                               p.amenities.slice(0, 4).map((a) => (
-                                <Badge key={a} variant="secondary" className="text-xs">
+                                <Badge
+                                  key={a}
+                                  variant="secondary"
+                                  className="text-xs"
+                                >
                                   {a}
                                 </Badge>
                               ))

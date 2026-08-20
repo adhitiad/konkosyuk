@@ -72,22 +72,29 @@ export function PropertyCard({ property }: PropertyCardProps) {
                     priority={index === 0}
                   />
 
-                   {/* Badge Tipe Properti di atas gambar */}
-                   {index === 0 && (
-                     <Badge className="absolute top-3 left-3 bg-background/90 text-foreground backdrop-blur-sm border-0">
-                       {property.type === "kost" ? "Kost" : "Kontrakan"}
-                     </Badge>
-                   )}
+                  {/* Badge Tipe Properti di atas gambar */}
+                  {index === 0 && (
+                    <Badge className="absolute top-3 left-3 bg-background/90 text-foreground backdrop-blur-sm border-0">
+                      {property.type === "kost" ? "Kost" : "Kontrakan"}
+                    </Badge>
+                  )}
 
-                   {/* Seasonal Pricing Badge */}
-                   {index === 0 && property.hasSeasonalPricing && (
-                     <Badge variant="secondary" className="absolute top-3 left-3 mt-8 bg-orange-100 text-orange-700 border-orange-200">
-                       <HugeiconsIcon icon={Tag01Icon} strokeWidth={2} className="size-3 mr-1" />
-                       Harga Musiman
-                     </Badge>
-                   )}
+                  {/* Seasonal Pricing Badge */}
+                  {index === 0 && property.hasSeasonalPricing && (
+                    <Badge
+                      variant="secondary"
+                      className="absolute top-3 left-3 mt-8 bg-orange-100 text-orange-700 border-orange-200"
+                    >
+                      <HugeiconsIcon
+                        icon={Tag01Icon}
+                        strokeWidth={2}
+                        className="size-3 mr-1"
+                      />
+                      Harga Musiman
+                    </Badge>
+                  )}
 
-                   {/* Image Counter */}
+                  {/* Image Counter */}
                   {displayImages.length > 1 && (
                     <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/60 text-white text-xs rounded-md backdrop-blur-sm">
                       {index + 1} / {displayImages.length}

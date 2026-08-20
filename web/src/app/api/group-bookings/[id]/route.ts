@@ -1,6 +1,11 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { groupBookings, groupBookingMembers, bookings, properties } from "@/db/schema";
+import {
+  groupBookings,
+  groupBookingMembers,
+  bookings,
+  properties,
+} from "@/db/schema";
 import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
@@ -38,7 +43,10 @@ export async function GET(
       .where(eq(properties.id, groupBooking.propertyId))
       .limit(1);
 
-    if (session.user.role === "owner" && property?.ownerId !== session.user.id) {
+    if (
+      session.user.role === "owner" &&
+      property?.ownerId !== session.user.id
+    ) {
       return fail("Forbidden", 403);
     }
 
@@ -79,13 +87,17 @@ export async function PUT(
       .where(eq(properties.id, groupBooking.propertyId))
       .limit(1);
 
-    if (session.user.role === "owner" && property?.ownerId !== session.user.id) {
+    if (
+      session.user.role === "owner" &&
+      property?.ownerId !== session.user.id
+    ) {
       return fail("Forbidden", 403);
     }
 
     if (body.status === "confirmed" && groupBooking.status !== "confirmed") {
       const totalAmount = body.totalAmount ?? Number(groupBooking.totalAmount);
-      const depositAmount = body.depositAmount ?? Number(groupBooking.depositAmount);
+      const depositAmount =
+        body.depositAmount ?? Number(groupBooking.depositAmount);
 
       await db
         .update(groupBookings)
@@ -110,8 +122,10 @@ export async function PUT(
         .limit(1);
 
       for (const member of members) {
-        const memberShare = (Number(member.sharePercentage) / 100) * totalAmount;
-        const memberDeposit = (Number(member.sharePercentage) / 100) * depositAmount;
+        const memberShare =
+          (Number(member.sharePercentage) / 100) * totalAmount;
+        const memberDeposit =
+          (Number(member.sharePercentage) / 100) * depositAmount;
 
         await db.insert(bookings).values({
           userId: member.userId,
@@ -147,8 +161,12 @@ export async function PUT(
         .update(groupBookings)
         .set({
           ...(body.status !== undefined ? { status: body.status } : {}),
-          ...(body.totalAmount !== undefined ? { totalAmount: sql`${body.totalAmount}` } : {}),
-          ...(body.depositAmount !== undefined ? { depositAmount: sql`${body.depositAmount}` } : {}),
+          ...(body.totalAmount !== undefined
+            ? { totalAmount: sql`${body.totalAmount}` }
+            : {}),
+          ...(body.depositAmount !== undefined
+            ? { depositAmount: sql`${body.depositAmount}` }
+            : {}),
           ...(body.metadata !== undefined ? { metadata: body.metadata } : {}),
         })
         .where(eq(groupBookings.id, id))
@@ -188,7 +206,10 @@ export async function DELETE(
       return fail("Group booking tidak ditemukan", 404);
     }
 
-    if (groupBooking.leadUserId !== session.user.id && session.user.role !== "admin") {
+    if (
+      groupBooking.leadUserId !== session.user.id &&
+      session.user.role !== "admin"
+    ) {
       return fail("Forbidden", 403);
     }
 

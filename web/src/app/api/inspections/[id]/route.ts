@@ -1,6 +1,12 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { inspections, inspectionItems, inspectionPhotos, damageReports, properties } from "@/db/schema";
+import {
+  inspections,
+  inspectionItems,
+  inspectionPhotos,
+  damageReports,
+  properties,
+} from "@/db/schema";
 import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
@@ -47,7 +53,10 @@ export async function GET(
       return fail("Properti tidak ditemukan", 404);
     }
 
-    if (session.user.role === "cust" && inspection.performedBy !== session.user.id) {
+    if (
+      session.user.role === "cust" &&
+      inspection.performedBy !== session.user.id
+    ) {
       return fail("Forbidden", 403);
     }
 
@@ -109,23 +118,36 @@ export async function PUT(
       .where(eq(properties.id, inspection.propertyId))
       .limit(1);
 
-    if (!property || (session.user.role === "owner" && property.ownerId !== session.user.id)) {
+    if (
+      !property ||
+      (session.user.role === "owner" && property.ownerId !== session.user.id)
+    ) {
       return fail("Forbidden", 403);
     }
 
     const updateData: Record<string, unknown> = {};
 
     if (body.status !== undefined) updateData.status = body.status;
-    if (body.overallCondition !== undefined) updateData.overallCondition = body.overallCondition;
+    if (body.overallCondition !== undefined)
+      updateData.overallCondition = body.overallCondition;
     if (body.notes !== undefined) updateData.notes = body.notes;
-    if (body.damageScore !== undefined) updateData.damageScore = sql`${body.damageScore}`;
-    if (body.estimatedRepairCost !== undefined) updateData.estimatedRepairCost = sql`${body.estimatedRepairCost}`;
-    if (body.securityDeposit !== undefined) updateData.securityDeposit = sql`${body.securityDeposit}`;
-    if (body.refundAmount !== undefined) updateData.refundAmount = sql`${body.refundAmount}`;
+    if (body.damageScore !== undefined)
+      updateData.damageScore = sql`${body.damageScore}`;
+    if (body.estimatedRepairCost !== undefined)
+      updateData.estimatedRepairCost = sql`${body.estimatedRepairCost}`;
+    if (body.securityDeposit !== undefined)
+      updateData.securityDeposit = sql`${body.securityDeposit}`;
+    if (body.refundAmount !== undefined)
+      updateData.refundAmount = sql`${body.refundAmount}`;
     if (body.isDisputed !== undefined) updateData.isDisputed = body.isDisputed;
-    if (body.disputeReason !== undefined) updateData.disputeReason = body.disputeReason;
+    if (body.disputeReason !== undefined)
+      updateData.disputeReason = body.disputeReason;
 
-    if (body.status === "completed" || body.status === "move_in_done" || body.status === "move_out_done") {
+    if (
+      body.status === "completed" ||
+      body.status === "move_in_done" ||
+      body.status === "move_out_done"
+    ) {
       updateData.completedAt = sql`now()`;
     }
 
@@ -168,7 +190,10 @@ export async function DELETE(
       .where(eq(properties.id, inspection.propertyId))
       .limit(1);
 
-    if (!property || (session.user.role === "owner" && property.ownerId !== session.user.id)) {
+    if (
+      !property ||
+      (session.user.role === "owner" && property.ownerId !== session.user.id)
+    ) {
       return fail("Forbidden", 403);
     }
 

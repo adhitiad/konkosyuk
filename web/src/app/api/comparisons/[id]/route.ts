@@ -16,9 +16,7 @@ export async function GET(
     const [comparison] = await db
       .select()
       .from(propertyComparisons)
-      .where(
-        eq(propertyComparisons.id, id),
-      )
+      .where(eq(propertyComparisons.id, id))
       .limit(1);
 
     if (!comparison) {

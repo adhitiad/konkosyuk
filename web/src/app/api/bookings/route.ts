@@ -1,6 +1,12 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { bookings, units, properties, users, seasonalPricingRules } from "@/db/schema";
+import {
+  bookings,
+  units,
+  properties,
+  users,
+  seasonalPricingRules,
+} from "@/db/schema";
 import { bookingStatus } from "@/db/schema";
 import { eq, and, or, gte, lte, sql, desc, inArray } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
@@ -205,7 +211,10 @@ export async function POST(req: NextRequest) {
           ),
         ),
       )
-      .orderBy(desc(seasonalPricingRules.priority), desc(seasonalPricingRules.createdAt));
+      .orderBy(
+        desc(seasonalPricingRules.priority),
+        desc(seasonalPricingRules.createdAt),
+      );
 
     if (body.packageId === "custom" && property.packages.custom.enabled) {
       const customResult = calculateCustomPrice(

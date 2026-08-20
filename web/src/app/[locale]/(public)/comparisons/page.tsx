@@ -37,7 +37,11 @@ export default async function ComparisonsPage({
           nativeButton={false}
           className="mb-4"
         >
-          <HugeiconsIcon icon={ArrowLeftIcon} strokeWidth={2} className="size-4 mr-1" />
+          <HugeiconsIcon
+            icon={ArrowLeftIcon}
+            strokeWidth={2}
+            className="size-4 mr-1"
+          />
           Kembali ke Pencarian
         </Button>
         <h1 className="text-3xl font-bold tracking-tight">

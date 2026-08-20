@@ -3,7 +3,10 @@ import { db } from "@/db";
 import { seasonalPricingRules, properties } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
 import { ok, handleApiError, fail } from "@/lib/api";
-import { seasonalPricingRuleSchema, seasonalPricingQuerySchema } from "@/lib/zod";
+import {
+  seasonalPricingRuleSchema,
+  seasonalPricingQuerySchema,
+} from "@/lib/zod";
 import { eq, and, desc, sql, inArray } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {

@@ -1,5 +1,9 @@
 import { db } from "@/db";
-import { notifications, pushSubscriptions, notificationType } from "@/db/schema";
+import {
+  notifications,
+  pushSubscriptions,
+  notificationType,
+} from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import webpush from "web-push";
 
@@ -11,7 +15,7 @@ webpush.setVapidDetails(
 
 export async function createNotification(
   userId: string,
-  type: typeof notificationType[number],
+  type: (typeof notificationType)[number],
   title: string,
   message: string,
   referenceId?: string,

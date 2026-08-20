@@ -69,9 +69,15 @@ export function ComparisonBar() {
     <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-4xl">
       <Card className="p-4 shadow-lg">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold">Bandingkan Properti ({items.length}/{MAX_COMPARE})</h3>
+          <h3 className="font-semibold">
+            Bandingkan Properti ({items.length}/{MAX_COMPARE})
+          </h3>
           <Button variant="ghost" size="sm" onClick={clearAll}>
-            <HugeiconsIcon icon={CancelCircleIcon} strokeWidth={2} className="size-4 mr-1" />
+            <HugeiconsIcon
+              icon={CancelCircleIcon}
+              strokeWidth={2}
+              className="size-4 mr-1"
+            />
             Hapus Semua
           </Button>
         </div>
@@ -94,12 +100,18 @@ export function ComparisonBar() {
                   className="absolute top-1 right-1 bg-black/50 hover:bg-black/70 text-white"
                   onClick={() => removeItem(item.id)}
                 >
-                  <HugeiconsIcon icon={CancelCircleIcon} strokeWidth={2} className="size-3" />
+                  <HugeiconsIcon
+                    icon={CancelCircleIcon}
+                    strokeWidth={2}
+                    className="size-3"
+                  />
                 </Button>
               </div>
               <div className="p-2">
                 <p className="text-xs font-medium truncate">{item.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{item.address}</p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {item.address}
+                </p>
               </div>
             </div>
           ))}
@@ -110,7 +122,11 @@ export function ComparisonBar() {
           </Button>
           <Button
             size="sm"
-            render={<Link href={`/comparisons?ids=${items.map((i) => i.id).join(",")}`} />}
+            render={
+              <Link
+                href={`/comparisons?ids=${items.map((i) => i.id).join(",")}`}
+              />
+            }
             nativeButton={false}
             disabled={items.length < 2}
           >

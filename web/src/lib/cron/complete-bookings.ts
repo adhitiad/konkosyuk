@@ -21,12 +21,7 @@ export async function completeExpiredBookings(): Promise<CompleteBookingsResult>
   const expiredBookings = await db
     .select()
     .from(bookings)
-    .where(
-      and(
-        eq(bookings.status, "confirmed"),
-        lt(bookings.endDate, now),
-      ),
-    )
+    .where(and(eq(bookings.status, "confirmed"), lt(bookings.endDate, now)))
     .orderBy(desc(bookings.createdAt));
 
   if (expiredBookings.length === 0) {
@@ -53,10 +48,7 @@ export async function completeExpiredBookings(): Promise<CompleteBookingsResult>
         updatedAt: now,
       })
       .where(
-        and(
-          eq(bookings.status, "confirmed"),
-          inArray(bookings.id, bookingIds),
-        ),
+        and(eq(bookings.status, "confirmed"), inArray(bookings.id, bookingIds)),
       );
 
     if (unitIds.length > 0) {
@@ -69,7 +61,9 @@ export async function completeExpiredBookings(): Promise<CompleteBookingsResult>
         .where(and(eq(units.status, "booked"), inArray(units.id, unitIds)));
     }
 
-    const propertyIds = Array.from(new Set(expiredBookings.map((b) => b.propertyId)));
+    const propertyIds = Array.from(
+      new Set(expiredBookings.map((b) => b.propertyId)),
+    );
     const propertiesMap = new Map();
 
     if (propertyIds.length > 0) {
@@ -106,7 +100,10 @@ export async function completeExpiredBookings(): Promise<CompleteBookingsResult>
         });
         inspectionCreatedCount++;
       } catch (error) {
-        console.error(`Failed to create move-out inspection for booking ${booking.id}:`, error);
+        console.error(
+          `Failed to create move-out inspection for booking ${booking.id}:`,
+          error,
+        );
       }
     }
   });

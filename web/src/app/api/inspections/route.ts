@@ -62,7 +62,12 @@ export async function GET(req: NextRequest) {
       conditions.push(eq(inspections.type, type));
     }
     if (status) {
-      conditions.push(eq(inspections.status, status as "pending" | "in_progress" | "completed" | "disputed"));
+      conditions.push(
+        eq(
+          inspections.status,
+          status as "pending" | "in_progress" | "completed" | "disputed",
+        ),
+      );
     }
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;
@@ -174,7 +179,10 @@ export async function POST(req: NextRequest) {
         referenceId: inspection.id,
         referenceType: "inspection",
       }).catch((err) =>
-        console.error("Failed to dispatch inspection created notification:", err),
+        console.error(
+          "Failed to dispatch inspection created notification:",
+          err,
+        ),
       );
     }
 

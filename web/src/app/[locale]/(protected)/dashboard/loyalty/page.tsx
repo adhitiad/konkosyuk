@@ -6,12 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
 import { Gift, History, Star, CheckCircle2, XCircle } from "lucide-react";
 import { apiClient } from "@/lib/axios";
@@ -52,7 +47,12 @@ export default function LoyaltyPage() {
       const res = await apiClient.get("/loyalty/transactions");
       return res.data.data as {
         data: LoyaltyTransaction[];
-        meta: { page: number; limit: number; total: number; totalPages: number };
+        meta: {
+          page: number;
+          limit: number;
+          total: number;
+          totalPages: number;
+        };
         balance: number;
       };
     },
@@ -88,9 +88,7 @@ export default function LoyaltyPage() {
     <div className="container py-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Loyalty</h1>
-        <p className="text-muted-foreground">
-          Kumpulkan poin dan tebus reward
-        </p>
+        <p className="text-muted-foreground">Kumpulkan poin dan tebus reward</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -100,7 +98,9 @@ export default function LoyaltyPage() {
             <Star className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{balance.toLocaleString("id-ID")}</div>
+            <div className="text-2xl font-bold">
+              {balance.toLocaleString("id-ID")}
+            </div>
             <p className="text-xs text-muted-foreground">
               Poin loyalty tersedia
             </p>
@@ -109,7 +109,9 @@ export default function LoyaltyPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Transaksi</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Transaksi
+            </CardTitle>
             <History className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -122,11 +124,15 @@ export default function LoyaltyPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Reward Tersedia</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Reward Tersedia
+            </CardTitle>
             <Gift className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{rewards.filter((r) => r.isActive).length}</div>
+            <div className="text-2xl font-bold">
+              {rewards.filter((r) => r.isActive).length}
+            </div>
             <p className="text-xs text-muted-foreground">
               Reward yang bisa ditebus
             </p>
@@ -185,13 +191,20 @@ export default function LoyaltyPage() {
                               </Badge>
                             </div>
                             <p className="text-sm text-muted-foreground">
-                              {format(new Date(tx.createdAt), "dd MMM yyyy HH:mm", { locale: idLocale })}
+                              {format(
+                                new Date(tx.createdAt),
+                                "dd MMM yyyy HH:mm",
+                                { locale: idLocale },
+                              )}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className={`font-medium ${tx.amount > 0 ? "text-green-600" : "text-destructive"}`}>
-                            {tx.amount > 0 ? "+" : ""}{tx.amount.toLocaleString("id-ID")} poin
+                          <p
+                            className={`font-medium ${tx.amount > 0 ? "text-green-600" : "text-destructive"}`}
+                          >
+                            {tx.amount > 0 ? "+" : ""}
+                            {tx.amount.toLocaleString("id-ID")} poin
                           </p>
                         </div>
                       </div>
@@ -238,12 +251,18 @@ export default function LoyaltyPage() {
                             {reward.pointsCost.toLocaleString("id-ID")} poin
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Nilai: {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(Number(reward.value))}
+                            Nilai:{" "}
+                            {new Intl.NumberFormat("id-ID", {
+                              style: "currency",
+                              currency: "IDR",
+                            }).format(Number(reward.value))}
                           </p>
                         </div>
                         <Button
                           size="sm"
-                          disabled={!reward.isActive || balance < reward.pointsCost}
+                          disabled={
+                            !reward.isActive || balance < reward.pointsCost
+                          }
                           onClick={() => redeemMutation.mutate(reward.id)}
                         >
                           {reward.isActive ? "Tebus" : "Nonaktif"}
