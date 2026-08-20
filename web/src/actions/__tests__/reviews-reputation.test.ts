@@ -2,16 +2,18 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createReviewAction } from "@/actions/reviews";
 import { bookings, reviews } from "@/db/schema";
 
-const mockReviews: Array<{
+interface MockReview {
   id: string;
   createdById: string;
-  reviewedUserId: string;
+  reviewedUserId: string | undefined;
   propertyId: string;
   type: string;
   rating: string;
   comment: string;
   bookingId: string;
-}> = [];
+}
+
+const mockReviews: MockReview[] = [];
 
 const mockUsers = new Map<string, { reputationScore: string }>();
 
@@ -41,17 +43,19 @@ function createMockTx() {
       mockReviews.push(review);
       return createMockTx();
     }),
-    returning: vi.fn().mockResolvedValue([{
-      id: "review-new",
-      createdById: "reviewer-1",
-      reviewedUserId: "user-1",
-      propertyId: "prop-1",
-      type: "tenant",
-      rating: "4",
-      comment: "Good",
-      bookingId: "booking-1",
-    }]),
-    execute: vi.fn().mockImplementation(async (sql: string) => {
+    returning: vi.fn().mockResolvedValue([
+      {
+        id: "review-new",
+        createdById: "reviewer-1",
+        reviewedUserId: "user-1",
+        propertyId: "prop-1",
+        type: "tenant",
+        rating: "4",
+        comment: "Good",
+        bookingId: "booking-1",
+      },
+    ]),
+    execute: vi.fn().mockImplementation(async () => {
       const userId = capturedUserId;
       if (!userId) return;
 
@@ -63,10 +67,7 @@ function createMockTx() {
         return;
       }
 
-      const sum = userReviews.reduce(
-        (acc, r) => acc + Number(r.rating),
-        0,
-      );
+      const sum = userReviews.reduce((acc, r) => acc + Number(r.rating), 0);
       const avg = sum / userReviews.length;
       const formatted = avg.toFixed(2);
       mockUsers.set(userId, { reputationScore: formatted });
@@ -80,7 +81,8 @@ const mockDb = vi.hoisted(() => ({
   from: vi.fn().mockReturnThis(),
   where: vi.fn().mockReturnThis(),
   limit: vi.fn().mockImplementation(async () => {
-    const lastTable = (mockDb as unknown as { _currentTable?: string })._currentTable;
+    const lastTable = (mockDb as unknown as { _currentTable?: string })
+      ._currentTable;
     if (lastTable === "bookings") {
       return [
         {
@@ -95,7 +97,9 @@ const mockDb = vi.hoisted(() => ({
       ];
     }
     if (lastTable === "reviews") {
-      return mockReviews.filter((r) => r.bookingId === "550e8400-e29b-41d4-a716-446655440000");
+      return mockReviews.filter(
+        (r) => r.bookingId === "550e8400-e29b-41d4-a716-446655440000",
+      );
     }
     return [];
   }),
@@ -110,7 +114,8 @@ const mockDb = vi.hoisted(() => ({
 
 mockDb.from.mockImplementation((table: unknown) => {
   if (table === bookings) {
-    (mockDb as unknown as { _currentTable?: string })._currentTable = "bookings";
+    (mockDb as unknown as { _currentTable?: string })._currentTable =
+      "bookings";
   } else if (table === reviews) {
     (mockDb as unknown as { _currentTable?: string })._currentTable = "reviews";
   }
@@ -125,7 +130,12 @@ vi.mock("@/lib/auth", () => ({
   auth: {
     api: {
       getSession: vi.fn().mockResolvedValue({
-        user: { id: "reviewer-1", role: "owner", name: "Test", phone: "08123456789" },
+        user: {
+          id: "reviewer-1",
+          role: "owner",
+          name: "Test",
+          phone: "08123456789",
+        },
       }),
     },
   },
@@ -145,17 +155,22 @@ describe("createReviewAction reputation calculation", () => {
     vi.clearAllMocks();
   });
 
-  async function callAction(overrides: {
-    rating?: number;
-    reviewedUserId?: string;
-    type?: "tenant" | "property";
-    bookingId?: string;
-  } = {}) {
+  async function callAction(
+    overrides: {
+      rating?: number;
+      reviewedUserId?: string;
+      type?: "tenant" | "property";
+      bookingId?: string;
+    } = {},
+  ) {
     const formData = new FormData();
     formData.append("type", overrides.type ?? "tenant");
     formData.append("rating", String(overrides.rating ?? 4));
     formData.append("comment", "Nice place");
-    formData.append("bookingId", overrides.bookingId ?? "550e8400-e29b-41d4-a716-446655440000");
+    formData.append(
+      "bookingId",
+      overrides.bookingId ?? "550e8400-e29b-41d4-a716-446655440000",
+    );
     if (overrides.reviewedUserId) {
       formData.append("reviewedUserId", overrides.reviewedUserId);
     }
@@ -164,47 +179,119 @@ describe("createReviewAction reputation calculation", () => {
   }
 
   it("calculates reputation score correctly for first review", async () => {
-    mockUsers.set("550e8400-e29b-41d4-a716-446655440001", { reputationScore: "0.00" });
+    mockUsers.set("550e8400-e29b-41d4-a716-446655440001", {
+      reputationScore: "0.00",
+    });
 
-    const result = await callAction({ rating: 4, reviewedUserId: "550e8400-e29b-41d4-a716-446655440001" });
+    const result = await callAction({
+      rating: 4,
+      reviewedUserId: "550e8400-e29b-41d4-a716-446655440001",
+    });
 
     expect(result.success).toBe(true);
-    expect(mockUsers.get("550e8400-e29b-41d4-a716-446655440001")?.reputationScore).toBe("4.00");
+    expect(
+      mockUsers.get("550e8400-e29b-41d4-a716-446655440001")?.reputationScore,
+    ).toBe("4.00");
   });
 
   it("calculates average of all tenant reviews", async () => {
-    mockUsers.set("550e8400-e29b-41d4-a716-446655440002", { reputationScore: "0.00" });
+    mockUsers.set("550e8400-e29b-41d4-a716-446655440002", {
+      reputationScore: "0.00",
+    });
     mockReviews.push(
-      { id: "r1", createdById: "other", reviewedUserId: "550e8400-e29b-41d4-a716-446655440002", propertyId: "prop-1", type: "tenant", rating: "3", comment: "OK", bookingId: "old-booking-1" },
-      { id: "r2", createdById: "other", reviewedUserId: "550e8400-e29b-41d4-a716-446655440002", propertyId: "prop-1", type: "tenant", rating: "5", comment: "Great", bookingId: "old-booking-2" },
+      {
+        id: "r1",
+        createdById: "other",
+        reviewedUserId: "550e8400-e29b-41d4-a716-446655440002",
+        propertyId: "prop-1",
+        type: "tenant",
+        rating: "3",
+        comment: "OK",
+        bookingId: "old-booking-1",
+      },
+      {
+        id: "r2",
+        createdById: "other",
+        reviewedUserId: "550e8400-e29b-41d4-a716-446655440002",
+        propertyId: "prop-1",
+        type: "tenant",
+        rating: "5",
+        comment: "Great",
+        bookingId: "old-booking-2",
+      },
     );
 
-    await callAction({ rating: 4, reviewedUserId: "550e8400-e29b-41d4-a716-446655440002" });
+    await callAction({
+      rating: 4,
+      reviewedUserId: "550e8400-e29b-41d4-a716-446655440002",
+    });
 
-    expect(mockUsers.get("550e8400-e29b-41d4-a716-446655440002")?.reputationScore).toBe("4.00");
+    expect(
+      mockUsers.get("550e8400-e29b-41d4-a716-446655440002")?.reputationScore,
+    ).toBe("4.00");
   });
 
   it("handles decimal average correctly", async () => {
-    mockUsers.set("550e8400-e29b-41d4-a716-446655440003", { reputationScore: "0.00" });
+    mockUsers.set("550e8400-e29b-41d4-a716-446655440003", {
+      reputationScore: "0.00",
+    });
     mockReviews.push(
-      { id: "r1", createdById: "other", reviewedUserId: "550e8400-e29b-41d4-a716-446655440003", propertyId: "prop-1", type: "tenant", rating: "3", comment: "OK", bookingId: "old-booking-1" },
-      { id: "r2", createdById: "other", reviewedUserId: "550e8400-e29b-41d4-a716-446655440003", propertyId: "prop-1", type: "tenant", rating: "4", comment: "Good", bookingId: "old-booking-2" },
+      {
+        id: "r1",
+        createdById: "other",
+        reviewedUserId: "550e8400-e29b-41d4-a716-446655440003",
+        propertyId: "prop-1",
+        type: "tenant",
+        rating: "3",
+        comment: "OK",
+        bookingId: "old-booking-1",
+      },
+      {
+        id: "r2",
+        createdById: "other",
+        reviewedUserId: "550e8400-e29b-41d4-a716-446655440003",
+        propertyId: "prop-1",
+        type: "tenant",
+        rating: "4",
+        comment: "Good",
+        bookingId: "old-booking-2",
+      },
     );
 
-    await callAction({ rating: 5, reviewedUserId: "550e8400-e29b-41d4-a716-446655440003" });
+    await callAction({
+      rating: 5,
+      reviewedUserId: "550e8400-e29b-41d4-a716-446655440003",
+    });
 
-    expect(mockUsers.get("550e8400-e29b-41d4-a716-446655440003")?.reputationScore).toBe("4.00");
+    expect(
+      mockUsers.get("550e8400-e29b-41d4-a716-446655440003")?.reputationScore,
+    ).toBe("4.00");
   });
 
   it("does not modify reputation for non-tenant review", async () => {
-    mockUsers.set("550e8400-e29b-41d4-a716-446655440004", { reputationScore: "4.00" });
-    mockReviews.push(
-      { id: "r1", createdById: "other", reviewedUserId: "550e8400-e29b-41d4-a716-446655440004", propertyId: "prop-1", type: "tenant", rating: "3", comment: "OK", bookingId: "old-booking-1" },
-    );
+    mockUsers.set("550e8400-e29b-41d4-a716-446655440004", {
+      reputationScore: "4.00",
+    });
+    mockReviews.push({
+      id: "r1",
+      createdById: "other",
+      reviewedUserId: "550e8400-e29b-41d4-a716-446655440004",
+      propertyId: "prop-1",
+      type: "tenant",
+      rating: "3",
+      comment: "OK",
+      bookingId: "old-booking-1",
+    });
 
-    await callAction({ rating: 5, reviewedUserId: "550e8400-e29b-41d4-a716-446655440004", type: "property" });
+    await callAction({
+      rating: 5,
+      reviewedUserId: "550e8400-e29b-41d4-a716-446655440004",
+      type: "property",
+    });
 
-    expect(mockUsers.get("550e8400-e29b-41d4-a716-446655440004")?.reputationScore).toBe("4.00");
+    expect(
+      mockUsers.get("550e8400-e29b-41d4-a716-446655440004")?.reputationScore,
+    ).toBe("4.00");
     expect(mockDb.transaction).not.toHaveBeenCalled();
   });
 });

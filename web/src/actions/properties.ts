@@ -81,7 +81,13 @@ export async function createPropertyAction(
     const packagesRaw = formData.get("packages") as string | null;
     let packages = undefined;
     if (packagesRaw) {
-      packages = JSON.parse(packagesRaw) as PropertyPackages;
+      try {
+        packages = JSON.parse(packagesRaw) as PropertyPackages;
+      } catch {
+        throw new Error(
+          "Field packages berisi JSON tidak valid. Pastikan client mengirim JSON.stringify(object)",
+        );
+      }
     }
 
     const amenities = parseJsonArrayField(
@@ -216,7 +222,13 @@ export async function updatePropertyAction(
     const packagesRaw = formData.get("packages") as string | null;
     let packages: PropertyPackages | undefined = undefined;
     if (packagesRaw) {
-      packages = JSON.parse(packagesRaw) as PropertyPackages;
+      try {
+        packages = JSON.parse(packagesRaw) as PropertyPackages;
+      } catch {
+        throw new Error(
+          "Field packages berisi JSON tidak valid. Pastikan client mengirim JSON.stringify(object)",
+        );
+      }
     }
 
     const amenities = parseJsonArrayField(

@@ -92,6 +92,15 @@ export default function AddPropertyDialog() {
   );
 
   useEffect(() => {
+    const amenitiesInput = document.getElementById(
+      "property-amenities",
+    ) as HTMLInputElement | null;
+    if (amenitiesInput) {
+      amenitiesInput.value = JSON.stringify(amenities);
+    }
+  }, [amenities]);
+
+  useEffect(() => {
     const imagesInput = document.getElementById(
       "property-images",
     ) as HTMLInputElement | null;
@@ -186,6 +195,7 @@ export default function AddPropertyDialog() {
               <Label htmlFor="title">Judul Properti *</Label>
               <Input
                 id="title"
+                name="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Contoh: Kost Melati"
@@ -212,11 +222,13 @@ export default function AddPropertyDialog() {
                     ))}
                   </SelectContent>
                 </Select>
+                <input type="hidden" name="type" value={type} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="description">Deskripsi</Label>
                 <Textarea
                   id="description"
+                  name="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Deskripsi singkat properti..."
@@ -237,6 +249,7 @@ export default function AddPropertyDialog() {
                 <Label htmlFor="province">Provinsi (Opsional)</Label>
                 <Input
                   id="province"
+                  name="province"
                   value={province}
                   onChange={(e) => setProvince(e.target.value)}
                   placeholder="Contoh: DKI Jakarta"
@@ -246,6 +259,7 @@ export default function AddPropertyDialog() {
                 <Label htmlFor="city">Kota *</Label>
                 <Input
                   id="city"
+                  name="city"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder="Contoh: Jakarta Selatan"
@@ -258,6 +272,7 @@ export default function AddPropertyDialog() {
                 <Label htmlFor="district">Kecamatan (Opsional)</Label>
                 <Input
                   id="district"
+                  name="district"
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}
                   placeholder="Contoh: Menteng"
@@ -267,6 +282,7 @@ export default function AddPropertyDialog() {
                 <Label htmlFor="address">Alamat *</Label>
                 <Input
                   id="address"
+                  name="address"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Contoh: Jl. Sudirman No. 123"
@@ -290,6 +306,7 @@ export default function AddPropertyDialog() {
                 <Label htmlFor="latitude">Latitude (Opsional)</Label>
                 <Input
                   id="latitude"
+                  name="latitude"
                   type="number"
                   value={latitude}
                   onChange={(e) => setLatitude(e.target.value)}
@@ -301,6 +318,7 @@ export default function AddPropertyDialog() {
                 <Label htmlFor="longitude">Longitude (Opsional)</Label>
                 <Input
                   id="longitude"
+                  name="longitude"
                   type="number"
                   value={longitude}
                   onChange={(e) => setLongitude(e.target.value)}
@@ -334,6 +352,7 @@ export default function AddPropertyDialog() {
               <Label htmlFor="basePrice">Harga Dasar (Opsional)</Label>
               <Input
                 id="basePrice"
+                name="basePrice"
                 type="number"
                 value={basePrice}
                 onChange={(e) => setBasePrice(e.target.value)}
@@ -411,6 +430,8 @@ export default function AddPropertyDialog() {
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <input
                 type="checkbox"
+                name="isActive"
+                value="true"
                 checked={isActive}
                 onChange={(e) => setIsActive(e.target.checked)}
               />
@@ -424,6 +445,7 @@ export default function AddPropertyDialog() {
               <Label htmlFor="icalImportUrl">ICAL Import URL (Opsional)</Label>
               <Input
                 id="icalImportUrl"
+                name="icalImportUrl"
                 value={icalImportUrl}
                 onChange={(e) => setIcalImportUrl(e.target.value)}
                 placeholder="https://example.com/calendar.ics"
@@ -447,6 +469,12 @@ export default function AddPropertyDialog() {
           id="property-packages"
           name="packages"
           value={JSON.stringify(packages)}
+        />
+        <input
+          type="hidden"
+          id="property-amenities"
+          name="amenities"
+          value={JSON.stringify(amenities)}
         />
 
         <div className="flex justify-end gap-3 pt-4 border-t">

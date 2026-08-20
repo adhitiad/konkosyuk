@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { validateCsrfToken, getCsrfToken } from "@/lib/csrf";
+import type { NextRequest } from "next/server";
 
 function createMockRequest(opts: {
   cookieToken?: string | null;
@@ -7,7 +8,7 @@ function createMockRequest(opts: {
 }) {
   return {
     cookies: {
-      get: (_name: string) => {
+      get: () => {
         if (opts.cookieToken === undefined || opts.cookieToken === null) {
           return undefined;
         }
@@ -15,7 +16,7 @@ function createMockRequest(opts: {
       },
     },
     headers: {
-      get: (_name: string) => opts.headerToken ?? null,
+      get: () => opts.headerToken ?? null,
     },
   } as unknown as NextRequest;
 }
