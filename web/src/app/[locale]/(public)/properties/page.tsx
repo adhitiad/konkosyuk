@@ -25,8 +25,8 @@ import {
   MapsIcon,
   ViewAgendaIcon,
 } from "@hugeicons/core-free-icons";
-import LocationFinder from "@/components/location-finder";
-import { PropertyCard } from "@/components/property-card";
+import LocationFinder from "@/components/property/location-finder";
+import { PropertyCard } from "@/components/property/property-card";
 
 const MapView = dynamic(() => import("@/components/map-view"), { ssr: false });
 

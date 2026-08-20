@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { PropertyCard } from "@/components/property-card";
+import { PropertyCard } from "@/components/property/property-card";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/config";
 import { Skeleton } from "@/components/ui/skeleton";

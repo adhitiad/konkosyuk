@@ -73,21 +73,21 @@ export async function createPropertyAction(
       }
     }
 
-    const images = parseJsonArrayField(formData, "images");
+    const images = parseJsonArrayField(
+      formData.get("images") as string | null,
+      "images",
+    );
 
-    const packagesRaw = formData.get("packages");
+    const packagesRaw = formData.get("packages") as string | null;
     let packages = undefined;
     if (packagesRaw) {
-      try {
-        packages = JSON.parse(packagesRaw as string);
-      } catch {
-        throw new Error(
-          `Field packages berisi JSON tidak valid: "${(packagesRaw as string).slice(0, 50)}"`,
-        );
-      }
+      packages = JSON.parse(packagesRaw) as PropertyPackages;
     }
 
-    const amenities = parseJsonArrayField(formData, "amenities");
+    const amenities = parseJsonArrayField(
+      formData.get("amenities") as string | null,
+      "amenities",
+    );
 
     const validated = createPropertySchema.parse({
       title: formData.get("title"),
@@ -208,21 +208,21 @@ export async function updatePropertyAction(
       return { error: "Dilarang", success: false };
     }
 
-    const images = parseJsonArrayField(formData, "images");
+    const images = parseJsonArrayField(
+      formData.get("images") as string | null,
+      "images",
+    );
 
-    const packagesRaw = formData.get("packages");
+    const packagesRaw = formData.get("packages") as string | null;
     let packages: PropertyPackages | undefined = undefined;
     if (packagesRaw) {
-      try {
-        packages = JSON.parse(packagesRaw as string);
-      } catch {
-        throw new Error(
-          `Field packages berisi JSON tidak valid: "${(packagesRaw as string).slice(0, 50)}"`,
-        );
-      }
+      packages = JSON.parse(packagesRaw) as PropertyPackages;
     }
 
-    const amenities = parseJsonArrayField(formData, "amenities");
+    const amenities = parseJsonArrayField(
+      formData.get("amenities") as string | null,
+      "amenities",
+    );
 
     const metadataRaw = formData.get("metadata");
     let metadata: Record<string, unknown> | undefined = undefined;

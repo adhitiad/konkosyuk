@@ -359,12 +359,12 @@ export async function createReviewAction(
       if (validated.type === "tenant" && reviewedUserId) {
         await tx.execute(sql`
           UPDATE users
-          SET reputation_score = (
+          SET reputation_score = COALESCE((
             SELECT AVG(${reviews.rating})
             FROM reviews
             WHERE reviewed_user_id = ${reviewedUserId}
               AND type = 'tenant'
-          )
+          ), 0)
           WHERE id = ${reviewedUserId}
         `);
       }

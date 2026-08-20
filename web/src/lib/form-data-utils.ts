@@ -1,18 +1,20 @@
 export function parseJsonArrayField(
-  formData: FormData,
-  key: string,
-): unknown[] {
-  const raw = formData.get(key);
-  if (typeof raw !== "string" || raw.length === 0) return [];
+  value: string | null,
+  fieldName: string,
+): string[] {
+  if (!value || value.trim() === "") return [];
   try {
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse(value);
     if (!Array.isArray(parsed)) {
-      throw new Error(`${key} harus array JSON`);
+      throw new Error(`${fieldName} harus berupa array JSON`);
     }
-    return parsed;
-  } catch {
-    throw new Error(
-      `Field ${key} berisi JSON tidak valid: "${raw.slice(0, 50)}"`,
-    );
+    return parsed as string[];
+  } catch (e) {
+    if (e instanceof SyntaxError) {
+      throw new Error(
+        `${fieldName}: format JSON tidak valid. Pastikan client mengirim JSON.stringify(array)`,
+      );
+    }
+    throw e;
   }
 }
