@@ -136,7 +136,7 @@ export default function ReferralsPage() {
   const referrals = data?.data || [];
   const totalCompleted = data?.completedCount || 0;
   const currentTier = data?.tier || 1;
-  const tierProgress = getTierProgress(totalCompleted, "tenant");
+  const tierProgress = getTierProgress(totalCompleted);
 
   const totalCommission = referrals
     .filter((r) => r.status === "completed")

@@ -83,8 +83,8 @@ export async function createGroupBookingAction(
           propertyId: validated.propertyId,
           unitId: validated.unitId,
           status: "pending",
-          totalAmount: 0,
-          depositAmount: 0,
+          totalAmount: "0",
+          depositAmount: "0",
           startDate: new Date(validated.startDate),
           endDate: new Date(validated.endDate),
           metadata: validated.metadata || {},
@@ -94,9 +94,9 @@ export async function createGroupBookingAction(
       await tx.insert(groupBookingMembers).values({
         groupBookingId: gb.id,
         userId: session.user.id,
-        sharePercentage: sharePercentage,
-        shareAmount: 0,
-        paidAmount: 0,
+        sharePercentage: sharePercentage.toString(),
+        shareAmount: "0",
+        paidAmount: "0",
         status: "accepted",
       } satisfies GroupBookingMemberInsert);
 
@@ -114,9 +114,9 @@ export async function createGroupBookingAction(
         await db.insert(groupBookingMembers).values({
           groupBookingId: groupBooking.id,
           userId: user.id,
-          sharePercentage: sharePercentage,
-          shareAmount: 0,
-          paidAmount: 0,
+          sharePercentage: sharePercentage.toString(),
+          shareAmount: "0",
+          paidAmount: "0",
           status: "invited",
         } satisfies GroupBookingMemberInsert);
 

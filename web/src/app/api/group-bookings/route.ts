@@ -1,10 +1,10 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { groupBookings, groupBookingMembers, users, properties, units } from "@/db/schema";
+import { groupBookings, groupBookingMembers, users, properties, units, type GroupBookingInsert, type GroupBookingMemberInsert } from "@/db/schema";
 import { requireSession, Role } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
-import { eq, desc, and, sql, or } from "drizzle-orm";
+import { eq, desc, and, sql, or, inArray } from "drizzle-orm";
 import { dispatchGroupBookingInvite } from "@/lib/notification-service";
 
 const createGroupBookingSchema = z.object({

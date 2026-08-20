@@ -166,14 +166,15 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PUT(req: NextRequest) {
   try {
     const session = await requireSession();
-    const { id } = await params;
-    const body = await req.json();
+    const body = await req.json() as { id?: string; action?: string };
+
+    const id = body.id;
+    if (!id) {
+      return fail("ID referral diperlukan", 400);
+    }
 
     const [referral] = await db
       .select()

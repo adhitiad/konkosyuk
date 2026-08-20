@@ -7,6 +7,13 @@ interface LedgerEntry {
   credit: string;
 }
 
+interface Refund {
+  id: string;
+  invoiceNumber: string;
+  amount: number;
+  paidAt: string;
+}
+
 const mockDb = vi.hoisted(() => ({
   select: vi.fn().mockReturnThis(),
   from: vi.fn().mockReturnThis(),

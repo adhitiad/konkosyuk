@@ -6,8 +6,7 @@ import { toast } from "@/components/ui/toast";
 import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { uploadImageAction, type UploadImageState } from "@/actions/upload";
-import { useActionState } from "react";
+import { uploadImageAction } from "@/actions/upload";
 
 interface InspectionPhotoUploadProps {
   photos: string[];
@@ -21,7 +20,6 @@ export function InspectionPhotoUpload({
   maxPhotos = 10,
 }: InspectionPhotoUploadProps) {
   const [dragActive, setDragActive] = useState(false);
-  const [, uploadAction] = useActionState(uploadImageAction, undefined);
 
   const handleFiles = useCallback(
     async (files: FileList | File[]) => {
@@ -54,7 +52,7 @@ export function InspectionPhotoUpload({
         formData.append("file", file);
         formData.append("type", "inspection");
 
-        const result = (await uploadAction(formData)) as UploadImageState;
+        const result = await uploadImageAction(undefined, formData);
 
         if (result?.success && result.data?.url) {
           onPhotosChange([...photos, result.data.url]);
@@ -70,7 +68,7 @@ export function InspectionPhotoUpload({
         }
       }
     },
-    [photos, maxPhotos, onPhotosChange, uploadAction],
+    [photos, maxPhotos, onPhotosChange],
   );
 
   const handleDrop = (e: React.DragEvent) => {
