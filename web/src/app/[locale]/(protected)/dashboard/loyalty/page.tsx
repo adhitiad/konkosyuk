@@ -13,7 +13,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
-import { Gift, History, Star, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Gift, History, Star, CheckCircle2, XCircle } from "lucide-react";
 import { apiClient } from "@/lib/axios";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";

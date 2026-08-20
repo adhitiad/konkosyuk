@@ -18,7 +18,7 @@ cd web && bun x tsc --noEmit
 ## Environment
 
 - Copy `web/.env.example` → `web/.env.local`
-- Needs PostgreSQL (`DATABASE_URL`), Redis (`REDIS_URL`), and external service keys
+- Needs PostgreSQL (`DATABASE_URL`), Upstash Redis (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`), and external service keys
 - `BETTER_AUTH_SECRET` and `CRON_SECRET` must be ≥32 chars
 
 ## Database

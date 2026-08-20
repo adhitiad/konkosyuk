@@ -42,11 +42,9 @@ const envSchema = z.object({
     .string()
     .default("maintenance_report_updated"),
 
-  // Redis: prioritas Upstash -> Redis Cloud -> lokal
+  // Redis: Upstash untuk Vercel/serverless
   UPSTASH_REDIS_REST_URL: optionalUrl,
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
-  REDIS_CLOUD_URL: optionalUrl,
-  REDIS_URL: z.string().default("redis://localhost:6379"),
 });
 
 export const env = envSchema.parse(process.env);

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/toast";
-import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { uploadImageAction } from "@/actions/upload";
+import { getCsrfToken } from "@/lib/axios";
 
 interface InspectionPhotoUploadProps {
   photos: string[];
@@ -51,6 +51,10 @@ export function InspectionPhotoUpload({
         const formData = new FormData();
         formData.append("file", file);
         formData.append("type", "inspection");
+        const csrfToken = getCsrfToken();
+        if (csrfToken) {
+          formData.append("csrf", csrfToken);
+        }
 
         const result = await uploadImageAction(undefined, formData);
 

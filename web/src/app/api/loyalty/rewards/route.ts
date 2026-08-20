@@ -4,7 +4,7 @@ import { rewards, rewardRedemptions, loyaltyTransactions, users } from "@/db/sch
 import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { dispatchNotification } from "@/lib/notification-service";
 
 const redeemRewardSchema = z.object({

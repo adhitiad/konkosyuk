@@ -103,8 +103,9 @@ Isi variabel environment yang diperlukan:
 # Database
 DATABASE_URL=postgresql://user:password@localhost:5432/konkosyuk
 
-# Redis
-REDIS_URL=redis://localhost:6379
+# Redis (Upstash)
+UPSTASH_REDIS_REST_URL=https://...
+UPSTASH_REDIS_REST_TOKEN=...
 
 # Better Auth
 BETTER_AUTH_URL=http://localhost:3000

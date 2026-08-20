@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { loyaltyTransactions } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
-import { ok, fail, handleApiError } from "@/lib/api";
+import { ok, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import { eq, and, desc, sql } from "drizzle-orm";
 

@@ -1,6 +1,4 @@
-import { env } from "@/lib/env";
 import { uploadToCloudinary } from "@/lib/cloudinary";
-import { apiClient } from "@/lib/axios";
 
 export interface UploadResult {
   url: string;

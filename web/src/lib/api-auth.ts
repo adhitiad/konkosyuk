@@ -1,12 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { cookies } from "next/headers";
 import { validateCsrfToken } from "@/lib/csrf";
 import { withAdminRateLimit } from "@/lib/admin-rate-limit";
 
 export function validateMutationCsrf(req: NextRequest) {
   const result = validateCsrfToken(req);
   return result.success ? null : (result.error as NextResponse);
+}
+
+export async function validateActionCsrf(formData: FormData): Promise<string | null> {
+  const token = formData.get("csrf") as string | null;
+  const cookieStore = await cookies();
+  const cookieToken = cookieStore.get("csrf_token")?.value ?? null;
+  if (!cookieToken || !token || cookieToken !== token) {
+    return "Invalid CSRF token";
+  }
+  return null;
 }
 
 export async function requireSession(allowedRoles?: string[]) {

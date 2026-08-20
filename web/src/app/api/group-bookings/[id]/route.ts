@@ -1,10 +1,10 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { groupBookings, groupBookingMembers, bookings, users, properties } from "@/db/schema";
+import { groupBookings, groupBookingMembers, bookings, properties } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
-import { eq, desc, and, sql, inArray } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { dispatchGroupBookingUpdated } from "@/lib/notification-service";
 
 const updateGroupBookingSchema = z.object({

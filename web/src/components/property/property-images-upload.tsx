@@ -8,6 +8,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { uploadImageAction, type UploadImageState } from "@/actions/upload";
 import { useActionState } from "react";
+import { getCsrfToken } from "@/lib/axios";
 
 interface PropertyImagesUploadProps {
   initialImages?: string[];
@@ -87,6 +88,10 @@ export function PropertyImagesUpload({
           const formData = new FormData();
           formData.append("file", file);
           formData.append("type", "property");
+          const csrfToken = getCsrfToken();
+          if (csrfToken) {
+            formData.append("csrf", csrfToken);
+          }
 
           const result = (await uploadAction(
             formData,

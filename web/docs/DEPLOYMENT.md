@@ -39,7 +39,7 @@ Set environment variables di Vercel Dashboard:
 
 - Buka project Settings > Environment Variables
 - Tambahkan semua variable dari `.env.example`
-- Pastikan `DATABASE_URL`, `REDIS_URL`, dan secrets ter-set
+- Pastikan `DATABASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, dan secrets ter-set
 
 ### 4. Database Setup
 
@@ -79,46 +79,6 @@ netlify functions:invoke --name db-migrate
 
 ---
 
-## 🐳 Local Development dengan Docker
-
-### Prerequisites
-
-- Docker >= 24.0
-- Docker Compose >= 2.0
-
-### Quick Start
-
-```bash
-# Start semua services (Next.js + PostgreSQL + Redis)
-docker compose up --build
-
-# Stop services
-docker compose down
-
-# Stop dan hapus volumes (reset database)
-docker compose down -v
-```
-
-### Services
-
-| Service     | Port                  | Credentials         |
-| ----------- | --------------------- | ------------------- |
-| Next.js App | http://localhost:3000 | -                   |
-| PostgreSQL  | localhost:5432        | postgres / postgres |
-| Redis       | localhost:6379        | -                   |
-
-### Database Migration
-
-```bash
-# Masuk ke container Next.js
-docker compose exec nextjs bun run db:push
-
-# Atau seed database
-docker compose exec nextjs bun run db:seed
-```
-
----
-
 ## 🔄 CI/CD Pipeline
 
 Pipeline GitHub Actions akan berjalan otomatis pada:
@@ -145,7 +105,8 @@ Tambahkan secrets berikut di GitHub Repository Settings > Secrets and variables 
 
 ```
 DATABASE_URL
-REDIS_URL
+UPSTASH_REDIS_REST_URL
+UPSTASH_REDIS_REST_TOKEN
 BETTER_AUTH_SECRET
 BETTER_AUTH_URL
 NEXT_PUBLIC_APP_URL

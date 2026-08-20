@@ -4,14 +4,14 @@ import { db } from "@/db";
 import {
   reviews,
   bookings,
-  users,
   reviewReplies,
   properties,
 } from "@/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
+import { invalidateCacheByTag } from "@/lib/cache";
 
 const createReviewSchema = z.object({
   type: z.enum(["tenant", "property"]),
@@ -86,6 +86,8 @@ export async function updateReviewAction(
       .where(eq(reviews.id, validated.id))
       .returning();
 
+    await invalidateCacheByTag("reviews");
+
     return { success: true, data: updated };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -141,43 +143,20 @@ export async function deleteReviewAction(
       await tx.delete(reviews).where(eq(reviews.id, reviewId));
 
       if (review.type === "tenant" && review.reviewedUserId) {
-        const [countRow] = await tx
-          .select({ count: sql<number>`count(*)` })
-          .from(reviews)
-          .where(
-            and(
-              eq(reviews.reviewedUserId, review.reviewedUserId),
-              eq(reviews.type, "tenant"),
-            ),
-          );
-
-        const reviewCount = Number(countRow.count) || 0;
-        if (reviewCount > 0) {
-          const [sumRow] = await tx
-            .select({ sum: sql<number>`sum(${reviews.rating})` })
-            .from(reviews)
-            .where(
-              and(
-                eq(reviews.reviewedUserId, review.reviewedUserId),
-                eq(reviews.type, "tenant"),
-              ),
-            );
-
-          const totalRating = Number(sumRow.sum) || 0;
-          const newScore = totalRating / reviewCount;
-
-          await tx
-            .update(users)
-            .set({ reputationScore: newScore.toFixed(2) })
-            .where(eq(users.id, review.reviewedUserId));
-        } else {
-          await tx
-            .update(users)
-            .set({ reputationScore: "0.00" })
-            .where(eq(users.id, review.reviewedUserId));
-        }
+        await tx.execute(sql`
+          UPDATE users
+          SET reputation_score = (
+            SELECT COALESCE(AVG(${reviews.rating}), 0)
+            FROM reviews
+            WHERE reviewed_user_id = ${review.reviewedUserId}
+              AND type = 'tenant'
+          )
+          WHERE id = ${review.reviewedUserId}
+        `);
       }
     });
+
+    await invalidateCacheByTag("reviews");
 
     return { success: true };
   } catch (error) {
@@ -251,6 +230,8 @@ export async function replyReviewAction(
       .update(reviews)
       .set({ replyCount: sql`${reviews.replyCount} + 1` })
       .where(eq(reviews.id, validated.reviewId));
+
+    await invalidateCacheByTag("reviews");
 
     return { success: true, data: reply };
   } catch (error) {
@@ -376,42 +357,22 @@ export async function createReviewAction(
         .returning();
 
       if (validated.type === "tenant" && reviewedUserId) {
-        const [user] = await tx
-          .select({
-            reputationScore: users.reputationScore,
-          })
-          .from(users)
-          .where(eq(users.id, reviewedUserId))
-          .limit(1);
-
-        if (user) {
-          const currentScore = Number(user.reputationScore) || 0;
-          const [countRow] = await tx
-            .select({ count: sql<number>`count(*)` })
-            .from(reviews)
-            .where(
-              and(
-                eq(reviews.reviewedUserId, reviewedUserId),
-                eq(reviews.type, "tenant"),
-              ),
-            );
-
-          const reviewCount = Number(countRow.count) || 0;
-          const newScore =
-            reviewCount === 0
-              ? validated.rating
-              : (currentScore * reviewCount + validated.rating) /
-                (reviewCount + 1);
-
-          await tx
-            .update(users)
-            .set({ reputationScore: newScore.toFixed(2) })
-            .where(eq(users.id, reviewedUserId));
-        }
+        await tx.execute(sql`
+          UPDATE users
+          SET reputation_score = (
+            SELECT AVG(${reviews.rating})
+            FROM reviews
+            WHERE reviewed_user_id = ${reviewedUserId}
+              AND type = 'tenant'
+          )
+          WHERE id = ${reviewedUserId}
+        `);
       }
 
       return review;
     });
+
+    await invalidateCacheByTag("reviews");
 
     return { success: true, data: result };
   } catch (error) {

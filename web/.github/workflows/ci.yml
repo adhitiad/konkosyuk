@@ -8,7 +8,6 @@ on:
 
 env:
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
-  REDIS_URL: ${{ secrets.REDIS_URL }}
   BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
   BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
   NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
@@ -130,7 +129,6 @@ jobs:
           netlify-site-id: ${{ secrets.NETLIFY_SITE_ID }}
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          REDIS_URL: ${{ secrets.REDIS_URL }}
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
           BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
           NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}

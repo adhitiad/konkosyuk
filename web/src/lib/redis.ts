@@ -1,7 +1,6 @@
 import { Redis as UpstashRedis } from "@upstash/redis";
-import Redis from "ioredis";
 
-export type RedisProvider = "upstash" | "redis-cloud" | "local" | "memory";
+export type RedisProvider = "upstash" | "memory";
 
 export type RedisValue =
   string | number | boolean | null | Record<string, unknown> | unknown[];
@@ -24,39 +23,6 @@ class UpstashClient implements RedisClient {
   async set(key: string, value: RedisValue, ttlSeconds?: number) {
     if (ttlSeconds) await this.client.set(key, value, { ex: ttlSeconds });
     else await this.client.set(key, value);
-  }
-  async del(key: string) {
-    await this.client.del(key);
-  }
-  async incr(key: string, ttlSeconds?: number) {
-    const value = await this.client.incr(key);
-    if (ttlSeconds && value === 1) await this.client.expire(key, ttlSeconds);
-    return value;
-  }
-  ping() {
-    return this.client.ping();
-  }
-  async push(key: string, value: RedisValue, ttlSeconds?: number) {
-    await this.client.rpush(key, JSON.stringify(value));
-    if (ttlSeconds) await this.client.expire(key, ttlSeconds);
-  }
-  async range<T>(key: string, start: number, stop: number) {
-    return (await this.client.lrange(key, start, stop)).map(
-      (value) => JSON.parse(value) as T,
-    );
-  }
-}
-
-class IoredisClient implements RedisClient {
-  constructor(private readonly client: Redis) {}
-  async get<T>(key: string) {
-    const value = await this.client.get(key);
-    return value === null ? null : (JSON.parse(value) as T);
-  }
-  async set(key: string, value: RedisValue, ttlSeconds?: number) {
-    const serialized = JSON.stringify(value);
-    if (ttlSeconds) await this.client.set(key, serialized, "EX", ttlSeconds);
-    else await this.client.set(key, serialized);
   }
   async del(key: string) {
     await this.client.del(key);
@@ -146,26 +112,6 @@ function createCandidates(): Array<{
         }),
       ),
     });
-  const ioredisOptions = {
-    lazyConnect: true,
-    maxRetriesPerRequest: 1,
-    connectTimeout: 1000,
-    enableOfflineQueue: false,
-  };
-  if (process.env.REDIS_CLOUD_URL)
-    candidates.push({
-      provider: "redis-cloud",
-      client: new IoredisClient(
-        new Redis(process.env.REDIS_CLOUD_URL, ioredisOptions),
-      ),
-    });
-  if (process.env.REDIS_URL)
-    candidates.push({
-      provider: "local",
-      client: new IoredisClient(
-        new Redis(process.env.REDIS_URL, ioredisOptions),
-      ),
-    });
   return candidates;
 }
 
@@ -183,7 +129,7 @@ export async function getRedis(): Promise<RedisClient> {
   }
   selectedClient = memoryClient;
   selectedProvider = "memory";
-  return selectedClient;
+  return memoryClient;
 }
 
 export function getRedisProvider(): RedisProvider {

@@ -3,9 +3,11 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { uploadFile } from "@/lib/storage-manager";
+import { validateActionCsrf } from "@/lib/api-auth";
 
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const maxFileSize = 5 * 1024 * 1024;
+const VALID_UPLOAD_TYPES = ["avatar", "property", "ktp", "report", "inspection"] as const;
 
 const magicBytes: Record<string, number[][]> = {
   "image/jpeg": [[0xff, 0xd8, 0xff]],
@@ -24,6 +26,10 @@ async function validateImageSignature(file: File): Promise<boolean> {
       return true;
     }),
   )?.[0];
+
+  if (detectedType === "image/webp") {
+    return buffer.toString("ascii", 8, 12) === "WEBP";
+  }
 
   return detectedType === file.type;
 }
@@ -50,10 +56,15 @@ export async function uploadImageAction(
       return { error: "Tidak terotorisasi", success: false };
     }
 
+    const csrfError = await validateActionCsrf(formData);
+    if (csrfError) {
+      return { error: csrfError, success: false };
+    }
+
     const file = formData.get("file") as File | null;
     const requestedType = formData.get("type");
     const type = (requestedType || "avatar") as
-      "avatar" | "property" | "ktp" | "report" | "inspection";
+      typeof VALID_UPLOAD_TYPES[number];
 
     if (!file) {
       return { error: "File tidak ditemukan", success: false };
@@ -70,7 +81,7 @@ export async function uploadImageAction(
       return { error: "Ukuran file maksimal 5MB", success: false };
     }
 
-    if (!["avatar", "property", "ktp", "report"].includes(type)) {
+    if (!VALID_UPLOAD_TYPES.includes(type)) {
       return { error: "Tipe upload tidak valid", success: false };
     }
 

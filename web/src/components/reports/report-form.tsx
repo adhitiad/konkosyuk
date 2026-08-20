@@ -13,6 +13,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { createReportAction } from "@/actions/reports";
 import { uploadImageAction, type UploadImageState } from "@/actions/upload";
+import { getCsrfToken } from "@/lib/axios";
 
 type Stay = {
   propertyId: string;
@@ -66,6 +67,10 @@ function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("type", "report");
+      const csrfToken = getCsrfToken();
+      if (csrfToken) {
+        formData.append("csrf", csrfToken);
+      }
       const result = (await uploadAction(
         formData,
       )) as unknown as UploadImageState;
