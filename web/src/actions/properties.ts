@@ -8,7 +8,6 @@ import {
   payments,
   platformSettings,
   notifications,
-  units,
 } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { auth } from "@/lib/auth";
@@ -21,9 +20,8 @@ import type { Role } from "@/lib/auth";
 import { money, generateInvoiceNumber } from "@/lib/utils";
 import { getPaymentProvider } from "@/lib/payments";
 import { createAuditLog } from "@/lib/audit-log";
-import { validateActionCsrf } from "@/lib/api-auth";
 import type { PropertyPackages } from "@/lib/types/property-packages";
-import type { NewProperty, NewPayment, Property } from "@/db/schema";
+import type { NewProperty, NewPayment } from "@/db/schema";
 
 export type CreatePropertyState = {
   success?: boolean;
@@ -164,204 +162,6 @@ export async function createPropertyAction(
       return { error: error.message, success: false };
     }
     return { error: "Gagal menambahkan properti", success: false };
-  }
-}
-
-const createWizardUnitSchema = z.object({
-  name: z.string().min(1).max(255),
-  description: z.string().optional(),
-  price: z.string().min(1),
-  capacity: z.string().optional(),
-  size: z.string().optional(),
-  status: z.enum(["available", "booked", "maintenance"]).optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
-  images: z.array(z.string().url()).optional(),
-});
-
-export type CreatePropertyWithUnitsState = {
-  success?: boolean;
-  error?: string;
-  data?: {
-    propertyId: string;
-    unitIds: string[];
-  };
-};
-
-export async function createPropertyWithUnitsAction(
-  prevState: CreatePropertyWithUnitsState | undefined,
-  formData: FormData,
-): Promise<CreatePropertyWithUnitsState> {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session?.user?.id) {
-      return { error: "Tidak terotorisasi", success: false };
-    }
-
-    if (session.user.role === "owner") {
-      const [user] = await db
-        .select({ kycStatus: users.kycStatus })
-        .from(users)
-        .where(eq(users.id, session.user.id))
-        .limit(1);
-
-      if (user?.kycStatus !== "verified") {
-        return {
-          error: "Verifikasi KTP Anda terlebih dahulu.",
-          success: false,
-        };
-      }
-
-      if (!session.user.phone) {
-        return { error: "Nomor HP/WA wajib diisi di profil.", success: false };
-      }
-
-      if (!session.user.name || session.user.name.trim().length < 2) {
-        return {
-          error: "Nama profil tidak sesuai dengan data KYC terverifikasi.",
-          success: false,
-        };
-      }
-    }
-
-    const csrfError = await validateActionCsrf(formData);
-    if (csrfError) {
-      return { error: csrfError, success: false };
-    }
-
-    const images = parseJsonArrayField(formData, "images");
-
-    const packagesRaw = formData.get("packages");
-    let packages = undefined;
-    if (packagesRaw) {
-      try {
-        packages = JSON.parse(packagesRaw as string);
-      } catch {
-        throw new Error(
-          `Field packages berisi JSON tidak valid: "${(packagesRaw as string).slice(0, 50)}"`,
-        );
-      }
-    }
-
-    const amenities = parseJsonArrayField(formData, "amenities");
-
-    const validated = createPropertySchema.parse({
-      title: formData.get("title"),
-      description: formData.get("description") || undefined,
-      address: formData.get("address"),
-      province: formData.get("province") || undefined,
-      city: formData.get("city") || undefined,
-      type: formData.get("type"),
-      basePrice: formData.get("basePrice") || undefined,
-      packages,
-      status: formData.get("status") || "aktif",
-      amenities,
-      images,
-      latitude: formData.get("latitude")
-        ? Number(formData.get("latitude"))
-        : undefined,
-      longitude: formData.get("longitude")
-        ? Number(formData.get("longitude"))
-        : undefined,
-    });
-
-    const unitsData = parseJsonArrayField(formData, "units");
-
-    const validatedUnits = unitsData.map((u) =>
-      createWizardUnitSchema.parse(u),
-    );
-
-    if (validatedUnits.length === 0) {
-      return { error: "Minimal 1 unit harus ditambahkan", success: false };
-    }
-
-    const [property, unitIds] = (await db.transaction(async (tx) => {
-      const [prop] = await tx
-        .insert(properties)
-        .values({
-          name: validated.title,
-          description: validated.description,
-          address: validated.address ?? "",
-          province: validated.province,
-          city: validated.city,
-          type: validated.type,
-          basePrice: validated.basePrice,
-          packages: validated.packages ?? {
-            predefined: [],
-            custom: {
-              enabled: false,
-              label: "Custom Duration",
-              unit: "days",
-              pricePerUnit: 0,
-              minDuration: 1,
-              maxDuration: 365,
-            },
-          },
-          status: validated.status,
-          amenities: validated.amenities ?? [],
-          images: validated.images ?? [],
-          ownerId: session.user.id,
-          latitude:
-            validated.latitude !== undefined
-              ? String(validated.latitude)
-              : undefined,
-          longitude:
-            validated.longitude !== undefined
-              ? String(validated.longitude)
-              : undefined,
-          isActive: false,
-          isFeatured: false,
-          gpsVerified: false,
-        } satisfies NewProperty)
-        .returning();
-
-      const createdUnitIds: string[] = [];
-
-      for (const unit of validatedUnits) {
-        const [createdUnit] = await tx
-          .insert(units)
-          .values({
-            propertyId: prop.id,
-            name: unit.name,
-            description: unit.description ?? null,
-            price: unit.price,
-            capacity: unit.capacity ?? null,
-            size: unit.size ?? null,
-            status: unit.status ?? "available",
-            metadata: unit.metadata ?? {},
-          })
-          .returning();
-
-        createdUnitIds.push(createdUnit.id);
-      }
-
-      return [prop, createdUnitIds] as const;
-    })) as [Property, string[]];
-
-    await invalidateCacheByTag("properties");
-    await invalidateCacheByTag("units");
-
-    return {
-      success: true,
-      data: {
-        propertyId: property.id,
-        unitIds,
-      },
-    };
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return {
-        error: error.issues[0]?.message || "Input tidak valid",
-        success: false,
-      };
-    }
-    if (error instanceof Error) {
-      return { error: error.message, success: false };
-    }
-    console.error("createPropertyWithUnitsAction error:", error);
-    return { error: "Gagal menambahkan properti dan unit", success: false };
   }
 }
 
