@@ -88,7 +88,7 @@ export async function createGroupBookingAction(
           startDate: new Date(validated.startDate),
           endDate: new Date(validated.endDate),
           metadata: validated.metadata || {},
-        } satisfies GroupBookingInsert)
+        } as GroupBookingInsert)
         .returning();
 
       await tx.insert(groupBookingMembers).values({
@@ -98,7 +98,7 @@ export async function createGroupBookingAction(
         shareAmount: "0",
         paidAmount: "0",
         status: "accepted",
-      } satisfies GroupBookingMemberInsert);
+      } as GroupBookingMemberInsert);
 
       return [gb];
     });
@@ -118,7 +118,7 @@ export async function createGroupBookingAction(
           shareAmount: "0",
           paidAmount: "0",
           status: "invited",
-        } satisfies GroupBookingMemberInsert);
+        } as GroupBookingMemberInsert);
 
         dispatchGroupBookingInvite(
           user.id,

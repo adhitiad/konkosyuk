@@ -1,6 +1,12 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { groupBookings, groupBookingMembers, users, properties, units } from "@/db/schema";
+import {
+  groupBookings,
+  groupBookingMembers,
+  users,
+  properties,
+  units,
+} from "@/db/schema";
 import { requireSession, Role } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
@@ -30,22 +36,25 @@ export async function GET(req: NextRequest) {
   try {
     const session = await requireSession();
     const url = new URL(req.url);
-    const query = groupBookingQuerySchema.parse(Object.fromEntries(url.searchParams));
+    const query = groupBookingQuerySchema.parse(
+      Object.fromEntries(url.searchParams),
+    );
     const { page, limit, status, propertyId } = query;
 
     const conditions = [];
-    
+
     if (session.user.role === "cust") {
       conditions.push(
         or(
           eq(groupBookings.leadUserId, session.user.id),
           inArray(
             groupBookings.id,
-            db.select({ groupBookingId: groupBookingMembers.groupBookingId })
+            db
+              .select({ groupBookingId: groupBookingMembers.groupBookingId })
               .from(groupBookingMembers)
-              .where(eq(groupBookingMembers.userId, session.user.id))
-          )
-        )
+              .where(eq(groupBookingMembers.userId, session.user.id)),
+          ),
+        ),
       );
     } else if (session.user.role === "owner") {
       const ownerProperties = await db
@@ -76,7 +85,10 @@ export async function GET(req: NextRequest) {
         .orderBy(desc(groupBookings.createdAt))
         .limit(limit)
         .offset((page - 1) * limit),
-      db.select({ count: sql<number>`count(*)` }).from(groupBookings).where(where),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(groupBookings)
+        .where(where),
     ]);
 
     const total = Number(totalResult[0]?.count ?? 0);
@@ -90,7 +102,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requireSession(["cust", "owner", "admin", "staff"] as Role[]);
+    const session = await requireSession([
+      "cust",
+      "owner",
+      "admin",
+      "staff",
+    ] as Role[]);
     const body = createGroupBookingSchema.parse(await req.json());
 
     const [property] = await db
@@ -128,22 +145,22 @@ export async function POST(req: NextRequest) {
           propertyId: body.propertyId,
           unitId: body.unitId,
           status: "pending",
-          totalAmount: 0,
-          depositAmount: 0,
+          totalAmount: "0",
+          depositAmount: "0",
           startDate: new Date(body.startDate),
           endDate: new Date(body.endDate),
           metadata: body.metadata || {},
-        } satisfies GroupBookingInsert)
+        } as GroupBookingInsert)
         .returning();
 
       await tx.insert(groupBookingMembers).values({
         groupBookingId: gb.id,
         userId: session.user.id,
-        sharePercentage: sharePercentage,
-        shareAmount: 0,
-        paidAmount: 0,
+        sharePercentage: String(sharePercentage),
+        shareAmount: "0",
+        paidAmount: "0",
         status: "accepted",
-      } satisfies GroupBookingMemberInsert);
+      } as GroupBookingMemberInsert);
 
       return gb;
     });
@@ -159,11 +176,11 @@ export async function POST(req: NextRequest) {
         await db.insert(groupBookingMembers).values({
           groupBookingId: groupBooking.id,
           userId: user.id,
-          sharePercentage: sharePercentage,
-          shareAmount: 0,
-          paidAmount: 0,
+          sharePercentage: String(sharePercentage),
+          shareAmount: "0",
+          paidAmount: "0",
           status: "invited",
-        } satisfies GroupBookingMemberInsert);
+        } as GroupBookingMemberInsert);
 
         dispatchGroupBookingInvite(
           user.id,
