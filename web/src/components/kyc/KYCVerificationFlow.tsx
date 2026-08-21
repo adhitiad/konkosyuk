@@ -208,6 +208,7 @@ export default function KYCVerificationFlow({
         onComplete?.("pending");
 
         queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+        queryClient.invalidateQueries({ queryKey: ["owner-kyc-status"] });
         await authClient.getSession();
       }
      } catch (err) {

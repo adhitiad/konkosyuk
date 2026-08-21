@@ -1,8 +1,7 @@
-const CACHE_NAME = "konkosyuk-v1";
+const CACHE_NAME = "konkosyuk-v2";
 
 const STATIC_ASSETS = [
   "/",
-  "/id",
   "/manifest.json",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
@@ -10,7 +9,13 @@ const STATIC_ASSETS = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)),
+    caches.open(CACHE_NAME).then(async (cache) => {
+      try {
+        await cache.addAll(STATIC_ASSETS);
+      } catch (e) {
+        console.warn("SW install: cache.addAll failed, continuing anyway", e);
+      }
+    }),
   );
   self.skipWaiting();
 });

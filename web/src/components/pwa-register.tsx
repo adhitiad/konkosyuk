@@ -4,12 +4,16 @@ import { useEffect } from "react";
 
 export function PwaRegister() {
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
+    if (!("serviceWorker" in navigator)) return;
+
+    if (process.env.NODE_ENV === "production") {
       navigator.serviceWorker
         .register("/sw.js")
-        .catch(() => {
-          // Silent fail — PWA is enhancement, not requirement
-        });
+        .catch(() => {});
+    } else {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((reg) => reg.unregister());
+      });
     }
   }, []);
 

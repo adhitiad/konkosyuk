@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
+import { useKycStatus } from "@/hooks/use-kyc-status";
 
 interface WithKycVerifiedOptions {
   redirectTo?: string;
@@ -20,24 +21,24 @@ export function withKycVerified<P extends object>(
 
   return function KYCProtectedComponent(props: P) {
     const { data: session, isPending } = useSession();
+    const { isVerified, isLoading: kycLoading } = useKycStatus();
     const router = useRouter();
 
-    const kycStatus = (session?.user as { kycStatus?: string } | undefined)
-      ?.kycStatus;
     const userRole = (session?.user as { role?: string } | undefined)?.role;
+    const isLoadingKyc = kycLoading || isPending;
 
     useEffect(() => {
       if (
-        !isPending &&
+        !isLoadingKyc &&
         session &&
         userRole === "owner" &&
-        kycStatus !== "verified"
+        !isVerified
       ) {
         router.push(redirectTo);
       }
-    }, [session, isPending, router, kycStatus, userRole]);
+    }, [session, isLoadingKyc, router, isVerified, userRole]);
 
-    if (isPending || !session) {
+    if (isLoadingKyc || !session) {
       return (
         <div className="flex items-center justify-center h-screen">
           <Loader2 className="h-8 w-8 animate-spin" />
@@ -53,7 +54,7 @@ export function withKycVerified<P extends object>(
       );
     }
 
-    if (kycStatus !== "verified") {
+    if (!isVerified) {
       if (!showKycPrompt) {
         return (
           <div className="flex items-center justify-center h-screen">

@@ -118,6 +118,20 @@ export default function AddPropertyDialog() {
     }
   }, [packages]);
 
+  useEffect(() => {
+    if (state?.success) {
+      queryClient.invalidateQueries({ queryKey: ["owner-properties-v2"] });
+      toast({
+        title: "Berhasil",
+        description: "Properti berhasil ditambahkan.",
+        type: "success",
+      });
+      router.push("/owner/properties");
+    } else if (state?.error) {
+      setError(state.error);
+    }
+  }, [state, queryClient, router]);
+
   const addAmenity = (value: string) => {
     const trimmed = value.trim();
     if (trimmed && !amenities.includes(trimmed)) {
@@ -129,18 +143,6 @@ export default function AddPropertyDialog() {
   const removeAmenity = (value: string) => {
     setAmenities(amenities.filter((a) => a !== value));
   };
-
-  if (state?.success) {
-    queryClient.invalidateQueries({ queryKey: ["owner-properties-v2"] });
-    toast({
-      title: "Berhasil",
-      description: "Properti berhasil ditambahkan.",
-      type: "success",
-    });
-    router.push("/owner/properties");
-  } else if (state?.error) {
-    setError(state.error);
-  }
 
   return (
     <div className="container py-6 space-y-6 max-w-5xl">

@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { withOwnerAuth } from "@/lib/with-owner-auth";
+import { KycGuard } from "@/components/kyc/kyc-guard";
 
 function OwnerDashboardPage() {
   return (
@@ -68,12 +69,14 @@ function OwnerDashboardPage() {
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
-        <CardContent className="flex gap-4">
-          <Link href="/owner/properties">
-            <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90">
-              Tambah Properti
-            </button>
-          </Link>
+        <CardContent className="flex flex-col sm:flex-row gap-4">
+          <KycGuard>
+            <Link href="/owner/properties">
+              <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90">
+                Tambah Properti
+              </button>
+            </Link>
+          </KycGuard>
           <Link href="/owner/bookings">
             <button className="bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/80">
               Lihat Booking

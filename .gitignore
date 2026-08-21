@@ -47,3 +47,4 @@ mobile/ios/.symlinks/
 .env*
 txt.txt
 /web/test-results
+/.playwright-mcp

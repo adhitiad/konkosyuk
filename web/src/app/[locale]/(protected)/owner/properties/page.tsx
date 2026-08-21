@@ -37,6 +37,7 @@ import {
 import type { Property } from "@/db/schema";
 import type { PropertyPackages } from "@/lib/types/property-packages";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
+import { KycGuard } from "@/components/kyc/kyc-guard";
 import { deletePropertyAction } from "@/actions/properties";
 
 const formatCurrency = (value: number | string | null | undefined) =>
@@ -255,16 +256,18 @@ export default function PropertiesPage() {
             Kelola daftar properti kost dan kontrakan Anda
           </p>
         </div>
-        <Button
-          render={
-            <Link href="/owner/properties/add">Tambah Properti Baru</Link>
-          }
-          nativeButton={false}
-          className="w-full sm:w-auto"
-        >
-          <HugeiconsIcon icon={Add01Icon} strokeWidth={2} className="size-4" />
-          Tambah Properti Baru
-        </Button>
+        <KycGuard>
+          <Button
+            render={
+              <Link href="/owner/properties/add">Tambah Properti Baru</Link>
+            }
+            nativeButton={false}
+            className="w-full sm:w-auto"
+          >
+            <HugeiconsIcon icon={Add01Icon} strokeWidth={2} className="size-4" />
+            Tambah Properti Baru
+          </Button>
+        </KycGuard>
       </div>
 
       {isError && (
