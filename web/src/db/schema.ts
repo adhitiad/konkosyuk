@@ -433,6 +433,7 @@ export const properties = pgTable(
       "gin",
       table.metadata,
     ),
+    coordsIdx: index("idx_properties_coords").on(table.latitude, table.longitude),
   }),
 );
 
@@ -2463,6 +2464,88 @@ export const userNotificationPreferencesRelations = relations(
   }),
 }),
 );
+
+export const adType = ["kos", "kontrakan", "apartemen", "rumah"] as const;
+export const adTier = ["reguler", "utama", "premium"] as const;
+export const adPaymentStatus = ["pending", "paid", "rejected", "expired", "cancelled"] as const;
+export const positionType = ["rotation", "fixed_1", "fixed_2"] as const;
+
+export const propertyAds = pgTable(
+  "property_ads",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    propertyId: uuid("property_id").references(() => properties.id, {
+      onDelete: "set null",
+    }),
+    packageId: uuid("package_id").references(() => adPackages.id, {
+      onDelete: "set null",
+    }),
+    advertiserName: text("advertiser_name").notNull(),
+    advertiserPhone: text("advertiser_phone").notNull(),
+    advertiserWhatsApp: text("advertiser_whatsapp"),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    imageUrl: text("image_url").notNull(),
+    targetUrl: text("target_url"),
+    location: text("location").notNull(),
+    price: text("price"),
+    type: text("type", { enum: adType }).notNull(),
+    position: integer("position").notNull().default(0),
+    isActive: boolean("is_active").notNull().default(true),
+    clicks: integer("clicks").notNull().default(0),
+    impressions: integer("impressions").notNull().default(0),
+    startDate: timestamp("start_date", { mode: "date" }).notNull().defaultNow(),
+    endDate: timestamp("end_date", { mode: "date" }),
+    paymentStatus: text("payment_status", { enum: adPaymentStatus }).notNull().default("pending"),
+    paidAt: timestamp("paid_at", { mode: "date" }),
+    adminNote: text("admin_note"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    activeIdx: index("idx_property_ads_active").on(table.isActive),
+    datesIdx: index("idx_property_ads_dates").on(table.startDate, table.endDate),
+    positionIdx: index("idx_property_ads_position").on(table.position),
+    paymentStatusIdx: index("idx_property_ads_payment_status").on(table.paymentStatus),
+    paidAtIdx: index("idx_property_ads_paid_at").on(table.paidAt),
+    packageIdIdx: index("idx_property_ads_package_id").on(table.packageId),
+  }),
+);
+
+export const propertyAdsRelations = relations(propertyAds, ({ one }) => ({
+  property: one(properties, {
+    fields: [propertyAds.propertyId],
+    references: [properties.id],
+  }),
+  package: one(adPackages, {
+    fields: [propertyAds.packageId],
+    references: [adPackages.id],
+  }),
+}));
+
+export const adPackages = pgTable(
+  "ad_packages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull().unique(),
+    label: text("label").notNull(),
+    tier: text("tier", { enum: adTier }).notNull(),
+    duration: integer("duration").notNull(),
+    price: numeric("price", { precision: 12, scale: 2 }).notNull(),
+    positionType: text("position_type", { enum: positionType }).notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    tierIdx: index("idx_ad_packages_tier").on(table.tier),
+    activeIdx: index("idx_ad_packages_active").on(table.isActive),
+  }),
+);
+
+export const adPackagesRelations = relations(adPackages, ({ one }) => ({
+  ads: one(propertyAds),
+}));
 
 export const featureFlags = pgTable(
   "feature_flags",

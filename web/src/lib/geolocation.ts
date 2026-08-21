@@ -44,6 +44,57 @@ export function getCurrentPosition(): Promise<{ lat: number; lng: number }> {
   });
 }
 
+export function getUserLocation(): Promise<{
+  latitude: number;
+  longitude: number;
+}> {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error("Lokasi tidak tersedia di browser ini"));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      (error) => {
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            reject(
+              new Error(
+                "Akses lokasi ditolak. Aktifkan di pengaturan browser.",
+              ),
+            );
+            break;
+          case error.POSITION_UNAVAILABLE:
+            reject(new Error("Tidak dapat menemukan lokasi Anda."));
+            break;
+          case error.TIMEOUT:
+            reject(
+              new Error(
+                "Permintaan lokasi timeout. Silakan coba lagi.",
+              ),
+            );
+            break;
+          default:
+            reject(
+              new Error("Gagal mendapatkan lokasi."),
+            );
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000,
+      },
+    );
+  });
+}
+
 export function calculateDistance(
   lat1: number,
   lng1: number,

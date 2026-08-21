@@ -148,6 +148,27 @@
       "when": 1787244019755,
       "tag": "0020_chubby_mongoose",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1787274177823,
+      "tag": "0021_thin_dracula",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1787274248134,
+      "tag": "0022_exotic_zombie",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1787277613291,
+      "tag": "0023_safe_sleepwalker",
+      "breakpoints": true
     }
   ]
 }

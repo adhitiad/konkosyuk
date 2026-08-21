@@ -97,9 +97,13 @@ export async function GET(req: NextRequest) {
     if (lat !== undefined && lng !== undefined && radiusKm !== undefined) {
       const distanceExpr = sql<number>`
         6371 * acos(
-          cos(radians(${lat})) * cos(radians(${properties.latitude})) *
-          cos(radians(${properties.longitude}) - radians(${lng})) +
-          sin(radians(${lat})) * sin(radians(${properties.latitude}))
+          LEAST(1, GREATEST(-1,
+            cos(radians(${lat})) *
+            cos(radians(${properties.latitude})) *
+            cos(radians(${properties.longitude}) - radians(${lng})) +
+            sin(radians(${lat})) *
+            sin(radians(${properties.latitude}))
+          ))
         )
       `;
       conditions.push(eq(properties.isActive, true));

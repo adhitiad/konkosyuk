@@ -1,0 +1,1 @@
+CREATE INDEX "idx_properties_coords" ON "properties" USING btree ("latitude","longitude");

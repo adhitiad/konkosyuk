@@ -1,4 +1,5 @@
 import { HeroSection } from "@/components/landing/hero-section";
+import { AdCarousel } from "@/components/landing/ad-carousel";
 import { CategoriesSection } from "@/components/landing/categories-section";
 import { FeaturedListingsSection } from "@/components/landing/featured-listings-section";
 import { PopularCitiesSection } from "@/components/landing/popular-cities-section";
@@ -14,6 +15,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col">
       <HeroSection />
+      <AdCarousel />
       <CategoriesSection />
       <FeaturedListingsSection />
       <PopularCitiesSection />

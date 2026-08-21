@@ -17,6 +17,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed.ts",
+    "db:seed-ad-packages": "tsx src/scripts/seed-ad-packages.ts",
     "db:seed-inspections": "tsx src/scripts/seed-inspection-templates.ts",
     "db:encrypt-payment-secrets": "tsx scripts/encrypt-payment-gateway-configs.ts",
     "db:baseline": "tsx scripts/baseline-drizzle.ts",

@@ -24,8 +24,11 @@ import {
   Search01Icon,
   MapsIcon,
   ViewAgendaIcon,
+  MapPinIcon,
+  Cancel01Icon,
 } from "@hugeicons/core-free-icons";
-import LocationFinder from "@/components/property/location-finder";
+import { GpsSearchButton } from "@/components/property/gps-search-button";
+import { RadiusSelector } from "@/components/property/radius-selector";
 import { PropertyCard } from "@/components/property/property-card";
 
 const MapView = dynamic(() => import("@/components/map-view"), { ssr: false });
@@ -93,7 +96,7 @@ export default function PropertiesPage() {
     lat: number;
     lng: number;
   } | null>(null);
-  const [radius, setRadius] = useState(5);
+  const [radius, setRadius] = useState(30);
   const limit = 12;
 
   const search = searchParams.get("search") || "";
@@ -102,15 +105,37 @@ export default function PropertiesPage() {
   const maxPriceParam = searchParams.get("maxPrice") || "";
   const minPriceParam = searchParams.get("minPrice") || "";
   const amenitiesParam = searchParams.get("amenities") || "";
+  const userLatParam = searchParams.get("userLat");
+  const userLngParam = searchParams.get("userLng");
+  const radiusParam = searchParams.get("radius");
 
   const debouncedSearch = useDebounce(search, 500);
 
-  // Compute selectedAmenities from URL param directly
+  const derivedUserLocation = useMemo(() => {
+    if (userLatParam && userLngParam) {
+      const lat = Number(userLatParam);
+      const lng = Number(userLngParam);
+      if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+        return { lat, lng };
+      }
+    }
+    return null;
+  }, [userLatParam, userLngParam]);
+
+  const derivedRadius = useMemo(() => {
+    if (radiusParam) {
+      const r = Number(radiusParam);
+      if (!Number.isNaN(r) && r > 0) {
+        return r;
+      }
+    }
+    return 30;
+  }, [radiusParam]);
+
   const selectedAmenities = useMemo(() => {
     return amenitiesParam ? amenitiesParam.split(",").filter(Boolean) : [];
   }, [amenitiesParam]);
 
-  // Compute priceRange from URL params directly
   const priceRange = useMemo(() => {
     if (minPriceParam || maxPriceParam) {
       return [Number(minPriceParam) || 0, Number(maxPriceParam) || 10000000];
@@ -127,9 +152,9 @@ export default function PropertiesPage() {
       city: city || undefined,
       minPrice: minPriceParam || undefined,
       maxPrice: maxPriceParam || undefined,
-      lat: userLocation?.lat,
-      lng: userLocation?.lng,
-      radius: userLocation ? radius : undefined,
+      lat: derivedUserLocation?.lat,
+      lng: derivedUserLocation?.lng,
+      radius: derivedUserLocation ? derivedRadius : undefined,
       amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
     }),
     [
@@ -140,8 +165,8 @@ export default function PropertiesPage() {
       city,
       minPriceParam,
       maxPriceParam,
-      userLocation,
-      radius,
+      derivedUserLocation,
+      derivedRadius,
       selectedAmenities,
     ],
   );
@@ -157,8 +182,8 @@ export default function PropertiesPage() {
           minPrice: minPriceParam,
           maxPrice: maxPriceParam,
           page,
-          userLocation,
-          radius,
+          userLocation: derivedUserLocation,
+          radius: derivedRadius,
           amenities: selectedAmenities,
         },
       ],
@@ -222,14 +247,26 @@ export default function PropertiesPage() {
   const resetFilters = useCallback(() => {
     setPage(1);
     setUserLocation(null);
-    setRadius(5);
+    setRadius(30);
     router.push("/properties");
   }, [router]);
 
-  const handleLocationFound = useCallback(
-    (lat: number, lng: number, radiusKm: number) => {
+  const handleLocationChange = useCallback(
+    (lat: number, lng: number) => {
       setUserLocation({ lat, lng });
-      setRadius(radiusKm);
+      setRadius(30);
+    },
+    [],
+  );
+
+  const handleClearLocation = useCallback(() => {
+    setUserLocation(null);
+    setRadius(30);
+  }, []);
+
+  const handleRadiusChange = useCallback(
+    (newRadius: number) => {
+      setRadius(newRadius);
     },
     [],
   );
@@ -377,28 +414,28 @@ export default function PropertiesPage() {
 
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-2">
-              <LocationFinder onLocationFound={handleLocationFound} />
+              <GpsSearchButton
+                radius={radius}
+                onLocationChange={handleLocationChange}
+                onClear={handleClearLocation}
+              />
               {userLocation && (
-                <select
+                <RadiusSelector
                   value={radius}
-                  onChange={(e) => setRadius(Number(e.target.value))}
-                  className="h-9 rounded-4xl border border-input bg-input/30 px-3 py-1 text-sm"
-                >
-                  <option value="1">1 km</option>
-                  <option value="5">5 km</option>
-                  <option value="10">10 km</option>
-                  <option value="25">25 km</option>
-                </select>
+                  onChange={handleRadiusChange}
+                />
               )}
               {userLocation && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    setUserLocation(null);
-                    setRadius(5);
-                  }}
+                  onClick={handleClearLocation}
                 >
+                  <HugeiconsIcon
+                    icon={Cancel01Icon}
+                    strokeWidth={2}
+                    className="mr-2 size-4"
+                  />
                   Reset Lokasi
                 </Button>
               )}
@@ -435,6 +472,27 @@ export default function PropertiesPage() {
           </div>
         </CardContent>
       </Card>
+
+      {userLocation && (
+        <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+          <HugeiconsIcon
+            icon={MapPinIcon}
+            strokeWidth={2}
+            className="size-4"
+          />
+          <span>
+            Menampilkan properti dalam radius {radius}km dari lokasi Anda
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClearLocation}
+            className="ml-auto"
+          >
+            Clear
+          </Button>
+        </div>
+      )}
 
       {isLoading && (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mt-8">
@@ -488,6 +546,15 @@ export default function PropertiesPage() {
               }
               markers={mapMarkers}
               height="500px"
+              userLocation={
+                userLocation
+                  ? {
+                      latitude: userLocation.lat,
+                      longitude: userLocation.lng,
+                    }
+                  : null
+              }
+              radiusKm={radius}
             />
           </CardContent>
         </Card>
@@ -497,7 +564,11 @@ export default function PropertiesPage() {
         <>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mt-8">
             {sortedItems.map((item) => (
-              <PropertyCard key={item.id} property={item} />
+              <PropertyCard
+                key={item.id}
+                property={item}
+                distanceKm={item.distance ?? null}
+              />
             ))}
           </div>
           <div className="mt-8 flex justify-center">

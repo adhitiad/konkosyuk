@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin } from "lucide-react";
+import { MapPin, MapPinCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,9 +38,10 @@ const PLACEHOLDER_KONTRAKAN =
 
 interface PropertyCardProps {
   property: Property;
+  distanceKm?: number | null;
 }
 
-export function PropertyCard({ property }: PropertyCardProps) {
+export function PropertyCard({ property, distanceKm }: PropertyCardProps) {
   const displayImages =
     property.images?.length > 0
       ? property.images
@@ -130,6 +131,12 @@ export function PropertyCard({ property }: PropertyCardProps) {
           <MapPin className="size-4 shrink-0" />
           <span className="truncate">{property.address}</span>
         </div>
+        {distanceKm !== null && distanceKm !== undefined && (
+          <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+            <MapPinCheck className="size-3 shrink-0" />
+            <span>{distanceKm.toFixed(1)} km dari Anda</span>
+          </div>
+        )}
 
         {topAmenities.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">

@@ -6,10 +6,12 @@ import Map, {
   Marker,
   Popup,
   NavigationControl,
+  Source,
+  Layer,
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { MapPinIcon } from "@hugeicons/core-free-icons";
+import { MapPinIcon, Location01Icon } from "@hugeicons/core-free-icons";
 import type { StyleSpecification } from "maplibre-gl";
 
 const OSM_STYLE: StyleSpecification = {
@@ -53,6 +55,8 @@ interface MapViewProps {
   zoom?: number;
   markers: MarkerData[];
   height?: string;
+  userLocation?: { latitude: number; longitude: number } | null;
+  radiusKm?: number;
 }
 
 export default function MapView({
@@ -60,6 +64,8 @@ export default function MapView({
   zoom = 13,
   markers,
   height = "400px",
+  userLocation,
+  radiusKm = 30,
 }: MapViewProps) {
   const mapRef = useRef<MapRef>(null);
   const defaultCenter = center ?? { lat: -6.2088, lng: 106.8456 };
@@ -68,6 +74,42 @@ export default function MapView({
   const handleMarkerClick = useCallback((marker: MarkerData) => {
     setSelectedMarker(marker);
   }, []);
+
+  const userLocationMarker = userLocation
+    ? {
+        id: "user-location",
+        lat: userLocation.latitude,
+        lng: userLocation.longitude,
+        title: "Lokasi Anda",
+      }
+    : null;
+
+  const radiusCircle = userLocation
+    ? (() => {
+        const center = [userLocation.longitude, userLocation.latitude];
+        const points: [number, number][] = [];
+        const kmToDegLat = 1 / 111.32;
+        const kmToDegLng = 1 / (111.32 * Math.cos((userLocation.latitude * Math.PI) / 180));
+        const numPoints = 64;
+
+        for (let i = 0; i < numPoints; i++) {
+          const angle = (i / numPoints) * 2 * Math.PI;
+          const dx = radiusKm * kmToDegLng * Math.cos(angle);
+          const dy = radiusKm * kmToDegLat * Math.sin(angle);
+          points.push([center[0] + dx, center[1] + dy]);
+        }
+        points.push(points[0]);
+
+        return {
+          type: "Feature" as const,
+          properties: {},
+          geometry: {
+            type: "Polygon" as const,
+            coordinates: [points],
+          },
+        };
+      })()
+    : null;
 
   return (
     <div
@@ -88,6 +130,61 @@ export default function MapView({
         mapStyle={OSM_STYLE}
       >
         <NavigationControl position="top-right" />
+        {userLocationMarker && (
+          <Marker
+            longitude={userLocationMarker.lng}
+            latitude={userLocationMarker.lat}
+            anchor="center"
+          >
+            <div className="relative">
+              <div
+                className="absolute rounded-full bg-blue-500/20"
+                style={{ width: 40, height: 40, top: -12, left: -12 }}
+              />
+              <HugeiconsIcon
+                icon={Location01Icon}
+                strokeWidth={2}
+                className="size-6 text-blue-500"
+              />
+            </div>
+            <Popup
+              longitude={userLocationMarker.lng}
+              latitude={userLocationMarker.lat}
+              anchor="bottom"
+              closeButton={false}
+            >
+              <div className="space-y-1">
+                <p className="font-semibold text-sm">Lokasi Anda</p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+        {radiusCircle && (
+          <Source
+            id="radius-circle"
+            type="geojson"
+            data={radiusCircle}
+          >
+            <Layer
+              id="radius-fill"
+              type="fill"
+              paint={{
+                "fill-color": "#3b82f6",
+                "fill-opacity": 0.1,
+              }}
+            />
+            <Layer
+              id="radius-border"
+              type="line"
+              paint={{
+                "line-color": "#3b82f6",
+                "line-opacity": 0.4,
+                "line-width": 2,
+                "line-dasharray": [2, 2],
+              }}
+            />
+          </Source>
+        )}
         {markers.map((marker) =>
           marker.isJittered ? (
             <Marker
