@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { properties, bookings } from "@/db/schema";
-import { eq, and, or } from "drizzle-orm";
+import { properties, bookings, users, propertyRules, nearbyPlaces } from "@/db/schema";
+import { eq, and, or, sql, desc } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
@@ -34,6 +34,66 @@ export async function GET(
     if (!property) {
       return fail("Property not found", 404);
     }
+
+    const rules = await db
+      .select({
+        id: propertyRules.id,
+        rule: propertyRules.rule,
+        sortOrder: propertyRules.sortOrder,
+      })
+      .from(propertyRules)
+      .where(eq(propertyRules.propertyId, propertyId))
+      .orderBy(propertyRules.sortOrder);
+
+    const nearby = await db
+      .select({
+        id: nearbyPlaces.id,
+        name: nearbyPlaces.name,
+        type: nearbyPlaces.type,
+        distance: nearbyPlaces.distance,
+        latitude: nearbyPlaces.latitude,
+        longitude: nearbyPlaces.longitude,
+      })
+      .from(nearbyPlaces)
+      .where(eq(nearbyPlaces.propertyId, propertyId))
+      .orderBy(nearbyPlaces.distance);
+
+    const [ownerResult] = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        image: users.image,
+        activeSince: users.createdAt,
+        transactionCount: sql<number>`COUNT(${bookings.id})`,
+      })
+      .from(users)
+      .leftJoin(
+        bookings,
+        and(
+          eq(bookings.propertyId, propertyId),
+          eq(bookings.status, "completed"),
+        ),
+      )
+      .where(eq(users.id, property.ownerId))
+      .groupBy(users.id);
+
+    const owner = ownerResult
+      ? {
+          ...ownerResult,
+          activeSince: ownerResult.activeSince,
+          transactionCount: Number(ownerResult.transactionCount),
+        }
+      : null;
+
+    const extra = {
+      rules,
+      nearbyPlaces: nearby.map((p) => ({
+        ...p,
+        latitude: Number(p.latitude),
+        longitude: Number(p.longitude),
+      })),
+      owner,
+    };
 
     if (viewerId && !isAdmin && property.ownerId !== viewerId) {
       const [qualifyingBooking] = await db
@@ -70,6 +130,7 @@ export async function GET(
           address: maskedAddress,
           latitude: maskedLatLng?.lat ?? property.latitude,
           longitude: maskedLatLng?.lng ?? property.longitude,
+          ...extra,
         });
       }
     } else if (!viewerId) {
@@ -91,10 +152,11 @@ export async function GET(
         address: maskedAddress,
         latitude: maskedLatLng?.lat ?? property.latitude,
         longitude: maskedLatLng?.lng ?? property.longitude,
+        ...extra,
       });
     }
 
-    return ok(property);
+    return ok({ ...property, ...extra });
   } catch (error) {
     return handleApiError(error);
   }

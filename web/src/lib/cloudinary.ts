@@ -42,3 +42,21 @@ export async function checkCloudinaryConnection(): Promise<void> {
   }
   await cloudinary.api.ping();
 }
+
+export function getCloudinaryUrl(publicId: string, options?: {
+  width?: number;
+  height?: number;
+  quality?: number;
+}): string {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  if (!cloudName) {
+    return `https://res.cloudinary.com/placeholder/image/upload/${publicId}`;
+  }
+  let url = `https://res.cloudinary.com/${cloudName}/image/upload/${publicId}`;
+  const params: string[] = [];
+  if (options?.width) params.push(`w_${options.width}`);
+  if (options?.height) params.push(`h_${options.height}`);
+  if (options?.quality) params.push(`q_${options.quality}`);
+  if (params.length > 0) url += `?${params.join(',')}`;
+  return url;
+}

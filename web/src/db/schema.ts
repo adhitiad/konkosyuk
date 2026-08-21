@@ -15,7 +15,7 @@ import { relations, sql } from "drizzle-orm";
 import type { PropertyPackages } from "@/lib/types/property-packages";
 
 export const userRole = ["cust", "owner", "admin", "staff"] as const;
-export const propertyType = ["kost", "kontrakan", "ruko"] as const;
+export const propertyType = ["kost", "kontrakan", "apartemen", "rumah", "ruko"] as const;
 export const unitStatus = ["available", "booked", "maintenance"] as const;
 export const bookingType = ["instant", "request"] as const;
 export const bookingRequestStatus = [
@@ -451,6 +451,9 @@ export const units = pgTable(
     size: text("size"),
     status: text("status", { enum: unitStatus }).notNull().default("available"),
     metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
+    roomSize: text("room_size"),
+    electricityIncluded: boolean("electricity_included").notNull().default(false),
+    furnitureIncluded: boolean("furniture_included").notNull().default(false),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
   },
@@ -2545,6 +2548,125 @@ export const adPackages = pgTable(
 
 export const adPackagesRelations = relations(adPackages, ({ one }) => ({
   ads: one(propertyAds),
+}));
+
+export const propertyRuleType = ["general", "quiet_hours", "guest", "payment", "safety"] as const;
+
+export const propertyRules = pgTable(
+  "property_rules",
+  {
+    id: uuid("property_rules_id").defaultRandom().primaryKey(),
+    propertyId: uuid("property_rule_property_id")
+      .references(() => properties.id, { onDelete: "cascade" })
+      .notNull(),
+    rule: text("property_rule_text").notNull(),
+    type: text("property_rule_type", { enum: propertyRuleType }).notNull().default("general"),
+    sortOrder: integer("property_rule_sort_order").notNull().default(0),
+    createdAt: timestamp("property_rule_created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    propertyIdIdx: index("idx_property_rules_property").on(table.propertyId),
+  }),
+);
+
+export const nearbyPlaceType = ["makanan", "minuman", "atk", "ibadah", "belanja", "kesehatan", "pendidikan", "transportasi", "lainnya"] as const;
+
+export const nearbyPlaces = pgTable(
+  "nearby_places",
+  {
+    id: uuid("nearby_place_id").defaultRandom().primaryKey(),
+    propertyId: uuid("nearby_place_property_id")
+      .references(() => properties.id, { onDelete: "cascade" })
+      .notNull(),
+    name: text("nearby_place_name").notNull(),
+    type: text("nearby_place_type", { enum: nearbyPlaceType }).notNull(),
+    distance: integer("nearby_place_distance").notNull(),
+    latitude: numeric("nearby_place_latitude", { precision: 10, scale: 8 }).notNull(),
+    longitude: numeric("nearby_place_longitude", { precision: 10, scale: 8 }).notNull(),
+    sortOrder: integer("nearby_place_sort_order").notNull().default(0),
+    createdAt: timestamp("nearby_place_created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    propertyIdIdx: index("idx_nearby_places_property").on(table.propertyId),
+    typeIdx: index("idx_nearby_places_type").on(table.type),
+  }),
+);
+
+export const roomFacilityCategory = ["kamar", "kamar_mandi", "umum"] as const;
+
+export const roomFacilities = pgTable(
+  "room_facilities",
+  {
+    id: uuid("room_facility_id").defaultRandom().primaryKey(),
+    unitId: uuid("room_facility_unit_id")
+      .references(() => units.id, { onDelete: "cascade" })
+      .notNull(),
+    category: text("room_facility_category", { enum: roomFacilityCategory }).notNull(),
+    name: text("room_facility_name").notNull(),
+    icon: text("room_facility_icon").notNull().default("circle-dot"),
+    sortOrder: integer("room_facility_sort_order").notNull().default(0),
+    createdAt: timestamp("room_facility_created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    unitIdIdx: index("idx_room_facilities_unit").on(table.unitId),
+    categoryIdx: index("idx_room_facilities_category").on(table.category),
+    unitCategoryNameUnique: unique("room_facilities_unit_category_name_unique").on(
+      table.unitId,
+      table.category,
+      table.name,
+    ),
+  }),
+);
+
+export const popularAreas = pgTable(
+  "popular_areas",
+  {
+    id: uuid("popular_area_id").defaultRandom().primaryKey(),
+    slug: text("popular_area_slug").notNull().unique(),
+    name: text("popular_area_name").notNull(),
+    imageKey: text("popular_area_image_key").notNull(),
+    propertyCount: integer("popular_area_property_count").notNull().default(0),
+    sortOrder: integer("popular_area_sort_order").notNull().default(0),
+    isActive: boolean("popular_area_is_active").notNull().default(true),
+    createdAt: timestamp("popular_area_created_at").defaultNow().notNull(),
+    updatedAt: timestamp("popular_area_updated_at").defaultNow().notNull(),
+  },
+);
+
+export const campusAreas = pgTable(
+  "campus_areas",
+  {
+    id: uuid("campus_area_id").defaultRandom().primaryKey(),
+    slug: text("campus_area_slug").notNull().unique(),
+    name: text("campus_area_name").notNull(),
+    imageKey: text("campus_area_image_key").notNull(),
+    propertyCount: integer("campus_area_property_count").notNull().default(0),
+    sortOrder: integer("campus_area_sort_order").notNull().default(0),
+    isActive: boolean("campus_area_is_active").notNull().default(true),
+    createdAt: timestamp("campus_area_created_at").defaultNow().notNull(),
+    updatedAt: timestamp("campus_area_updated_at").defaultNow().notNull(),
+  },
+);
+
+export const propertyRulesRelations = relations(propertyRules, ({ one }) => ({
+  property: one(properties, {
+    fields: [propertyRules.propertyId],
+    references: [properties.id],
+  }),
+}));
+
+export const nearbyPlacesRelations = relations(nearbyPlaces, ({ one }) => ({
+  property: one(properties, {
+    fields: [nearbyPlaces.propertyId],
+    references: [properties.id],
+  }),
+}));
+
+export const roomFacilitiesRelations = relations(roomFacilities, ({ one }) => ({
+  unit: one(units, {
+    fields: [roomFacilities.unitId],
+    references: [units.id],
+  }),
 }));
 
 export const featureFlags = pgTable(

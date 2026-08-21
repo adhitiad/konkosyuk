@@ -111,7 +111,7 @@ export const propertyQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(10),
   ownerId: z.string().uuid().optional(),
-  type: z.enum(["kost", "kontrakan"]).optional(),
+  type: z.enum(["kost", "kontrakan", "apartemen", "rumah"]).optional(),
   city: z.string().optional(),
   search: z.string().optional(),
   lat: z.coerce.number().optional(),
@@ -123,6 +123,14 @@ export const propertyQuerySchema = z.object({
   maxPrice: z.coerce.number().nonnegative().optional(),
   isFeatured: z.coerce.boolean().optional(),
   ids: z.array(z.string().uuid()).optional(),
+  area: z.string().optional(),
+  campus: z.string().optional(),
+  duration: z.string().optional(),
+  gender: z.string().optional(),
+  swLat: z.coerce.number().optional(),
+  swLng: z.coerce.number().optional(),
+  neLat: z.coerce.number().optional(),
+  neLng: z.coerce.number().optional(),
 });
 
 export const unitQuerySchema = z.object({

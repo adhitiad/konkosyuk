@@ -40,6 +40,14 @@ export async function GET(req: NextRequest) {
       maxPrice,
       isFeatured,
       ids,
+      area,
+      campus,
+      duration: durationFilter,
+      gender,
+      swLat,
+      swLng,
+      neLat,
+      neLng,
     } = query;
 
     const cursor = req.nextUrl.searchParams.get("cursor");
@@ -91,6 +99,35 @@ export async function GET(req: NextRequest) {
       `;
       conditions.push(searchCondition);
     }
+    if (area) {
+      const areaCity = area.replace(/-/g, " ");
+      conditions.push(sql`${properties.city} ILIKE ${'%' + areaCity + '%'}`);
+    }
+    if (campus) {
+      const campusQuery = campus.replace(/-/g, " ");
+      conditions.push(
+        sql`${properties.address} ILIKE ${'%' + campusQuery + '%'} OR ${properties.description} ILIKE ${'%' + campusQuery + '%'}`,
+      );
+    }
+    if (amenities && amenities.length > 0) {
+      conditions.push(sql`${properties.amenities} @> ${amenities}`);
+    }
+    if (
+      swLat !== undefined &&
+      swLng !== undefined &&
+      neLat !== undefined &&
+      neLng !== undefined
+    ) {
+      conditions.push(
+        sql`${properties.latitude} IS NOT NULL AND ${properties.longitude} IS NOT NULL`,
+      );
+      conditions.push(
+        sql`${properties.latitude} BETWEEN ${swLat} AND ${neLat}`,
+      );
+      conditions.push(
+        sql`${properties.longitude} BETWEEN ${swLng} AND ${neLng}`,
+      );
+    }
 
     let orderBy = sql`${properties.gpsVerified} DESC, ${properties.createdAt} DESC`;
 
@@ -130,6 +167,14 @@ export async function GET(req: NextRequest) {
       maxPrice: maxPrice ?? "null",
       cursor: cursor ?? "null",
       limit: cursorLimit,
+      area: area ?? "null",
+      campus: campus ?? "null",
+      duration: durationFilter ?? "null",
+      gender: gender ?? "null",
+      swLat: swLat ?? "null",
+      swLng: swLng ?? "null",
+      neLat: neLat ?? "null",
+      neLng: neLng ?? "null",
     });
 
     const result = await getCachedData(

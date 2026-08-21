@@ -13,6 +13,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MapPinIcon, Location01Icon } from "@hugeicons/core-free-icons";
 import type { StyleSpecification } from "maplibre-gl";
+import { useRouter } from "next/navigation";
 
 const OSM_STYLE: StyleSpecification = {
   version: 8,
@@ -50,6 +51,14 @@ interface MarkerData {
   isJittered?: boolean;
 }
 
+interface PropertyMapMarker {
+  id: string;
+  latitude: number;
+  longitude: number;
+  title: string;
+  price?: number;
+}
+
 interface MapViewProps {
   center?: { lat: number; lng: number };
   zoom?: number;
@@ -57,6 +66,27 @@ interface MapViewProps {
   height?: string;
   userLocation?: { latitude: number; longitude: number } | null;
   radiusKm?: number;
+  properties?: PropertyMapMarker[];
+  onBoundsChange?: (bounds: {
+    swLat: number;
+    swLng: number;
+    neLat: number;
+    neLng: number;
+  }) => void;
+  onMarkerClick?: (id: string) => void;
+}
+
+function formatShortPrice(price: number): string {
+  if (price >= 1_000_000) {
+    const jt = Math.floor(price / 1_000_000);
+    const remainder = Math.round((price % 1_000_000) / 100_000);
+    return remainder > 0 ? `${jt}.${remainder}jt` : `${jt}jt`;
+  }
+  if (price >= 1_000) {
+    const rb = Math.floor(price / 1_000);
+    return `${rb}rb`;
+  }
+  return `${price}`;
 }
 
 export default function MapView({
@@ -66,14 +96,41 @@ export default function MapView({
   height = "400px",
   userLocation,
   radiusKm = 30,
+  properties = [],
+  onBoundsChange,
+  onMarkerClick,
 }: MapViewProps) {
   const mapRef = useRef<MapRef>(null);
   const defaultCenter = center ?? { lat: -6.2088, lng: 106.8456 };
   const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
+  const router = useRouter();
 
   const handleMarkerClick = useCallback((marker: MarkerData) => {
     setSelectedMarker(marker);
   }, []);
+
+  const handlePropertyClick = useCallback(
+    (propertyId: string) => {
+      if (onMarkerClick) {
+        onMarkerClick(propertyId);
+      } else {
+        router.push(`/properties/${propertyId}`);
+      }
+    },
+    [onMarkerClick, router],
+  );
+
+  const handleMoveEnd = useCallback(() => {
+    if (!mapRef.current || !onBoundsChange) return;
+    const map = mapRef.current.getMap();
+    const bounds = map.getBounds();
+    onBoundsChange({
+      swLat: bounds.getSouth(),
+      swLng: bounds.getWest(),
+      neLat: bounds.getNorth(),
+      neLng: bounds.getEast(),
+    });
+  }, [onBoundsChange]);
 
   const userLocationMarker = userLocation
     ? {
@@ -111,6 +168,10 @@ export default function MapView({
       })()
     : null;
 
+  const propertyById = new globalThis.Map(
+    properties.map((p) => [p.id, p]),
+  );
+
   return (
     <div
       style={{
@@ -128,6 +189,7 @@ export default function MapView({
           zoom,
         }}
         mapStyle={OSM_STYLE}
+        onMoveEnd={handleMoveEnd}
       >
         <NavigationControl position="top-right" />
         {userLocationMarker && (
@@ -185,8 +247,44 @@ export default function MapView({
             />
           </Source>
         )}
-        {markers.map((marker) =>
-          marker.isJittered ? (
+        {markers.map((marker) => {
+          const prop = propertyById.get(marker.id);
+          const hasPrice = prop?.price !== undefined && prop.price > 0;
+
+          if (hasPrice) {
+            const priceText = formatShortPrice(prop!.price!);
+            return (
+              <Marker
+                key={marker.id}
+                longitude={marker.lng}
+                latitude={marker.lat}
+                anchor="center"
+              >
+                <div
+                  className="cursor-pointer"
+                  onClick={() => handlePropertyClick(marker.id)}
+                >
+                  <div
+                    style={{
+                      background: "white",
+                      padding: "4px 8px",
+                      borderRadius: "8px",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      whiteSpace: "nowrap",
+                      color: "#111",
+                      fontFamily: "system-ui, sans-serif",
+                    }}
+                  >
+                    {priceText}
+                  </div>
+                </div>
+              </Marker>
+            );
+          }
+
+          return marker.isJittered ? (
             <Marker
               key={marker.id}
               longitude={marker.lng}
@@ -254,8 +352,8 @@ export default function MapView({
                 </Popup>
               )}
             </Marker>
-          ),
-        )}
+          );
+        })}
       </Map>
     </div>
   );

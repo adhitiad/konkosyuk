@@ -9,17 +9,25 @@ import {
   Car,
   Wind,
   Droplets,
-  Tag,
 } from "lucide-react";
 import { db } from "@/db";
-import { properties, units, seasonalPricingRules } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
-import { Button } from "@/components/ui/button";
+import {
+  properties,
+  units,
+  roomFacilities,
+  propertyRules,
+  nearbyPlaces,
+  users,
+  reviews,
+  bookings,
+} from "@/db/schema";
+import { eq, and, sql, count, avg } from "drizzle-orm";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ChatTriggerButton } from "@/components/chat/chat-trigger-button";
-import BookingDialogClient from "./booking-dialog";
+import { PropertyUnitsSection } from "@/components/property/property-units-section";
+import { DetailSidebar } from "@/components/property/detail-sidebar";
+import { MiniMap } from "@/components/property/mini-map";
+import { NearbyPlacesList } from "@/components/property/nearby-places-list";
 
 type AmenityIconMap = Record<
   string,
@@ -60,53 +68,138 @@ export default async function PropertyDetailPage({
   const mainImage = images[0];
   const thumbnailImages = images.slice(1, 5);
 
-  const formatPrice = (price: string | null) => {
-    if (!price) return "Hubungi Pemilik";
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0,
-    }).format(Number(price));
-  };
-
-  const seasonalRules = await db
-    .select()
-    .from(seasonalPricingRules)
-    .where(
-      and(
-        eq(seasonalPricingRules.propertyId, property.id),
-        eq(seasonalPricingRules.isActive, true),
-      ),
-    )
-    .orderBy(
-      desc(seasonalPricingRules.priority),
-      desc(seasonalPricingRules.createdAt),
-    )
-    .limit(5);
-
-  const hasSeasonalPricing = seasonalRules.length > 0;
-
   const propertyUnits = await db
-    .select({ id: units.id, name: units.name })
+    .select({
+      id: units.id,
+      name: units.name,
+      description: units.description,
+      price: units.price,
+      capacity: units.capacity,
+      size: units.size,
+      status: units.status,
+      roomSize: units.roomSize,
+      electricityIncluded: units.electricityIncluded,
+      furnitureIncluded: units.furnitureIncluded,
+    })
     .from(units)
     .where(eq(units.propertyId, property.id))
-    .limit(20);
+    .orderBy(units.createdAt, units.name);
 
-  const bookingUnits =
-    propertyUnits.length > 0
-      ? propertyUnits.map((u) => ({ id: u.id, name: u.name }))
-      : [{ id: "unknown", name: "Unit" }];
+  const facilitiesRows = propertyUnits.length > 0
+    ? await db
+        .select({
+          unitId: roomFacilities.unitId,
+          category: roomFacilities.category,
+          name: roomFacilities.name,
+          icon: roomFacilities.icon,
+        })
+        .from(roomFacilities)
+        .where(
+          sql`${roomFacilities.unitId} IN (${propertyUnits.map((u) => u.id).join(",")})`,
+        )
+        .orderBy(roomFacilities.sortOrder, roomFacilities.name)
+    : [];
 
-  const seasonalRulePayload = seasonalRules.map((r) => ({
-    id: r.id,
-    ruleType: r.ruleType,
-    adjustmentValue: r.adjustmentValue.toString(),
-    startDate: r.startDate.toISOString(),
-    endDate: r.endDate.toISOString(),
-    minNights: r.minNights,
-    maxNights: r.maxNights,
-    priority: r.priority ?? 0,
+  const facilitiesMap = new Map<string, {
+    kamar: { name: string; icon: string }[];
+    kamar_mandi: { name: string; icon: string }[];
+    umum: { name: string; icon: string }[];
+  }>();
+
+  for (const unit of propertyUnits) {
+    facilitiesMap.set(unit.id, {
+      kamar: [],
+      kamar_mandi: [],
+      umum: [],
+    });
+  }
+
+  for (const f of facilitiesRows) {
+    const unitFacilities = facilitiesMap.get(f.unitId);
+    if (!unitFacilities) continue;
+
+    const category = f.category as keyof typeof unitFacilities;
+    if (category in unitFacilities) {
+      (unitFacilities as Record<string, { name: string; icon: string }[]>)[category].push({
+        name: f.name,
+        icon: f.icon,
+      });
+    }
+  }
+
+  const unitsWithFacilities = propertyUnits.map((unit) => ({
+    ...unit,
+    facilities: facilitiesMap.get(unit.id) ?? {
+      kamar: [],
+      kamar_mandi: [],
+      umum: [],
+    },
   }));
+
+  const propertyRulesRows = await db
+    .select({
+      id: propertyRules.id,
+      rule: propertyRules.rule,
+      sortOrder: propertyRules.sortOrder,
+    })
+    .from(propertyRules)
+    .where(eq(propertyRules.propertyId, property.id))
+    .orderBy(propertyRules.sortOrder);
+
+  const nearbyPlacesRows = await db
+    .select({
+      id: nearbyPlaces.id,
+      name: nearbyPlaces.name,
+      type: nearbyPlaces.type,
+      distance: nearbyPlaces.distance,
+      latitude: nearbyPlaces.latitude,
+      longitude: nearbyPlaces.longitude,
+    })
+    .from(nearbyPlaces)
+    .where(eq(nearbyPlaces.propertyId, property.id))
+    .orderBy(nearbyPlaces.distance);
+
+  const [ownerResult] = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      image: users.image,
+      activeSince: users.createdAt,
+      transactionCount: sql<number>`COUNT(${bookings.id})`,
+    })
+    .from(users)
+    .leftJoin(
+      bookings,
+      and(
+        eq(bookings.propertyId, property.id),
+        eq(bookings.status, "completed"),
+      ),
+    )
+    .where(eq(users.id, property.ownerId))
+    .groupBy(users.id);
+
+  const owner = ownerResult
+    ? {
+        ...ownerResult,
+        activeSince: ownerResult.activeSince,
+        transactionCount: Number(ownerResult.transactionCount),
+      }
+    : null;
+
+  const [ratingResult] = await db
+    .select({
+      averageRating: avg(reviews.rating),
+      count: count(),
+    })
+    .from(reviews)
+    .where(eq(reviews.propertyId, property.id));
+
+  const reviewsSummary = ratingResult && Number(ratingResult.count) > 0
+    ? {
+        averageRating: Number(ratingResult.averageRating),
+        count: Number(ratingResult.count),
+      }
+    : null;
 
   return (
     <main className="container py-8 max-w-7xl mx-auto px-4 lg:px-8">
@@ -161,8 +254,8 @@ export default async function PropertyDetailPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
+      <div className="lg:grid lg:grid-cols-[1fr_340px] gap-6">
+        <div className="space-y-6 min-w-0">
           <Card>
             <CardContent className="p-6">
               <div className="flex flex-wrap gap-4 text-gray-700">
@@ -211,59 +304,84 @@ export default async function PropertyDetailPage({
               </CardContent>
             </Card>
           )}
-        </div>
 
-        <div className="lg:col-span-1">
-          <Card className="sticky top-24 border shadow-lg">
-            <CardContent className="p-6 space-y-4">
-              <div>
-                <span className="text-3xl font-bold text-primary">
-                  {formatPrice(property.basePrice)}
-                </span>
-                <span className="text-gray-500"> / bulan</span>
-              </div>
-              {hasSeasonalPricing && (
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="gap-1">
-                    <Tag className="h-3 w-3" />
-                    Harga Musiman Aktif
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {seasonalRules.length} aturan aktif
-                  </span>
-                </div>
-              )}
-              <Separator />
-              <div className="space-y-3">
-                <BookingDialogClient
-                  propertyId={property.id}
-                  units={bookingUnits}
-                  packages={property.packages}
-                  seasonalRules={seasonalRulePayload}
-                >
-                  <Button
-                    className="w-full h-12 text-lg font-semibold"
-                    size="lg"
-                  >
-                    Ajukan Booking Sekarang
-                  </Button>
-                </BookingDialogClient>
-                <ChatTriggerButton
-                  propertyId={property.id}
-                  propertyName={property.name}
-                  variant="outline"
-                  className="w-full h-12"
+          <PropertyUnitsSection units={unitsWithFacilities} />
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-primary" />
+                  Lokasi
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {property.address || property.city}
+                </p>
+
+                {property.latitude && property.longitude && (
+                  <div className="h-48 rounded-xl overflow-hidden border border-border">
+                    <MiniMap
+                      latitude={Number(property.latitude)}
+                      longitude={Number(property.longitude)}
+                      nearbyPlaces={nearbyPlacesRows.map((p) => ({
+                        id: p.id,
+                        name: p.name,
+                        latitude: Number(p.latitude),
+                        longitude: Number(p.longitude),
+                      }))}
+                      onPlaceClick={(place) =>
+                        window.open(
+                          `https://www.google.com/maps/search?q=${encodeURIComponent(place.name)}@${place.latitude},${place.longitude}`,
+                          "_blank",
+                        )
+                      }
+                    />
+                  </div>
+                )}
+
+                <NearbyPlacesList
+                  places={nearbyPlacesRows.map((p) => ({
+                    id: p.id,
+                    name: p.name,
+                    type: p.type,
+                    distance: p.distance,
+                    latitude: Number(p.latitude),
+                    longitude: Number(p.longitude),
+                  }))}
+                  onPlaceClick={(place) =>
+                    window.open(
+                      `https://www.google.com/maps/search?q=${encodeURIComponent(place.name)}@${place.latitude},${place.longitude}`,
+                      "_blank",
+                    )
+                  }
                 />
-                <Button variant="outline" className="w-full h-12" size="lg">
-                  Hubungi Pemilik via WhatsApp
-                </Button>
               </div>
-              <p className="text-xs text-center text-gray-500 mt-4">
-                Anda tidak akan dikenakan biaya sampai booking disetujui.
-              </p>
             </CardContent>
           </Card>
         </div>
+
+        <DetailSidebar
+          property={{
+            id: property.id,
+            title: property.name,
+            price: Number(property.basePrice),
+            priceUnit: "bulan",
+            type: property.type,
+            images,
+          }}
+          owner={owner}
+          nearbyPlaces={nearbyPlacesRows.map((p) => ({
+            id: p.id,
+            name: p.name,
+            type: p.type,
+            distance: p.distance,
+            latitude: Number(p.latitude),
+            longitude: Number(p.longitude),
+          }))}
+          rules={propertyRulesRows}
+          reviews={reviewsSummary}
+          propertyId={property.id}
+        />
       </div>
     </main>
   );
