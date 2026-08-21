@@ -37,6 +37,7 @@ import { ErrorState } from "@/components/ui/error-state";
 import { Wrench } from "lucide-react";
 import type { MaintenanceTicket } from "@/db/schema";
 import { updateMaintenanceTicketAction } from "@/actions/maintenance";
+import Image from "next/image";
 
 interface MaintenanceTicketWithNames extends MaintenanceTicket {
   unitName: string | null;
@@ -283,13 +284,15 @@ export default function OwnerMaintenancePage() {
                     <p className="text-xs text-muted-foreground mb-2">Gambar</p>
                     <div className="flex flex-wrap gap-2">
                       {selectedTicket.images.map((url, idx) => (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img
-                          key={idx}
-                          src={url}
-                          alt={`Attachment ${idx + 1}`}
-                          className="h-20 w-20 object-cover rounded-lg border"
-                        />
+                        <div key={idx} className="relative h-20 w-20">
+                          <Image
+                            src={url}
+                            alt={`Attachment ${idx + 1}`}
+                            fill
+                            className="object-cover rounded-lg border"
+                            sizes="80px"
+                          />
+                        </div>
                       ))}
                     </div>
                   </div>

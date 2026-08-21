@@ -27,6 +27,7 @@ import MaintenanceTicketForm from "@/components/maintenance/maintenance-ticket-f
 import type { MaintenanceTicket } from "@/db/schema";
 import { apiClient } from "@/lib/axios";
 import ReportForm from "@/components/reports/report-form";
+import Image from "next/image";
 
 const statusConfig: Record<
   string,
@@ -250,15 +251,17 @@ export default function TenantMaintenancePage() {
                 <div>
                   <p className="text-xs text-muted-foreground mb-2">Gambar</p>
                   <div className="flex flex-wrap gap-2">
-                    {selectedTicket.images.map((url, idx) => (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        key={idx}
-                        src={url}
-                        alt={`Attachment ${idx + 1}`}
-                        className="h-20 w-20 object-cover rounded-lg border"
-                      />
-                    ))}
+                      {selectedTicket.images.map((url, idx) => (
+                        <div key={idx} className="relative h-20 w-20">
+                          <Image
+                            src={url}
+                            alt={`Attachment ${idx + 1}`}
+                            fill
+                            className="object-cover rounded-lg border"
+                            sizes="80px"
+                          />
+                        </div>
+                      ))}
                   </div>
                 </div>
               )}

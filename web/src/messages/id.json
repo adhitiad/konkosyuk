@@ -24,6 +24,7 @@
     "kycRequests": "Permintaan KYC",
     "wallet": "Dompet",
     "analytics": "Analitik",
+    "pricing": "Harga",
     "notifications": "Notifikasi",
     "notificationSettings": "Pengaturan Notifikasi",
     "pushNotifications": "Push Notifications",
@@ -80,6 +81,43 @@
     "adminDashboard": "Dashboard Admin",
     "admin": "Admin",
     "staff": "Staff"
+  },
+  "popularAreas": {
+    "title": "Area Kos Terpopuler",
+    "subtitle": "Temukan kosan di kota-kota besar Indonesia",
+    "viewAll": "Lihat Semua",
+    "viewAllMobile": "Lihat Semua Area",
+    "propertyCount": "{count} properti"
+  },
+  "filterChips": {
+    "propertyType": "Tipe Properti",
+    "duration": "Durasi",
+    "gender": "Gender",
+    "amenities": "Fasilitas",
+    "allType": "Semua Tipe",
+    "allDuration": "Semua Durasi",
+    "allGender": "Semua",
+    "kost": "Kost",
+    "kontrakan": "Kontrakan",
+    "ruko": "Ruko",
+    "harian": "Harian",
+    "bulanan": "Bulanan",
+    "tahunan": "Tahunan",
+    "putra": "Putra",
+    "putri": "Putri",
+    "campuran": "Campuran",
+    "wifi": "WiFi",
+    "ac": "AC",
+    "parkir": "Parkir",
+    "dapur": "Dapur",
+    "laundry": "Laundry",
+    "balkon": "Balkon",
+    "security24h": "24 Jam",
+    "scrollLeft": "Gulir ke kiri",
+    "scrollRight": "Gulir ke kanan"
+  },
+  "searchBar": {
+    "placeholder": "Cari kosan, alamat, atau nama..."
   },
   "admin": {
     "pushNotifications": {

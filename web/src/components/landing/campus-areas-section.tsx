@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { getCloudinaryUrl } from "@/lib/cloudinary";
 
 interface Area {
@@ -95,12 +96,13 @@ export function CampusAreasSection() {
               href={`/properties?campus=${area.slug}`}
               className="group flex items-center gap-3 p-4 rounded-xl border border-border bg-card hover:shadow-md hover:border-primary/20 transition-all duration-200"
             >
-              <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                <img
+              <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                <Image
                   src={getCloudinaryUrl(area.imageKey, { width: 96, height: 96, quality: 80 })}
                   alt={area.name}
-                  className="object-cover w-full h-full"
-                  loading="lazy"
+                  fill
+                  className="object-cover"
+                  sizes="48px"
                 />
               </div>
 

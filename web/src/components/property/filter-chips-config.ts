@@ -1,30 +1,35 @@
-export const TYPE_CHIPS = [
-  { value: undefined, label: "Semua Tipe" },
-  { value: "kost", label: "Kost" },
-  { value: "kontrakan", label: "Kontrakan" },
-  { value: "ruko", label: "Ruko" },
-] as const;
+export type FilterChip = {
+  value: string | undefined;
+  labelKey: string;
+};
 
-export const DURATION_CHIPS = [
-  { value: undefined, label: "Semua Durasi" },
-  { value: "harian", label: "Harian" },
-  { value: "bulanan", label: "Bulanan" },
-  { value: "tahunan", label: "Tahunan" },
-] as const;
+export const TYPE_CHIPS: FilterChip[] = [
+  { value: undefined, labelKey: "allType" },
+  { value: "kost", labelKey: "kost" },
+  { value: "kontrakan", labelKey: "kontrakan" },
+  { value: "ruko", labelKey: "ruko" },
+];
 
-export const GENDER_CHIPS = [
-  { value: undefined, label: "Semua" },
-  { value: "putra", label: "Putra" },
-  { value: "putri", label: "Putri" },
-  { value: "campuran", label: "Campuran" },
-] as const;
+export const DURATION_CHIPS: FilterChip[] = [
+  { value: undefined, labelKey: "allDuration" },
+  { value: "harian", labelKey: "harian" },
+  { value: "bulanan", labelKey: "bulanan" },
+  { value: "tahunan", labelKey: "tahunan" },
+];
 
-export const AMENITY_CHIPS = [
-  { value: "wifi", label: "WiFi" },
-  { value: "ac", label: "AC" },
-  { value: "parkir", label: "Parkir" },
-  { value: "dapur", label: "Dapur" },
-  { value: "laundry", label: "Laundry" },
-  { value: "balkon", label: "Balkon" },
-  { value: "keamanan-24jam", label: "24 Jam" },
-] as const;
+export const GENDER_CHIPS: FilterChip[] = [
+  { value: undefined, labelKey: "allGender" },
+  { value: "putra", labelKey: "putra" },
+  { value: "putri", labelKey: "putri" },
+  { value: "campuran", labelKey: "campuran" },
+];
+
+export const AMENITY_CHIPS: FilterChip[] = [
+  { value: "wifi", labelKey: "wifi" },
+  { value: "ac", labelKey: "ac" },
+  { value: "parkir", labelKey: "parkir" },
+  { value: "dapur", labelKey: "dapur" },
+  { value: "laundry", labelKey: "laundry" },
+  { value: "balkon", labelKey: "balkon" },
+  { value: "keamanan-24jam", labelKey: "security24h" },
+];

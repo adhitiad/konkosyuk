@@ -225,8 +225,10 @@ export default function PropertiesPage() {
 
   interface ApiResponse<T> {
     success: boolean;
-    data: T;
-    meta?: Record<string, unknown>;
+    data: {
+      data: T;
+      meta?: Record<string, unknown>;
+    };
   }
 
   const { data, isLoading, isError, error } = useQuery<ApiResponse<Property[]>>(
@@ -242,7 +244,7 @@ export default function PropertiesPage() {
     },
   );
 
-  const properties = data?.data ?? [];
+  const properties = data?.data?.data ?? [];
 
   return (
     <div className="container py-4 md:py-6">

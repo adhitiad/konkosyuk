@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wrench, Check, X } from "lucide-react";
 import { updateReportAction } from "@/actions/reports";
+import Image from "next/image";
 
 type Report = {
   id: string;
@@ -84,15 +85,17 @@ function ReportItem({
       <p className="text-sm whitespace-pre-wrap">{report.description}</p>
       {report.images?.length ? (
         <div className="flex flex-wrap gap-2">
-          {report.images.map((url) => (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              key={url}
-              src={url}
-              alt="Lampiran laporan"
-              className="size-20 rounded-md border object-cover"
-            />
-          ))}
+            {report.images.map((url) => (
+              <div key={url} className="relative size-20">
+                <Image
+                  src={url}
+                  alt="Lampiran laporan"
+                  fill
+                  className="object-cover rounded-md border"
+                  sizes="80px"
+                />
+              </div>
+            ))}
         </div>
       ) : null}
       {report.status !== "resolved" && report.status !== "rejected" && (

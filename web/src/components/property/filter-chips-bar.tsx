@@ -3,11 +3,14 @@
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 import {
   TYPE_CHIPS,
   DURATION_CHIPS,
   GENDER_CHIPS,
   AMENITY_CHIPS,
+  type FilterChip,
 } from "./filter-chips-config";
 
 export interface FilterChips {
@@ -23,20 +26,21 @@ export interface FilterChipsBarProps {
 }
 
 function ChipRow({
-  label,
+  labelKey,
   chips,
   activeValue,
   activeValues,
   onSingleSelect,
   onMultiToggle,
 }: {
-  label: string;
-  chips: readonly { value: string | undefined; label: string }[];
+  labelKey: string;
+  chips: readonly FilterChip[];
   activeValue?: string;
   activeValues?: string[];
   onSingleSelect?: (value: string | undefined) => void;
   onMultiToggle?: (value: string) => void;
 }) {
+  const t = useTranslations("filterChips");
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -57,9 +61,8 @@ function ChipRow({
   const scroll = (direction: "left" | "right") => {
     const el = scrollRef.current;
     if (!el) return;
-    const amount = 200;
     el.scrollBy({
-      left: direction === "left" ? -amount : amount,
+      left: direction === "left" ? -200 : 200,
       behavior: "smooth",
     });
   };
@@ -67,35 +70,40 @@ function ChipRow({
   return (
     <div className="relative">
       <span className="text-xs font-medium text-muted-foreground mb-1.5 block">
-        {label}
+        {t(labelKey)}
       </span>
       <div className="relative">
         {canScrollLeft && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-sm"
             onClick={() => scroll("left")}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden md:flex w-8 h-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm border border-border shadow-sm hover:bg-accent"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden md:flex"
+            aria-label={t("scrollLeft")}
           >
             <ChevronLeft className="w-4 h-4" />
-          </button>
+          </Button>
         )}
         <div
           ref={scrollRef}
           className={cn(
             "flex gap-2 overflow-x-auto scrollbar-hide",
-            "scrollbar-width: none; -webkit-overflow-scrolling: touch;",
+            "scroll-px-1 overscroll-x-contain",
           )}
           onScroll={checkScroll}
         >
-          {chips.map((chip) => {
+          {chips?.map((chip) => {
             const isActive = onMultiToggle
               ? activeValues?.includes(chip.value as string)
               : activeValue === chip.value;
 
             return (
-              <button
-                key={chip.label}
+              <Button
+                key={chip.labelKey}
                 type="button"
+                variant={isActive ? "default" : "outline"}
+                size="sm"
                 onClick={() => {
                   if (onMultiToggle) {
                     onMultiToggle(chip.value as string);
@@ -105,27 +113,24 @@ function ChipRow({
                     );
                   }
                 }}
-                className={cn(
-                  "shrink-0 px-3 py-1.5 text-sm rounded-full border transition-all duration-200",
-                  "hover:bg-accent hover:shadow-sm",
-                  isActive
-                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                    : "bg-background text-foreground border-border",
-                )}
+                className="shrink-0 rounded-full text-sm"
               >
-                {chip.label}
-              </button>
+                {t(chip.labelKey)}
+              </Button>
             );
           })}
         </div>
         {canScrollRight && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-sm"
             onClick={() => scroll("right")}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 hidden md:flex w-8 h-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm border border-border shadow-sm hover:bg-accent"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 hidden md:flex"
+            aria-label={t("scrollRight")}
           >
             <ChevronRight className="w-4 h-4" />
-          </button>
+          </Button>
         )}
       </div>
     </div>
@@ -158,25 +163,25 @@ export function FilterChipsBar({
   return (
     <div className="space-y-4 border-b border-border pb-4">
       <ChipRow
-        label="Tipe Properti"
+        labelKey="propertyType"
         chips={TYPE_CHIPS}
         activeValue={filters.type}
         onSingleSelect={handleTypeChange}
       />
       <ChipRow
-        label="Durasi"
+        labelKey="duration"
         chips={DURATION_CHIPS}
         activeValue={filters.duration}
         onSingleSelect={handleDurationChange}
       />
       <ChipRow
-        label="Gender"
+        labelKey="gender"
         chips={GENDER_CHIPS}
         activeValue={filters.gender}
         onSingleSelect={handleGenderChange}
       />
       <ChipRow
-        label="Fasilitas"
+        labelKey="amenities"
         chips={AMENITY_CHIPS}
         activeValues={filters.amenities}
         onMultiToggle={handleAmenityToggle}

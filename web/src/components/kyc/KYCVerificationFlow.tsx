@@ -1,19 +1,27 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
 import {
   Loader2,
   Upload,
   Camera,
   CheckCircle2,
   XCircle,
-  ShieldCheck,
+  Info,
 } from "lucide-react";
+import Image from "next/image";
+import { authClient } from "@/lib/auth-client";
+import { csrfFetch } from "@/lib/axios";
 
 export type KycStep = "upload-ktp" | "selfie" | "processing" | "result";
 
@@ -48,6 +56,7 @@ export default function KYCVerificationFlow({
   onComplete,
   initialStep = "upload-ktp",
 }: KYCVerificationFlowProps) {
+  const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState<KycStep>(initialStep);
   const [ktpImage, setKtpImage] = useState<File | null>(null);
   const [ktpPreview, setKtpPreview] = useState<string | null>(null);
@@ -110,15 +119,20 @@ export default function KYCVerificationFlow({
   const uploadToStorage = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("type", "ktp");
 
-    const response = await fetch("/api/upload", {
+    const response = await csrfFetch("/api/upload", {
       method: "POST",
       body: formData,
     });
 
     if (!response.ok) {
-      throw new Error("Gagal mengupload file");
-    }
+        const errorData = await response.json().catch(() => ({}));
+        const err = typeof errorData.error === "string"
+          ? errorData.error
+          : errorData.error?.message;
+        throw new Error(err || "Gagal mengupload file");
+      }
 
     const data = await response.json();
     return data.url;
@@ -177,10 +191,14 @@ export default function KYCVerificationFlow({
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Gagal memulai verifikasi KYC");
+        const errMsg = typeof data.error === "string"
+          ? data.error
+          : data.error?.message || "Gagal memulai verifikasi KYC";
+        throw new Error(errMsg);
       }
 
-      const data = await response.json();
+      const body = await response.json();
+      const data = body.data ?? body;
 
       if (data.redirectUrl) {
         window.location.href = data.redirectUrl;
@@ -188,8 +206,11 @@ export default function KYCVerificationFlow({
         setCurrentStep("result");
         setVerificationResult({ status: "pending" });
         onComplete?.("pending");
+
+        queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+        await authClient.getSession();
       }
-    } catch (err) {
+     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");
       setCurrentStep("selfie");
     } finally {
@@ -197,22 +218,35 @@ export default function KYCVerificationFlow({
     }
   };
 
+  const handleRetry = () => {
+    setError(null);
+    setCurrentStep("selfie");
+  };
+
   const renderStepContent = () => {
     switch (currentStep) {
       case "upload-ktp":
         return (
           <div className="space-y-4">
+            <Alert>
+              <Info className="size-4" />
+              <AlertTitle>Petunjuk Foto KTP</AlertTitle>
+              <AlertDescription>
+                Pastikan foto KTP jelas, tidak buram, dan semua sudut terlihat.
+                Cahaya harus cukup dan tidak ada bayangan yang menghalangi.
+              </AlertDescription>
+            </Alert>
             <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8">
               {ktpPreview ? (
-                <div className="relative">
-                  <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={ktpPreview}
-                      alt="Preview KTP"
-                      className="max-h-64 rounded-lg object-contain"
-                    />
-                  </>
+                <div className="relative mx-auto aspect-[4/3] w-full max-w-xs max-h-64">
+                  <Image
+                    src={ktpPreview}
+                    alt="Preview KTP"
+                    fill
+                    unoptimized
+                    className="object-contain rounded-lg"
+                    sizes="(max-width: 768px) 90vw, 50vw"
+                  />
                   <button
                     type="button"
                     onClick={() => {
@@ -242,29 +276,31 @@ export default function KYCVerificationFlow({
                 className="mt-4"
               />
             </div>
-            <Alert>
-              <ShieldCheck className="size-4" />
-              <AlertDescription>
-                Foto KTP harus jelas, tidak blur, dan seluruh sisi KTP terlihat.
-              </AlertDescription>
-            </Alert>
           </div>
         );
 
       case "selfie":
         return (
           <div className="space-y-4">
+            <Alert>
+              <Info className="size-4" />
+              <AlertTitle>Petunjuk Selfie</AlertTitle>
+              <AlertDescription>
+                Pastikan wajah berada di dalam bingkai, pencahayaan cukup, dan
+                tidak memakai kacamata atau masker. Ekspresi wajah harus alami.
+              </AlertDescription>
+            </Alert>
             <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8">
               {selfiePreview ? (
-                <div className="relative">
-                  <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={selfiePreview}
-                      alt="Preview Selfie"
-                      className="max-h-64 rounded-lg object-contain"
-                    />
-                  </>
+                <div className="relative mx-auto aspect-[4/3] w-full max-w-xs max-h-64">
+                  <Image
+                    src={selfiePreview}
+                    alt="Preview Selfie"
+                    fill
+                    unoptimized
+                    className="object-contain rounded-lg"
+                    sizes="(max-width: 768px) 90vw, 50vw"
+                  />
                   <button
                     type="button"
                     onClick={() => {
@@ -283,7 +319,7 @@ export default function KYCVerificationFlow({
                     Klik atau seret foto selfie ke sini
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Pastikan wajah terlihat jelas, tanpa kacamata atau masker
+                    Gunakan kamera depan untuk hasil terbaik
                   </p>
                 </div>
               )}
@@ -295,13 +331,6 @@ export default function KYCVerificationFlow({
                 className="mt-4"
               />
             </div>
-            <Alert>
-              <ShieldCheck className="size-4" />
-              <AlertDescription>
-                Pastikan wajah terlihat jelas, pencahayaan cukup, dan tidak
-                menggunakan kacamata atau masker.
-              </AlertDescription>
-            </Alert>
           </div>
         );
 
@@ -382,7 +411,19 @@ export default function KYCVerificationFlow({
       <CardContent className="space-y-6">
         {error && (
           <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
+            <XCircle className="size-4" />
+            <AlertTitle>Terjadi Kesalahan</AlertTitle>
+            <AlertDescription>
+              <p className="mb-2">{error}</p>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleRetry}
+              >
+                Coba Lagi
+              </Button>
+            </AlertDescription>
           </Alert>
         )}
 

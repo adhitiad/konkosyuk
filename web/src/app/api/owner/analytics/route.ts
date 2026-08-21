@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { bookings, properties, units } from "@/db/schema";
+import { bookings, properties, units, payments } from "@/db/schema";
 import { eq, sql, and } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { ok, handleApiError } from "@/lib/api";
@@ -21,9 +21,9 @@ export async function GET() {
       .where(eq(bookings.propertyId, propertyIds[0]));
 
     const totalRevenue = await db
-      .select({ sum: sql<number>`sum(amount)` })
-      .from(bookings)
-      .where(eq(bookings.propertyId, propertyIds[0]));
+      .select({ sum: sql<number>`sum(CAST(${payments.amount} AS NUMERIC))` })
+      .from(payments)
+      .where(eq(payments.propertyId, propertyIds[0]));
 
     const totalUnits = await db
       .select({ count: sql<number>`count(*)` })

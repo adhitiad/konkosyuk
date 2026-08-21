@@ -33,7 +33,7 @@ describe("OwnerProfileCard", () => {
 
     const img = screen.getByAltText("Budi Santoso");
     expect(img).toBeInTheDocument();
-    expect(img).toHaveAttribute("src", "https://example.com/avatar.jpg");
+    expect(img.getAttribute("src")).toContain("avatar.jpg");
   });
 
   it("displays fallback circle when no photo", () => {

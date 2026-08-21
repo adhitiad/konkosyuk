@@ -4,8 +4,9 @@ import { db } from "@/db";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { ok, fail, handleApiError } from "@/lib/api";
-import type { SessionUserWithRole } from "@/lib/auth-client";
 import { getSettingRequired, getSetting } from "@/lib/settings";
+
+const DIDIT_WORKFLOW_ID = "584faed8-a928-4f49-8d9e-d1f2b106035a";
 
 export async function POST(req: Request) {
   try {
@@ -25,14 +26,19 @@ export async function POST(req: Request) {
     }
 
     let diditApiKey: string;
-    let diditApiUrl: string;
 
     try {
       diditApiKey = await getSettingRequired("DIDIT_API_KEY");
-      diditApiUrl =
-        (await getSetting("NEXT_PUBLIC_DIDIT_API_URL")) ||
-        "https://api.didit.me";
     } catch {
+      diditApiKey = process.env.DIDIT_API_KEY || "";
+    }
+
+    const diditApiUrl =
+      (await getSetting("NEXT_PUBLIC_DIDIT_API_URL")) ||
+      process.env.NEXT_PUBLIC_DIDIT_API_URL ||
+      "https://verification.didit.me";
+
+    if (!diditApiKey) {
       return fail("KYC service not configured", 500);
     }
 
@@ -47,27 +53,34 @@ export async function POST(req: Request) {
       })
       .returning();
 
-    const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/kyc/webhook`;
+    const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/owner/kyc`;;
 
-    const diditResponse = await fetch(`${diditApiUrl}/v2/kyc/session`, {
+    const diditResponse = await fetch(`${diditApiUrl}/v3/session/`, {
       method: "POST",
       headers: {
+        "x-api-key": diditApiKey,
         "Content-Type": "application/json",
-        Authorization: `Bearer ${diditApiKey}`,
       },
       body: JSON.stringify({
-        callback_url: callbackUrl,
-        redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/owner/kyc/result`,
-        document_type: documentType || "ktp",
-        front_image: ktpImageUrl,
-        portrait_image: selfieImageUrl,
+        workflow_id: DIDIT_WORKFLOW_ID,
+        vendor_data: session.user.id,
+        callback: callbackUrl,
       }),
     });
 
     if (!diditResponse.ok) {
       const errorText = await diditResponse.text();
       console.error("Didit API error:", errorText);
-      return fail("Failed to create KYC session", 500);
+      let detail = "Failed to create KYC session";
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson.detail) {
+          detail = errorJson.detail;
+        } else if (errorJson.message) {
+          detail = errorJson.message;
+        }
+      } catch {}
+      return fail(detail, 502);
     }
 
     const diditData = await diditResponse.json();
@@ -75,23 +88,27 @@ export async function POST(req: Request) {
     await db
       .update(kycVerifications)
       .set({
-        diditSessionId: diditData.session_id || diditData.sessionId,
-        diditRedirectUrl: diditData.redirect_url || diditData.redirectUrl,
+        diditSessionId: diditData.session_id,
+        diditRedirectUrl: diditData.url,
         status: "pending",
       })
       .where(eq(kycVerifications.id, verification.id));
 
-    const user = session.user as SessionUserWithRole;
     await db
       .update(users)
       .set({ kycStatus: "pending" })
-      .where(eq(users.id, user.id));
+      .where(eq(users.id, session.user.id));
 
     return ok({
-      sessionId: diditData.session_id || diditData.sessionId,
-      redirectUrl: diditData.redirect_url || diditData.redirectUrl,
+      sessionId: diditData.session_id,
+      redirectUrl: diditData.url,
+      sessionToken: diditData.session_token,
     });
   } catch (error) {
+    console.error(
+      "KYC session error:",
+      error instanceof Error ? error.stack : error,
+    );
     return handleApiError(error, "POST /api/kyc/session");
   }
 }
@@ -106,15 +123,22 @@ export async function GET() {
       return fail("Unauthorized", 401);
     }
 
-    const user = session.user as SessionUserWithRole;
+    const userId = session.user.id;
+
+    const [userRecord] = await db
+      .select({ kycStatus: users.kycStatus })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
     const userVerifications = await db
       .select()
       .from(kycVerifications)
-      .where(eq(kycVerifications.userId, user.id))
+      .where(eq(kycVerifications.userId, userId))
       .orderBy(kycVerifications.createdAt);
 
     return ok({
-      kycStatus: user.kycStatus,
+      kycStatus: userRecord?.kycStatus ?? "none",
       verifications: userVerifications,
     });
   } catch (error) {

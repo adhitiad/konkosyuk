@@ -97,7 +97,7 @@ export async function GET() {
       .where(eq(withdrawals.ownerId, session.user.id))
       .orderBy(desc(withdrawals.createdAt));
 
-    return ok({ data });
+    return ok(data);
   } catch (error) {
     logError(error, "GET /api/owner/withdrawals");
     return handleApiError(error);

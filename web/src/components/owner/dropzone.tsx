@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Image from "next/image";
 
 interface DropzoneProps {
   onFilesChange: (files: File[]) => void;
@@ -159,14 +160,14 @@ export function Dropzone({
               key={index}
               className="relative aspect-square rounded-lg border overflow-hidden"
             >
-              <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={URL.createObjectURL(file)}
-                  alt={`Preview ${index + 1}`}
-                  className="h-full w-full object-cover"
-                />
-              </>
+              <Image
+                src={URL.createObjectURL(file)}
+                alt={`Preview ${index + 1}`}
+                fill
+                unoptimized
+                className="object-cover"
+                sizes="(max-width: 768px) 80vw, 50vw"
+              />
               <button
                 type="button"
                 onClick={() => removeFile(index)}

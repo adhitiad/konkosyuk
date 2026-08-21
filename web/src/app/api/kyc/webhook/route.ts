@@ -8,17 +8,54 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { getSettingRequired } from "@/lib/settings";
+import crypto from "node:crypto";
+
+function shortenFloats(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(shortenFloats);
+  if (v && typeof v === "object") {
+    return Object.fromEntries(
+      Object.entries(v as Record<string, unknown>).map(([k, x]) => [
+        k,
+        shortenFloats(x),
+      ]),
+    );
+  }
+  if (typeof v === "number" && !Number.isInteger(v) && v % 1 === 0)
+    return Math.trunc(v);
+  return v;
+}
+
+function sortKeys(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(sortKeys);
+  if (v && typeof v === "object") {
+    return Object.keys(v as object)
+      .sort()
+      .reduce<Record<string, unknown>>((acc, k) => {
+        acc[k] = sortKeys((v as Record<string, unknown>)[k]);
+        return acc;
+      }, {});
+  }
+  return v;
+}
+
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const sessionId = url.searchParams.get("verificationSessionId");
+  if (sessionId) {
+    return ok({ sessionId, message: "Redirect to KYC page for status polling" });
+  }
+  return ok({ received: true });
+}
 
 export async function POST(req: Request) {
   try {
-    const signature = req.headers.get("x-didit-signature");
-    const session_id = req.headers.get("x-session-id");
+    const raw = await req.text();
+    const sig = req.headers.get("x-signature-v2") ?? "";
+    const ts = Number(req.headers.get("x-timestamp"));
 
-    if (!signature || !session_id) {
-      console.error(
-        "KYC webhook misconfigured: missing signature or session ID",
-      );
-      return fail("Missing signature or session ID", 400);
+    if (!ts || Math.abs(Date.now() / 1000 - ts) > 300) {
+      console.error("KYC webhook: stale or missing timestamp");
+      return fail("Stale timestamp", 401);
     }
 
     let webhookSecret: string;
@@ -29,55 +66,72 @@ export async function POST(req: Request) {
       return fail("Webhook secret not configured", 500);
     }
 
-    const body = await req.text();
-    const encoder = new TextEncoder();
-    const key = encoder.encode(webhookSecret);
-    const message = encoder.encode(body + session_id);
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      return fail("Invalid JSON body", 400);
+    }
 
-    const cryptoKey = await crypto.subtle.importKey(
-      "raw",
-      key,
-      { name: "HMAC", hash: "SHA-256" },
-      false,
-      ["verify"],
-    );
+    const canonical = JSON.stringify(sortKeys(shortenFloats(parsed)));
 
-    const signatureBuffer = await crypto.subtle.sign(
-      "HMAC",
-      cryptoKey,
-      message,
-    );
-    const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
+    const expected = crypto
+      .createHmac("sha256", webhookSecret)
+      .update(canonical, "utf8")
+      .digest("hex");
 
-    if (signature !== expectedSignature) {
-      console.error("KYC webhook invalid signature");
+    if (
+      sig.length !== expected.length ||
+      !crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(sig))
+    ) {
+      console.error("KYC webhook: invalid signature");
       return fail("Invalid signature", 401);
     }
 
-    const data = JSON.parse(body);
+    const { event_id, status, vendor_data, session_id, decision } =
+      parsed as {
+        event_id?: string;
+        status?: string;
+        vendor_data?: string;
+        session_id?: string;
+        decision?: unknown;
+      };
+
+    const lookupKey = (vendor_data || session_id) as string | undefined;
+    if (!lookupKey) {
+      console.error("KYC webhook: missing vendor_data and session_id");
+      return fail("Missing identifier", 400);
+    }
 
     const [verification] = await db
       .select()
       .from(kycVerifications)
-      .where(eq(kycVerifications.diditSessionId, session_id))
+      .where(
+        vendor_data
+          ? eq(kycVerifications.userId, vendor_data)
+          : eq(kycVerifications.diditSessionId, session_id!),
+      )
+      .orderBy(kycVerifications.createdAt)
       .limit(1);
 
     if (!verification) {
-      console.error("KYC webhook session not found:", session_id);
+      console.error("KYC webhook: verification not found for", lookupKey);
       return fail("Session not found", 404);
     }
 
-    const status = data.status?.toLowerCase();
+    const statusLower = (status ?? "").toLowerCase();
     let newKycVerificationStatus: (typeof kycVerificationStatus)[number] =
       "approved";
     let newUserKycStatus: (typeof kycStatus)[number] = "verified";
 
-    if (status === "approved" || status === "completed") {
+    if (statusLower === "approved" || statusLower === "completed") {
       newKycVerificationStatus = "approved";
       newUserKycStatus = "verified";
-    } else if (status === "rejected" || status === "failed") {
+    } else if (
+      statusLower === "rejected" ||
+      statusLower === "declined" ||
+      statusLower === "failed"
+    ) {
       newKycVerificationStatus = "rejected";
       newUserKycStatus = "rejected";
     } else {
@@ -88,9 +142,10 @@ export async function POST(req: Request) {
       .update(kycVerifications)
       .set({
         status: newKycVerificationStatus,
-        rejectionReason: data.rejection_reason || data.rejectionReason || null,
-        faceMatchScore: data.face_match_score || data.faceMatchScore || null,
-        livenessPassed: data.liveness_passed ?? data.livenessPassed ?? null,
+        rejectionReason:
+          (decision as Record<string, unknown> | undefined)?.rejection_reason ??
+          (decision as Record<string, unknown> | undefined)?.rejectionReason ??
+          null,
         updatedAt: new Date(),
       })
       .where(eq(kycVerifications.id, verification.id));

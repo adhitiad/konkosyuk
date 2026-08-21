@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { UploadCloud, X } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface ImageUploadProps {
@@ -107,11 +108,13 @@ function ImageUpload({ initialImageUrl, onUploadComplete }: ImageUploadProps) {
       >
         {currentPreview ? (
           <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={currentPreview}
               alt="Preview"
-              className="h-full w-full object-cover rounded-lg"
+              fill
+              unoptimized={currentPreview.startsWith("blob:")}
+              className="object-cover rounded-lg"
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
             <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
               <p className="text-white text-sm">Ganti gambar</p>

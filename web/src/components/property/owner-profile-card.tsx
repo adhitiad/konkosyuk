@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2, User } from "lucide-react";
+import Image from "next/image";
 
 interface Owner {
   name: string;
@@ -32,11 +33,15 @@ export function OwnerProfileCard({ owner, propertyId }: OwnerProfileCardProps) {
     <div className="rounded-xl border border-border bg-card p-4 space-y-3">
       <div className="flex items-center gap-3">
         {owner.image ? (
-          <img
-            src={owner.image}
-            alt={owner.name}
-            className="w-10 h-10 rounded-full object-cover bg-muted"
-          />
+          <div className="relative w-10 h-10 rounded-full overflow-hidden bg-muted flex-shrink-0">
+            <Image
+              src={owner.image}
+              alt={owner.name}
+              fill
+              className="object-cover"
+              sizes="40px"
+            />
+          </div>
         ) : (
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
             <User className="w-5 h-5 text-primary" />

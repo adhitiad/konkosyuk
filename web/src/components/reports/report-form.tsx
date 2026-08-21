@@ -13,6 +13,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { createReportAction } from "@/actions/reports";
 import { uploadImageAction, type UploadImageState } from "@/actions/upload";
+import Image from "next/image";
 import { getCsrfToken } from "@/lib/axios";
 
 type Stay = {
@@ -177,13 +178,15 @@ function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
             {images.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {images.map((url) => (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    key={url}
-                    src={url}
-                    alt="Lampiran laporan"
-                    className="size-16 rounded-md object-cover"
-                  />
+                  <div key={url} className="relative size-16">
+                    <Image
+                      src={url}
+                      alt="Lampiran laporan"
+                      fill
+                      className="object-cover rounded-md"
+                      sizes="64px"
+                    />
+                  </div>
                 ))}
               </div>
             )}

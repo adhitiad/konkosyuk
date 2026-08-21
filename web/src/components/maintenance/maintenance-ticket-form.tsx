@@ -24,6 +24,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon, Add01Icon } from "@hugeicons/core-free-icons";
 import { createMaintenanceTicketAction } from "@/actions/maintenance";
+import Image from "next/image";
 
 interface MaintenanceTicketFormProps {
   onSuccess?: () => void;
@@ -235,15 +236,14 @@ export default function MaintenanceTicketForm({
             {imageUrls.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {imageUrls.map((url) => (
-                  <div key={url} className="relative group">
-                    <>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={url}
-                        alt="Preview"
-                        className="h-16 w-20 object-cover rounded-lg border"
-                      />
-                    </>
+              <div key={url} className="relative h-16 w-20 group">
+                <Image
+                  src={url}
+                  alt="Preview gambar tiket"
+                  fill
+                  className="object-cover rounded-lg border"
+                  sizes="80px"
+                />
                     <button
                       type="button"
                       onClick={() => removeImage(url)}

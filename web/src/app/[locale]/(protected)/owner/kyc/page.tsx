@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ShieldCheck,
@@ -12,20 +17,40 @@ import {
   XCircle,
   CheckCircle2,
   ExternalLink,
+  RefreshCw,
+  Info,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import KYCVerificationFlow from "@/components/kyc/KYCVerificationFlow";
 import { withOwnerAuth } from "@/lib/with-owner-auth";
 
 function OwnerKYCPage() {
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["kyc-status"],
+  const queryClient = useQueryClient();
+  const { data, isLoading, error, refetch, isFetching } = useQuery({
+    queryKey: ["owner-kyc-status"],
     queryFn: async () => {
       const res = await fetch("/api/kyc/status");
       if (!res.ok) throw new Error("Failed to fetch KYC status");
-      return res.json();
+      const body = await res.json();
+      return body.data;
     },
+    staleTime: 1000 * 60 * 2,
   });
+
+  const shouldRefetch = data?.kycStatus === "pending";
+
+  useEffect(() => {
+    if (!shouldRefetch) return;
+    const interval = setInterval(() => refetch(), 1000 * 30);
+    return () => clearInterval(interval);
+  }, [shouldRefetch, refetch]);
+
+  const verification = data?.verifications?.[0];
+  const lastUpdated = verification?.updatedAt
+    ? new Date(verification.updatedAt).toLocaleString("id-ID")
+    : verification?.createdAt
+      ? new Date(verification.createdAt).toLocaleString("id-ID")
+      : "-";
 
   const flowStepRef = useRef<string | undefined>(undefined);
 
@@ -74,6 +99,7 @@ function OwnerKYCPage() {
 
   const handleKycComplete = () => {
     refetch();
+    queryClient.invalidateQueries({ queryKey: ["user-profile"] });
   };
 
   if (isLoading) {
@@ -89,16 +115,26 @@ function OwnerKYCPage() {
     return (
       <div className="container py-6">
         <Alert variant="destructive">
+          <XCircle className="size-4" />
+          <AlertTitle>Gagal Memuat Status KYC</AlertTitle>
           <AlertDescription>
-            Gagal memuat status KYC. Silakan coba lagi.
+            <p className="mb-3">
+              Gagal memuat status KYC. Silakan coba lagi.
+            </p>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => refetch()}
+            >
+              Coba Lagi
+            </Button>
           </AlertDescription>
         </Alert>
       </div>
     );
   }
 
-  const kycStatus = data?.kycStatus;
-  const verification = data?.verifications?.[0];
+  const kycStatus = data?.kycStatus ?? "none";
 
   return (
     <div className="container py-6 space-y-6">
@@ -111,8 +147,22 @@ function OwnerKYCPage() {
             Verifikasi identitas Anda untuk dapat mendaftarkan properti di
             platform KonkosYuk.
           </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Terakhir diperbarui: {lastUpdated}
+          </p>
         </div>
-        {getStatusBadge()}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            <RefreshCw className={`size-4 ${isFetching ? "animate-spin" : ""}`} />
+            <span className="ml-1 hidden sm:inline">Refresh</span>
+          </Button>
+          {getStatusBadge()}
+        </div>
       </div>
 
       {kycStatus === "none" && (
@@ -133,6 +183,18 @@ function OwnerKYCPage() {
               <li>Mencegah penipuan dan identitas palsu</li>
               <li>Memenuhi persyaratan regulasi pemerintah</li>
             </ul>
+            <Alert>
+              <Info className="size-4" />
+              <AlertTitle>Langkah-langkah Verifikasi</AlertTitle>
+              <AlertDescription>
+                <ol className="list-decimal list-inside space-y-1 mt-2">
+                  <li>Unggah foto KTP yang jelas dan tidak buram</li>
+                  <li>Ambil foto selfie dengan pencahayaan yang cukup</li>
+                  <li>Kirim untuk diverifikasi (proses ~1-2 menit)</li>
+                  <li>Dapatkan notifikasi melalui email setelah selesai</li>
+                </ol>
+              </AlertDescription>
+            </Alert>
             <div className="pt-4">
               <KYCVerificationFlow
                 onComplete={handleKycComplete}
@@ -151,10 +213,11 @@ function OwnerKYCPage() {
           <CardContent className="space-y-4">
             <Alert>
               <Clock className="size-4" />
+              <AlertTitle>Proses Verifikasi Sedang Berjalan</AlertTitle>
               <AlertDescription>
-                Verifikasi KYC Anda sedang diproses. Proses ini biasanya memakan
-                waktu 1-2 menit. Anda akan mendapatkan notifikasi melalui email
-                setelah verifikasi selesai.
+                Verifikasi KYC Anda sedang diproses. Perkiraan waktu penyelesaian:
+                1-2 menit. Anda akan menerima notifikasi melalui email setelah
+                verifikasi selesai.
               </AlertDescription>
             </Alert>
             {verification && (
@@ -248,6 +311,25 @@ function OwnerKYCPage() {
                 initialStep="upload-ktp"
               />
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {!["none", "pending", "verified", "rejected"].includes(kycStatus) && (
+        <Card>
+          <CardContent className="pt-6">
+            <Alert variant="destructive">
+              <XCircle className="size-4" />
+              <AlertTitle>Status Tidak Diketahui</AlertTitle>
+              <AlertDescription>
+                <p className="mb-3">
+                  Kami tidak dapat menentukan status verifikasi KYC Anda.
+                </p>
+                <Button variant="secondary" size="sm" onClick={() => refetch()}>
+                  Coba Lagi
+                </Button>
+              </AlertDescription>
+            </Alert>
           </CardContent>
         </Card>
       )}

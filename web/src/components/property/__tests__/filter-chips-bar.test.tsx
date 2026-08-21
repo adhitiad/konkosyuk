@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import type { ReactElement } from "react";
+import { NextIntlClientProvider } from "next-intl";
 import { FilterChipsBar } from "@/components/property/filter-chips-bar";
 import { useState } from "react";
+import idMessages from "@/messages/id.json";
 
 function TestWrapper() {
   const [filters, setFilters] = useState<{
@@ -24,9 +27,17 @@ function TestWrapper() {
   );
 }
 
+function renderWithIntl(component: ReactElement) {
+  return render(
+    <NextIntlClientProvider locale="id" messages={idMessages}>
+      {component}
+    </NextIntlClientProvider>,
+  );
+}
+
 describe("FilterChipsBar", () => {
   it("displays all chips in each row", () => {
-    render(<TestWrapper />);
+    renderWithIntl(<TestWrapper />);
 
     expect(screen.getByText("Semua Tipe")).toBeInTheDocument();
     expect(screen.getByText("Kost")).toBeInTheDocument();
@@ -46,7 +57,7 @@ describe("FilterChipsBar", () => {
   });
 
   it("clicking 'Kost' sets type to 'kost' and resets others in same row", () => {
-    render(<TestWrapper />);
+    renderWithIntl(<TestWrapper />);
 
     fireEvent.click(screen.getByText("Kost"));
     expect(screen.getByText("Kost").closest("button")).toHaveClass(
@@ -55,7 +66,7 @@ describe("FilterChipsBar", () => {
   });
 
   it("clicking active chip 'Kost' again resets to undefined", () => {
-    render(<TestWrapper />);
+    renderWithIntl(<TestWrapper />);
 
     fireEvent.click(screen.getByText("Kost"));
     expect(screen.getByText("Kost").closest("button")).toHaveClass(
@@ -69,7 +80,7 @@ describe("FilterChipsBar", () => {
   });
 
   it("amenities toggle on/off per chip", () => {
-    render(<TestWrapper />);
+    renderWithIntl(<TestWrapper />);
 
     fireEvent.click(screen.getByText("WiFi"));
     expect(screen.getByText("WiFi").closest("button")).toHaveClass(
@@ -88,7 +99,7 @@ describe("FilterChipsBar", () => {
   });
 
   it("multiple amenities can be active simultaneously", () => {
-    render(<TestWrapper />);
+    renderWithIntl(<TestWrapper />);
 
     fireEvent.click(screen.getByText("WiFi"));
     fireEvent.click(screen.getByText("AC"));

@@ -25,6 +25,7 @@
     "kycRequests": "KYC Requests",
     "wallet": "Wallet",
     "analytics": "Analytics",
+    "pricing": "Pricing",
     "notifications": "Notifications",
     "notificationSettings": "Notification Settings",
     "pushNotifications": "Push Notifications",
@@ -81,6 +82,43 @@
     "adminDashboard": "Admin Dashboard",
     "admin": "Admin",
     "staff": "Staff"
+  },
+  "popularAreas": {
+    "title": "Popular Areas",
+    "subtitle": "Find the best places to live across major Indonesian cities",
+    "viewAll": "View All",
+    "viewAllMobile": "View All Areas",
+    "propertyCount": "{count} properties"
+  },
+  "filterChips": {
+    "propertyType": "Property Type",
+    "duration": "Duration",
+    "gender": "Gender",
+    "amenities": "Amenities",
+    "allType": "All Types",
+    "allDuration": "All Durations",
+    "allGender": "All",
+    "kost": "Kost",
+    "kontrakan": "Apartment/Room",
+    "ruko": "Shop House",
+    "harian": "Daily",
+    "bulanan": "Monthly",
+    "tahunan": "Yearly",
+    "putra": "Male",
+    "putri": "Female",
+    "campuran": "Mixed",
+    "wifi": "WiFi",
+    "ac": "AC",
+    "parkir": "Parking",
+    "dapur": "Kitchen",
+    "laundry": "Laundry",
+    "balkon": "Balcony",
+    "security24h": "24/7 Security",
+    "scrollLeft": "Scroll left",
+    "scrollRight": "Scroll right"
+  },
+  "searchBar": {
+    "placeholder": "Search for kost, address, or name..."
   },
   "admin": {
     "pushNotifications": {

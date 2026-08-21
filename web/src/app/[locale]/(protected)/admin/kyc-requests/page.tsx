@@ -27,6 +27,7 @@ import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import { apiClient } from "@/lib/axios";
 import { withAdminAuth } from "@/lib/with-admin-auth";
 import { approveKycAction } from "@/actions/admin/kyc";
+import Image from "next/image";
 
 interface KYCRequest {
   id: string;
@@ -194,7 +195,7 @@ function AdminKYCRequestsPage() {
       ) : (
         <div className="grid gap-4">
           {requests.map((request: KYCRequest) => (
-            <Card key={request.id}>
+            <Card key={request.verificationId || request.id}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base font-medium">
@@ -230,12 +231,15 @@ function AdminKYCRequestsPage() {
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Preview Foto KTP</p>
                     {request.ktpImageUrl ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        src={request.ktpImageUrl}
-                        alt="KTP"
-                        className="h-32 w-auto rounded-lg border object-cover"
-                      />
+                      <div className="relative aspect-[4/3] max-h-32">
+                        <Image
+                          src={request.ktpImageUrl}
+                          alt="KTP"
+                          fill
+                          className="object-cover rounded-lg border"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                        />
+                      </div>
                     ) : (
                       <p className="text-sm text-muted-foreground">
                         Tidak ada foto

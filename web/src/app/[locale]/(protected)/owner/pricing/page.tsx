@@ -91,8 +91,8 @@ export default function OwnerPricingPage() {
   const { data: propertiesData } = useQuery({
     queryKey: ["owner-properties"],
     queryFn: async () => {
-      const res = await apiClient.get("/owner/properties");
-      return res.data.data as Array<{ id: string; name: string }>;
+      const res = await apiClient.get("/api/owner/properties");
+      return res.data.data.data as Array<{ id: string; name: string }>;
     },
   });
 
@@ -101,8 +101,8 @@ export default function OwnerPricingPage() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedPropertyId) params.set("propertyId", selectedPropertyId);
-      const res = await apiClient.get(`/owner/pricing?${params}`);
-      return res.data.data as PricingRule[];
+      const res = await apiClient.get(`/api/owner/pricing?${params}`);
+      return res.data.data.data as PricingRule[];
     },
     enabled: activeTab === "rules",
   });
@@ -112,8 +112,8 @@ export default function OwnerPricingPage() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedPropertyId) params.set("propertyId", selectedPropertyId);
-      const res = await apiClient.get(`/owner/pricing/analytics?${params}`);
-      return res.data.data as PricingAnalytic[];
+      const res = await apiClient.get(`/api/owner/pricing/analytics?${params}`);
+      return res.data.data.data as PricingAnalytic[];
     },
     enabled: activeTab === "analytics",
   });
@@ -123,15 +123,15 @@ export default function OwnerPricingPage() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedPropertyId) params.set("propertyId", selectedPropertyId);
-      const res = await apiClient.get(`/owner/pricing/suggestions?${params}`);
-      return res.data.data as PricingSuggestion[];
+      const res = await apiClient.get(`/api/owner/pricing/suggestions?${params}`);
+      return res.data.data.data as PricingSuggestion[];
     },
     enabled: activeTab === "suggestions",
   });
 
   const createRuleMutation = useMutation({
     mutationFn: async (rule: Partial<PricingRule>) => {
-      const res = await apiClient.post("/owner/pricing", rule);
+      const res = await apiClient.post("/api/owner/pricing", rule);
       return res.data;
     },
     onSuccess: () => {
@@ -149,7 +149,7 @@ export default function OwnerPricingPage() {
       id: string;
       rule: Partial<PricingRule>;
     }) => {
-      const res = await apiClient.put(`/owner/pricing/${id}`, rule);
+      const res = await apiClient.put(`/api/owner/pricing/${id}`, rule);
       return res.data;
     },
     onSuccess: () => {
@@ -161,7 +161,7 @@ export default function OwnerPricingPage() {
 
   const deleteRuleMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiClient.delete(`/owner/pricing/${id}`);
+      await apiClient.delete(`/api/owner/pricing/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["owner-pricing-rules"] });
