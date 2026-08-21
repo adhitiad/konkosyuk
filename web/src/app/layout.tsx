@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins, Inter } from "next/font/google";
 import { VercelAnalytics } from "@/app/analytics";
+import { PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -112,6 +113,7 @@ export default async function RootLayout({
       </head>
       <body className={`${poppins.className} antialiased`}>
         {children}
+        <PwaRegister />
         <VercelAnalytics />
       </body>
     </html>

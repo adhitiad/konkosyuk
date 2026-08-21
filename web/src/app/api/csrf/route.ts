@@ -1,8 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { withRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+const csrfRateLimitConfig = {
+  windowMs: 60 * 1000,
+  maxRequests: 30,
+  keyPrefix: "rl:csrf",
+};
+
+async function csrfHandler(): Promise<NextResponse> {
   const token = `${crypto.randomUUID().replaceAll("-", "")}${crypto.randomUUID().replaceAll("-", "")}`;
   const response = NextResponse.json({ success: true });
 
@@ -14,4 +21,8 @@ export async function GET() {
   });
 
   return response;
+}
+
+export async function GET(req: NextRequest) {
+  return withRateLimit(csrfRateLimitConfig, req, csrfHandler);
 }

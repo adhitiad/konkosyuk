@@ -47,6 +47,7 @@ export const notificationType = [
   "maintenance",
   "chat",
   "review",
+  "review_reply",
   "booking_reminder_24h",
   "booking_reminder_1h",
   "pricing_alert",
@@ -1080,6 +1081,37 @@ export const favorites = pgTable(
   }),
 );
 
+export const savedSearches = pgTable(
+  "saved_searches",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name"),
+    filters: jsonb("filters")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    isActive: boolean("is_active").notNull().default(true),
+    lastMatchedAt: timestamp("last_matched_at", { mode: "date" }),
+    lastNotifiedAt: timestamp("last_notified_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("saved_searches_user_id_idx").on(table.userId),
+    activeIdx: index("saved_searches_active_idx").on(table.isActive),
+  }),
+);
+
+export const savedSearchesRelations = relations(savedSearches, ({ one }) => ({
+  user: one(users, {
+    fields: [savedSearches.userId],
+    references: [users.id],
+  }),
+}));
+
 export const wishlists = pgTable(
   "wishlists",
   {
@@ -1276,6 +1308,8 @@ export type Favorite = typeof favorites.$inferSelect;
 export type NewFavorite = typeof favorites.$inferInsert;
 export type Wishlist = typeof wishlists.$inferSelect;
 export type NewWishlist = typeof wishlists.$inferInsert;
+export type SavedSearch = typeof savedSearches.$inferSelect;
+export type NewSavedSearch = typeof savedSearches.$inferInsert;
 export type UserContract = typeof userContracts.$inferSelect;
 export type NewUserContract = typeof userContracts.$inferInsert;
 export type Feedback = typeof feedbacks.$inferSelect;
@@ -1359,6 +1393,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   reviewsGiven: many(reviews, { relationName: "createdBy" }),
   reviewsReceived: many(reviews, { relationName: "reviewedUser" }),
   wishlists: many(wishlists),
+  savedSearches: many(savedSearches),
   twoFactors: many(twoFactor),
   referrals: many(referrals, { relationName: "referrer" }),
   refereeReferrals: many(referrals, { relationName: "referee" }),
@@ -2422,9 +2457,35 @@ export const rewardRedemptionsRelations = relations(
 export const userNotificationPreferencesRelations = relations(
   userNotificationPreferences,
   ({ one }) => ({
-    user: one(users, {
-      fields: [userNotificationPreferences.userId],
-      references: [users.id],
-    }),
+  user: one(users, {
+    fields: [userNotificationPreferences.userId],
+    references: [users.id],
+  }),
+}),
+);
+
+export const featureFlags = pgTable(
+  "feature_flags",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    key: text("key").notNull().unique(),
+    name: text("name").notNull(),
+    description: text("description"),
+    enabled: boolean("enabled").notNull().default(false),
+    rolloutPercentage: integer("rollout_percentage").notNull().default(100),
+    allowedRoles: text().array().notNull().default([]),
+    allowedUsers: uuid().array().notNull().default([]),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    keyIdx: uniqueIndex("feature_flags_key_idx").on(table.key),
   }),
 );
+
+export const featureFlagsRelations = relations(featureFlags, () => ({
+  // Placeholder for future relations if needed.
+}));
+
+export type FeatureFlag = typeof featureFlags.$inferSelect;
+export type NewFeatureFlag = typeof featureFlags.$inferInsert;

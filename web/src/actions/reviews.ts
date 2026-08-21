@@ -7,6 +7,9 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { invalidateCacheByTag } from "@/lib/cache";
+import { createNotification } from "@/lib/notifications";
+import { eventEmitter } from "@/lib/notifications/event-emitter";
+import { sendWebPushNotification } from "@/lib/notifications";
 
 const createReviewSchema = z.object({
   type: z.enum(["tenant", "property"]),
@@ -227,6 +230,44 @@ export async function replyReviewAction(
       .where(eq(reviews.id, validated.reviewId));
 
     await invalidateCacheByTag("reviews");
+
+    if (review.reviewedUserId && review.reviewedUserId !== session.user.id && review.propertyId) {
+      const [property] = await db
+        .select({ name: properties.name })
+        .from(properties)
+        .where(eq(properties.id, review.propertyId))
+        .limit(1);
+
+      const replierName = session.user.name || "Owner";
+      const propertyName = property?.name || "Properti";
+      const title = "Owner membalas review Anda";
+      const message = `${replierName} membalas review Anda untuk ${propertyName}`;
+
+      try {
+        await createNotification(
+          review.reviewedUserId,
+          "review_reply",
+          title,
+          message,
+          validated.reviewId,
+        );
+        await eventEmitter.emit("notification", {
+          userId: review.reviewedUserId,
+          id: reply.id,
+          type: "review_reply",
+          title,
+          message,
+          referenceId: validated.reviewId,
+        });
+        await sendWebPushNotification(
+          review.reviewedUserId,
+          title,
+          message,
+        ).catch(() => {});
+      } catch {
+        // Notification gagal tidak boleh gagalkan reply
+      }
+    }
 
     return { success: true, data: reply };
   } catch (error) {

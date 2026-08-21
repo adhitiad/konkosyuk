@@ -134,6 +134,20 @@
       "when": 1787196540876,
       "tag": "0018_hesitant_firebird",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1787227098773,
+      "tag": "0019_violet_captain_britain",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1787244019755,
+      "tag": "0020_chubby_mongoose",
+      "breakpoints": true
     }
   ]
 }

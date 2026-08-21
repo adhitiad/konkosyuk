@@ -3,11 +3,18 @@ import { uploadFile } from "@/lib/storage-manager";
 import { requireSession } from "@/lib/auth";
 import { handleApiError } from "@/lib/api";
 import { validateMutationCsrf } from "@/lib/api-auth";
+import { withRateLimit } from "@/lib/rate-limit";
 
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const maxFileSize = 5 * 1024 * 1024;
 
-export async function POST(req: NextRequest) {
+const uploadRateLimitConfig = {
+  windowMs: 60 * 1000,
+  maxRequests: 10,
+  keyPrefix: "rl:upload",
+};
+
+async function uploadHandler(req: NextRequest): Promise<Response> {
   try {
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
@@ -59,4 +66,8 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     return handleApiError(error, "POST /api/upload");
   }
+}
+
+export async function POST(req: NextRequest) {
+  return withRateLimit(uploadRateLimitConfig, req, uploadHandler);
 }

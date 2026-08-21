@@ -86,14 +86,31 @@ export default function NotificationBell() {
 
   if (!mounted || !session) return null;
   const role = (session.user as { role?: string }).role;
-  const openNotification = (notification: Notification) => {
-    if (!notification.isRead) markAsReadMutation.mutate(notification.id);
-    if (notification.type === "report" && notification.referenceId)
+  const openNotification = async (notification: Notification) => {
+    if (!notification.isRead) {
+      await markAsReadMutation.mutateAsync(notification.id);
+    }
+    if (notification.type === "report" && notification.referenceId) {
       router.push(
         role === "admin"
           ? `/admin/maintenance-reports?reportId=${notification.referenceId}`
           : "/owner/reports",
       );
+    } else if (notification.type === "review_reply" && notification.referenceId) {
+      try {
+        const { data: reviewData } = await apiClient.get(
+          `/api/reviews/${notification.referenceId}`,
+        );
+        const review = reviewData?.data;
+        if (review?.propertyId) {
+          router.push(
+            `/properties/${review.propertyId}#review-${notification.referenceId}`,
+          );
+        }
+      } catch {
+        // Ignore navigation errors
+      }
+    }
   };
 
   return (

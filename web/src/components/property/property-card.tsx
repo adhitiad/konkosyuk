@@ -52,7 +52,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
   const topAmenities = property.amenities?.slice(0, 3) ?? [];
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-lg border bg-white shadow-sm transition-all hover:shadow-md h-full">
+    <div className="group relative flex flex-col overflow-hidden rounded-lg border bg-background shadow-sm transition-all hover:shadow-md h-full">
       {/* Image Carousel Section */}
       <div className="relative aspect-video w-full bg-muted">
         <Carousel className="w-full h-full">

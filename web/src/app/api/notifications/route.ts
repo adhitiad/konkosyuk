@@ -11,8 +11,16 @@ import {
   buildCacheKey,
   invalidateCacheByTag,
 } from "@/lib/cache";
+import { withRateLimit } from "@/lib/rate-limit";
 
-export async function GET() {
+const notificationsRateLimitConfig = {
+  windowMs: 60 * 1000,
+  maxRequests: 60,
+  keyPrefix: "rl:notifications",
+};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function notificationsHandler(_req: NextRequest): Promise<Response> {
   const startTime = Date.now();
 
   try {
@@ -51,6 +59,10 @@ export async function GET() {
     logError(error, "GET /api/notifications");
     return handleApiError(error, "GET /api/notifications");
   }
+}
+
+export async function GET(req: NextRequest) {
+  return withRateLimit(notificationsRateLimitConfig, req, notificationsHandler);
 }
 
 export async function PATCH(req: NextRequest) {

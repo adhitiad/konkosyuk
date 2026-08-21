@@ -4,15 +4,20 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "KonkosYuk",
     short_name: "KonkosYuk",
-    description: "Booking kost dan kontrakan dengan aman.",
-    start_url: "/id",
+    description: "Platform sewa properti terpercaya",
+    start_url: "/",
     display: "standalone",
     background_color: "#ffffff",
-    theme_color: "#0f766e",
+    theme_color: "#0f172a",
     orientation: "portrait-primary",
     icons: [
       {
-        src: "/logo.png",
+        src: "/icons/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        src: "/icons/icon-512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",

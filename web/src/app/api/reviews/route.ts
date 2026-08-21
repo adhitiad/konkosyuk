@@ -7,6 +7,7 @@ import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
+import { withRateLimit } from "@/lib/rate-limit";
 
 const createReviewSchema = z.object({
   type: z.enum(["tenant", "property"]),
@@ -16,6 +17,12 @@ const createReviewSchema = z.object({
   reviewedUserId: z.string().uuid().optional(),
   propertyId: z.string().uuid().optional(),
 });
+
+const reviewsRateLimitConfig = {
+  windowMs: 60 * 1000,
+  maxRequests: 5,
+  keyPrefix: "rl:reviews",
+};
 
 export async function GET(_req: NextRequest) {
   try {
@@ -62,7 +69,7 @@ export async function GET(_req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
+async function createReviewHandler(req: NextRequest): Promise<Response> {
   try {
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
@@ -124,7 +131,7 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await db.transaction(async (tx) => {
-      const [review] = await db
+      const [review] = await tx
         .insert(reviews)
         .values({
           createdById: session.user.id,
@@ -183,4 +190,8 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     return handleApiError(error);
   }
+}
+
+export async function POST(req: NextRequest) {
+  return withRateLimit(reviewsRateLimitConfig, req, createReviewHandler);
 }

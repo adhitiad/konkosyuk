@@ -40,6 +40,7 @@ import {
   ArrowUpRight,
   Wallet,
   ExternalLink,
+  Download,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -358,13 +359,32 @@ export default function TenantPaymentsPage() {
                           {formatDate(payment.paidAt || payment.createdAt)}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedPayment(payment)}
-                          >
-                            Detail
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            {payment.status === "success" && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  const link = document.createElement("a");
+                                  link.href = `/api/payments/${payment.id}/receipt`;
+                                  link.download = `receipt-${payment.id}.pdf`;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                }}
+                              >
+                                <Download className="mr-1.5 size-3.5" />
+                                Receipt
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedPayment(payment)}
+                            >
+                              Detail
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -475,6 +495,23 @@ export default function TenantPaymentsPage() {
                     <ExternalLink className="ml-1.5 size-4" />
                   </Button>
                 )}
+
+              {selectedPayment.status === "success" && (
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    const link = document.createElement("a");
+                    link.href = `/api/payments/${selectedPayment.id}/receipt`;
+                    link.download = `receipt-${selectedPayment.id}.pdf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                >
+                  <Download className="mr-1.5 size-4" />
+                  Download Receipt
+                </Button>
+              )}
             </div>
           )}
         </DialogContent>

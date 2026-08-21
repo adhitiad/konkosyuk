@@ -34,6 +34,7 @@ export async function GET(
         reviewerName: users.name,
         reviewerImage: users.image,
         propertyName: properties.name,
+        propertyId: properties.id,
       })
       .from(reviews)
       .leftJoin(users, eq(reviews.createdById, users.id))
