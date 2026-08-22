@@ -5,6 +5,27 @@ import { db } from "@/db";
 import { adPackages } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+// M-3 fix: Graceful shutdown untuk seed script.
+let isShuttingDown = false;
+
+process.on("SIGINT", () => {
+  if (isShuttingDown) {
+    process.exit(1);
+  }
+  isShuttingDown = true;
+  console.error("\nSeed dihentikan oleh user. Data mungkin tidak lengkap.");
+  process.exit(130);
+});
+
+process.on("SIGTERM", () => {
+  if (isShuttingDown) {
+    process.exit(1);
+  }
+  isShuttingDown = true;
+  console.error("\nSeed dihentikan oleh sistem. Data mungkin tidak lengkap.");
+  process.exit(143);
+});
+
 const packages = [
   { name: "reguler_3d", label: "Reguler 3 Hari", tier: "reguler" as const, duration: 3, price: "34900", positionType: "rotation" as const, sortOrder: 1 },
   { name: "reguler_7d", label: "Reguler 1 Minggu", tier: "reguler" as const, duration: 7, price: "59900", positionType: "rotation" as const, sortOrder: 2 },

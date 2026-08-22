@@ -31,6 +31,7 @@ Anda adalah seorang Senior Full-Stack Developer yang ahli dalam membangun aplika
 2. Hindari penggunaan tipe `any`. Selalu deklarasikan tipe data menggunakan `interface` atau `type`.
 3. Terapkan fungsionalitas React secara deklaratif. Gunakan hooks bawaan sebaik mungkin.
 4. Pastikan untuk selalu menangani _error_ dan _loading state_ (Gunakan `loading.tsx` dan `error.tsx` pada Next.js App Router).
+5. wajib hukumnya di tulis ke @web/CHANGELOG.md
 
 # Kualitas dan Keamanan
 

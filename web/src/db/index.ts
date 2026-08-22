@@ -10,8 +10,10 @@ if (!DATABASE_URL) {
 
 const pool = new Pool({
   connectionString: DATABASE_URL,
-  max: 10,
+  // K-2 fix: worker Render (4 queue x concurrency 1) + 1 spare = max 5
+  max: 5,
   idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
 });
 
 export const db = drizzle(pool, { schema });

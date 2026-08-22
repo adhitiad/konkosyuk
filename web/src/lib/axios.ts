@@ -4,6 +4,10 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 
+// R-3 note: axios dipertahankan karena:
+// 1. apiClient memakai interceptor request/response untuk CSRF token injection, error normalization, dan 401 handling
+// 2. Payment gateway modules (doku, ipaymu, nicepay, gateway-manager) memakai axios instance khusus dengan timeout dan error typing
+// 3. 20+ komponen/hooks bergantung pada apiClient/publicClient — migrasi ke fetch native berisiko tinggi dan membutuhkan rewrite interceptor
 export function getCsrfToken(): string | null {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);

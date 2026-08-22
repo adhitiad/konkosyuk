@@ -3,6 +3,27 @@ import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { Client } from "pg";
 
+// M-3 fix: Graceful shutdown untuk seed script.
+let isShuttingDown = false;
+
+process.on("SIGINT", () => {
+  if (isShuttingDown) {
+    process.exit(1);
+  }
+  isShuttingDown = true;
+  console.error("\nSeed dihentikan oleh user. Data mungkin tidak lengkap.");
+  process.exit(130);
+});
+
+process.on("SIGTERM", () => {
+  if (isShuttingDown) {
+    process.exit(1);
+  }
+  isShuttingDown = true;
+  console.error("\nSeed dihentikan oleh sistem. Data mungkin tidak lengkap.");
+  process.exit(143);
+});
+
 async function hashFile(filePath: string): Promise<string> {
   const content = readFileSync(filePath, "utf8");
   return createHash("sha256").update(content).digest("hex");

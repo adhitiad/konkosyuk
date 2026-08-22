@@ -5,6 +5,27 @@ import { db } from "@/db";
 import { campusAreas } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+// M-3 fix: Graceful shutdown untuk seed script.
+let isShuttingDown = false;
+
+process.on("SIGINT", () => {
+  if (isShuttingDown) {
+    process.exit(1);
+  }
+  isShuttingDown = true;
+  console.error("\nSeed dihentikan oleh user. Data mungkin tidak lengkap.");
+  process.exit(130);
+});
+
+process.on("SIGTERM", () => {
+  if (isShuttingDown) {
+    process.exit(1);
+  }
+  isShuttingDown = true;
+  console.error("\nSeed dihentikan oleh sistem. Data mungkin tidak lengkap.");
+  process.exit(143);
+});
+
 const areas = [
   { slug: "ugm-jogja", name: "UGM Jogja", imageKey: "konkosyuk/campus/ugm", sortOrder: 1 },
   { slug: "undip-semarang", name: "UNDIP Semarang", imageKey: "konkosyuk/campus/undip", sortOrder: 2 },

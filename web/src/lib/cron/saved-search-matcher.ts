@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { savedSearches, properties } from "@/db/schema";
 import { eq, and, gte, desc, sql, SQLWrapper } from "drizzle-orm";
 import { createNotification, sendWebPushNotification } from "@/lib/notifications";
+import { getRedis } from "@/lib/redis";
 
 const NOTIFICATION_INTERVAL_HOURS = 24;
 
@@ -100,12 +101,19 @@ export async function matchAndNotifySavedSearches(): Promise<SavedSearchMatchRes
         const title = `${matchCount} properti baru sesuai pencarian "${searchName}"`;
         const message = "Lihat properti baru yang cocok dengan kriteria Anda.";
 
-        await Promise.allSettled([
-          createNotification(search.userId, "system", title, message),
-          sendWebPushNotification(search.userId, title, message),
-        ]);
-
-        result.notified++;
+        // F-2 fix: idempotency — cek Redis key agar tidak kirim notifikasi duplikat
+        // untuk search yang sama dalam 24 jam.
+        const redis = await getRedis();
+        const redisKey = `saved-search:notified:${search.userId}:${search.id}`;
+        const alreadyNotified = await redis.get<string>(redisKey);
+        if (!alreadyNotified) {
+          await Promise.allSettled([
+            createNotification(search.userId, "system", title, message),
+            sendWebPushNotification(search.userId, title, message),
+          ]);
+          result.notified++;
+          await redis.set(redisKey, "1", 86400);
+        }
       }
 
       await db

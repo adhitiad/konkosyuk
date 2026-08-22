@@ -38,6 +38,10 @@ yarn-error.log*
 .env.local
 .env.*.local
 !.env.example
+.env.worker
+
+# deployment config with secrets - keep template in repo, ignore local overrides
+render.yaml
 
 # vercel
 .vercel

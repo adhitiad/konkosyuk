@@ -89,6 +89,17 @@ export async function completeExpiredBookings(): Promise<CompleteBookingsResult>
       const property = propertiesMap.get(booking.propertyId);
 
       try {
+        // F-2 fix: idempotency — cek inspection sudah ada sebelum membuat
+        const existingInspection = await tx
+          .select()
+          .from(inspections)
+          .where(eq(inspections.bookingId, booking.id))
+          .limit(1);
+
+        if (existingInspection.length > 0) {
+          continue;
+        }
+
         await tx.insert(inspections).values({
           bookingId: booking.id,
           propertyId: booking.propertyId,

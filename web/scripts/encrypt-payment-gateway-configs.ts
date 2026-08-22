@@ -6,6 +6,27 @@ import {
 } from "@/lib/payment-config-crypto";
 import { eq } from "drizzle-orm";
 
+// M-3 fix: Graceful shutdown untuk seed script.
+let isShuttingDown = false;
+
+process.on("SIGINT", () => {
+  if (isShuttingDown) {
+    process.exit(1);
+  }
+  isShuttingDown = true;
+  console.error("\nSeed dihentikan oleh user. Data mungkin tidak lengkap.");
+  process.exit(130);
+});
+
+process.on("SIGTERM", () => {
+  if (isShuttingDown) {
+    process.exit(1);
+  }
+  isShuttingDown = true;
+  console.error("\nSeed dihentikan oleh sistem. Data mungkin tidak lengkap.");
+  process.exit(143);
+});
+
 async function main() {
   dotenv.config({ path: ".env.local" });
   const { db } = await import("@/db");

@@ -1,0 +1,29 @@
+services:
+  - type: worker
+    name: konkosyuk-worker
+    runtime: bun
+    buildCommand: bun install
+    startCommand: bun run worker:start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: konkosyuk-db
+          property: connectionString
+      - key: REDIS_URL
+        value: "REDIS_URL_PLACEHOLDER"
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: CRON_SECRET
+        generateValue: true
+      - key: PAYMENT_CONFIG_ENCRYPTION_KEY
+        generateValue: true
+      - key: RESEND_API_KEY
+        value: "RESEND_API_KEY_PLACEHOLDER"
+      - key: RESEND_FROM_EMAIL
+        value: "KonkosYuk <noreply@domain-anda.com>"
+      - key: DIDIT_API_KEY
+        value: "DIDIT_API_KEY_PLACEHOLDER"
+      - key: DIDIT_WEBHOOK_SECRET
+        value: "DIDIT_WEBHOOK_SECRET_PLACEHOLDER"
+      - key: NODE_ENV
+        value: production

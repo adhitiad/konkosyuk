@@ -39,7 +39,7 @@ Set environment variables di Vercel Dashboard:
 
 - Buka project Settings > Environment Variables
 - Tambahkan semua variable dari `.env.example`
-- Pastikan `DATABASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, dan secrets ter-set
+- Pastikan `DATABASE_URL`, `REDIS_URL`, dan secrets ter-set
 
 ### 4. Database Setup
 
@@ -124,7 +124,6 @@ UPLOADTHING_TOKEN
 CLOUDINARY_CLOUD_NAME
 CLOUDINARY_API_KEY
 CLOUDINARY_API_SECRET
-CRON_SECRET
 VAPID_PRIVATE_KEY
 NEXT_PUBLIC_VAPID_PUBLIC_KEY
 RESEND_API_KEY
