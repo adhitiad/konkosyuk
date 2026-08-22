@@ -8,6 +8,7 @@
 ## Commands
 
 Run everything from `web/`:
+
 ```bash
 cd web && bun run dev        # dev server on :3000
 cd web && bun run lint
@@ -26,6 +27,10 @@ cd web && bun x tsc --noEmit
 - Schema: `web/src/db/schema.ts`
 - Local schema changes: `cd web && bun run db:push` (no migration files)
 - Migrations: `cd web && bun run db:generate` then `cd web && bun run db:migrate`
+
+## Aturan
+
+Tolong ikuti aturan berikut saat menulis kode di dalam monorepo ini `.kilo/rules`
 
 ## Testing
 
