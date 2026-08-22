@@ -3,6 +3,8 @@ import { properties, popularAreas, campusAreas } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 
 export async function updateAreaCounts(): Promise<void> {
+  // F-2 note: idempotent by design — menghitung ulang dari data listing,
+  // bukan increment counter. Jika dijalankan berulang kali, hasilnya sama.
   console.log(`[${new Date().toISOString()}] Running update area counts...`);
 
   try {

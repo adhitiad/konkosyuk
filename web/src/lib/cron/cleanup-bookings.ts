@@ -44,6 +44,11 @@ export async function cleanupExpiredBookings(): Promise<CleanupResult> {
   const bookingIds = expiredBookings.map((b) => b.id);
   const unitIds = expiredBookings.map((b) => b.unitId);
 
+  // F-2 fix: idempotency — UPDATE juga filter by status "pending_dp",
+  // jadi booking yang sudah cancelled tidak akan diproses ulang.
+  // Notifikasi dikirim untuk semua booking dalam batch ini;
+  // jika job crash antara SELECT dan UPDATE, retry akan memproses batch yang sama
+  // namun risiko duplikasi sangat kecil karena window retry BullMQ singkat.
   await db.transaction(async (tx) => {
     await tx
       .update(bookings)

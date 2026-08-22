@@ -85,12 +85,7 @@ Base Path: `/api/properties`, `/api/units`, `/api/ads`, `/api/health`, dll
 
 ### 4. Cron Jobs
 
-Base Path: `/api/cron`
-
-| Method | Endpoint | Deskripsi | Auth | Rate Limit |
-|--------|----------|-----------|------|------------|
-| POST | `/api/cron/process-expired-refunds` | Proses refund expired | Bearer token (CRON_SECRET) | - |
-| POST | `/api/cron/saved-search-match` | Match saved search | Bearer token (CRON_SECRET) | - |
+Cron jobs sekarang berjalan di Render sebagai Background Worker (BullMQ + Redis), bukan melalui API Route.
 
 ### 5. Admin API
 
@@ -230,9 +225,6 @@ Untuk POST, PATCH, DELETE: sertakan header `x-csrf-token` dari endpoint `/api/cs
 
 ### Webhook Signature
 Webhook payment diverifikasi dengan HMAC-SHA256. Header `X-Signature-V2` dan timestamp `X-Timestamp` harus valid.
-
-### Cron Secret
-Endpoint cron menggunakan Bearer token dengan `CRON_SECRET` environment variable.
 
 ---
 

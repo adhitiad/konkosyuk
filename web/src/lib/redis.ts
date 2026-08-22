@@ -1,9 +1,15 @@
-import { Redis as UpstashRedis } from "@upstash/redis";
+/** Konfigurasi koneksi Redis menggunakan ioredis untuk seluruh aplikasi. */
+import Redis from "ioredis";
 
-export type RedisProvider = "upstash" | "memory";
+export type RedisProvider = "ioredis" | "memory";
 
 export type RedisValue =
-  string | number | boolean | null | Record<string, unknown> | unknown[];
+  | string
+  | number
+  | boolean
+  | null
+  | Record<string, unknown>
+  | unknown[];
 
 export interface RedisClient {
   get<T = unknown>(key: string): Promise<T | null>;
@@ -15,34 +21,86 @@ export interface RedisClient {
   ping(): Promise<string>;
 }
 
-class UpstashClient implements RedisClient {
-  constructor(private readonly client: UpstashRedis) {}
+export interface RedisConnectionOptions {
+  maxRetriesPerRequest?: number | null;
+  enableReadyCheck?: boolean;
+  lazyConnect?: boolean;
+}
+
+export function createRedisConnection(overrides?: RedisConnectionOptions): Redis {
+  if (!process.env.REDIS_URL) {
+    throw new Error("REDIS_URL harus diisi di environment variables");
+  }
+
+  return new Redis(process.env.REDIS_URL, {
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false,
+    lazyConnect: true,
+    ...overrides,
+  });
+}
+
+export function createRedisClient(overrides?: RedisConnectionOptions): Redis {
+  if (!process.env.REDIS_URL) {
+    throw new Error("REDIS_URL harus diisi di environment variables");
+  }
+
+  return new Redis(process.env.REDIS_URL, {
+    lazyConnect: true,
+    ...overrides,
+  });
+}
+
+class IoredisClient implements RedisClient {
+  constructor(private readonly client: Redis) {}
+
   get<T>(key: string) {
-    return this.client.get<T>(key);
+    return this.client.get(key).then((value) => {
+      if (value === null) return null;
+      try {
+        return JSON.parse(value) as T;
+      } catch {
+        return value as T;
+      }
+    });
   }
+
   async set(key: string, value: RedisValue, ttlSeconds?: number) {
-    if (ttlSeconds) await this.client.set(key, value, { ex: ttlSeconds });
-    else await this.client.set(key, value);
+    const serialized =
+      typeof value === "string" ? value : JSON.stringify(value);
+    if (ttlSeconds) {
+      await this.client.set(key, serialized, "EX", ttlSeconds);
+    } else {
+      await this.client.set(key, serialized);
+    }
   }
+
   async del(key: string) {
     await this.client.del(key);
   }
+
   async incr(key: string, ttlSeconds?: number) {
     const value = await this.client.incr(key);
-    if (ttlSeconds && value === 1) await this.client.expire(key, ttlSeconds);
+    if (ttlSeconds && value === 1) {
+      await this.client.expire(key, ttlSeconds);
+    }
     return value;
   }
+
   ping() {
     return this.client.ping();
   }
+
   async push(key: string, value: RedisValue, ttlSeconds?: number) {
     await this.client.rpush(key, JSON.stringify(value));
-    if (ttlSeconds) await this.client.expire(key, ttlSeconds);
+    if (ttlSeconds) {
+      await this.client.expire(key, ttlSeconds);
+    }
   }
+
   async range<T>(key: string, start: number, stop: number) {
-    return (await this.client.lrange(key, start, stop)).map(
-      (value) => JSON.parse(value) as T,
-    );
+    const values = await this.client.lrange(key, start, stop);
+    return values.map((v) => JSON.parse(v) as T);
   }
 }
 
@@ -51,6 +109,7 @@ class MemoryClient implements RedisClient {
     string,
     { value: RedisValue; expiresAt?: number }
   >();
+
   async get<T>(key: string) {
     const record = this.values.get(key);
     if (!record || (record.expiresAt && record.expiresAt <= Date.now())) {
@@ -59,28 +118,34 @@ class MemoryClient implements RedisClient {
     }
     return record.value as T;
   }
+
   async set(key: string, value: RedisValue, ttlSeconds?: number) {
     this.values.set(key, {
       value,
       expiresAt: ttlSeconds ? Date.now() + ttlSeconds * 1000 : undefined,
     });
   }
+
   async del(key: string) {
     this.values.delete(key);
   }
+
   async incr(key: string, ttlSeconds?: number) {
     const value = Number((await this.get<number>(key)) ?? 0) + 1;
     await this.set(key, value, ttlSeconds);
     return value;
   }
+
   async ping() {
     return "PONG";
   }
+
   async push(key: string, value: RedisValue, ttlSeconds?: number) {
     const values = (await this.get<RedisValue[]>(key)) ?? [];
     values.push(value);
     await this.set(key, values.slice(-100), ttlSeconds);
   }
+
   async range<T>(key: string, start: number, stop: number) {
     return ((await this.get<unknown[]>(key)) ?? []).slice(
       start,
@@ -93,40 +158,21 @@ const memoryClient = new MemoryClient();
 let selectedClient: RedisClient | null = null;
 let selectedProvider: RedisProvider = "memory";
 
-function createCandidates(): Array<{
-  provider: RedisProvider;
-  client: RedisClient;
-}> {
-  const candidates: Array<{ provider: RedisProvider; client: RedisClient }> =
-    [];
-  if (
-    process.env.UPSTASH_REDIS_REST_URL &&
-    process.env.UPSTASH_REDIS_REST_TOKEN
-  )
-    candidates.push({
-      provider: "upstash",
-      client: new UpstashClient(
-        new UpstashRedis({
-          url: process.env.UPSTASH_REDIS_REST_URL,
-          token: process.env.UPSTASH_REDIS_REST_TOKEN,
-        }),
-      ),
-    });
-  return candidates;
-}
-
 export async function getRedis(): Promise<RedisClient> {
   if (selectedClient) return selectedClient;
-  for (const candidate of createCandidates()) {
+
+  if (process.env.REDIS_URL) {
     try {
-      await candidate.client.ping();
-      selectedClient = candidate.client;
-      selectedProvider = candidate.provider;
+      const client = createRedisClient();
+      await client.ping();
+      selectedClient = new IoredisClient(client);
+      selectedProvider = "ioredis";
       return selectedClient;
     } catch {
-      /* Try next provider. */
+      /* fallback to memory */
     }
   }
+
   selectedClient = memoryClient;
   selectedProvider = "memory";
   return memoryClient;
@@ -137,11 +183,15 @@ export function getRedisProvider(): RedisProvider {
 }
 
 export async function redisHealth() {
-  const client = await getRedis();
-  try {
-    await client.ping();
-    return { ok: true, provider: selectedProvider };
-  } catch {
-    return { ok: false, provider: selectedProvider };
+  if (process.env.REDIS_URL) {
+    const client = createRedisClient();
+    try {
+      await client.ping();
+      return { ok: true, provider: "ioredis" as const };
+    } catch {
+      return { ok: false, provider: "ioredis" as const };
+    }
   }
+
+  return { ok: true, provider: "memory" as const };
 }

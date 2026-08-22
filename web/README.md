@@ -104,8 +104,7 @@ Isi variabel environment yang diperlukan:
 DATABASE_URL=postgresql://user:password@localhost:5432/konkosyuk
 
 # Redis (Upstash)
-UPSTASH_REDIS_REST_URL=https://...
-UPSTASH_REDIS_REST_TOKEN=...
+REDIS_URL=rediss://default:<token>@<endpoint>.upstash.io:<port>
 
 # Better Auth
 BETTER_AUTH_URL=http://localhost:3000
@@ -157,9 +156,6 @@ PAYMENT_CONFIG_ENCRYPTION_KEY=
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
-
-# Cron
-CRON_SECRET=your-cron-secret-min-32-chars
 
 # Web Push (VAPID)
 VAPID_SUBJECT=mailto:admin@konkosyuk.app

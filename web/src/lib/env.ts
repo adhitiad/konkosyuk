@@ -1,13 +1,5 @@
 import { z } from "zod";
 
-const optionalUrl = z
-  .preprocess(
-    (value) =>
-      typeof value === "string" && value.trim() === "" ? undefined : value,
-    z.string().url().optional(),
-  )
-  .catch(undefined);
-
 const envSchema = z.object({
   // Database Configuration
   DATABASE_URL: z.string().url(),
@@ -42,9 +34,8 @@ const envSchema = z.object({
     .string()
     .default("maintenance_report_updated"),
 
-  // Redis: Upstash untuk Vercel/serverless
-  UPSTASH_REDIS_REST_URL: optionalUrl,
-  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
+  // Redis: Upstash via ioredis
+  REDIS_URL: z.string().url(),
 });
 
 export const env = envSchema.parse(process.env);

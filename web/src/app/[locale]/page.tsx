@@ -5,11 +5,16 @@ import { FeaturedListingsSection } from "@/components/landing/featured-listings-
 import { PopularCitiesSection } from "@/components/landing/popular-cities-section";
 import { FeaturesSection } from "@/components/landing/features-section";
 import { FooterSection } from "@/components/landing/footer-section";
-import { generateMetadata } from "@/app/[locale]/Metadata";
+import { generateMetadata as generatePageMetadata } from "@/app/[locale]/Metadata";
 
-export const metadata = generateMetadata({
-  params: Promise.resolve({ locale: "id" }),
-});
+// H-4 fix: gunakan params route dinamis, bukan hardcode "id"
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  return generatePageMetadata({ params });
+}
 
 export default function Home() {
   return (

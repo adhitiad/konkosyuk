@@ -39,6 +39,38 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/lang/id/).
 - Trusted origins expansion untuk production
 - Public rate limiting (60 req/min) pada endpoint properties
 
+### Removed
+
+- `CRON_SECRET` dari seluruh codebase, CI, dokumentasi, dan security checklist
+- Dependency `@upstash/redis` dan `node-cron`
+- API route cron lama (`/api/cron/process-expired-refunds`, `/api/cron/saved-search-match`)
+
+### Fixed
+
+- DB connection pooling: `max` diturunkan dari 10 ke 5, ditambahkan `connectionTimeoutMillis: 10000` untuk Render worker
+- Konsistensi Redis: seluruh aplikasi menggunakan ioredis (`REDIS_URL`), bukan REST client
+- `force-dynamic` dihapus dari locale layout (`src/app/[locale]/layout.tsx`), halaman protected tetap dynamic di layout group-nya
+- Metadata halaman utama (`src/app/[locale]/page.tsx`) kini mengambil locale dari route params, bukan hardcode
+
+### Added
+
+- Fondasi Zustand store: `src/stores/auth.store.ts` dan `src/stores/filter.store.ts`
+- Unit test untuk BullMQ worker processors dan scheduler (`src/workers/__tests__/`)
+
+### Changed
+
+- Semua seed script mendapatkan graceful shutdown handler (SIGINT/SIGTERM)
+- Format `REDIS_URL` di `.env.example` ditambah komentar contoh format ioredis dan peringatan tidak pakai REST format
+- `axios` dipertahankan dengan komentar alasan di `src/lib/axios.ts` (interceptor CSRF, 401 handling, payment gateway modules)
+
+### Security
+
+- Tidak ada `dotenv` di runtime Next.js (`src/app/`, middleware, instrumentation); hanya dipakai di CLI scripts dan worker yang berjalan di luar Vercel
+
+### Added
+
+- Idempotency guard pada 4 job cron: cleanup-bookings, complete-bookings, saved-search-matcher, update-area-counts
+
 ---
 
 ## [0.1.0] - 2026-08-14

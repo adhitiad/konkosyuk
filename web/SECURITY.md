@@ -191,7 +191,6 @@ bun outdated
 
 - [ ] `BETTER_AUTH_SECRET` is set to a strong random value (min 32 chars)
 - [ ] `PAYMENT_CONFIG_ENCRYPTION_KEY` is set in production
-- [ ] `CRON_SECRET` is set to a strong random value
 - [ ] All payment gateway webhook secrets configured
 - [ ] Google OAuth credentials configured (if using social login)
 - [ ] HTTPS enabled in production
