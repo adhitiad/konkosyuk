@@ -30,6 +30,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { WalletIcon } from "@hugeicons/core-free-icons";
 import ReviewForm from "@/components/review-form";
 import { useLocale } from "next-intl";
+import { getBookingsAction } from "@/actions/bookings";
 
 interface BalanceLog {
   id: string;
@@ -123,10 +124,14 @@ export default function DashboardPage() {
   } = useQuery<BookingResponse>({
     queryKey: ["bookings"],
     queryFn: async () => {
-      const res = await fetch("/api/bookings");
-      if (!res.ok) throw new Error("Failed to fetch bookings");
-      const json = await res.json();
-      return json.data as BookingResponse;
+      const result = await getBookingsAction();
+      if (!result.success) {
+        throw new Error("Failed to fetch bookings");
+      }
+      return {
+        data: result.data ?? [],
+        meta: result.meta ?? { total: 0 },
+      } as unknown as BookingResponse;
     },
     staleTime: 30000,
   });

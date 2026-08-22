@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { GET } from "@/app/api/campus-areas/route";
 
+// Catatan: route GET /api/campus-areas tidak menerima parameter request,
+// sehingga tes cukup memanggil GET() langsung tanpa objek request palsu.
+
 const { mockDb, setupMocks } = vi.hoisted(() => {
   const responses: unknown[] = [];
   let responseIndex = 0;
@@ -54,13 +57,7 @@ describe("GET /api/campus-areas", () => {
   });
 
   it("returns 200 with empty areas array", async () => {
-    const req = {
-      url: "http://localhost/api/campus-areas",
-      nextUrl: new URL("http://localhost/api/campus-areas"),
-      headers: new Headers(),
-    } as unknown as Parameters<typeof GET>[0];
-
-    const response = await GET(req);
+    const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -81,13 +78,7 @@ describe("GET /api/campus-areas", () => {
 
     setupMocks([mockAreas]);
 
-    const req = {
-      url: "http://localhost/api/campus-areas",
-      nextUrl: new URL("http://localhost/api/campus-areas"),
-      headers: new Headers(),
-    } as unknown as Parameters<typeof GET>[0];
-
-    const response = await GET(req);
+    const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -99,13 +90,7 @@ describe("GET /api/campus-areas", () => {
   it("does not return areas with isActive = false", async () => {
     setupMocks([[]]);
 
-    const req = {
-      url: "http://localhost/api/campus-areas",
-      nextUrl: new URL("http://localhost/api/campus-areas"),
-      headers: new Headers(),
-    } as unknown as Parameters<typeof GET>[0];
-
-    const response = await GET(req);
+    const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -115,13 +100,7 @@ describe("GET /api/campus-areas", () => {
   it("returns correct response format", async () => {
     setupMocks([[]]);
 
-    const req = {
-      url: "http://localhost/api/campus-areas",
-      nextUrl: new URL("http://localhost/api/campus-areas"),
-      headers: new Headers(),
-    } as unknown as Parameters<typeof GET>[0];
-
-    const response = await GET(req);
+    const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(200);

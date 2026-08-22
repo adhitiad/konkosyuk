@@ -27,6 +27,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { approvePropertyAction } from "@/actions/properties";
+import { getBookingsAction } from "@/actions/bookings";
 
 interface AdminStats {
   totalUsers: number;
@@ -81,10 +82,10 @@ function AdminDashboardPage() {
   const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
     queryKey: ["admin-stats"],
     queryFn: async () => {
-      const [usersRes, propertiesRes, bookingsRes] = await Promise.all([
+      const [usersRes, propertiesRes, bookingsResult] = await Promise.all([
         apiClient.get("/api/users"),
         apiClient.get("/api/properties"),
-        apiClient.get("/api/bookings"),
+        getBookingsAction(),
       ]);
 
       const usersList: unknown[] = Array.isArray(usersRes.data)
@@ -96,10 +97,9 @@ function AdminDashboardPage() {
         : (unwrapApiResponse<{ data?: unknown[] }>(propertiesRes.data).data ??
           []);
 
-      const bookingsList: AdminBooking[] = Array.isArray(bookingsRes.data)
-        ? (bookingsRes.data as AdminBooking[])
-        : ((unwrapApiResponse<{ data?: unknown[] }>(bookingsRes.data).data ??
-            []) as AdminBooking[]);
+      const bookingsList: AdminBooking[] = bookingsResult.success
+        ? ((bookingsResult.data ?? []) as unknown as AdminBooking[])
+        : [];
 
       const today = new Date().toISOString().split("T")[0];
       const bookingsToday = bookingsList.filter((b) =>
@@ -146,10 +146,12 @@ function AdminDashboardPage() {
   >({
     queryKey: ["admin-problematic-bookings"],
     queryFn: async () => {
-      const { data: json } = await apiClient.get("/api/bookings");
-      const payload = unwrapApiResponse<{ data?: AdminBooking[] }>(json);
-      const bookingsList = Array.isArray(payload.data) ? payload.data : [];
-      return bookingsList.filter((b: AdminBooking) =>
+      const result = await getBookingsAction();
+      if (!result.success) {
+        throw new Error("Gagal memuat booking bermasalah");
+      }
+      const bookingsList = ((result.data ?? []) as unknown as AdminBooking[]);
+      return bookingsList.filter((b) =>
         ["rejected", "cancelled"].includes(b.status),
       );
     },

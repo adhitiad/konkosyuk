@@ -16,7 +16,7 @@ import {
   Clock01Icon,
   CancelCircleIcon,
 } from "@hugeicons/core-free-icons";
-import { apiClient } from "@/lib/axios";
+import { getBookingByIdAction } from "@/actions/bookings";
 import {
   Dialog,
   DialogContent,
@@ -188,8 +188,11 @@ export default function BookingDetailPage() {
     {
       queryKey: ["booking", bookingId],
       queryFn: async () => {
-        const { data } = await apiClient.get(`/api/bookings/${bookingId}`);
-        return data;
+        const result = await getBookingByIdAction(bookingId);
+        if (!result.success) {
+          throw new Error("Gagal memuat detail booking");
+        }
+        return { data: result.data as unknown as BookingDetail };
       },
       staleTime: 30000,
     },

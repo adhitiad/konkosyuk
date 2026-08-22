@@ -29,7 +29,7 @@ import TenantDetailDialog from "./tenant-detail-dialog";
 import ReviewForm from "@/components/review-form";
 import { ChatTriggerButton } from "@/components/chat/chat-trigger-button";
 import type { Booking } from "@/db/schema";
-import { apiClient } from "@/lib/axios";
+import { getBookingsAction } from "@/actions/bookings";
 
 export interface OwnerBooking extends Booking {
   propertyName: string | null;
@@ -51,11 +51,6 @@ interface BookingsApiResponse {
     limit: number;
     totalPages: number;
   };
-}
-
-interface ApiResponse<T> {
-  success?: boolean;
-  data?: T;
 }
 
 const tabOptions: { value: BookingStatus | "all"; label: string }[] = [
@@ -104,18 +99,18 @@ export default function OwnerBookingsPage() {
   const { data, isLoading, isError, error } = useQuery<BookingsApiResponse>({
     queryKey: ["owner-bookings", activeTab, page],
     queryFn: async () => {
-      const response = await apiClient.get("/api/bookings", {
-        params: {
-          status: activeTab === "all" ? "" : activeTab,
-          page,
-          limit,
-        },
+      const result = await getBookingsAction({
+        status: activeTab === "all" ? undefined : activeTab,
+        page,
+        limit,
       });
-      const body = response.data as ApiResponse<BookingsApiResponse>;
-      const payload = body.data;
-      return (
-        payload ?? { data: [], meta: { total: 0, page, limit, totalPages: 0 } }
-      );
+      if (!result.success) {
+        throw new Error("Gagal memuat booking");
+      }
+      return {
+        data: (result.data ?? []) as OwnerBooking[],
+        meta: result.meta ?? { total: 0, page, limit, totalPages: 0 },
+      };
     },
     staleTime: 30000,
   });

@@ -13,6 +13,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { createReportAction } from "@/actions/reports";
 import { uploadImageAction, type UploadImageState } from "@/actions/upload";
+import { getBookingsAction } from "@/actions/bookings";
 import Image from "next/image";
 import { getCsrfToken } from "@/lib/axios";
 
@@ -46,15 +47,16 @@ function ReportFormInner({ onSuccess }: { onSuccess?: () => void }) {
   const [, uploadAction] = useActionState(uploadImageAction, undefined);
 
   useEffect(() => {
-    fetch("/api/bookings?limit=100")
-      .then((res) => res.json())
-      .then((json) => {
-        const bookings = json?.data?.data ?? [];
-        setStays(
-          bookings.filter((b: { status: string }) =>
-            ["confirmed", "completed"].includes(b.status),
-          ),
+    getBookingsAction({ limit: 100 })
+      .then((result) => {
+        if (!result.success) {
+          setMessage("Gagal memuat unit sewaan Anda.");
+          return;
+        }
+        const stays = (result.data ?? []).filter((b) =>
+          ["confirmed", "completed"].includes(b.status),
         );
+        setStays(stays as Stay[]);
       })
       .catch(() => setMessage("Gagal memuat unit sewaan Anda."));
   }, []);

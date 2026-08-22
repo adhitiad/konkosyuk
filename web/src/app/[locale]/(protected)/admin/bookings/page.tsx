@@ -19,8 +19,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Eye } from "lucide-react";
-import { apiClient } from "@/lib/axios";
 import { withAdminAuth } from "@/lib/with-admin-auth";
+import { getBookingsAction } from "@/actions/bookings";
 
 type Booking = {
   id: string;
@@ -43,9 +43,11 @@ function AdminBookingsPage() {
   const { data: bookings = [], isLoading } = useQuery<Booking[]>({
     queryKey: ["admin-bookings"],
     queryFn: async () => {
-      const res = await apiClient.get("/api/bookings");
-      const payload = res.data as { data?: unknown[] };
-      const items = (payload.data ?? []) as Record<string, unknown>[];
+      const result = await getBookingsAction();
+      if (!result.success) {
+        throw new Error("Gagal memuat booking");
+      }
+      const items = (result.data ?? []) as Record<string, unknown>[];
       return items.map((b) => ({
         id: b.id as string,
         code: String(b.id).slice(0, 8),

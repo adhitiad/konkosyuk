@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useActionState } from "react";
+import { useState, useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +23,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon, Add01Icon } from "@hugeicons/core-free-icons";
 import { createMaintenanceTicketAction } from "@/actions/maintenance";
+import { getBookingsAction } from "@/actions/bookings";
 import Image from "next/image";
 
 interface MaintenanceTicketFormProps {
@@ -49,9 +49,11 @@ export default function MaintenanceTicketForm({
   );
 
   const fetchUnits = async () => {
-    const res = await fetch("/api/bookings");
-    const json = await res.json();
-    const bookings = json.data ?? [];
+    const result = await getBookingsAction({ limit: 100 });
+    if (!result.success) {
+      return;
+    }
+    const bookings = result.data ?? [];
 
     const activeUnits = new Map<string, string>();
     for (const booking of bookings) {
