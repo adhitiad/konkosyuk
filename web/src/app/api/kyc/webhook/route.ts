@@ -142,10 +142,11 @@ export async function POST(req: Request) {
       .update(kycVerifications)
       .set({
         status: newKycVerificationStatus,
-        rejectionReason:
+        rejectionReason: (
           (decision as Record<string, unknown> | undefined)?.rejection_reason ??
           (decision as Record<string, unknown> | undefined)?.rejectionReason ??
-          null,
+          null
+        ) as string | null,
         updatedAt: new Date(),
       })
       .where(eq(kycVerifications.id, verification.id));

@@ -1,7 +1,9 @@
 import { StaticPageLayout } from "@/components/static-page-layout";
 import Link from "next/link";
+import { useLocale } from "next-intl";
 
 export default function RefundPolicyPage() {
+  const locale = useLocale();
   return (
     <StaticPageLayout title="Kebijakan Refund" lastUpdated="18 Agustus 2026">
       <h2>1. Ringkasan</h2>
@@ -68,7 +70,7 @@ export default function RefundPolicyPage() {
       <p>
         Untuk pertanyaan lebih lanjut tentang refund, silakan hubungi kami di{" "}
         <a href="mailto:support@konkosyuk.com">support@konkosyuk.com</a> atau
-        melalui halaman <Link href="/contact">Hubungi Kami</Link>.
+        melalui halaman <Link href={`/${locale}/contact`}>Hubungi Kami</Link>.
       </p>
     </StaticPageLayout>
   );

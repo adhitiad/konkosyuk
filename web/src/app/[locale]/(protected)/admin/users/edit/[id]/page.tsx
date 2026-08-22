@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,7 @@ function UserEditPage() {
   const params = useParams();
   const userId = params.id as string;
   const queryClient = useQueryClient();
+  const locale = useLocale();
 
   const {
     data,
@@ -226,7 +228,7 @@ function UserEditPage() {
         </div>
         <Button
           render={
-            <Link href={`/admin/users/view/${user.id}`}>
+            <Link href={`/${locale}/admin/users/view/${user.id}`}>
               <HugeiconsIcon
                 icon={ArrowLeft01Icon}
                 strokeWidth={2}
@@ -378,7 +380,7 @@ function UserEditPage() {
 
       <div className="flex justify-end gap-2">
         <Button
-          render={<Link href={`/admin/users/view/${user.id}`} />}
+          render={<Link href={`/${locale}/admin/users/view/${user.id}`} />}
           variant="outline"
           nativeButton={false}
         >

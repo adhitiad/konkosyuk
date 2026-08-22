@@ -39,6 +39,7 @@ import type { PropertyPackages } from "@/lib/types/property-packages";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
 import { KycGuard } from "@/components/kyc/kyc-guard";
 import { deletePropertyAction } from "@/actions/properties";
+import { useLocale } from "next-intl";
 
 const formatCurrency = (value: number | string | null | undefined) =>
   new Intl.NumberFormat("id-ID", {
@@ -53,7 +54,7 @@ const typeLabel: Record<string, string> = {
   ruko: "Ruko",
 };
 
-function PropertyCard({ property }: { property: Property }) {
+function PropertyCard({ property, locale }: { property: Property; locale: string }) {
   const packages = (property.packages ?? {}) as PropertyPackages;
   const availablePackages =
     packages.predefined?.filter((p) => p.isAvailable) ?? [];
@@ -141,7 +142,7 @@ function PropertyCard({ property }: { property: Property }) {
 
         <div className="flex items-center gap-2 pt-2">
           <Button
-            render={<Link href={`/owner/properties/${property.id}`} />}
+            render={<Link href={`/${locale}/owner/properties/${property.id}`} />}
             size="sm"
             variant="outline"
             className="flex-1"
@@ -223,6 +224,7 @@ function DeletePropertyButton({
 
 export default function PropertiesPage() {
   const { data: session } = useSession();
+  const locale = useLocale();
 
   interface ApiResponse<T> {
     success: boolean;
@@ -259,7 +261,7 @@ export default function PropertiesPage() {
         <KycGuard>
           <Button
             render={
-              <Link href="/owner/properties/add">Tambah Properti Baru</Link>
+              <Link href={`/${locale}/owner/properties/add`}>Tambah Properti Baru</Link>
             }
             nativeButton={false}
             className="w-full sm:w-auto"
@@ -305,7 +307,7 @@ export default function PropertiesPage() {
           {/* Mobile: Card Layout */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:hidden">
             {properties.map((property) => (
-              <PropertyCard key={property.id} property={property} />
+              <PropertyCard key={property.id} property={property} locale={locale} />
             ))}
           </div>
 
@@ -383,7 +385,7 @@ export default function PropertiesPage() {
                             <Button
                               render={
                                 <Link
-                                  href={`/owner/properties/${property.id}`}
+                                  href={`/${locale}/owner/properties/${property.id}`}
                                 />
                               }
                               size="sm"

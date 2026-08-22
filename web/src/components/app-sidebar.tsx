@@ -41,6 +41,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Logo } from "@/components/ui/logo";
+import { useLocale } from "next-intl";
 
 const menuConfig: Record<
   Role,
@@ -143,6 +144,7 @@ export function AppSidebar() {
   const { data: session } = useSession();
   const t = useTranslations("common");
   const tSidebar = useTranslations("sidebar");
+  const locale = useLocale();
   const user = session?.user as SessionUserWithRole | undefined;
 
   const role = (user?.role as Role | undefined) ?? "cust";
@@ -155,6 +157,8 @@ export function AppSidebar() {
       .join("")
       .toUpperCase()
       .slice(0, 2) ?? "U";
+
+  const prefixLocale = (href: string) => `/${locale}${href}`;
 
   return (
     <Sidebar collapsible="icon">
@@ -174,7 +178,7 @@ export function AppSidebar() {
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   render={
-                    <Link href={item.href}>
+                    <Link href={prefixLocale(item.href) as any}>
                       <item.icon />
                       <span>{t(item.title)}</span>
                     </Link>

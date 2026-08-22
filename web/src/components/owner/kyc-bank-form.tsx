@@ -26,6 +26,7 @@ import {
   addBankAccountAction,
   AddBankAccountState,
 } from "@/actions/bank-accounts";
+import { useLocale } from "next-intl";
 
 const PROVIDERS = [
   { value: "bank", label: "Bank", options: BANKS },
@@ -39,6 +40,7 @@ export function KYCBankForm({
   userName: string;
   onSuccess?: () => void;
 }) {
+  const locale = useLocale();
   const [accountType, setAccountType] = useState<"bank" | "ewallet">("bank");
   const [providerName, setProviderName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
@@ -189,7 +191,7 @@ export function KYCBankForm({
                   className="h-auto p-0 text-destructive underline"
                   nativeButton={false}
                   render={
-                    <Link href="/dashboard/profile">
+                    <Link href={`/${locale}/settings/profile`}>
                       Perbarui Nama Profil Saya
                     </Link>
                   }

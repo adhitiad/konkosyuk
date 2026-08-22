@@ -44,12 +44,14 @@ const amenityIcons: AmenityIconMap = {
 export default async function PropertyDetailPage({
   params,
 }: {
-  params: { id: string; locale: string };
+  params: Promise<{ id: string; locale: string }>;
 }) {
+  const { id, locale } = await params;
+
   const propertyResult = await db
     .select()
     .from(properties)
-    .where(eq(properties.id, params.id))
+    .where(eq(properties.id, id))
     .limit(1);
 
   const property = propertyResult[0];

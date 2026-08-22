@@ -6,8 +6,10 @@ import { Logo } from "@/components/ui/logo";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/axios";
+import { useLocale } from "next-intl";
 
 export function PublicFooter() {
+  const locale = useLocale();
   const year = new Date().getFullYear();
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<
@@ -159,7 +161,7 @@ export function PublicFooter() {
               </li>
               <li>
                 <Link
-                  href="/umum/syarat-dan-ketentuan"
+                  href={`/${locale}/umum/syarat-dan-ketentuan`}
                   className="text-sm text-muted-foreground transition-colors hover:text-primary hover:underline"
                 >
                   Syarat & Ketentuan

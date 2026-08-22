@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import { Plus, Home, Users } from "lucide-react";
+import { useLocale } from "next-intl";
 
 interface Unit {
   id: string;
@@ -30,6 +31,7 @@ interface Unit {
 function OwnerUnitsPage() {
   const searchParams = useSearchParams();
   const propertyId = searchParams.get("propertyId");
+  const locale = useLocale();
 
   const { data, isLoading, isError } = useQuery<Unit[]>({
     queryKey: ["owner-units", propertyId],
@@ -82,7 +84,7 @@ function OwnerUnitsPage() {
         <div>
           <BreadcrumbNav
             items={[
-              { label: "Dashboard", href: "/owner" },
+              { label: "Dashboard", href: `/${locale}/owner` },
               { label: "Kelola Unit" },
             ]}
           />
@@ -96,7 +98,7 @@ function OwnerUnitsPage() {
           </p>
         </div>
         <Button
-          render={<Link href="/owner/units/add">Tambah Unit</Link>}
+          render={<Link href={`/${locale}/owner/units/add`}>Tambah Unit</Link>}
           nativeButton={false}
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -124,7 +126,7 @@ function OwnerUnitsPage() {
               Mulai tambahkan kamar/unit untuk properti Anda
             </p>
             <Button
-              render={<Link href="/owner/units/add">Tambah Unit Pertama</Link>}
+              render={<Link href={`/${locale}/owner/units/add`}>Tambah Unit Pertama</Link>}
               nativeButton={false}
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -176,7 +178,7 @@ function OwnerUnitsPage() {
                 <div className="flex gap-2 pt-2">
                   <Button
                     render={
-                      <Link href={`/owner/properties/${unit.propertyId}`}>
+                      <Link href={`/${locale}/owner/properties/${unit.propertyId}`}>
                         Detail
                       </Link>
                     }
@@ -189,7 +191,7 @@ function OwnerUnitsPage() {
                   </Button>
                   <Button
                     render={
-                      <Link href={`/owner/units/${unit.id}/edit`}>Edit</Link>
+                      <Link href={`/${locale}/owner/units`}>Edit</Link>
                     }
                     variant="ghost"
                     size="sm"

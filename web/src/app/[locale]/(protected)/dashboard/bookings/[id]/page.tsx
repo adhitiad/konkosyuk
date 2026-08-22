@@ -32,6 +32,7 @@ import { Progress } from "@/components/ui/progress";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
 import { requestRefundAction } from "@/actions/refund-requests";
 import { ChatTriggerButton } from "@/components/chat/chat-trigger-button";
+import { useLocale } from "next-intl";
 
 interface BookingDetail {
   id: string;
@@ -181,6 +182,7 @@ const statusSteps = [
 export default function BookingDetailPage() {
   const params = useParams();
   const bookingId = params.id as string;
+  const locale = useLocale();
 
   const { data, isLoading, isError, error } = useQuery<{ data: BookingDetail }>(
     {
@@ -609,7 +611,7 @@ export default function BookingDetailPage() {
                 <Button
                   render={
                     <Link
-                      href={`/dashboard/bookings/${booking.id}/checkout?purpose=dp`}
+                      href={`/${locale}/dashboard/bookings/${booking.id}/checkout?purpose=dp` as any}
                     />
                   }
                   className="w-full"
@@ -622,7 +624,7 @@ export default function BookingDetailPage() {
                 <Button
                   render={
                     <Link
-                      href={`/dashboard/bookings/${booking.id}/checkout?purpose=full_payment`}
+                      href={`/${locale}/dashboard/bookings/${booking.id}/checkout?purpose=full_payment` as any}
                     />
                   }
                   className="w-full"
@@ -633,7 +635,7 @@ export default function BookingDetailPage() {
               )}
               {booking.status === "confirmed" && (
                 <Button
-                  render={<Link href={`/properties/${booking.propertyId}`} />}
+                  render={<Link href={`/${locale}/properties/${booking.propertyId}`} />}
                   variant="outline"
                   className="w-full"
                   nativeButton={false}
@@ -644,7 +646,7 @@ export default function BookingDetailPage() {
               {(booking.status === "rejected" ||
                 booking.status === "cancelled") && (
                 <Button
-                  render={<Link href="/properties" />}
+                  render={<Link href={`/${locale}/properties`} />}
                   variant="outline"
                   className="w-full"
                   nativeButton={false}

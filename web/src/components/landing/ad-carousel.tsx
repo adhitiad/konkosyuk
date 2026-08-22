@@ -16,6 +16,7 @@ import { Megaphone01Icon } from "@hugeicons/core-free-icons";
 import { MapPin } from "lucide-react";
 import { useAds } from "@/hooks/use-ads";
 import type { Ad } from "@/hooks/use-ads";
+import { useLocale } from "next-intl";
 
 const TYPE_COLORS: Record<string, string> = {
   kos: "bg-blue-100 text-blue-700 border-blue-200",
@@ -33,6 +34,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 function AdCard({ ad }: { ad: Ad }) {
   const router = useRouter();
+  const locale = useLocale();
 
   const handleClick = async () => {
     try {
@@ -44,7 +46,7 @@ function AdCard({ ad }: { ad: Ad }) {
     }
 
     if (ad.targetUrl) {
-      router.push(ad.targetUrl);
+      router.push(ad.targetUrl as any);
     }
   };
 
@@ -92,6 +94,8 @@ function AdCard({ ad }: { ad: Ad }) {
 }
 
 function CtaCard() {
+  const router = useRouter();
+  const locale = useLocale();
   return (
     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-primary/30 bg-gradient-to-b from-primary/5 to-primary/10 p-8 text-center h-full">
       <HugeiconsIcon
@@ -103,7 +107,7 @@ function CtaCard() {
       <p className="mt-2 text-sm text-muted-foreground max-w-xs">
         Tampilkan properti Anda di sini dan jangkau ribuan pencari hunian setiap hari.
       </p>
-        <Button render={<Link href="/ads/submit" />} nativeButton={false} className="mt-4" size="sm">
+        <Button render={<Link href={`/${locale}/ads/submit`} />} nativeButton={false} className="mt-4" size="sm">
           Iklankan Sekarang
         </Button>
     </div>

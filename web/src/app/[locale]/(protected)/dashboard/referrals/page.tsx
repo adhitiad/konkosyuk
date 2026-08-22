@@ -34,6 +34,7 @@ import {
 import { apiClient } from "@/lib/axios";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
+import { useLocale } from "next-intl";
 
 interface Referral {
   id: string;
@@ -105,6 +106,7 @@ function formatCurrency(value: string | number) {
 
 export default function ReferralsPage() {
   const router = useRouter();
+  const locale = useLocale();
   const queryClient = useQueryClient();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("owner");
@@ -205,7 +207,7 @@ export default function ReferralsPage() {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => router.push("/referrals/terms")}
+            onClick={() => router.push(`/${locale}/referrals/terms`)}
           >
             <FileText className="mr-2 size-4" />
             S&K Referral

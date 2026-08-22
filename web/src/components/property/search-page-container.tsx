@@ -10,6 +10,7 @@ import { SearchPageSplitView } from "@/components/property/search-page-split";
 import MapView from "@/components/map-view";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { FilterChipsBarProps } from "@/components/property/filter-chips-bar";
+import { useLocale } from "next-intl";
 
 interface PropertyItem {
   id: string;
@@ -44,6 +45,7 @@ interface PropertyResponse {
 
 export function SearchPageContainer() {
   const router = useRouter();
+  const locale = useLocale();
   const gps = useGeolocation();
 
   const [filters, setFilters] = useState<FilterChipsBarProps["filters"]>({
@@ -128,9 +130,9 @@ export function SearchPageContainer() {
 
   const handleMarkerClick = useCallback(
     (id: string) => {
-      router.push(`/properties/${id}`);
+      router.push(`/${locale}/properties/${id}`);
     },
-    [router],
+    [router, locale],
   );
 
   const properties = data?.data ?? [];

@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useActionState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -80,6 +81,7 @@ export default function BookingDialogClient({
   children,
 }: BookingDialogClientProps) {
   const router = useRouter();
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [selectedUnitId, setSelectedUnitId] = useState<string>(
     units[0]?.id || "",
@@ -253,7 +255,7 @@ export default function BookingDialogClient({
     setIsGroupBooking(false);
     setMemberEmails("");
     router.push(
-      isGroupBooking ? "/dashboard/group-bookings" : "/dashboard/bookings",
+      isGroupBooking ? `/${locale}/dashboard/group-bookings` : `/${locale}/dashboard/bookings`,
     );
   } else if (state?.error) {
     setError(state.error);

@@ -4,8 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { withOwnerAuth } from "@/lib/with-owner-auth";
 import { KycGuard } from "@/components/kyc/kyc-guard";
+import { useLocale } from "next-intl";
 
 function OwnerDashboardPage() {
+  const locale = useLocale();
   return (
     <div className="container py-6 space-y-6">
       <div>
@@ -71,13 +73,13 @@ function OwnerDashboardPage() {
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row gap-4">
           <KycGuard>
-            <Link href="/owner/properties">
+            <Link href={`/${locale}/owner/properties`}>
               <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90">
                 Tambah Properti
               </button>
             </Link>
           </KycGuard>
-          <Link href="/owner/bookings">
+          <Link href={`/${locale}/owner/bookings`}>
             <button className="bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/80">
               Lihat Booking
             </button>

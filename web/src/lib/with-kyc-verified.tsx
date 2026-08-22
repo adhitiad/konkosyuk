@@ -7,6 +7,7 @@ import { Loader2, ShieldCheck } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 import { useKycStatus } from "@/hooks/use-kyc-status";
+import { useLocale } from "next-intl";
 
 interface WithKycVerifiedOptions {
   redirectTo?: string;
@@ -23,6 +24,7 @@ export function withKycVerified<P extends object>(
     const { data: session, isPending } = useSession();
     const { isVerified, isLoading: kycLoading } = useKycStatus();
     const router = useRouter();
+    const locale = useLocale();
 
     const userRole = (session?.user as { role?: string } | undefined)?.role;
     const isLoadingKyc = kycLoading || isPending;
@@ -34,9 +36,9 @@ export function withKycVerified<P extends object>(
         userRole === "owner" &&
         !isVerified
       ) {
-        router.push(redirectTo);
+        router.push(`/${locale}${redirectTo}`);
       }
-    }, [session, isLoadingKyc, router, isVerified, userRole]);
+    }, [session, isLoadingKyc, router, isVerified, userRole, locale, redirectTo]);
 
     if (isLoadingKyc || !session) {
       return (
@@ -74,7 +76,7 @@ export function withKycVerified<P extends object>(
           </Alert>
           <div className="flex justify-center">
             <Link
-              href={redirectTo}
+              href={`/${locale}${redirectTo}`}
               className="inline-flex h-9 items-center justify-center rounded-4xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/80"
             >
               Verifikasi KYC Sekarang

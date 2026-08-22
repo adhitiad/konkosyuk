@@ -9,10 +9,10 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const propertyId = params.id;
+    const propertyId = (await params).id;
 
     const unitsRows = await db
       .select({

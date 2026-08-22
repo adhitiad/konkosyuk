@@ -43,6 +43,7 @@ import {
   Download,
 } from "lucide-react";
 import Link from "next/link";
+import { useLocale } from "next-intl";
 
 interface PaymentItem {
   id: string;
@@ -150,6 +151,7 @@ const purposeLabel: Record<string, string> = {
 
 export default function TenantPaymentsPage() {
   const { data: session } = useSession();
+  const locale = useLocale();
   const [selectedPayment, setSelectedPayment] = useState<PaymentItem | null>(
     null,
   );
@@ -485,7 +487,7 @@ export default function TenantPaymentsPage() {
                     className="w-full"
                     render={
                       <Link
-                        href={`/mock-checkout/${selectedPayment.transactionId}`}
+                        href={`/${locale}/mock-checkout/${selectedPayment.transactionId}`}
                         target="_blank"
                       />
                     }

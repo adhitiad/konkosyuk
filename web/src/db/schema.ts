@@ -2094,16 +2094,6 @@ export const notificationSettings = pgTable(
   }),
 );
 
-export const notificationSettingsRelations = relations(
-  notificationSettings,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [notificationSettings.id],
-      references: [users.id],
-    }),
-  }),
-);
-
 export const loyaltyPointsRelations = relations(loyaltyPoints, ({ one }) => ({
   user: one(users, {
     fields: [loyaltyPoints.userId],
@@ -2546,8 +2536,8 @@ export const adPackages = pgTable(
   }),
 );
 
-export const adPackagesRelations = relations(adPackages, ({ one }) => ({
-  ads: one(propertyAds),
+export const adPackagesRelations = relations(adPackages, ({ many }) => ({
+  ads: many(propertyAds),
 }));
 
 export const propertyRuleType = ["general", "quiet_hours", "guest", "payment", "safety"] as const;

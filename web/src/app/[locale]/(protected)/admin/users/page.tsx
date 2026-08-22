@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useActionState } from "react";
+import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import {
@@ -74,6 +75,7 @@ type AdminUsersPageProps = Record<string, never>;
 
 const AdminUsersPage = ({}: AdminUsersPageProps) => {
   const queryClient = useQueryClient();
+  const locale = useLocale();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -359,7 +361,7 @@ const AdminUsersPage = ({}: AdminUsersPageProps) => {
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">
                         <Link
-                          href={`/admin/users/edit/${user.id}`}
+                          href={`/${locale}/admin/users/edit/${user.id}`}
                           className="hover:underline"
                         >
                           {user.name}

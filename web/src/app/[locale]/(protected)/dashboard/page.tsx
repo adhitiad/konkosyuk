@@ -29,6 +29,7 @@ import { CalendarX } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { WalletIcon } from "@hugeicons/core-free-icons";
 import ReviewForm from "@/components/review-form";
+import { useLocale } from "next-intl";
 
 interface BalanceLog {
   id: string;
@@ -110,6 +111,7 @@ const transactionTypeConfig: Record<
 
 export default function DashboardPage() {
   const router = useRouter();
+  const locale = useLocale();
   const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
 
   const {
@@ -330,7 +332,7 @@ export default function DashboardPage() {
               title="Belum Ada Booking"
               description="Anda belum memiliki riwayat pemesanan."
               actionLabel="Cari Kost Sekarang"
-              onAction={() => router.push("/properties")}
+              onAction={() => router.push(`/${locale}/properties`)}
             />
           ) : (
             <div className="overflow-x-auto">
@@ -393,7 +395,7 @@ export default function DashboardPage() {
                             <Button
                               render={
                                 <Link
-                                  href={`/dashboard/bookings/${booking.id}/checkout?purpose=dp`}
+                                  href={`/${locale}/dashboard/bookings/${booking.id}/checkout?purpose=dp`}
                                 />
                               }
                               size="sm"
@@ -407,7 +409,7 @@ export default function DashboardPage() {
                             <Button
                               render={
                                 <Link
-                                  href={`/dashboard/bookings/${booking.id}/checkout?purpose=full_payment`}
+                                  href={`/${locale}/dashboard/bookings/${booking.id}/checkout?purpose=full_payment`}
                                 />
                               }
                               size="sm"
@@ -462,7 +464,7 @@ export default function DashboardPage() {
                               <Button
                                 render={
                                   <Link
-                                    href={`/dashboard/bookings/${booking.id}`}
+                                    href={`/${locale}/dashboard/bookings/${booking.id}`}
                                   />
                                 }
                                 size="sm"

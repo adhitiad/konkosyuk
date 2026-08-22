@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +13,7 @@ import { apiClient } from "@/lib/axios";
 export default function BookingCheckoutPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const locale = useLocale();
   const purpose = searchParams.get("purpose") as "dp" | "full_payment" | null;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +50,7 @@ export default function BookingCheckoutPage() {
         if (data.redirectUrl) {
           router.push(data.redirectUrl);
         } else if (data.invoiceNumber) {
-          router.push(`/mock-checkout/${data.invoiceNumber}`);
+          router.push(`/${locale}/mock-checkout/${data.invoiceNumber}`);
         } else {
           throw new Error("Respons pembayaran tidak valid");
         }
@@ -90,7 +92,7 @@ export default function BookingCheckoutPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-destructive">{error}</p>
-            <Button onClick={() => router.push("/dashboard/bookings")}>
+            <Button onClick={() => router.push(`/${locale}/dashboard/bookings`)}>
               Kembali ke Booking
             </Button>
           </CardContent>

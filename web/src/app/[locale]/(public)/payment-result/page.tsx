@@ -14,9 +14,11 @@ import {
   CheckmarkCircle02Icon,
   Clock01Icon,
 } from "@hugeicons/core-free-icons";
+import { useLocale } from "next-intl";
 
 function PaymentResultContent() {
   const searchParams = useSearchParams();
+  const locale = useLocale();
   const provider = searchParams.get("provider");
   const invoiceNumber = searchParams.get("bookingId");
 
@@ -50,7 +52,7 @@ function PaymentResultContent() {
               </p>
             </div>
             <Button
-              render={<Link href="/dashboard" />}
+              render={<Link href={`/${locale}/dashboard`} />}
               nativeButton={false}
               className="w-full"
             >
@@ -94,7 +96,7 @@ function PaymentResultContent() {
             </Alert>
             <div className="flex gap-2">
               <Button
-                render={<Link href="/dashboard/bookings" />}
+                render={<Link href={`/${locale}/dashboard/bookings`} />}
                 nativeButton={false}
                 variant="outline"
                 className="flex-1"
@@ -102,7 +104,7 @@ function PaymentResultContent() {
                 Cek Riwayat Booking
               </Button>
               <Button
-                render={<Link href="/dashboard" />}
+                render={<Link href={`/${locale}/dashboard`} />}
                 nativeButton={false}
                 className="flex-1"
               >
@@ -154,7 +156,7 @@ function PaymentResultContent() {
           )}
 
           <Button
-            render={<Link href="/dashboard/bookings" />}
+            render={<Link href={`/${locale}/dashboard/bookings`} />}
             nativeButton={false}
             variant="outline"
             className="w-full"

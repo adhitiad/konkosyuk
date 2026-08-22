@@ -38,6 +38,7 @@ import PackageForm from "@/components/owner/package-form";
 import { createPropertyAction } from "@/actions/properties";
 import type { CreatePropertyInput } from "@/lib/zod";
 import type { PropertyPackages } from "@/lib/types/property-packages";
+import { useLocale } from "next-intl";
 
 const propertyTypeOptions = [
   { value: "kost", label: "Kost" },
@@ -57,6 +58,7 @@ const commonAmenities = [
 
 export default function AddPropertyDialog() {
   const router = useRouter();
+  const locale = useLocale();
   const queryClient = useQueryClient();
 
   const [title, setTitle] = useState("");
@@ -126,11 +128,11 @@ export default function AddPropertyDialog() {
         description: "Properti berhasil ditambahkan.",
         type: "success",
       });
-      router.push("/owner/properties");
+      router.push(`/${locale}/owner/properties`);
     } else if (state?.error) {
       setError(state.error);
     }
-  }, [state, queryClient, router]);
+  }, [state, queryClient, router, locale]);
 
   const addAmenity = (value: string) => {
     const trimmed = value.trim();
@@ -148,8 +150,8 @@ export default function AddPropertyDialog() {
     <div className="container py-6 space-y-6 max-w-5xl">
       <BreadcrumbNav
         items={[
-          { label: "Dashboard", href: "/owner" },
-          { label: "Properti", href: "/owner/properties" },
+          { label: "Dashboard", href: `/${locale}/owner` },
+          { label: "Properti", href: `/${locale}/owner/properties` },
           { label: "Tambah Properti Baru" },
         ]}
       />
@@ -159,7 +161,7 @@ export default function AddPropertyDialog() {
           variant="ghost"
           size="icon"
           render={
-            <Link href="/owner/properties">
+            <Link href={`/${locale}/owner/properties`}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           }
@@ -483,7 +485,7 @@ export default function AddPropertyDialog() {
           <Button
             type="button"
             variant="outline"
-            render={<Link href="/owner/properties">Batal</Link>}
+            render={<Link href={`/${locale}/owner/properties`} />}
             nativeButton={false}
           >
             Batal

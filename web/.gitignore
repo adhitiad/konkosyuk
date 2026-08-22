@@ -58,5 +58,6 @@ SECURITY_**_**.md
 
 # sentry
 .sentry/
-
+/drizzle-backup-**
+/src/db/schema.ts.backup
 

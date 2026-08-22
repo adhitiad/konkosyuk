@@ -7,17 +7,18 @@ import { ok, fail, handleApiError } from "@/lib/api";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await requireSession(["cust", "owner", "admin", "staff"]);
+    const { id } = await params;
 
     const [existing] = await db
       .select()
       .from(savedSearches)
       .where(
         and(
-          eq(savedSearches.id, params.id),
+          eq(savedSearches.id, id),
           eq(savedSearches.userId, session.user.id),
         ),
       )
@@ -31,7 +32,7 @@ export async function DELETE(
       .delete(savedSearches)
       .where(
         and(
-          eq(savedSearches.id, params.id),
+          eq(savedSearches.id, id),
           eq(savedSearches.userId, session.user.id),
         ),
       );
@@ -44,17 +45,18 @@ export async function DELETE(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await requireSession(["cust", "owner", "admin", "staff"]);
+    const { id } = await params;
 
     const [existing] = await db
       .select()
       .from(savedSearches)
       .where(
         and(
-          eq(savedSearches.id, params.id),
+          eq(savedSearches.id, id),
           eq(savedSearches.userId, session.user.id),
         ),
       )
@@ -69,7 +71,7 @@ export async function PATCH(
       .set({ isActive: !existing.isActive, updatedAt: new Date() })
       .where(
         and(
-          eq(savedSearches.id, params.id),
+          eq(savedSearches.id, id),
           eq(savedSearches.userId, session.user.id),
         ),
       )

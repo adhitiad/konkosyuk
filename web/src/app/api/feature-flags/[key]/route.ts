@@ -5,13 +5,14 @@ import { ok, handleApiError } from "@/lib/api";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { key: string } },
+  { params }: { params: Promise<{ key: string }> },
 ) {
   try {
     const session = await requireSession();
+    const { key } = await params;
 
     const enabled = await isFeatureEnabled(
-      params.key,
+      key,
       session.user.id,
       session.user.role,
     );

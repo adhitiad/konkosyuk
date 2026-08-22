@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
+import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,12 +41,10 @@ function getStatusBadge(status: string) {
   }
 }
 
-export default function MockCheckoutPage({
-  params,
-}: {
-  params: { invoiceNumber: string };
-}) {
+export default function MockCheckoutPage() {
   const router = useRouter();
+  const { invoiceNumber } = useParams<{ invoiceNumber: string }>();
+  const locale = useLocale();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [payment, setPayment] = useState<{
@@ -69,7 +68,7 @@ export default function MockCheckoutPage({
     try {
       setFetching(true);
       const { data } = await apiClient.get("/api/payments", {
-        params: { invoiceNumber: params.invoiceNumber },
+        params: { invoiceNumber: invoiceNumber },
       });
       if (data.error) {
         throw new Error(data.error ?? "Gagal mengambil data pembayaran");
@@ -87,7 +86,7 @@ export default function MockCheckoutPage({
     setError(null);
     try {
       const res = await apiClient.post("/api/webhooks/mock", {
-        invoiceNumber: params.invoiceNumber,
+        invoiceNumber: invoiceNumber,
         status,
       });
       const data = res.data;
@@ -108,9 +107,9 @@ export default function MockCheckoutPage({
       }
       setTimeout(() => {
         if (payment?.purpose === "featured_listing") {
-          router.push("/owner/properties");
+          router.push(`/${locale}/owner/properties`);
         } else {
-          router.push("/dashboard/bookings");
+          router.push(`/${locale}/dashboard/bookings`);
         }
       }, 1500);
     } catch (err) {
@@ -166,7 +165,7 @@ export default function MockCheckoutPage({
         <CardContent className="space-y-4">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Invoice</span>
-            <span className="font-mono text-sm">{params.invoiceNumber}</span>
+            <span className="font-mono text-sm">{invoiceNumber}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Jumlah</span>
@@ -205,7 +204,7 @@ export default function MockCheckoutPage({
                   <DialogTitle>Konfirmasi</DialogTitle>
                   <DialogDescription>
                     Apakah Anda yakin ingin mensimulasikan pembayaran sukses
-                    untuk invoice {params.invoiceNumber}?
+                    untuk invoice {invoiceNumber}?
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
@@ -231,7 +230,7 @@ export default function MockCheckoutPage({
                   <DialogTitle>Konfirmasi</DialogTitle>
                   <DialogDescription>
                     Apakah Anda yakin ingin mensimulasikan pembayaran gagal
-                    untuk invoice {params.invoiceNumber}?
+                    untuk invoice {invoiceNumber}?
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
@@ -258,7 +257,7 @@ export default function MockCheckoutPage({
                   <DialogTitle>Konfirmasi</DialogTitle>
                   <DialogDescription>
                     Apakah Anda yakin ingin mensimulasikan pembayaran expired
-                    untuk invoice {params.invoiceNumber}?
+                    untuk invoice {invoiceNumber}?
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>

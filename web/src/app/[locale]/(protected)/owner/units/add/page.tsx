@@ -22,6 +22,7 @@ import {
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import { toast } from "@/components/ui/toast";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { useLocale } from "next-intl";
 
 interface PropertyOption {
   id: string;
@@ -30,6 +31,7 @@ interface PropertyOption {
 
 function AddUnitPage() {
   const router = useRouter();
+  const locale = useLocale();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { data: session } = useSession();
@@ -77,7 +79,7 @@ function AddUnitPage() {
         description: "Unit baru telah ditambahkan ke properti Anda.",
         type: "success",
       });
-      router.push("/owner/units");
+      router.push(`/${locale}/owner/units`);
     } else if (unitState?.error) {
       toast({
         title: "Gagal menambahkan unit",
@@ -132,8 +134,8 @@ function AddUnitPage() {
       <div>
         <BreadcrumbNav
           items={[
-            { label: "Dashboard", href: "/owner" },
-            { label: "Unit", href: "/owner/units" },
+            { label: "Dashboard", href: `/${locale}/owner` },
+            { label: "Unit", href: `/${locale}/owner/units` },
             { label: "Tambah Unit" },
           ]}
         />
@@ -142,7 +144,7 @@ function AddUnitPage() {
             variant="ghost"
             size="icon"
             render={
-              <Link href="/owner/units">
+              <Link href={`/${locale}/owner/units`}>
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             }
@@ -307,7 +309,7 @@ function AddUnitPage() {
               <Button
                 type="button"
                 variant="outline"
-                render={<Link href="/owner/units">Batal</Link>}
+                render={<Link href={`/${locale}/owner/units`} />}
                 nativeButton={false}
               >
                 Batal

@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
+import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ interface UserDetail {
 function UserViewPage() {
   const params = useParams();
   const userId = params.id as string;
+  const locale = useLocale();
 
   const { data, isLoading, isError, error } = useQuery<{ data: UserDetail }>({
     queryKey: ["user", userId],
@@ -98,7 +100,7 @@ function UserViewPage() {
         </div>
         <div className="flex gap-2">
           <Button
-            render={<Link href="/admin/users" />}
+            render={<Link href={`/${locale}/admin/users`} />}
             variant="outline"
             nativeButton={false}
           >
@@ -110,7 +112,7 @@ function UserViewPage() {
             Kembali
           </Button>
           <Button
-            render={<Link href={`/admin/users/edit/${user.id}`} />}
+            render={<Link href={`/${locale}/admin/users/edit/${user.id}`} />}
             nativeButton={false}
           >
             <HugeiconsIcon

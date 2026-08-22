@@ -14,6 +14,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { MapPinIcon, Location01Icon } from "@hugeicons/core-free-icons";
 import type { StyleSpecification } from "maplibre-gl";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 
 const OSM_STYLE: StyleSpecification = {
   version: 8,
@@ -104,6 +105,7 @@ export default function MapView({
   const defaultCenter = center ?? { lat: -6.2088, lng: 106.8456 };
   const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
   const router = useRouter();
+  const locale = useLocale();
 
   const handleMarkerClick = useCallback((marker: MarkerData) => {
     setSelectedMarker(marker);
@@ -114,10 +116,10 @@ export default function MapView({
       if (onMarkerClick) {
         onMarkerClick(propertyId);
       } else {
-        router.push(`/properties/${propertyId}`);
+        router.push(`/${locale}/properties/${propertyId}`);
       }
     },
-    [onMarkerClick, router],
+    [onMarkerClick, router, locale],
   );
 
   const handleMoveEnd = useCallback(() => {

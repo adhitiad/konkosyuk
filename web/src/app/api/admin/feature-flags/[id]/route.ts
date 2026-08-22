@@ -18,12 +18,13 @@ const updateFeatureFlagSchema = z.object({
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     await validateAdminRequest(req);
 
-    const [flag] = await db.select().from(featureFlags).where(eq(featureFlags.id, params.id)).limit(1);
+    const { id } = await params;
+    const [flag] = await db.select().from(featureFlags).where(eq(featureFlags.id, id)).limit(1);
 
     if (!flag) {
       return fail("Feature flag not found", 404);
@@ -37,15 +38,16 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     await validateAdminRequest(req);
 
+    const { id } = await params;
     const body = await req.json();
     const parsed = updateFeatureFlagSchema.parse(body);
 
-    const [flag] = await db.update(featureFlags).set(parsed).where(eq(featureFlags.id, params.id)).returning();
+    const [flag] = await db.update(featureFlags).set(parsed).where(eq(featureFlags.id, id)).returning();
 
     if (!flag) {
       return fail("Feature flag not found", 404);
@@ -59,12 +61,13 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     await validateAdminRequest(req);
 
-    await db.delete(featureFlags).where(eq(featureFlags.id, params.id));
+    const { id } = await params;
+    await db.delete(featureFlags).where(eq(featureFlags.id, id));
 
     return new Response(null, { status: 204 });
   } catch (error) {

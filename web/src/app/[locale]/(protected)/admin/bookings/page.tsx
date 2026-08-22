@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import type { SessionUserWithRole } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -37,6 +38,7 @@ export default withAdminAuth(AdminBookingsPage);
 function AdminBookingsPage() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const locale = useLocale();
 
   const { data: bookings = [], isLoading } = useQuery<Booking[]>({
     queryKey: ["admin-bookings"],
@@ -176,7 +178,7 @@ function AdminBookingsPage() {
                           variant="outline"
                           size="sm"
                           onClick={() =>
-                            router.push(`/admin/bookings/${booking.id}`)
+                            router.push(`/${locale}/admin/bookings/${booking.id}` as any)
                           }
                         >
                           <Eye className="h-4 w-4 mr-1" />

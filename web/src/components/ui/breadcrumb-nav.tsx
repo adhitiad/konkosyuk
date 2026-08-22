@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useLocale } from "next-intl";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -20,6 +21,7 @@ interface BreadcrumbNavProps {
 }
 
 export function BreadcrumbNav({ items }: BreadcrumbNavProps) {
+  const locale = useLocale();
   return (
     <Breadcrumb>
       <BreadcrumbList>
@@ -32,7 +34,7 @@ export function BreadcrumbNav({ items }: BreadcrumbNavProps) {
                   <BreadcrumbPage>{item.label}</BreadcrumbPage>
                 ) : (
                   <Link
-                    href={item.href}
+                    href={`/${locale}${item.href}`}
                     className="transition-colors hover:text-foreground"
                   >
                     {item.label}

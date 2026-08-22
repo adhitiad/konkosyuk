@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
-import { Link } from "@/config";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +34,7 @@ import {
   updatePropertyAction,
   deletePropertyAction,
 } from "@/actions/properties";
+import { useLocale } from "next-intl";
 
 const propertyTypeOptions = [
   { value: "kost", label: "Kost" },
@@ -54,6 +55,7 @@ const commonAmenities = [
 export default function PropertyDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const locale = useLocale();
   const queryClient = useQueryClient();
 
   const {
@@ -156,7 +158,7 @@ export default function PropertyDetailPage() {
     if (result.success) {
       queryClient.invalidateQueries({ queryKey: ["properties"] });
       showToastSuccess("Properti berhasil dihapus");
-      router.push("/owner/properties");
+      router.push(`/${locale}/owner/properties`);
     } else if (result.error) {
       showToastError(result.error);
     }
@@ -224,8 +226,8 @@ export default function PropertyDetailPage() {
       <div className="mb-6">
         <BreadcrumbNav
           items={[
-            { label: "Dashboard Owner", href: "/owner/dashboard" },
-            { label: "Properti Saya", href: "/owner/properties" },
+            { label: "Dashboard Owner", href: `/${locale}/owner/dashboard` },
+            { label: "Properti Saya", href: `/${locale}/owner/properties` },
             { label: property?.name ?? "Detail Properti" },
           ]}
         />
@@ -234,7 +236,7 @@ export default function PropertyDetailPage() {
         <Button
           variant="ghost"
           size="icon"
-          render={<Link href="/owner/properties" />}
+          render={<Link href={`/${locale}/owner/properties`} />}
           nativeButton={false}
         >
           <HugeiconsIcon
@@ -424,7 +426,7 @@ export default function PropertyDetailPage() {
             <Button
               type="button"
               variant="outline"
-              render={<Link href="/owner/properties" />}
+              render={<Link href={`/${locale}/owner/properties`} />}
               nativeButton={false}
             >
               Batal
@@ -439,7 +441,7 @@ export default function PropertyDetailPage() {
       <div className="mt-8">
         <Button
           variant="outline"
-          render={<Link href={`/owner/properties/${id}/units`} />}
+          render={<Link href={`/${locale}/owner/properties/${id}/units`} />}
           nativeButton={false}
         >
           Kelola Unit Properti

@@ -6,6 +6,7 @@ import { apiClient } from "@/lib/axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/lib/auth-client";
+import { useLocale } from "next-intl";
 
 type Notification = {
   id: string;
@@ -19,6 +20,7 @@ type Notification = {
 
 export default function NotificationsPage() {
   const router = useRouter();
+  const locale = useLocale();
   const { data: session } = useSession();
   const { data, isLoading } = useQuery({
     queryKey: ["notifications-page"],
@@ -55,8 +57,8 @@ export default function NotificationsPage() {
                     router.push(
                       (session?.user as { role?: string } | undefined)?.role ===
                         "admin"
-                        ? `/admin/maintenance-reports?reportId=${notification.referenceId}`
-                        : "/owner/reports",
+                        ? `/${locale}/admin/maintenance-reports?reportId=${notification.referenceId}`
+                        : `/${locale}/owner/reports`,
                     );
                 }}
               >

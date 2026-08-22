@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getSavedSearches, toggleSavedSearchActive, deleteSavedSearch } from "@/actions/saved-searches";
 import type { SavedSearch } from "@/db/schema";
+import { useLocale } from "next-intl";
 
 function formatRelativeTime(date: Date | null): string {
   if (!date) return "Belum pernah";
@@ -54,6 +55,7 @@ export function SavedSearchesClient() {
   const [searches, setSearches] = useState<SavedSearch[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const locale = useLocale();
 
   useEffect(() => {
     let cancelled = false;
@@ -112,7 +114,7 @@ export function SavedSearchesClient() {
       (filters.amenities as string[]).forEach((a) => params.append("amenities", a));
     }
 
-    router.push(`/properties?${params.toString()}`);
+    router.push(`/${locale}/properties?${params.toString()}`);
   }
 
   if (loading) {
@@ -127,7 +129,7 @@ export function SavedSearchesClient() {
         <p className="text-muted-foreground mb-6 max-w-md">
           Simpan kriteria pencarian properti Anda untuk menerima notifikasi saat ada properti baru yang cocok.
         </p>
-        <Button onClick={() => router.push("/properties")}>
+        <Button onClick={() => router.push(`/${locale}/properties`)}>
           <HugeiconsIcon icon={Search01Icon} strokeWidth={2} className="mr-2" />
           Cari Properti
         </Button>

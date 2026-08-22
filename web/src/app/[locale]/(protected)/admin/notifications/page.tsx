@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +64,7 @@ export default withAdminAuth(AdminNotificationsPage);
 function AdminNotificationsPage() {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const locale = useLocale();
   const [type, setType] = useState<string | null>(null);
   const [isRead, setIsRead] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -245,7 +247,7 @@ function AdminNotificationsPage() {
                       if (!notification.isRead)
                         markAsReadMutation.mutate(notification.id);
                       router.push(
-                        `/admin/maintenance-reports?reportId=${notification.referenceId}`,
+                        `/${locale}/admin/maintenance-reports?reportId=${notification.referenceId}`,
                       );
                     }
                   }}

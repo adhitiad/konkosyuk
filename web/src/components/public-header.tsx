@@ -24,6 +24,7 @@ import { useSession, signOut } from "@/lib/auth-client";
 import { useTranslations } from "next-intl";
 import { Logo } from "@/components/ui/logo";
 import { Menu, LogOut } from "lucide-react";
+import { useLocale } from "next-intl";
 
 const publicNavItems = [
   { title: "findKost", href: "/properties" },
@@ -36,6 +37,7 @@ export function Navbar() {
   const t = useTranslations("public");
   const { data: session } = useSession();
   const user = session?.user;
+  const locale = useLocale();
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -46,7 +48,7 @@ export function Navbar() {
           {publicNavItems.map((item) => (
             <Link
               key={item.title}
-              href={item.href}
+              href={`/${locale}${item.href}`}
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
             >
               {t(item.title)}
@@ -60,12 +62,12 @@ export function Navbar() {
           {!user ? (
             <>
               <Button
-                render={<Link href="/login">Masuk</Link>}
+                render={<Link href={`/${locale}/login`}>Masuk</Link>}
                 variant="outline"
                 nativeButton={false}
               />
               <Button
-                render={<Link href="/register">Daftar</Link>}
+                render={<Link href={`/${locale}/register`}>Daftar</Link>}
                 variant="default"
                 nativeButton={false}
               />
@@ -86,17 +88,17 @@ export function Navbar() {
               </Button>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem>
-                  <Link href="/dashboard">Dashboard</Link>
+                  <Link href={`/${locale}/dashboard`}>Dashboard</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Link href="/settings/profile">Pengaturan</Link>
+                  <Link href={`/${locale}/settings/profile`}>Pengaturan</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onSelect={async () => {
                     await signOut();
                     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-                    window.location.href = "/login";
+                    window.location.href = `/${locale}/login`;
                   }}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
@@ -126,7 +128,7 @@ export function Navbar() {
                 <div className="flex flex-col gap-2 mt-6">
                   <SheetClose>
                     <Button
-                      render={<Link href="/login">Masuk</Link>}
+                      render={<Link href={`/${locale}/login`}>Masuk</Link>}
                       variant="outline"
                       nativeButton={false}
                       className="w-full"
@@ -134,7 +136,7 @@ export function Navbar() {
                   </SheetClose>
                   <SheetClose>
                     <Button
-                      render={<Link href="/register">Daftar</Link>}
+                      render={<Link href={`/${locale}/register`}>Daftar</Link>}
                       variant="default"
                       nativeButton={false}
                       className="w-full"
@@ -162,7 +164,7 @@ export function Navbar() {
                   </div>
                   <SheetClose>
                     <Button
-                      render={<Link href="/dashboard">Dashboard</Link>}
+                      render={<Link href={`/${locale}/dashboard`}>Dashboard</Link>}
                       variant="default"
                       nativeButton={false}
                       className="w-full"
@@ -176,7 +178,7 @@ export function Navbar() {
                       onClick={async () => {
                         await signOut();
                         // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-                        window.location.href = "/login";
+                        window.location.href = `/${locale}/login`;
                       }}
                     >
                       <LogOut className="mr-2 h-4 w-4" />
@@ -190,7 +192,7 @@ export function Navbar() {
                 {publicNavItems.map((item) => (
                   <SheetClose key={item.title}>
                     <Link
-                      href={item.href}
+                      href={`/${locale}${item.href}`}
                       className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary py-2"
                     >
                       {t(item.title)}

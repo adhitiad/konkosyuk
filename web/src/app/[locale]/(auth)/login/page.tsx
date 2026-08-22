@@ -27,6 +27,11 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!isPending && session) {
@@ -84,7 +89,7 @@ export default function LoginPage() {
     }
   };
 
-  if (isPending) {
+  if (isPending && mounted) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

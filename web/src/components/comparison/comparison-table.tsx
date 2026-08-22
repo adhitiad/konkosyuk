@@ -115,12 +115,13 @@ export function ComparisonTable({ propertyIds }: { propertyIds: string[] }) {
 
           return (
             <Card key={property.id} className="overflow-hidden">
-              <div className="relative aspect-video">
+              <div className="relative min-h-[200px]">
                 <Image
                   src={displayImages[0]}
                   alt={property.name}
                   fill
                   className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
                 <Badge className="absolute top-3 left-3">
                   {property.type === "kost" ? "Kost" : "Kontrakan"}

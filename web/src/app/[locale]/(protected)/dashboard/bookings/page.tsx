@@ -11,6 +11,7 @@ import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon, Search01Icon } from "@hugeicons/core-free-icons";
 import { apiClient } from "@/lib/axios";
+import { useLocale } from "next-intl";
 
 interface BookingRequestItem {
   id: string;
@@ -66,6 +67,7 @@ interface ApiResponse<T> {
 
 export default function TenantBookingsPage() {
   const { data: session } = useSession();
+  const locale = useLocale();
 
   const { data, isLoading, isError, error } = useQuery<
     ApiResponse<BookingRequestItem[]>
@@ -209,7 +211,7 @@ export default function TenantBookingsPage() {
                       <Button
                         size="sm"
                         render={
-                          <Link href={`/dashboard/bookings/${booking.id}`} />
+                          <Link href={`/${locale}/dashboard/bookings/${booking.id}`} />
                         }
                         nativeButton={false}
                       >

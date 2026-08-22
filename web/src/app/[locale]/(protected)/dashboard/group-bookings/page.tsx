@@ -26,6 +26,7 @@ import {
 import { apiClient } from "@/lib/axios";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
+import { useLocale } from "next-intl";
 
 interface GroupBooking {
   id: string;
@@ -72,6 +73,7 @@ const STATUS_CONFIG = {
 
 export default function GroupBookingsPage() {
   const router = useRouter();
+  const locale = useLocale();
   const queryClient = useQueryClient();
   const [selectedGroup, setSelectedGroup] = useState<GroupBooking | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -143,7 +145,7 @@ export default function GroupBookingsPage() {
           "Undangan diterima! Silakan lanjutkan pembayaran di halaman bookings.",
         );
         setTimeout(() => {
-          router.push("/dashboard/bookings");
+          router.push(`/${locale}/dashboard/bookings`);
         }, 1500);
       } else {
         showToastSuccess("Undangan ditolak");

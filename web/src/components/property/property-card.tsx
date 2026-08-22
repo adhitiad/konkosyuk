@@ -16,6 +16,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Tag01Icon } from "@hugeicons/core-free-icons";
 import { formatCurrency } from "@/lib/utils/currency";
 import { cn } from "@/lib/utils";
+import { useLocale } from "next-intl";
 
 interface Property {
   id: string;
@@ -42,6 +43,7 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, distanceKm }: PropertyCardProps) {
+  const locale = useLocale();
   const displayImages =
     property.images?.length > 0
       ? property.images
@@ -55,15 +57,15 @@ export function PropertyCard({ property, distanceKm }: PropertyCardProps) {
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-lg border bg-background shadow-sm transition-all hover:shadow-md h-full">
       {/* Image Carousel Section */}
-      <div className="relative aspect-video w-full bg-muted">
-        <Carousel className="w-full h-full">
-          <CarouselContent className="h-full">
+      <div className="relative w-full bg-muted min-h-[200px]">
+        <Carousel className="w-full h-full min-h-[200px]">
+          <CarouselContent className="h-full min-h-[200px]">
             {displayImages.map((imgSrc, index) => (
               <CarouselItem
                 key={`${property.id}-img-${index}`}
-                className="h-full"
+                className="h-full min-h-[200px]"
               >
-                <div className="relative w-full h-full">
+                <div className="relative w-full h-full min-h-[200px]">
                   <Image
                     src={imgSrc}
                     alt={`${property.name} - Image ${index + 1}`}
@@ -164,7 +166,7 @@ export function PropertyCard({ property, distanceKm }: PropertyCardProps) {
           </div>
         )}
         <Button
-          render={<Link href={`/properties/${property.id}`} />}
+          render={<Link href={`/${locale}/properties/${property.id}`} />}
           nativeButton={false}
           size="sm"
         >

@@ -1,6 +1,12 @@
 import * as dotenv from "dotenv";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { Client } from "pg";
+
+async function hashFile(filePath: string): Promise<string> {
+  const content = readFileSync(filePath, "utf8");
+  return createHash("sha256").update(content).digest("hex");
+}
 
 async function main() {
   if (process.env.BASELINE_DRIZZLE_CONFIRM !== "YES") {
@@ -15,6 +21,7 @@ async function main() {
   ) as {
     entries: Array<{ tag: string; when: number }>;
   };
+
   const client = new Client({
     connectionString: process.env.DATABASE_URL,
     connectionTimeoutMillis: 10000,
@@ -41,10 +48,13 @@ async function main() {
       );
 
     for (const entry of journal.entries) {
+      const migrationPath = `drizzle/${entry.tag}.sql`;
+      const fileHash = await hashFile(migrationPath);
       await client.query(
         "INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES ($1, $2)",
-        [entry.tag, entry.when],
+        [fileHash, entry.when],
       );
+      console.log(`Baselined: ${entry.tag}`);
     }
     await client.query("COMMIT");
     console.log(

@@ -19,6 +19,7 @@ import {
   updateNotificationAction,
 } from "@/actions/notifications";
 import { apiClient } from "@/lib/axios";
+import { useLocale } from "next-intl";
 
 type Notification = {
   id: string;
@@ -34,6 +35,7 @@ type Notification = {
 export default function NotificationBell() {
   const { data: session } = useSession();
   const router = useRouter();
+  const locale = useLocale();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [mounted] = useState(true);
@@ -93,8 +95,8 @@ export default function NotificationBell() {
     if (notification.type === "report" && notification.referenceId) {
       router.push(
         role === "admin"
-          ? `/admin/maintenance-reports?reportId=${notification.referenceId}`
-          : "/owner/reports",
+          ? `/${locale}/admin/maintenance-reports?reportId=${notification.referenceId}`
+          : `/${locale}/owner/reports`,
       );
     } else if (notification.type === "review_reply" && notification.referenceId) {
       try {
@@ -104,7 +106,7 @@ export default function NotificationBell() {
         const review = reviewData?.data;
         if (review?.propertyId) {
           router.push(
-            `/properties/${review.propertyId}#review-${notification.referenceId}`,
+            `/${locale}/properties/${review.propertyId}#review-${notification.referenceId}`,
           );
         }
       } catch {

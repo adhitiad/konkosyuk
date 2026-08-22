@@ -6,6 +6,7 @@ import { apiClient } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 
 interface ChatTriggerButtonProps {
   propertyId: string;
@@ -24,11 +25,12 @@ export function ChatTriggerButton({
 }: ChatTriggerButtonProps) {
   const { data: session } = useSession();
   const router = useRouter();
+  const locale = useLocale();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChat = async () => {
     if (!session?.user?.id) {
-      router.push("/login");
+      router.push(`/${locale}/login`);
       return;
     }
 
@@ -44,7 +46,7 @@ export function ChatTriggerButton({
 
       const room = data?.data?.room ?? data?.room;
       if (room?.id) {
-        router.push(`/chat/${room.id}`);
+        router.push(`/${locale}/chat/${room.id}`);
       }
     } catch (error) {
       console.error("Failed to create chat room:", error);

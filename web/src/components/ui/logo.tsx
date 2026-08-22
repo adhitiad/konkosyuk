@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useLocale } from "next-intl";
 
 interface LogoProps {
   /** Extra Tailwind classes for the outer wrapper */
@@ -22,8 +23,9 @@ interface LogoProps {
  * Always wrapped in a `<Link>` so clicking it navigates home.
  */
 export function Logo({ className, withText = true, href = "/" }: LogoProps) {
+  const locale = useLocale();
   return (
-    <Link href={href} className={cn("flex items-center gap-2", className)}>
+    <Link href={`/${locale}${href}`} className={cn("flex items-center gap-2", className)}>
       <Image
         src="/logo-icon.svg"
         alt="KonkosYuk"

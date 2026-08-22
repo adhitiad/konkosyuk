@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
+import { useLocale } from "next-intl";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { SearchX } from "lucide-react";
@@ -88,6 +89,7 @@ function useDebounce<T>(value: T, delay: number): T {
 
 export default function PropertiesPage() {
   const router = useRouter();
+  const locale = useLocale();
   const searchParams = useSearchParams();
 
   const [page, setPage] = useState(1);
@@ -221,9 +223,9 @@ export default function PropertiesPage() {
         newParams.delete(key);
       }
       setPage(1);
-      router.push(`/properties?${newParams.toString()}`);
+      router.push(`/${locale}/properties?${newParams.toString()}`);
     },
-    [router, searchParams],
+    [router, searchParams, locale],
   );
 
   const toggleAmenity = useCallback(
@@ -239,17 +241,17 @@ export default function PropertiesPage() {
         newParams.delete("amenities");
       }
       setPage(1);
-      router.push(`/properties?${newParams.toString()}`);
+      router.push(`/${locale}/properties?${newParams.toString()}`);
     },
-    [router, searchParams, selectedAmenities],
+    [router, searchParams, selectedAmenities, locale],
   );
 
   const resetFilters = useCallback(() => {
     setPage(1);
     setUserLocation(null);
     setRadius(30);
-    router.push("/properties");
-  }, [router]);
+    router.push(`/${locale}/properties`);
+  }, [router, locale]);
 
   const handleLocationChange = useCallback(
     (lat: number, lng: number) => {
@@ -531,7 +533,7 @@ export default function PropertiesPage() {
           title="Tidak Ditemukan"
           description="Coba ubah filter lokasi, harga, atau fasilitas Anda."
           actionLabel="Reset Filter"
-          onAction={() => router.push("/properties")}
+          onAction={() => router.push(`/${locale}/properties`)}
         />
       )}
 
