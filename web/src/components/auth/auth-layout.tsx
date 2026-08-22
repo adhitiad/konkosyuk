@@ -1,21 +1,26 @@
 import { Logo } from "@/components/ui/logo";
 import { Card } from "@/components/ui/card";
 
+const HERO_BG =
+  "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&q=80";
+
+const heroStyle = {
+  backgroundImage: `url("${HERO_BG}")`,
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+} as const;
+
 interface AuthLayoutProps {
   children: React.ReactNode;
 }
 
 export function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex min-h-screen w-full" suppressHydrationWarning>
       <div
         className="hidden lg:flex lg:w-1/2 bg-slate-900 items-center justify-center p-12 relative overflow-hidden"
-        style={{
-          backgroundImage:
-            'url("https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&q=80")',
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
+        style={heroStyle}
+        suppressHydrationWarning
       >
         <div className="absolute inset-0 bg-slate-900/70" />
         <div className="relative z-10 max-w-md text-center">
