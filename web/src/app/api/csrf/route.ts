@@ -11,11 +11,12 @@ const csrfRateLimitConfig = {
 
 async function csrfHandler(): Promise<NextResponse> {
   const token = `${crypto.randomUUID().replaceAll("-", "")}${crypto.randomUUID().replaceAll("-", "")}`;
-  const response = NextResponse.json({ success: true });
+  const response = NextResponse.json({ success: true, token });
 
   response.cookies.set("csrf_token", token, {
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    httpOnly: true,
+    sameSite: "strict",
     maxAge: 60 * 60 * 24,
     path: "/",
   });

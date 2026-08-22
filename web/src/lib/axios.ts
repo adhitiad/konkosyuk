@@ -8,27 +8,20 @@ import axios, {
 // 1. apiClient memakai interceptor request/response untuk CSRF token injection, error normalization, dan 401 handling
 // 2. Payment gateway modules (doku, ipaymu, nicepay, gateway-manager) memakai axios instance khusus dengan timeout dan error typing
 // 3. 20+ komponen/hooks bergantung pada apiClient/publicClient — migrasi ke fetch native berisiko tinggi dan membutuhkan rewrite interceptor
+let csrfToken: string | null = null;
+
 export function getCsrfToken(): string | null {
   if (typeof document === "undefined") return null;
-  const match = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);
-  return match ? decodeURIComponent(match[1]) : null;
+  return csrfToken;
 }
 
-let csrfRequest: Promise<void> | null = null;
-
 export async function ensureCsrfToken(): Promise<void> {
-  if (getCsrfToken()) return;
-  csrfRequest ??= fetch("/api/csrf", { credentials: "same-origin" })
-    .then((response) => {
-      if (!response.ok) throw new Error("Failed to initialize CSRF token");
-    })
-    .finally(() => {
-      csrfRequest = null;
-    });
-  await csrfRequest;
-  if (!getCsrfToken()) {
-    throw new Error("CSRF token cookie is not available after initialization");
-  }
+  if (csrfToken) return;
+  const response = await fetch("/api/csrf", { credentials: "same-origin" });
+  if (!response.ok) throw new Error("Failed to initialize CSRF token");
+  const data = (await response.json()) as { token?: string };
+  if (data.token) csrfToken = data.token;
+  if (!csrfToken) throw new Error("CSRF token cookie is not available after initialization");
 }
 
 export async function csrfFetch(
