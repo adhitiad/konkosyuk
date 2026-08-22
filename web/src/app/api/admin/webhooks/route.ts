@@ -4,9 +4,13 @@ import { webhookEvents } from "@/db/schema";
 import { eq, desc, sql, and } from "drizzle-orm";
 import { validateAdminRequest } from "@/lib/api-auth";
 import { ok, handleApiError } from "@/lib/api";
+import { enforceRateLimit, adminRateLimit } from "@/lib/rate-limit";
 
 export async function GET(req: NextRequest) {
   try {
+    const limited = await enforceRateLimit(req, adminRateLimit);
+    if (limited) return limited;
+
     const authResult = await validateAdminRequest(req);
     if (authResult instanceof Response) return authResult;
     const { searchParams } = new URL(req.url);

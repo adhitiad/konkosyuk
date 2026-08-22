@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import {
   kycVerifications,
   users,
@@ -8,6 +9,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { getSettingRequired } from "@/lib/settings";
+import { enforceRateLimit, webhookRateLimit } from "@/lib/rate-limit";
 import crypto from "node:crypto";
 
 function shortenFloats(v: unknown): unknown {
@@ -47,8 +49,11 @@ export async function GET(req: Request) {
   return ok({ received: true });
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const limited = await enforceRateLimit(req, webhookRateLimit);
+    if (limited) return limited;
+
     const raw = await req.text();
     const sig = req.headers.get("x-signature-v2") ?? "";
     const ts = Number(req.headers.get("x-timestamp"));

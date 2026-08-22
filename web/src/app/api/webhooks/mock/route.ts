@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { handleWebhookRequest } from "@/lib/payments/webhook";
+import { enforceRateLimit, webhookRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
+  const limited = await enforceRateLimit(req, webhookRateLimit);
+  if (limited) return limited;
+
   if (env.PAYMENT_MODE !== "mock") {
     return NextResponse.json(
       {

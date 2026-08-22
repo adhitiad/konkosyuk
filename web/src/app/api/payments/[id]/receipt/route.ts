@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { generateReceiptPdf } from "@/actions/payments";
+import { requireSession } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -8,6 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireSession(["cust", "owner", "admin", "staff"]);
     const { id } = await params;
 
     const pdfBlob = await generateReceiptPdf(id);

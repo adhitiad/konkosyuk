@@ -3,9 +3,11 @@ import { db } from "@/db";
 import { inspectionTemplates } from "@/db/schema";
 import { ok, handleApiError } from "@/lib/api";
 import { eq, and, desc } from "drizzle-orm";
+import { requireSession } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
+    await requireSession(["cust", "owner", "admin", "staff"]);
     const { searchParams } = new URL(req.url);
     const propertyType = searchParams.get("propertyType") as
       "kost" | "kontrakan" | "ruko" | null;

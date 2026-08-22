@@ -2,9 +2,11 @@ import { db } from "@/db";
 import { tags } from "@/db/schema";
 import { ok, handleApiError } from "@/lib/api";
 import { desc } from "drizzle-orm";
+import { requireSession } from "@/lib/auth";
 
 export async function GET() {
   try {
+    await requireSession(["owner", "admin", "staff"]);
     const data = await db
       .select({
         id: tags.id,

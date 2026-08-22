@@ -3,9 +3,11 @@ import { db } from "@/db";
 import { inspections, inspectionItems, bookings } from "@/db/schema";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { eq, and, desc } from "drizzle-orm";
+import { requireSession } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
+    const session = await requireSession(["cust", "owner", "admin", "staff"]);
     const { searchParams } = new URL(req.url);
     const bookingId = searchParams.get("bookingId");
 
@@ -21,6 +23,10 @@ export async function GET(req: NextRequest) {
 
     if (!booking) {
       return fail("Booking tidak ditemukan", 404);
+    }
+
+    if (booking.userId !== session.user.id && !["admin", "staff"].includes(session.user.role)) {
+      return fail("Tidak berwenang", 403);
     }
 
     const moveIn = await db
