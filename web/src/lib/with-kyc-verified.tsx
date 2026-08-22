@@ -38,7 +38,7 @@ export function withKycVerified<P extends object>(
       ) {
         router.push(`/${locale}${redirectTo}`);
       }
-    }, [session, isLoadingKyc, router, isVerified, userRole, locale, redirectTo]);
+    }, [session, isLoadingKyc, router, isVerified, userRole, locale]);
 
     if (isLoadingKyc || !session) {
       return (

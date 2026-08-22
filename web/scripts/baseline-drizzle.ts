@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { Client } from "pg";
 

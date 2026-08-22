@@ -1,7 +1,6 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { headers } from "next/headers";
 import { locales, type Locale } from "@/config";
 import { Providers } from "@/app/providers";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -20,7 +19,6 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const nonce = (await headers()).get("x-nonce") || undefined;
 
   if (!locales.includes(locale as Locale)) {
     notFound();

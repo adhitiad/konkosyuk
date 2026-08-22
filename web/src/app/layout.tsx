@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { Poppins, Inter } from "next/font/google";
 import { VercelAnalytics } from "@/app/analytics";
 import { PwaRegister } from "@/components/pwa-register";
@@ -86,8 +85,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const nonce = (await headers()).get("x-nonce") || undefined;
-
   return (
     <html
       lang="id"

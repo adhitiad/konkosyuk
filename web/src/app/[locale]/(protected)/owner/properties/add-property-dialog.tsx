@@ -75,7 +75,6 @@ export default function AddPropertyDialog() {
   const [amenities, setAmenities] = useState<string[]>([]);
   const [amenityInput, setAmenityInput] = useState("");
   const [description, setDescription] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [propertyImages, setPropertyImages] = useState<string[]>([]);
   const [packages, setPackages] = useState<PropertyPackages>({
     predefined: [],
@@ -129,8 +128,6 @@ export default function AddPropertyDialog() {
         type: "success",
       });
       router.push(`/${locale}/owner/properties`);
-    } else if (state?.error) {
-      setError(state.error);
     }
   }, [state, queryClient, router, locale]);
 
@@ -177,7 +174,7 @@ export default function AddPropertyDialog() {
         </div>
       </div>
 
-      {error && (
+      {state?.error && (
         <Alert variant="destructive">
           <HugeiconsIcon
             icon={AlertCircleIcon}
@@ -185,7 +182,7 @@ export default function AddPropertyDialog() {
             className="size-4"
           />
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{state.error}</AlertDescription>
         </Alert>
       )}
 

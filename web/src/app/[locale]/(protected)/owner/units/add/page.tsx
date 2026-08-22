@@ -87,7 +87,7 @@ function AddUnitPage() {
         type: "error",
       });
     }
-  }, [unitState, queryClient, router]);
+  }, [unitState, queryClient, router, locale]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

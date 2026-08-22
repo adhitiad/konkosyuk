@@ -88,7 +88,7 @@ export async function POST(req: Request) {
       return fail("Invalid signature", 401);
     }
 
-    const { event_id, status, vendor_data, session_id, decision } =
+    const { status, vendor_data, session_id, decision } =
       parsed as {
         event_id?: string;
         status?: string;

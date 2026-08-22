@@ -1,4 +1,3 @@
-import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { campusAreas } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -7,7 +6,7 @@ import { logError } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const areas = await db
       .select({

@@ -19,7 +19,7 @@ const createPackageSchema = z.object({
   sortOrder: z.coerce.number().int().default(0),
 });
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   try {
     await requireSession(["admin"]);
 

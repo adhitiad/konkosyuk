@@ -10,11 +10,20 @@ import {
   payments,
   seasonalPricingRules,
   inspections,
+  refundRequests,
+  bookingStatus,
 } from "@/db/schema";
-import { eq, and, or, gte, lte, sql, desc } from "drizzle-orm";
+import type { NewPayment } from "@/db/schema";
+
+type BookingStatus = (typeof bookingStatus)[number];
+import { eq, and, or, gte, lte, sql, desc, inArray } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
+import {
+  bookingQuerySchema,
+  checkoutBookingSchema,
+} from "@/lib/zod";
 import {
   getPackageById,
   calculatePackageEndDate,
@@ -23,12 +32,16 @@ import {
   calculatePackagePriceWithSeasonal,
 } from "@/lib/packages/calculator";
 import { invalidateCacheByTag } from "@/lib/cache";
+import { updateTag } from "next/cache";
 import {
   sendApprovalEmail,
   sendBookingRequestEmail,
   sendBookingRejectionEmail,
 } from "@/lib/notifications/email";
 import { dispatchNotification } from "@/lib/notification-service";
+import { getPaymentProvider } from "@/lib/payments";
+import { generateInvoiceNumber, money } from "@/lib/utils";
+import { checkFraudFlags } from "@/lib/fraud-check";
 
 const createBookingSchema = z.object({
   propertyId: z.string().uuid(),
@@ -607,4 +620,322 @@ export async function createBookingOrGroupAction(
   }
 
   return createBookingAction(prevState, formData);
+}
+
+export async function getBookingsAction(params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+}) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user?.id) {
+      return { success: false, error: "Tidak terotorisasi" };
+    }
+
+    const query = bookingQuerySchema.parse(params ?? {});
+    const { page, limit, status } = query;
+
+    const statusValue = typeof status === "string" ? status : undefined;
+    let where: ReturnType<typeof eq> | ReturnType<typeof and> | undefined;
+
+    if (session.user.role === "owner") {
+      const ownerProperties = await db
+        .select({ id: properties.id })
+        .from(properties)
+        .where(eq(properties.ownerId, session.user.id));
+
+      const propertyIds = ownerProperties.map((p) => p.id);
+      if (propertyIds.length === 0) {
+        return { success: true, data: [], meta: { total: 0, page, limit, totalPages: 0 } };
+      }
+
+      const baseWhere = inArray(bookings.propertyId, propertyIds);
+      where = statusValue
+        ? and(baseWhere, eq(bookings.status, statusValue as BookingStatus))
+        : baseWhere;
+    } else if (session.user.role === "admin" || session.user.role === "staff") {
+      where = statusValue
+        ? eq(bookings.status, statusValue as BookingStatus)
+        : undefined;
+    } else {
+      where = statusValue
+        ? and(
+            eq(bookings.userId, session.user.id),
+            eq(bookings.status, statusValue as BookingStatus),
+          )
+        : eq(bookings.userId, session.user.id);
+    }
+
+    const offset = (page - 1) * limit;
+
+    const [data, [{ count: totalCount }]] = await Promise.all([
+      db
+        .select({
+          id: bookings.id,
+          propertyId: bookings.propertyId,
+          unitId: bookings.unitId,
+          bookingType: bookings.bookingType,
+          status: bookings.status,
+          startDate: bookings.startDate,
+          endDate: bookings.endDate,
+          metadata: bookings.metadata,
+          rejectionReason: bookings.rejectionReason,
+          createdAt: bookings.createdAt,
+          updatedAt: bookings.updatedAt,
+          propertyName: properties.name,
+          propertyAddress: properties.address,
+          unitName: units.name,
+          unitPrice: units.price,
+          userName: users.name,
+          userEmail: users.email,
+        })
+        .from(bookings)
+        .leftJoin(properties, eq(bookings.propertyId, properties.id))
+        .leftJoin(units, eq(bookings.unitId, units.id))
+        .leftJoin(users, eq(bookings.userId, users.id))
+        .where(where)
+        .orderBy(desc(bookings.createdAt))
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(bookings)
+        .where(where),
+    ]);
+
+    const total = Number(totalCount);
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      success: true,
+      data,
+      meta: { total, page, limit, totalPages },
+    };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues[0]?.message || "Input tidak valid" };
+    }
+    return { success: false, error: "Gagal memuat booking" };
+  }
+}
+
+export async function getBookingByIdAction(bookingId: string) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user?.id) {
+      return { success: false, error: "Tidak terotorisasi" };
+    }
+
+    const [booking] = await db
+      .select({
+        id: bookings.id,
+        userId: bookings.userId,
+        propertyId: bookings.propertyId,
+        unitId: bookings.unitId,
+        bookingType: bookings.bookingType,
+        status: bookings.status,
+        startDate: bookings.startDate,
+        endDate: bookings.endDate,
+        metadata: bookings.metadata,
+        createdAt: bookings.createdAt,
+        updatedAt: bookings.updatedAt,
+        propertyName: properties.name,
+        propertyAddress: properties.address,
+        unitName: units.name,
+        unitPrice: units.price,
+      })
+      .from(bookings)
+      .leftJoin(properties, eq(bookings.propertyId, properties.id))
+      .leftJoin(units, eq(bookings.unitId, units.id))
+      .where(eq(bookings.id, bookingId))
+      .limit(1);
+
+    if (!booking) {
+      return { success: false, error: "Booking tidak ditemukan", status: 404 };
+    }
+
+    if (booking.userId !== session.user.id && session.user.role !== "admin" && session.user.role !== "staff") {
+      return { success: false, error: "Dilarang", status: 403 };
+    }
+
+    const bookingPayments = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.bookingId, bookingId))
+      .orderBy(desc(payments.createdAt));
+
+    const bookingRefundRequests = await db
+      .select()
+      .from(refundRequests)
+      .where(eq(refundRequests.bookingId, bookingId))
+      .orderBy(desc(refundRequests.createdAt));
+
+    return {
+      success: true,
+      data: {
+        ...booking,
+        payments: bookingPayments,
+        refundRequests: bookingRefundRequests,
+      },
+    };
+  } catch {
+    return { success: false, error: "Gagal memuat detail booking" };
+  }
+}
+
+export async function checkoutBookingAction(bookingId: string, formData: FormData) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user?.id) {
+      return { success: false, error: "Tidak terotorisasi" };
+    }
+
+    const body = checkoutBookingSchema.parse(Object.fromEntries(formData));
+
+    const [booking] = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.id, bookingId))
+      .limit(1);
+
+    if (!booking) {
+      return { success: false, error: "Booking tidak ditemukan", status: 404 };
+    }
+
+    if (booking.userId !== session.user.id) {
+      return { success: false, error: "Dilarang", status: 403 };
+    }
+
+    let purpose: "dp" | "full_payment";
+    let amount: number;
+
+    if (booking.status === "pending_dp") {
+      purpose = "dp";
+      amount = booking.metadata?.dpAmount ? Number(booking.metadata.dpAmount) : 0;
+    } else if (booking.status === "awaiting_full_payment") {
+      purpose = "full_payment";
+      amount = booking.metadata?.remainingAmount ? Number(booking.metadata.remainingAmount) : 0;
+    } else {
+      return { success: false, error: "Booking belum siap dibayar", status: 400 };
+    }
+
+    if (amount <= 0) {
+      return { success: false, error: "Jumlah pembayaran tidak valid", status: 400 };
+    }
+
+    const adapter = getPaymentProvider(body.paymentProvider);
+    if (!adapter) {
+      return { success: false, error: "Provider pembayaran tidak didukung", status: 400 };
+    }
+
+    const validatedProvider = body.paymentProvider as "doku" | "ipaymu" | "nicepay" | "mock";
+
+    const [user] = await db
+      .select({ name: users.name, email: users.email })
+      .from(users)
+      .where(eq(users.id, booking.userId))
+      .limit(1);
+
+    if (!user?.name || !user?.email) {
+      return { success: false, error: "Nama di profil harus sesuai dengan rekening untuk keamanan", status: 403 };
+    }
+
+    const fraudResult = await checkFraudFlags(booking.userId, amount);
+    if (fraudResult.isBlocked) {
+      return { success: false, error: fraudResult.reason ?? "Akses diblokir karena aktivitas mencurigakan", status: 403 };
+    }
+
+    const invoiceNumber = generateInvoiceNumber(
+      purpose.toUpperCase() as "DP" | "FULL",
+    );
+
+    const paymentMetadata: Record<string, unknown> = {
+      invoiceNumber,
+      bookingCode: booking.metadata?.bookingCode,
+    };
+
+    if (fraudResult.requiresManualReview) {
+      paymentMetadata.fraudReview = true;
+      paymentMetadata.fraudReason = "amount_exceeds_10m";
+    }
+
+    const paymentValues: NewPayment = {
+      bookingId: booking.id,
+      provider: validatedProvider,
+      purpose,
+      amount: money(amount),
+      currency: "IDR",
+      status: "pending",
+      transactionId: invoiceNumber,
+      metadata: paymentMetadata,
+    };
+
+    const [payment] = await db
+      .insert(payments)
+      .values(paymentValues)
+      .returning();
+
+    try {
+      const result = await adapter.createPayment({
+        bookingId: booking.id,
+        provider: validatedProvider,
+        purpose,
+        amount,
+        currency: "IDR",
+        expiresIn: 21600,
+        metadata: {
+          invoiceNumber,
+          bookingCode: booking.metadata?.bookingCode,
+          customerName: user.name,
+          customerEmail: user.email,
+        },
+      });
+
+      await db
+        .update(payments)
+        .set({
+          transactionId: result.transactionId,
+          rawResponse: result.rawResponse,
+          updatedAt: new Date(),
+        })
+        .where(eq(payments.id, payment.id));
+
+      updateTag("bookings");
+      invalidateCacheByTag("bookings");
+
+      return {
+        success: true,
+        data: {
+          paymentId: payment.id,
+          invoiceNumber,
+          redirectUrl: result.redirectUrl,
+          qrCode: result.qrCode,
+          vaNumber: result.vaNumber,
+          expiresAt: result.expiresAt,
+        },
+      };
+    } catch (error) {
+      await db
+        .update(payments)
+        .set({ status: "failed", updatedAt: new Date() })
+        .where(eq(payments.id, payment.id));
+
+      throw error;
+    }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues[0]?.message || "Input tidak valid", status: 400 };
+    }
+    return { success: false, error: "Gagal memproses pembayaran" };
+  }
 }

@@ -178,6 +178,7 @@ function AdminBookingsPage() {
                           variant="outline"
                           size="sm"
                           onClick={() =>
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             router.push(`/${locale}/admin/bookings/${booking.id}` as any)
                           }
                         >

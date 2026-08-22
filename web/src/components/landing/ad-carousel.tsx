@@ -34,7 +34,6 @@ const TYPE_LABELS: Record<string, string> = {
 
 function AdCard({ ad }: { ad: Ad }) {
   const router = useRouter();
-  const locale = useLocale();
 
   const handleClick = async () => {
     try {
@@ -46,6 +45,7 @@ function AdCard({ ad }: { ad: Ad }) {
     }
 
     if (ad.targetUrl) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       router.push(ad.targetUrl as any);
     }
   };
@@ -94,7 +94,6 @@ function AdCard({ ad }: { ad: Ad }) {
 }
 
 function CtaCard() {
-  const router = useRouter();
   const locale = useLocale();
   return (
     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-primary/30 bg-gradient-to-b from-primary/5 to-primary/10 p-8 text-center h-full">

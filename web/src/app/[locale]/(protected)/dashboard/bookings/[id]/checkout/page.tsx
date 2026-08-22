@@ -1,105 +1,121 @@
-"use client";
+import { redirect } from "next/navigation";
+import { db } from "@/db";
+import { bookings, payments } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { getPaymentProvider } from "@/lib/payments";
+import { generateInvoiceNumber, money } from "@/lib/utils";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { showToastError } from "@/lib/use-toast-custom";
-import { apiClient } from "@/lib/axios";
+export default async function BookingCheckoutPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ bookingId: string }>;
+  searchParams: Promise<{ purpose?: string }>;
+}): Promise<React.ReactNode> {
+  const { bookingId } = await params;
+  const { purpose } = await searchParams;
 
-export default function BookingCheckoutPage() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const locale = useLocale();
-  const purpose = searchParams.get("purpose") as "dp" | "full_payment" | null;
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const initiateCheckout = async () => {
-      if (!purpose) {
-        setError("Parameter pembayaran tidak valid");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const pathname = window.location.pathname;
-        const bookingId = pathname.split("/").filter(Boolean)[3];
-
-        if (!bookingId) {
-          setError("Booking tidak ditemukan");
-          setLoading(false);
-          return;
-        }
-
-        const provider = "mock";
-
-        const { data } = await apiClient.post(
-          `/api/bookings/${bookingId}/checkout`,
-          { paymentProvider: provider },
-        );
-
-        if (data.error) {
-          throw new Error(data.error);
-        }
-
-        if (data.redirectUrl) {
-          router.push(data.redirectUrl);
-        } else if (data.invoiceNumber) {
-          router.push(`/${locale}/mock-checkout/${data.invoiceNumber}`);
-        } else {
-          throw new Error("Respons pembayaran tidak valid");
-        }
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Gagal memproses pembayaran";
-        setError(message);
-        showToastError(message);
-        setLoading(false);
-      }
-    };
-
-    initiateCheckout();
-  }, [purpose, router]);
-
-  if (loading) {
-    return (
-      <div className="container mx-auto py-8 max-w-lg">
-        <Card>
-          <CardHeader>
-            <CardTitle>Memproses Pembayaran</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-32 w-full" />
-          </CardContent>
-        </Card>
-      </div>
-    );
+  if (!purpose || !["dp", "full_payment"].includes(purpose)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    redirect("/dashboard/bookings?error=invalid_purpose" as any);
   }
 
-  if (error) {
-    return (
-      <div className="container mx-auto py-8 max-w-lg">
-        <Card>
-          <CardHeader>
-            <CardTitle>Pembayaran Gagal</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-destructive">{error}</p>
-            <Button onClick={() => router.push(`/${locale}/dashboard/bookings`)}>
-              Kembali ke Booking
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user?.id) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    redirect("/login" as any);
   }
 
-  return null;
+  const [booking] = await db
+    .select()
+    .from(bookings)
+    .where(eq(bookings.id, bookingId))
+    .limit(1);
+
+  if (!booking || booking.userId !== session.user.id) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    redirect("/dashboard/bookings?error=booking_not_found" as any);
+  }
+
+  let amount: number;
+  if (purpose === "dp") {
+    amount = booking.metadata?.dpAmount ? Number(booking.metadata.dpAmount) : 0;
+  } else {
+    amount = booking.metadata?.remainingAmount
+      ? Number(booking.metadata.remainingAmount)
+      : 0;
+  }
+
+  if (amount <= 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    redirect("/dashboard/bookings?error=invalid_amount" as any);
+  }
+
+  const adapter = getPaymentProvider("mock");
+  if (!adapter) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    redirect("/dashboard/bookings?error=invalid_provider" as any);
+  }
+
+  const invoiceNumber = generateInvoiceNumber(
+    purpose.toUpperCase() as "DP" | "FULL",
+  );
+
+  const [payment] = await db
+    .insert(payments)
+    .values({
+      bookingId: booking.id,
+      provider: "mock",
+      purpose: purpose as "dp" | "full_payment",
+      amount: money(amount),
+      currency: "IDR",
+      status: "pending",
+      transactionId: invoiceNumber,
+      metadata: { invoiceNumber },
+    })
+    .returning();
+
+  try {
+    const result = await adapter.createPayment({
+      bookingId: booking.id,
+      provider: "mock",
+      purpose: purpose as "dp" | "full_payment",
+      amount,
+      currency: "IDR",
+      expiresIn: 21600,
+      metadata: {
+        invoiceNumber,
+      },
+    });
+
+    await db
+      .update(payments)
+      .set({
+        transactionId: result.transactionId,
+        rawResponse: result.rawResponse,
+        updatedAt: new Date(),
+      })
+      .where(eq(payments.id, payment.id));
+
+    if (result.redirectUrl) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      redirect(result.redirectUrl as any);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    redirect(`/mock-checkout/${invoiceNumber}` as any);
+  } catch {
+    await db
+      .update(payments)
+      .set({ status: "failed", updatedAt: new Date() })
+      .where(eq(payments.id, payment.id));
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    redirect("/dashboard/bookings?error=payment_failed" as any);
+  }
 }

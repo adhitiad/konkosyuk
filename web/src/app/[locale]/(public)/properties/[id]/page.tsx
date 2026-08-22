@@ -46,7 +46,7 @@ export default async function PropertyDetailPage({
 }: {
   params: Promise<{ id: string; locale: string }>;
 }) {
-  const { id, locale } = await params;
+  const { id } = await params;
 
   const propertyResult = await db
     .select()

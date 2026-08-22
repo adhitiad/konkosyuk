@@ -177,12 +177,13 @@ export function AppSidebar() {
             {items?.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
-                  render={
-                    <Link href={prefixLocale(item.href) as any}>
-                      <item.icon />
-                      <span>{t(item.title)}</span>
-                    </Link>
-                  }
+                   render={
+                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                     <Link href={prefixLocale(item.href) as any}>
+                       <item.icon />
+                       <span>{t(item.title)}</span>
+                     </Link>
+                   }
                   tooltip={t(item.title)}
                 />
               </SidebarMenuItem>

@@ -610,9 +610,8 @@ export default function BookingDetailPage() {
               {booking.status === "pending_dp" && (
                 <Button
                   render={
-                    <Link
-                      href={`/${locale}/dashboard/bookings/${booking.id}/checkout?purpose=dp` as any}
-                    />
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    <Link href={`/${locale}/dashboard/bookings/${booking.id}/checkout?purpose=dp` as any} />
                   }
                   className="w-full"
                   nativeButton={false}
@@ -623,9 +622,8 @@ export default function BookingDetailPage() {
               {booking.status === "awaiting_full_payment" && (
                 <Button
                   render={
-                    <Link
-                      href={`/${locale}/dashboard/bookings/${booking.id}/checkout?purpose=full_payment` as any}
-                    />
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    <Link href={`/${locale}/dashboard/bookings/${booking.id}/checkout?purpose=full_payment` as any} />
                   }
                   className="w-full"
                   nativeButton={false}

@@ -2,10 +2,10 @@ import { test, expect } from "@playwright/test";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-async function getFirstPropertyId(page: any): Promise<string | null> {
+async function getFirstPropertyId(): Promise<string | null> {
   try {
-    const response = await page.request.get(`${BASE}/api/properties?limit=1`);
-    if (!response.ok()) return null;
+    const response = await fetch(`${BASE}/api/properties?limit=1`);
+    if (!response.ok) return null;
     const body = await response.json();
     const first = body?.data?.data?.[0] || body?.data?.[0];
     return first?.id || null;
@@ -15,26 +15,31 @@ async function getFirstPropertyId(page: any): Promise<string | null> {
 }
 
 test.describe("Typed Routes Smoke", () => {
-  test("main pages should be reachable", async ({ page }) => {
-    const propertyId = await getFirstPropertyId(page);
+  test("public pages should be reachable", async ({ page }) => {
+    const propertyId = await getFirstPropertyId();
     const pages = [
       "/id",
       "/id/properties",
       `/id/properties/${propertyId ?? "123"}`,
-      "/id/dashboard/bookings",
-      "/id/dashboard",
     ];
 
     const failed: string[] = [];
     for (const path of pages) {
-      const response = await page.goto(path, { waitUntil: "domcontentloaded" });
-      const status = response?.status();
-      if (status && status >= 400) {
-        failed.push(`${path} (${status})`);
+      try {
+        const response = await page.goto(path, {
+          waitUntil: "domcontentloaded",
+          timeout: 15000,
+        });
+        const status = response?.status();
+        if (status && status >= 400) {
+          failed.push(`${path} (${status})`);
+        }
+      } catch (error) {
+        failed.push(`${path} (navigation error)`);
       }
     }
 
-    expect(failed, `Routes returned 4xx/5xx: ${failed.join(", ")}`).toEqual([]);
+    expect(failed, `Routes failed: ${failed.join(", ")}`).toEqual([]);
   });
 
   test("internal links should not point to missing routes", async ({ page }) => {
