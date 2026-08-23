@@ -62,7 +62,7 @@ export async function GET() {
 
 File: `src/lib/logger.ts`
 
-Menggunakan **Pino** untuk structured logging dalam format JSON.
+Menggunakan **Winston** untuk structured logging dalam format JSON.
 
 ```typescript
 import {
@@ -339,7 +339,7 @@ src/
 │           ├── payment/route.ts  # Payment health
 │           └── storage/route.ts  # Storage health
 ├── lib/
-│   ├── logger.ts                 # Pino structured logger
+│   ├── logger.ts                 # Winston structured logger
 │   ├── api.ts                    # API response helpers (ok, fail, handleApiError)
 │   ├── api-error.ts              # ApiError class hierarchy
 │   ├── api.client.ts             # Axios client with ApiError

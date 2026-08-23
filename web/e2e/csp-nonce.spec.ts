@@ -80,7 +80,6 @@ test.describe("CSP Nonce", () => {
     const csp = mainResponse!.headers["content-security-policy"];
     expect(csp).toBeDefined();
 
-    expect(csp).toContain("https://translate.google.com");
     expect(csp).toContain("https://va.vercel-scripts.com");
     expect(csp).toContain("https://res.cloudinary.com");
     expect(csp).toContain("https://tiles.stadiamaps.com");

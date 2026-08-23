@@ -45,6 +45,7 @@ mobile/ios/.symlinks/
 
 .vercel
 .env*
-txt.txt
+txt.md
+
 /web/test-results
 /.playwright-mcp

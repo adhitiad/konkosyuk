@@ -27,8 +27,8 @@ function generateNonce(): string {
 
 function buildCsp(nonce: string, isProd: boolean): string {
   const scriptSrc = isProd
-    ? `'self' 'nonce-${nonce}' https://translate.google.com https://va.vercel-scripts.com`
-    : `'self' 'nonce-${nonce}' 'unsafe-eval' https://translate.google.com https://va.vercel-scripts.com`;
+    ? `'self' 'nonce-${nonce}' https://va.vercel-scripts.com`
+    : `'self' 'nonce-${nonce}' 'unsafe-eval' https://va.vercel-scripts.com`;
 
   return [
     "default-src 'self'",
@@ -36,8 +36,8 @@ function buildCsp(nonce: string, isProd: boolean): string {
     `style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com`,
     "img-src 'self' data: blob: https://res.cloudinary.com https://*.placehold.co https://via.placeholder.com https://images.unsplash.com https://cdn.jsdelivr.net https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://*.cartocdn.com https://tile.openstreetmap.org https://*.tile.openstreetmap.org",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' https://translate.google.com https://translate.googleapis.com https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://tiles.openstreetmap.org https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://*.cartocdn.com https://*.cartodb.com https://api.maptiler.com https://tiles.maptiler.com https://*.maptiler.com https://va.vercel-scripts.com https://vitals.vercel-insights.com blob: data: ws: wss:",
-    "frame-src 'self' https://translate.google.com",
+    "connect-src 'self' https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://tiles.openstreetmap.org https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://*.cartocdn.com https://*.cartodb.com https://api.maptiler.com https://tiles.maptiler.com https://*.maptiler.com https://va.vercel-scripts.com https://vitals.vercel-insights.com blob: data: ws: wss:",
+    "frame-src 'self'",
     "worker-src 'self' blob:",
     "media-src 'self' blob:",
     "object-src 'none'",

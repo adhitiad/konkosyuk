@@ -1,4 +1,4 @@
-import pino from "pino";
+import { createLogger, format, transports } from "winston";
 
 export interface LogMetadata {
   [key: string]: unknown;
@@ -61,29 +61,42 @@ function sanitizeMetadata(metadata?: LogMetadata): LogMetadata | undefined {
 
 const isProduction = process.env.NODE_ENV === "production";
 
-export const logger = pino({
+const { combine, timestamp, printf, colorize, json } = format;
+
+const sanitizeFormat = format((info) => {
+  const sanitized = { ...info };
+  for (const [key, value] of Object.entries(sanitized)) {
+    if (key === "level" || key === "message" || key === "timestamp") {
+      continue;
+    }
+    sanitized[key] = sanitizeValue(key, value);
+  }
+  return sanitized as any;
+});
+
+const devLogFormat = combine(
+  colorize(),
+  timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+  printf(({ timestamp, level, message, ...metadata }) => {
+    const metaEntries = Object.entries(metadata).filter(
+      ([k]) => k !== "Symbol(level)" && k !== "Symbol(message)",
+    );
+    let msg = `${timestamp} [${level}]: ${message}`;
+    if (metaEntries.length > 0) {
+      msg += ` ${JSON.stringify(metadata)}`;
+    }
+    return msg;
+  }),
+);
+
+export const logger = createLogger({
   level: isProduction ? "info" : "debug",
-  formatters: {
-    log: (log) => {
-      const sanitizedMeta = sanitizeObject(log as Record<string, unknown>);
-      return {
-        timestamp: new Date().toISOString(),
-        level: log.level,
-        message: log.msg,
-        ...sanitizedMeta,
-      };
-    },
-  },
-  transport: isProduction
-    ? undefined
-    : {
-        target: "pino-pretty",
-        options: {
-          colorize: true,
-          translateTime: "SYS:standard",
-          ignore: "pid,hostname",
-        },
-      },
+  format: combine(timestamp(), sanitizeFormat()),
+  transports: [
+    new transports.Console({
+      format: isProduction ? json() : devLogFormat,
+    }),
+  ],
 });
 
 export function logError(
@@ -93,41 +106,46 @@ export function logError(
 ) {
   const errorObj = error instanceof Error ? error : new Error(String(error));
 
-  logger.error(
-    {
-      context,
-      error: {
-        message: errorObj.message,
-        stack: errorObj.stack,
-        name: errorObj.name,
-      },
-      ...sanitizeMetadata(metadata),
+  logger.error({
+    message: errorObj.message,
+    context,
+    error: {
+      message: errorObj.message,
+      stack: errorObj.stack,
+      name: errorObj.name,
     },
-    errorObj.message,
-  );
+    ...sanitizeMetadata(metadata),
+  });
 }
 
 export function logInfo(message: string, metadata?: LogMetadata) {
-  logger.info({ ...sanitizeMetadata(metadata) }, message);
+  logger.info({
+    message,
+    ...sanitizeMetadata(metadata),
+  });
 }
 
 export function logWarn(message: string, metadata?: LogMetadata) {
-  logger.warn({ ...sanitizeMetadata(metadata) }, message);
+  logger.warn({
+    message,
+    ...sanitizeMetadata(metadata),
+  });
 }
 
 export function logDebug(message: string, metadata?: LogMetadata) {
-  logger.debug({ ...sanitizeMetadata(metadata) }, message);
+  logger.debug({
+    message,
+    ...sanitizeMetadata(metadata),
+  });
 }
 
 export function logSecurityEvent(event: string, metadata?: LogMetadata) {
-  logger.warn(
-    {
-      category: "security",
-      event,
-      ...sanitizeMetadata(metadata),
-    },
-    `[SECURITY] ${event}`,
-  );
+  logger.warn({
+    message: `[SECURITY] ${event}`,
+    category: "security",
+    event,
+    ...sanitizeMetadata(metadata),
+  });
 }
 
 export function logApiRequest(
@@ -137,17 +155,15 @@ export function logApiRequest(
   duration: number,
   userId?: string,
 ) {
-  logger.info(
-    {
-      category: "api",
-      method,
-      path,
-      statusCode,
-      duration,
-      userId,
-    },
-    `${method} ${path} ${statusCode} ${duration}ms`,
-  );
+  logger.info({
+    message: `${method} ${path} ${statusCode} ${duration}ms`,
+    category: "api",
+    method,
+    path,
+    statusCode,
+    duration,
+    userId,
+  });
 }
 
 export function logDatabaseQuery(
@@ -155,15 +171,13 @@ export function logDatabaseQuery(
   duration: number,
   rowsAffected?: number,
 ) {
-  logger.debug(
-    {
-      category: "database",
-      query,
-      duration,
-      rowsAffected,
-    },
-    `DB Query: ${duration}ms`,
-  );
+  logger.debug({
+    message: `DB Query: ${duration}ms`,
+    category: "database",
+    query,
+    duration,
+    rowsAffected,
+  });
 }
 
 export function logPaymentEvent(
@@ -172,16 +186,14 @@ export function logPaymentEvent(
   bookingId?: string,
   metadata?: LogMetadata,
 ) {
-  logger.info(
-    {
-      category: "payment",
-      event,
-      provider,
-      bookingId,
-      ...sanitizeMetadata(metadata),
-    },
-    `[PAYMENT] ${event}`,
-  );
+  logger.info({
+    message: `[PAYMENT] ${event}`,
+    category: "payment",
+    event,
+    provider,
+    bookingId,
+    ...sanitizeMetadata(metadata),
+  });
 }
 
 export function logAuthEvent(
@@ -189,15 +201,13 @@ export function logAuthEvent(
   userId?: string,
   metadata?: LogMetadata,
 ) {
-  logger.info(
-    {
-      category: "auth",
-      event,
-      userId,
-      ...sanitizeMetadata(metadata),
-    },
-    `[AUTH] ${event}`,
-  );
+  logger.info({
+    message: `[AUTH] ${event}`,
+    category: "auth",
+    event,
+    userId,
+    ...sanitizeMetadata(metadata),
+  });
 }
 
 export default logger;

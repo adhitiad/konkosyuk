@@ -3,8 +3,24 @@ import type { Job } from "bullmq";
 
 vi.mock("winston", () => {
   const fn = vi.fn();
+  const mockFormat = ((cb: (info: unknown) => unknown) => cb) as Record<string, unknown>;
+  mockFormat.combine = () => mockFormat;
+  mockFormat.timestamp = () => mockFormat;
+  mockFormat.printf = () => mockFormat;
+  mockFormat.colorize = () => mockFormat;
+  mockFormat.json = () => mockFormat;
+
   return {
-    default: { info: fn, error: fn, warn: fn },
+    createLogger: vi.fn(() => ({
+      info: fn,
+      error: fn,
+      warn: fn,
+      debug: fn,
+    })),
+    format: mockFormat,
+    transports: {
+      Console: vi.fn(),
+    },
     info: fn,
     error: fn,
     warn: fn,
