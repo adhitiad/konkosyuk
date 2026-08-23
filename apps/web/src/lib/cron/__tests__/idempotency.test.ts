@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("winston", () => {
   const fn = vi.fn();
-  const mockFormat = ((cb: (info: unknown) => unknown) => cb) as Record<string, unknown>;
+  const mockFormat = ((cb: (info: unknown) => unknown) => cb) as unknown as Record<string, unknown>;
   mockFormat.combine = () => mockFormat;
   mockFormat.timestamp = () => mockFormat;
   mockFormat.printf = () => mockFormat;

@@ -183,7 +183,7 @@ const KONTRAKAN_PACKAGES: Omit<PackageItem, "basePrice" | "finalPrice">[] = [
 ];
 
 interface PackageFormProps {
-  type: "kost" | "kontrakan";
+  type: "kost" | "kontrakan" | "apartemen" | "rumah" | "ruko";
   initialData?: PropertyPackages;
   onChange: (packages: PropertyPackages) => void;
 }

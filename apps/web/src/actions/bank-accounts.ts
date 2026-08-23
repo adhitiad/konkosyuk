@@ -82,7 +82,7 @@ export async function addBankAccountAction(
       .insert(ownerBankAccounts)
       .values({
         ownerId: session.user.id,
-        accountType: validated.account_type,
+        accountType: validated.account_type as "bank" | "ewallet",
         providerName: validated.provider_name,
         accountNumber: validated.account_number,
         accountName: validated.account_name,
