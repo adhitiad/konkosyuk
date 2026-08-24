@@ -6,6 +6,7 @@ import { eq, and, lte, gte } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
+import { logError } from "@/lib/logger";
 
 const createTicketSchema = z.object({
   unitId: z.string().uuid(),
@@ -198,7 +199,7 @@ export async function updateMaintenanceTicketAction(
         success: false,
       };
     }
-    console.error("updateMaintenanceTicketAction error:", error);
+    logError(error, "updateMaintenanceTicketAction error");
     return { error: "Gagal memperbarui tiket maintenance", success: false };
   }
 }

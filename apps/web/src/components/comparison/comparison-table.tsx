@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import { MapPin } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/currency";
+import { captureException } from "@/lib/sentry";
 
 interface Property {
   id: string;
@@ -46,7 +47,9 @@ export function ComparisonTable({ propertyIds }: { propertyIds: string[] }) {
           setProperties(json.data);
         }
       } catch (error) {
-        console.error("Failed to fetch comparison properties:", error);
+        captureException(error as Error, {
+          context: "Failed to fetch comparison properties",
+        });
       } finally {
         setIsLoading(false);
       }

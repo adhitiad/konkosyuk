@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { uploadFile } from "@/lib/storage-manager";
 import { validateActionCsrf } from "@/lib/api-auth";
+import { logError } from "@/lib/logger";
 
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const maxFileSize = 5 * 1024 * 1024;
@@ -120,7 +121,7 @@ export async function uploadImageAction(
       },
     };
   } catch (error) {
-    console.error("uploadImageAction error:", error);
+    logError(error, "uploadImageAction error");
     return { error: "Gagal mengunggah gambar", success: false };
   }
 }

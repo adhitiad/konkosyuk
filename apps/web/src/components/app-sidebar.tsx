@@ -42,6 +42,7 @@ import {
 import { useTranslations } from "next-intl";
 import { Logo } from "@/components/ui/logo";
 import { useLocale } from "next-intl";
+import { localeHref } from "@/lib/i18n";
 
 const menuConfig: Record<
   Role,
@@ -178,8 +179,7 @@ export function AppSidebar() {
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                    render={
-                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                     <Link href={prefixLocale(item.href) as any}>
+                      <Link href={localeHref(locale, prefixLocale(item.href))}>
                        <item.icon />
                        <span>{t(item.title)}</span>
                      </Link>

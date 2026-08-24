@@ -21,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Eye } from "lucide-react";
 import { withAdminAuth } from "@/lib/with-admin-auth";
 import { getBookingsAction } from "@/actions/bookings";
+import { localeHref } from "@/lib/i18n";
 
 type Booking = {
   id: string;
@@ -179,10 +180,9 @@ function AdminBookingsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() =>
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            router.push(`/${locale}/admin/bookings/${booking.id}` as any)
-                          }
+                            onClick={() =>
+                              router.push(localeHref(locale, `/admin/bookings/${booking.id}`))
+                            }
                         >
                           <Eye className="h-4 w-4 mr-1" />
                           Detail

@@ -13,12 +13,16 @@
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --external zod",
     "lint": "eslint src/",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "typescript": "^6"
+    "@typescript-eslint/parser": "^8.67.0",
+    "eslint": "^9",
+    "typescript": "^6",
+    "vitest": "^4.1.10"
   }
 }

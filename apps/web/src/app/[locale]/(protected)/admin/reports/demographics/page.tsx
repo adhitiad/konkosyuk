@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { captureException } from "@/lib/sentry";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -105,7 +106,9 @@ function AdminDemographicsPage() {
         );
         setProvinces(data);
       } catch (err) {
-        console.error("Gagal fetch provinsi", err);
+        captureException(err as Error, {
+          context: "Gagal fetch provinsi",
+        });
       }
     };
     fetchProvinces();
@@ -134,7 +137,9 @@ function AdminDemographicsPage() {
         );
         citiesRef.current = data.map((c) => c.name);
       } catch (err) {
-        console.error("Gagal fetch kota", err);
+        captureException(err as Error, {
+          context: "Gagal fetch kota",
+        });
       }
     };
     fetchCities();
@@ -156,7 +161,9 @@ function AdminDemographicsPage() {
         );
         setDistricts(data);
       } catch (err) {
-        console.error("Gagal fetch kecamatan", err);
+        captureException(err as Error, {
+          context: "Gagal fetch kecamatan",
+        });
       }
     };
     fetchDistricts();

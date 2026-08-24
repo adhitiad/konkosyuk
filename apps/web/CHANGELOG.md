@@ -70,6 +70,25 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/lang/id/).
 ### Added
 
 - Idempotency guard pada 4 job cron: cleanup-bookings, complete-bookings, saved-search-matcher, update-area-counts
+- Job cron ke-5: `process-expired-refunds` untuk auto-refund booking expired sebelum start date
+- Webhook IP allowlist kini fail-closed: provider tanpa entry di `ALLOWED_WEBHOOK_IPS` otomatis ditolak dan dilaporkan via `logSecurityEvent`
+- Seluruh `console.*` di `src/actions/` dan komponen client terpilih diganti `logError`/`captureException` sesuai konteks
+- Route admin demographics kini menggunakan `validateAdminOnlyRequest` konsisten dengan 30+ route admin lainnya
+- 14 lokasi `as any` untuk typed routes diganti helper `localeHref()` di `src/lib/i18n.ts`
+- `generateMetadata` pada halaman detail properti untuk SEO
+- Komponen `<JsonLd>` dan schema structured data (Organization, LodgingBusiness, BreadcrumbList)
+
+### Fixed
+
+- Hapus dead code `src/lib/audit-logger.ts` (nol call site, fungsi `logAudit()` diganti `createAuditLog()` di `src/lib/audit-log.ts`)
+- `sitemap.ts` kini generate URL untuk semua 8 locale, bukan cuma `id`; hapus fallback env var `NEXT_PUBLIC_APP_URL1` yang typo
+- Hapus `apps/web/bun.lock` stale; sekarang hanya ada `bun.lock` di root monorepo
+- Rewrite `Dockerfile.worker` agar build dari root context monorepo (bukan `apps/web`), dengan copy workspace manifests terpisah dan install dependencies via root lockfile
+- Tambah `output: "standalone"` ke `next.config.ts` agar `Dockerfile` dan `Dockerfile.worker` konsisten
+- Perbaiki instruksi Redis di `AGENTS.md`: ganti `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` → `REDIS_URL` (format ioredis/TCP)
+- Tambah section "Deployment Worker ke Render" di `docs/DEPLOYMENT.md`
+
+> **Catatan environment:** Full `bun run build` tidak dapat diselesaikan di sandbox karena masalah dependency pre-existing (moduleNotFound pada `zod` locales dan `recharts`/`es-toolkit`). `tsc --noEmit` dan `bun run lint` berhasil hijau. Test suite menjalankan 207 test lolos, 1 gagal timeout (pre-existing di `idempotency.test.ts`), dan 17 suite gagal load module (pre-existing dependency resolution issues). Jalankan `bun install && bun run build` di environment lokal sebelum deploy.
 
 ---
 

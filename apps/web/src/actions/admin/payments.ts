@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import type { Role } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit-log";
+import { logError } from "@/lib/logger";
 
 const createManualPaymentSchema = z.object({
   userId: z.string().uuid(),
@@ -142,7 +143,7 @@ export async function createManualPaymentAction(
         success: false,
       };
     }
-    console.error("createManualPaymentAction error:", error);
+    logError(error, "createManualPaymentAction error");
     return { error: "Gagal membuat payment manual", success: false };
   }
 }
@@ -265,7 +266,7 @@ export async function cancelPaymentAction(
 
     return { success: true };
   } catch (error) {
-    console.error("cancelPaymentAction error:", error);
+    logError(error, "cancelPaymentAction error");
     return { error: "Gagal membatalkan payment", success: false };
   }
 }
@@ -343,7 +344,7 @@ export async function reconcilePaymentAction(
         success: false,
       };
     }
-    console.error("reconcilePaymentAction error:", error);
+    logError(error, "reconcilePaymentAction error");
     return { error: "Gagal merekonsiliasi payment", success: false };
   }
 }

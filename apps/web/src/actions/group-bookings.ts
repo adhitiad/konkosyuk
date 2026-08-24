@@ -13,6 +13,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { invalidateCacheByTag } from "@/lib/cache";
 import { dispatchGroupBookingInvite } from "@/lib/notification-service";
+import { logError } from "@/lib/logger";
 
 type GroupBookingInsert = typeof groupBookings.$inferInsert;
 type GroupBookingMemberInsert = typeof groupBookingMembers.$inferInsert;
@@ -154,7 +155,7 @@ export async function createGroupBookingAction(
         success: false,
       };
     }
-    console.error("createGroupBookingAction error:", error);
+    logError(error, "createGroupBookingAction error");
     return { error: "Gagal membuat group booking", success: false };
   }
 }

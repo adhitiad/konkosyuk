@@ -4,7 +4,7 @@
 
 - `apps/web` — Next.js 16 app (detailed rules in `apps/web/AGENTS.md`)
 - `apps/mobile` — Flutter app (standard setup, future Kotlin/Swift possible)
-- `packages/shared` — Shared types, Zod schemas, Drizzle schema exports, constants
+- `packages/shared` — Shared types, Zod schemas, constants, and pure utilities. See `docs/shared-packages-guideline.md` for architecture rules.
 
 ## Commands
 
@@ -29,7 +29,7 @@ cd apps/web && bun x tsc --noEmit
 ## Environment
 
 - Copy `apps/web/.env.example` → `apps/web/.env.local`
-- Needs PostgreSQL (`DATABASE_URL`), Upstash Redis (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`), and external service keys
+- Needs PostgreSQL (`DATABASE_URL`), Upstash Redis (`REDIS_URL` dalam format ioredis, BUKAN `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN`), and external service keys
 - `BETTER_AUTH_SECRET` and `CRON_SECRET` must be ≥32 chars
 
 ## Database
@@ -38,6 +38,13 @@ cd apps/web && bun x tsc --noEmit
 - Shared package: `packages/shared` (future shared Drizzle exports)
 - Local schema changes: `cd apps/web && bun run db:push` (no migration files)
 - Migrations: `cd apps/web && bun run db:generate` then `cd apps/web && bun run db:migrate`
+
+## Shared Package Architecture
+
+Before adding or moving code to `packages/shared`, read `docs/shared-packages-guideline.md`. Key rules:
+
+- **DO put in shared**: API schemas (Zod), business rules, enums, pure utilities
+- **DON'T put in shared**: React/Next.js code, Drizzle schemas, payment gateway adapters, UI components
 
 ## Aturan
 

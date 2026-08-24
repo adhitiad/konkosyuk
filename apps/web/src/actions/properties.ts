@@ -18,6 +18,7 @@ import { invalidateCacheByTag } from "@/lib/cache";
 import { parseJsonArrayField } from "@/lib/form-data-utils";
 import type { Role } from "@/lib/auth";
 import { money, generateInvoiceNumber } from "@/lib/utils";
+import { logError } from "@/lib/logger";
 import { getPaymentProvider } from "@/lib/payments";
 import { createAuditLog } from "@/lib/audit-log";
 import type { PropertyPackages } from "@/lib/types/property-packages";
@@ -308,7 +309,7 @@ export async function updatePropertyAction(
     if (error instanceof Error) {
       return { error: error.message, success: false };
     }
-    console.error("updatePropertyAction error:", error);
+    logError(error, "updatePropertyAction error");
     return { error: "Gagal memperbarui properti", success: false };
   }
 }
@@ -361,7 +362,7 @@ export async function deletePropertyAction(
 
     return { success: true };
   } catch (error) {
-    console.error("deletePropertyAction error:", error);
+    logError(error, "deletePropertyAction error");
     return { error: "Gagal menghapus properti", success: false };
   }
 }
@@ -454,7 +455,7 @@ export async function featurePropertyAction(
 
     return { success: true, data: updated };
   } catch (error) {
-    console.error("featurePropertyAction error:", error);
+    logError(error, "featurePropertyAction error");
     return { error: "Gagal mengaktifkan featured property", success: false };
   }
 }
@@ -550,7 +551,7 @@ export async function approvePropertyAction(
         success: false,
       };
     }
-    console.error("approvePropertyAction error:", error);
+    logError(error, "approvePropertyAction error");
     return { error: "Gagal memproses approval properti", success: false };
   }
 }
@@ -707,7 +708,7 @@ export async function checkoutFeaturedAction(
         success: false,
       };
     }
-    console.error("checkoutFeaturedAction error:", error);
+    logError(error, "checkoutFeaturedAction error");
     return {
       error: "Gagal membuat pembayaran featured listing",
       success: false,

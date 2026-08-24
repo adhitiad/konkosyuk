@@ -33,6 +33,7 @@ import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
 import { requestRefundAction } from "@/actions/refund-requests";
 import { ChatTriggerButton } from "@/components/chat/chat-trigger-button";
 import { useLocale } from "next-intl";
+import { localeHref } from "@/lib/i18n";
 
 interface BookingDetail {
   id: string;
@@ -613,8 +614,7 @@ export default function BookingDetailPage() {
               {booking.status === "pending_dp" && (
                 <Button
                   render={
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    <Link href={`/${locale}/dashboard/bookings/${booking.id}/checkout?purpose=dp` as any} />
+                    <Link href={localeHref(locale, `/dashboard/bookings/${booking.id}/checkout?purpose=dp`)} />
                   }
                   className="w-full"
                   nativeButton={false}
@@ -625,8 +625,7 @@ export default function BookingDetailPage() {
               {booking.status === "awaiting_full_payment" && (
                 <Button
                   render={
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    <Link href={`/${locale}/dashboard/bookings/${booking.id}/checkout?purpose=full_payment` as any} />
+                    <Link href={localeHref(locale, `/dashboard/bookings/${booking.id}/checkout?purpose=full_payment`)} />
                   }
                   className="w-full"
                   nativeButton={false}

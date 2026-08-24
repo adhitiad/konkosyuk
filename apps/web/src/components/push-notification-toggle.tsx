@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { csrfFetch } from "@/lib/axios";
+import { captureException } from "@/lib/sentry";
 
 function urlBase64ToUint8Array(value: string) {
   const padding = "=".repeat((4 - (value.length % 4)) % 4);
@@ -57,7 +58,9 @@ export function PushNotificationToggle() {
       }
       setState("enabled");
     } catch (error) {
-      console.error("Push notification setup failed:", error);
+      captureException(error as Error, {
+        context: "Push notification setup failed",
+      });
       setState("error");
     }
   }

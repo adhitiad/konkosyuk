@@ -10,6 +10,7 @@ import {
 } from "@/db/schema";
 import { eq, sql, and, lt } from "drizzle-orm";
 import { createAuditLog } from "@/lib/audit-log";
+import { logError } from "@/lib/logger";
 
 export async function processExpiredPaymentRefunds() {
   try {
@@ -128,7 +129,7 @@ export async function processExpiredPaymentRefunds() {
 
     return { success: true, processedCount: processed.length, processed };
   } catch (error) {
-    console.error("processExpiredPaymentRefunds error:", error);
+    logError(error, "processExpiredPaymentRefunds error");
     return { success: false, error: "Gagal memproses refund otomatis" };
   }
 }

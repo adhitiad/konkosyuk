@@ -6,20 +6,20 @@ import { getPaymentProvider } from "@/lib/payments";
 import { generateInvoiceNumber, money } from "@/lib/utils";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { localeHref } from "@/lib/i18n";
 
 export default async function BookingCheckoutPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ bookingId: string }>;
+  params: Promise<{ bookingId: string; locale: string }>;
   searchParams: Promise<{ purpose?: string }>;
 }): Promise<React.ReactNode> {
-  const { bookingId } = await params;
+  const { bookingId, locale } = await params;
   const { purpose } = await searchParams;
 
   if (!purpose || !["dp", "full_payment"].includes(purpose)) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    redirect("/dashboard/bookings?error=invalid_purpose" as any);
+    redirect(localeHref(locale, "/dashboard/bookings?error=invalid_purpose"));
   }
 
   const session = await auth.api.getSession({
@@ -27,8 +27,7 @@ export default async function BookingCheckoutPage({
   });
 
   if (!session?.user?.id) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    redirect("/login" as any);
+    redirect(localeHref(locale, "/login"));
   }
 
   const [booking] = await db
@@ -38,8 +37,7 @@ export default async function BookingCheckoutPage({
     .limit(1);
 
   if (!booking || booking.userId !== session.user.id) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    redirect("/dashboard/bookings?error=booking_not_found" as any);
+    redirect(localeHref(locale, "/dashboard/bookings?error=booking_not_found"));
   }
 
   let amount: number;
@@ -52,14 +50,12 @@ export default async function BookingCheckoutPage({
   }
 
   if (amount <= 0) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    redirect("/dashboard/bookings?error=invalid_amount" as any);
+    redirect(localeHref(locale, "/dashboard/bookings?error=invalid_amount"));
   }
 
   const adapter = getPaymentProvider("mock");
   if (!adapter) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    redirect("/dashboard/bookings?error=invalid_provider" as any);
+    redirect(localeHref(locale, "/dashboard/bookings?error=invalid_provider"));
   }
 
   const invoiceNumber = generateInvoiceNumber(
@@ -103,19 +99,16 @@ export default async function BookingCheckoutPage({
       .where(eq(payments.id, payment.id));
 
     if (result.redirectUrl) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      redirect(result.redirectUrl as any);
+      redirect(localeHref(locale, result.redirectUrl));
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    redirect(`/mock-checkout/${invoiceNumber}` as any);
+    redirect(localeHref(locale, `/mock-checkout/${invoiceNumber}`));
   } catch {
     await db
       .update(payments)
       .set({ status: "failed", updatedAt: new Date() })
       .where(eq(payments.id, payment.id));
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    redirect("/dashboard/bookings?error=payment_failed" as any);
+    redirect(localeHref(locale, "/dashboard/bookings?error=payment_failed"));
   }
 }

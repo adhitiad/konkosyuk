@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { hashPassword } from "better-auth/crypto";
 import { createAuditLog } from "@/lib/audit-log";
+import { logError } from "@/lib/logger";
 
 const updateUserSchema = z.object({
   id: z.string().uuid(),
@@ -456,7 +457,7 @@ export async function createUserAction(
         success: false,
       };
     }
-    console.error("createUserAction error:", error);
+    logError(error, "createUserAction error");
     return { error: "Gagal membuat user", success: false };
   }
 }

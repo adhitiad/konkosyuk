@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { logSecurityEvent } from "./logger";
 
 const ALLOWED_WEBHOOK_IPS: Record<string, string[]> = {
   doku: ["103.28.36.0/24", "103.28.37.0/24", "103.28.38.0/24"],
@@ -40,7 +41,8 @@ export function isWebhookIpAllowed(
 ): boolean {
   const allowedIps = ALLOWED_WEBHOOK_IPS[provider];
   if (!allowedIps || allowedIps.length === 0) {
-    return true;
+    logSecurityEvent("webhook_ip_config_missing", { provider });
+    return false;
   }
 
   const clientIp =

@@ -53,3 +53,16 @@ export const updateAreaCountsQueue = new Queue("update-area-counts", {
     },
   },
 });
+
+export const processExpiredRefundsQueue = new Queue("process-expired-refunds", {
+  connection: createRedisConnection(),
+  defaultJobOptions: {
+    removeOnComplete: { count: 50 },
+    removeOnFail: { count: 100 },
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 5000,
+    },
+  },
+});

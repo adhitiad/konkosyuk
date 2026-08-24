@@ -9,6 +9,7 @@ import { z } from "zod";
 import { createAuditLog } from "@/lib/audit-log";
 import { createNotification } from "@/lib/notifications";
 import { sendRefundApprovalWhatsApp } from "@/lib/notifications/whatsapp";
+import { logError } from "@/lib/logger";
 
 const requestRefundSchema = z.object({
   bookingId: z.string().uuid(),
@@ -197,10 +198,7 @@ export async function requestRefundAction(
             0,
             booking.id.slice(0, 8),
           ).catch((err) =>
-            console.error(
-              "Failed to send refund request WhatsApp to owner:",
-              err,
-            ),
+            logError(err, "Failed to send refund request WhatsApp to owner"),
           );
         }
       }
@@ -227,7 +225,7 @@ export async function requestRefundAction(
         success: false,
       };
     }
-    console.error("requestRefundAction error:", error);
+    logError(error, "requestRefundAction error");
     return { error: "Gagal mengajukan refund", success: false };
   }
 }

@@ -17,6 +17,7 @@ import { MapPin } from "lucide-react";
 import { useAds } from "@/hooks/use-ads";
 import type { Ad } from "@/hooks/use-ads";
 import { useLocale } from "next-intl";
+import { localeHref } from "@/lib/i18n";
 
 const TYPE_COLORS: Record<string, string> = {
   kos: "bg-blue-100 text-blue-700 border-blue-200",
@@ -34,6 +35,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 function AdCard({ ad }: { ad: Ad }) {
   const router = useRouter();
+  const locale = useLocale();
 
   const handleClick = async () => {
     try {
@@ -45,8 +47,7 @@ function AdCard({ ad }: { ad: Ad }) {
     }
 
     if (ad.targetUrl) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      router.push(ad.targetUrl as any);
+      router.push(localeHref(locale, ad.targetUrl));
     }
   };
 

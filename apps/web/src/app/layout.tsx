@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins, Inter } from "next/font/google";
 import { VercelAnalytics } from "@/app/analytics";
 import { PwaRegister } from "@/components/pwa-register";
+import { JsonLd } from "@/components/seo/json-ld";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -112,6 +113,18 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://basemaps.cartocdn.com" />
       </head>
       <body className={`${poppins.className} antialiased`}>
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "KonkosYuk",
+            url: "https://konkosyuk.com",
+            logo: "https://konkosyuk.com/logo.png",
+            description:
+              "Platform booking kost dan kontrakan terpercaya dengan sistem DP 35%",
+            sameAs: [],
+          }}
+        />
         {children}
         <PwaRegister />
         <VercelAnalytics />

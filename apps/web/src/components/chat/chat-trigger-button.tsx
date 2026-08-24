@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
+import { captureException } from "@/lib/sentry";
 
 interface ChatTriggerButtonProps {
   propertyId: string;
@@ -49,7 +50,9 @@ export function ChatTriggerButton({
         router.push(`/${locale}/chat/${room.id}`);
       }
     } catch (error) {
-      console.error("Failed to create chat room:", error);
+      captureException(error as Error, {
+        context: "Failed to create chat room",
+      });
     } finally {
       setIsLoading(false);
     }

@@ -1,6 +1,5 @@
 import { z } from "zod";
 import {
-  BOOKING_STATUSES,
   BOOKING_TYPES,
   PAYMENT_PROVIDERS,
   PAYMENT_PURPOSES,

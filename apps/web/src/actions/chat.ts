@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { sendChatNotificationEmail } from "@/lib/notifications/email";
+import { logError } from "@/lib/logger";
 
 const sendMessageSchema = z.object({
   roomId: z.string().uuid(),
@@ -90,9 +91,7 @@ export async function sendMessageAction(
           session.user.name,
           validated.content.trim().slice(0, 200),
           `${process.env.NEXT_PUBLIC_APP_URL}/chat`,
-        ).catch((err) =>
-          console.error("Failed to send chat notification email:", err),
-        );
+        ).catch((err) => logError(err, "Failed to send chat notification email"));
       }
     }
 

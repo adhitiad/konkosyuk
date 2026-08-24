@@ -71,7 +71,7 @@ const sanitizeFormat = format((info) => {
     }
     sanitized[key] = sanitizeValue(key, value);
   }
-  return sanitized as any;
+  return sanitized as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 });
 
 const devLogFormat = combine(

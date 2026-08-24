@@ -6,7 +6,7 @@ This is a Turborepo monorepo managed with Bun workspaces.
 
 - `apps/web` — Next.js 16 web application
 - `apps/mobile` — Flutter mobile application
-- `packages/shared` — Shared TypeScript utilities, Zod schemas, and Drizzle schema exports
+- `packages/shared` — Shared TypeScript utilities, Zod schemas, constants, and pure utilities. See `docs/shared-packages-guideline.md` for what belongs here.
 
 ## Root Scripts
 

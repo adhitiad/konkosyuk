@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { users, properties } from "@/db/schema";
 import { sql, and, type SQL } from "drizzle-orm";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { validateAdminOnlyRequest } from "@/lib/api-auth";
 import { ok, handleApiError } from "@/lib/api";
 
 interface RegionItem {
@@ -15,10 +14,8 @@ interface RegionItem {
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
-    if (!session || session.user.role !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    const authResult = await validateAdminOnlyRequest(req);
+    if (authResult instanceof Response) return authResult;
 
     const { searchParams } = new URL(req.url);
     const filterType = (searchParams.get("filterType") || "user") as

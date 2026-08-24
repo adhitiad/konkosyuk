@@ -10,6 +10,7 @@ import { invalidateCacheByTag } from "@/lib/cache";
 import { createNotification } from "@/lib/notifications";
 import { eventEmitter } from "@/lib/notifications/event-emitter";
 import { sendWebPushNotification } from "@/lib/notifications";
+import { logError } from "@/lib/logger";
 
 const createReviewSchema = z.object({
   type: z.enum(["tenant", "property"]),
@@ -158,7 +159,7 @@ export async function deleteReviewAction(
 
     return { success: true };
   } catch (error) {
-    console.error("deleteReviewAction error:", error);
+    logError(error, "deleteReviewAction error");
     return { error: "Gagal menghapus review", success: false };
   }
 }

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Realtime, RealtimeChannel, PresenceMessage } from "ably";
 import { sendMessageAction } from "@/actions/chat";
+import { captureException } from "@/lib/sentry";
 
 export interface Message {
   id: string;
@@ -78,9 +79,9 @@ export function useChat({
             token = json.token;
           }
         } catch {
-          console.warn(
-            "[useChat] Failed to fetch Ably token, falling back to settings key",
-          );
+          captureException(new Error("[useChat] Failed to fetch Ably token"), {
+            context: "Falling back to settings key",
+          });
         }
 
         let client;
@@ -130,7 +131,9 @@ export function useChat({
 
         setConnectionStatus("connected");
       } catch (error) {
-        console.error("[useChat] Error initializing:", error);
+        captureException(error as Error, {
+          context: "[useChat] Error initializing",
+        });
         setConnectionStatus("failed");
       }
     };
@@ -177,10 +180,14 @@ export function useChat({
             ];
           });
         } else {
-          console.error("[useChat] Error sending message:", result.error);
+          captureException(new Error(result.error || "[useChat] Error sending message"), {
+            context: "sendMessage",
+          });
         }
       } catch (error) {
-        console.error("[useChat] Error sending message:", error);
+        captureException(error as Error, {
+          context: "[useChat] Error sending message",
+        });
       }
     },
     [roomId],
@@ -221,7 +228,9 @@ export function useChat({
         method: "PUT",
       });
     } catch (error) {
-      console.error("[useChat] Error marking as read:", error);
+      captureException(error as Error, {
+        context: "[useChat] Error marking as read",
+      });
     }
   }, [roomId]);
 

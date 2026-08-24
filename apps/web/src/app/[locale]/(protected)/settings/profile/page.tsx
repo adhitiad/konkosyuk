@@ -29,6 +29,7 @@ import imageCompression from "browser-image-compression";
 import { updateUserProfileAction } from "@/actions/profile";
 import { uploadImageAction } from "@/actions/upload";
 import { apiGet } from "@/lib/api.client";
+import { captureException } from "@/lib/sentry";
 
 interface RegionOption {
   id: string;
@@ -133,7 +134,9 @@ export default function ProfileSettingsPage() {
       setImagePreview(URL.createObjectURL(compressedFile));
     } catch (err) {
       setFormError("Gagal mengompres gambar.");
-      console.error(err);
+      captureException(err as Error, {
+        context: "Image compression failed",
+      });
     }
   };
 

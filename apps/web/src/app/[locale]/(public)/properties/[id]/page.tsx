@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import Image from "next/image";
 import {
   MapPin,
@@ -28,11 +29,58 @@ import { PropertyUnitsSection } from "@/components/property/property-units-secti
 import { DetailSidebar } from "@/components/property/detail-sidebar";
 import { MiniMap } from "@/components/property/mini-map";
 import { NearbyPlacesList } from "@/components/property/nearby-places-list";
+import { JsonLd } from "@/components/seo/json-ld";
 
 type AmenityIconMap = Record<
   string,
   React.ComponentType<{ className?: string }>
 >;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string; locale: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+
+  const [property] = await db
+    .select({
+      id: properties.id,
+      name: properties.name,
+      description: properties.description,
+      address: properties.address,
+      city: properties.city,
+      basePrice: properties.basePrice,
+      images: properties.images,
+    })
+    .from(properties)
+    .where(eq(properties.id, id))
+    .limit(1);
+
+  if (!property) return {};
+
+  const images = property.images && property.images.length > 0
+    ? property.images
+    : [
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80",
+      ];
+
+  const title = `${property.name} — ${property.city} | KonkosYuk`;
+  const description =
+    property.description?.slice(0, 160) ||
+    `Sewa kost di ${property.city} mulai Rp${Number(property.basePrice).toLocaleString("id-ID")}/bulan.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title: property.name,
+      description,
+      images: [images[0]],
+      type: "website",
+    },
+  };
+}
 
 const amenityIcons: AmenityIconMap = {
   wifi: Wifi,
@@ -205,6 +253,58 @@ export default async function PropertyDetailPage({
 
   return (
     <main className="container py-8 max-w-7xl mx-auto px-4 lg:px-8">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "LodgingBusiness",
+          name: property.name,
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: property.address,
+            addressLocality: property.city,
+            addressRegion: property.province,
+            addressCountry: "ID",
+          },
+          image: images[0],
+          priceRange:
+            property.basePrice
+              ? `Rp${Number(property.basePrice).toLocaleString("id-ID")}/bulan`
+              : undefined,
+          aggregateRating: reviewsSummary
+            ? {
+                "@type": "AggregateRating",
+                ratingValue: reviewsSummary.averageRating,
+                reviewCount: reviewsSummary.count,
+              }
+            : undefined,
+        }}
+      />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: "https://konkosyuk.com",
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Properties",
+              item: "https://konkosyuk.com/properties",
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: property.name,
+              item: `https://konkosyuk.com/properties/${property.id}`,
+            },
+          ],
+        }}
+      />
       <div className="mb-6">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
           {property.name}

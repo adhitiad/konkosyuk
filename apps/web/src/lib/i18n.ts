@@ -1,3 +1,5 @@
+import type { Route } from "next";
+
 export type Language = "en" | "id" | "my" | "th" | "vi" | "ko" | "zh" | "ru";
 
 export const languages: Record<
@@ -13,3 +15,7 @@ export const languages: Record<
   zh: { name: "Chinese", nativeName: "中文", flag: "🇨🇳" },
   ru: { name: "Russian", nativeName: "Русский", flag: "🇷🇺" },
 };
+
+export function localeHref<T extends string>(locale: string, path: T): Route {
+  return `/${locale}${path}` as Route;
+}

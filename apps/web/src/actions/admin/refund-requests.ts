@@ -16,6 +16,7 @@ import { createAuditLog } from "@/lib/audit-log";
 import { sendBookingRejectionEmail } from "@/lib/notifications/email";
 import { sendRefundApprovalWhatsApp } from "@/lib/notifications/whatsapp";
 import { createNotification } from "@/lib/notifications";
+import { logError } from "@/lib/logger";
 
 const reviewRefundSchema = z.object({
   refundRequestId: z.string().uuid(),
@@ -195,9 +196,7 @@ export async function reviewRefundAction(
           tenant.name,
           booking?.propertyId ?? "",
           validated.note ?? "Booking dibatalkan karena refund disetujui",
-        ).catch((err) =>
-          console.error("Failed to send refund approval email:", err),
-        );
+        ).catch((err) => logError(err, "Failed to send refund approval email"));
       }
 
       if (tenant?.phone) {
@@ -206,9 +205,7 @@ export async function reviewRefundAction(
           tenant.name,
           userRefundAmount,
           refundRequest.bookingId.slice(0, 8),
-        ).catch((err) =>
-          console.error("Failed to send refund approval WhatsApp:", err),
-        );
+        ).catch((err) => logError(err, "Failed to send refund approval WhatsApp"));
       }
 
       await createNotification(
@@ -277,9 +274,7 @@ export async function reviewRefundAction(
           tenant.name,
           booking?.propertyId ?? "",
           validated.note ?? "Permintaan refund Anda ditolak",
-        ).catch((err) =>
-          console.error("Failed to send refund rejection email:", err),
-        );
+        ).catch((err) => logError(err, "Failed to send refund rejection email"));
       }
 
       if (tenant?.phone) {
@@ -288,9 +283,7 @@ export async function reviewRefundAction(
           tenant.name,
           0,
           refundRequest.bookingId.slice(0, 8),
-        ).catch((err) =>
-          console.error("Failed to send refund rejection WhatsApp:", err),
-        );
+        ).catch((err) => logError(err, "Failed to send refund rejection WhatsApp"));
       }
 
       await createNotification(
@@ -323,7 +316,7 @@ export async function reviewRefundAction(
         success: false,
       };
     }
-    console.error("reviewRefundAction error:", error);
+    logError(error, "reviewRefundAction error");
     return { error: "Gagal memproses refund", success: false };
   }
 }

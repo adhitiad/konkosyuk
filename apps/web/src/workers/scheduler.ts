@@ -4,6 +4,7 @@ import {
   completeExpiredBookingsQueue,
   savedSearchMatcherQueue,
   updateAreaCountsQueue,
+  processExpiredRefundsQueue,
 } from "@/lib/queue/queues";
 
 import { logInfo } from "@/lib/logger";
@@ -63,5 +64,19 @@ export async function registerRepeatJobs() {
   logInfo("Repeat job terdaftar", {
     queue: "update-area-counts",
     pattern: "0 4 * * *",
+  });
+
+  await processExpiredRefundsQueue.upsertJobScheduler(
+    "repeat:process-expired-refunds",
+    { pattern: "0 5 * * *" },
+    {
+      name: "process-expired-refunds",
+      data: {},
+    },
+  );
+
+  logInfo("Repeat job terdaftar", {
+    queue: "process-expired-refunds",
+    pattern: "0 5 * * *",
   });
 }

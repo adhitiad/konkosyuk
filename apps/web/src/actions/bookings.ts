@@ -42,6 +42,7 @@ import { dispatchNotification } from "@/lib/notification-service";
 import { getPaymentProvider } from "@/lib/payments";
 import { generateInvoiceNumber, money } from "@/lib/utils";
 import { checkFraudFlags } from "@/lib/fraud-check";
+import { logError } from "@/lib/logger";
 
 const createBookingSchema = z.object({
   propertyId: z.string().uuid(),
@@ -292,9 +293,7 @@ export async function createBookingAction(
         property.name,
         unit.name,
         `${process.env.NEXT_PUBLIC_APP_URL}/owner/booking-requests`,
-      ).catch((err) =>
-        console.error("Failed to send booking request email:", err),
-      );
+      ).catch((err) => logError(err, "Failed to send booking request email"));
     }
 
     dispatchNotification({
@@ -314,9 +313,7 @@ export async function createBookingAction(
         unitName: unit.name,
         bookingUrl: `${process.env.NEXT_PUBLIC_APP_URL}/owner/booking-requests`,
       },
-    }).catch((err) =>
-      console.error("Failed to dispatch booking created notification:", err),
-    );
+    }).catch((err) => logError(err, "Failed to dispatch booking created notification"));
 
     return {
       success: true,
@@ -476,9 +473,7 @@ export async function reviewBookingAction(
             property.name,
             unit.name,
             validated.note ?? undefined,
-          ).catch((err) =>
-            console.error("Failed to send booking rejection email:", err),
-          );
+          ).catch((err) => logError(err, "Failed to send booking rejection email"));
         }
 
         dispatchNotification({
@@ -492,10 +487,7 @@ export async function reviewBookingAction(
           referenceId: booking.id,
           referenceType: "booking",
         }).catch((err) =>
-          console.error(
-            "Failed to dispatch booking rejected notification:",
-            err,
-          ),
+          logError(err, "Failed to dispatch booking rejected notification"),
         );
 
         return updated;
@@ -528,7 +520,7 @@ export async function reviewBookingAction(
           unit.name,
           dpAmount,
           `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/bookings`,
-        ).catch((err) => console.error("Failed to send approval email:", err));
+        ).catch((err) => logError(err, "Failed to send approval email"));
       }
 
       dispatchNotification({
@@ -549,9 +541,7 @@ export async function reviewBookingAction(
           dpAmount: Number(booking.metadata?.dpAmount ?? 0),
           invoiceUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/bookings`,
         },
-      }).catch((err) =>
-        console.error("Failed to dispatch booking approved notification:", err),
-      );
+      }).catch((err) => logError(err, "Failed to dispatch booking approved notification"));
 
       await db
         .insert(inspections)
@@ -564,9 +554,7 @@ export async function reviewBookingAction(
           witnessId: property.ownerId,
           notes: `Auto-created move-in inspection for booking ${booking.id.slice(0, 8)}`,
         })
-        .catch((err) =>
-          console.error("Failed to create move-in inspection:", err),
-        );
+        .catch((err) => logError(err, "Failed to create move-in inspection"));
 
       return { success: true, data: updated };
     }
@@ -579,7 +567,7 @@ export async function reviewBookingAction(
         success: false,
       };
     }
-    console.error("reviewBookingAction error:", error);
+    logError(error, "reviewBookingAction error");
     return { error: "Gagal memproses review booking", success: false };
   }
 }

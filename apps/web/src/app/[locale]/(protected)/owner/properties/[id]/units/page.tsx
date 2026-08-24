@@ -35,6 +35,7 @@ import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import AddUnitDialog from "./add-unit-dialog";
 import type { Unit } from "@/db/schema";
 import { updateUnitAction, UpdateUnitState } from "@/actions/units";
+import { captureException } from "@/lib/sentry";
 
 interface UnitResponse {
   data: Unit[];
@@ -90,8 +91,9 @@ export default function UnitsPage() {
     if (result.success) {
       queryClient.invalidateQueries({ queryKey: ["units", propertyId] });
     } else {
-      // Show error toast or set error state
-      console.error("Failed to update unit:", result.error);
+      captureException(new Error(result.error || "Failed to update unit"), {
+        context: "updateUnit",
+      });
     }
   };
 

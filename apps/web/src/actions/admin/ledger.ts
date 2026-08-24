@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
 import type { Role } from "@/lib/auth";
+import { logError } from "@/lib/logger";
 
 const createLedgerEntrySchema = z
   .object({
@@ -112,7 +113,7 @@ export async function createLedgerEntryAction(
         success: false,
       };
     }
-    console.error("createLedgerEntryAction error:", error);
+    logError(error, "createLedgerEntryAction error");
     return { error: "Gagal membuat entri buku besar", success: false };
   }
 }

@@ -8,11 +8,13 @@ import { processCleanupExpiredBookings } from "@/workers/processors/cleanup.proc
 import { processCompleteExpiredBookings } from "@/workers/processors/complete.processor";
 import { processSavedSearchMatcher } from "@/workers/processors/saved-search.processor";
 import { processUpdateAreaCounts } from "@/workers/processors/update-area-counts.processor";
+import { processExpiredPaymentRefundsJob } from "@/workers/processors/process-expired-refunds.processor";
 
 const CLEANUP_QUEUE_NAME = "cleanup-expired-bookings";
 const COMPLETE_QUEUE_NAME = "complete-expired-bookings";
 const SAVED_SEARCH_QUEUE_NAME = "saved-search-matcher";
 const UPDATE_AREA_COUNTS_QUEUE_NAME = "update-area-counts";
+const PROCESS_EXPIRED_REFUNDS_QUEUE_NAME = "process-expired-refunds";
 
 const STALLED_INTERVAL = 600000;
 
@@ -59,7 +61,17 @@ export function startWorkers() {
     },
   );
 
-  workers.push(cleanupWorker, completeWorker, savedSearchWorker, updateAreaCountsWorker);
+  const processExpiredRefundsWorker = new Worker(
+    PROCESS_EXPIRED_REFUNDS_QUEUE_NAME,
+    processExpiredPaymentRefundsJob,
+    {
+      connection: createRedisConnection(),
+      concurrency: 1,
+      stalledInterval: STALLED_INTERVAL,
+    },
+  );
+
+  workers.push(cleanupWorker, completeWorker, savedSearchWorker, updateAreaCountsWorker, processExpiredRefundsWorker);
 
   logInfo("Semua worker BullMQ telah dimulai", {
     workers: workers.length,
@@ -68,6 +80,7 @@ export function startWorkers() {
       COMPLETE_QUEUE_NAME,
       SAVED_SEARCH_QUEUE_NAME,
       UPDATE_AREA_COUNTS_QUEUE_NAME,
+      PROCESS_EXPIRED_REFUNDS_QUEUE_NAME,
     ],
   });
 }

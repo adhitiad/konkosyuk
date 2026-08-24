@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
+import { logError } from "@/lib/logger";
 
 const updateProfileSchema = z.object({
   name: z.string().min(3, "Nama minimal 3 karakter").max(255),
@@ -57,7 +58,7 @@ export async function updateProfileAction(
         success: false,
       };
     }
-    console.error("updateProfileAction error:", error);
+    logError(error, "updateProfileAction error");
     return { error: "Gagal memperbarui profil", success: false };
   }
 }
@@ -124,7 +125,7 @@ export async function updateUserProfileAction(
         success: false,
       };
     }
-    console.error("updateUserProfileAction error:", error);
+    logError(error, "updateUserProfileAction error");
     return { error: "Gagal memperbarui profil", success: false };
   }
 }
