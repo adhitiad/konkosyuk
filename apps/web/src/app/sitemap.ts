@@ -10,13 +10,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") || "https://konkosyuk.com";
   const generatedAt = new Date();
 
-  const activeProperties = await db
-    .select({
-      id: properties.id,
-      updatedAt: properties.updatedAt,
-    })
-    .from(properties)
-    .where(eq(properties.status, "aktif"));
+  let activeProperties: { id: string; updatedAt: Date }[] = [];
+  try {
+    activeProperties = await db
+      .select({
+        id: properties.id,
+        updatedAt: properties.updatedAt,
+      })
+      .from(properties)
+      .where(eq(properties.status, "aktif"));
+  } catch {
+    // Database tidak tersedia saat build — gunakan URL statis saja
+  }
 
   const alternates = Object.fromEntries(
     locales.map((locale) => [locale, `${baseUrl}/${locale}`]),

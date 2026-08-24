@@ -20,6 +20,7 @@ import {
   sendMaintenanceReportUpdatedEmail,
 } from "@/lib/notifications/email";
 import { sendMaintenanceWhatsApp } from "@/lib/notifications/whatsapp";
+import { validateActionCsrf } from "@/lib/api-auth";
 
 const createReportSchema = z.object({
   propertyId: z.string().uuid(),
@@ -39,6 +40,11 @@ export async function createReportAction(
   prevState: CreateReportState | undefined,
   formData: FormData,
 ): Promise<CreateReportState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const imagesRaw = formData.get("images");
     let images: string[] = [];
@@ -232,6 +238,11 @@ export async function updateReportAction(
   prevState: UpdateReportState | undefined,
   formData: FormData,
 ): Promise<UpdateReportState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const validated = updateSchema.parse({
       id: formData.get("id"),

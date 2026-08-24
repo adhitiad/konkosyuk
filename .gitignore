@@ -39,6 +39,11 @@ mobile/android/.gradle/
 mobile/ios/Pods/
 mobile/ios/.symlinks/
 
+# Generated proto code
+apps/grpc/gen/
+apps/mobile/lib/gen/
+apps/web/test-results
+
 # IDE
 .idea/
 .vscode/
@@ -51,3 +56,5 @@ txt.md
 
 /web/test-results
 /.playwright-mcp
+p.md
+ementara.md

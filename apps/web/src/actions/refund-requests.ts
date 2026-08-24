@@ -10,6 +10,7 @@ import { createAuditLog } from "@/lib/audit-log";
 import { createNotification } from "@/lib/notifications";
 import { sendRefundApprovalWhatsApp } from "@/lib/notifications/whatsapp";
 import { logError } from "@/lib/logger";
+import { validateActionCsrf } from "@/lib/api-auth";
 
 const requestRefundSchema = z.object({
   bookingId: z.string().uuid(),
@@ -26,6 +27,11 @@ export async function requestRefundAction(
   prevState: RequestRefundState | undefined,
   formData: FormData,
 ): Promise<RequestRefundState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

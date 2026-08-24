@@ -47,7 +47,6 @@ const nextConfig: NextConfig = {
       },
     ],
     minimumCacheTTL: 60 * 60 * 24 * 365,
-    dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",
   },
   turbopack: {},
@@ -86,6 +85,7 @@ const nextConfig: NextConfig = {
       "form-action 'self'",
       "frame-ancestors 'self'",
       "manifest-src 'self'",
+      "report-uri /api/security/csp-report",
       ...(isProd ? ["upgrade-insecure-requests"] : []),
     ].join("; ");
 

@@ -6,6 +6,7 @@ import { validateAdminOnlyRequest } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import { createAuditLog } from "@/lib/audit-log";
+import { handleReferralFailureOnRefund } from "@/lib/referrals/verification";
 
 const cancelPaymentSchema = z.object({
   reason: z.string().min(1),
@@ -22,91 +23,98 @@ export async function PATCH(
     const { id: paymentId } = await params;
     const body = cancelPaymentSchema.parse(await req.json());
 
-    const [payment] = await db
-      .select()
-      .from(payments)
-      .where(eq(payments.id, paymentId))
-      .limit(1);
+    const result = await db.transaction(async (tx) => {
+      const [payment] = await tx
+        .select()
+        .from(payments)
+        .where(eq(payments.id, paymentId))
+        .for("update")
+        .limit(1);
 
-    if (!payment) {
-      return fail("Payment not found", 404);
-    }
+      if (!payment) {
+        return fail("Payment not found", 404);
+      }
 
-    const terminalStatuses = ["refunded", "cancelled", "success"] as const;
-    if (
-      terminalStatuses.includes(
-        payment.status as (typeof terminalStatuses)[number],
-      )
-    ) {
-      return fail("Payment is already in a terminal state", 400);
-    }
+      const terminalStatuses = ["refunded", "cancelled", "success"] as const;
+      if (
+        terminalStatuses.includes(
+          payment.status as (typeof terminalStatuses)[number],
+        )
+      ) {
+        return fail("Payment is already in a terminal state", 400);
+      }
 
-    const [booking] = await db
-      .select()
-      .from(bookings)
-      .where(eq(bookings.id, payment.bookingId))
-      .limit(1);
+      const [booking] = await tx
+        .select()
+        .from(bookings)
+        .where(eq(bookings.id, payment.bookingId))
+        .limit(1);
 
-    const terminalBookingStatuses = [
-      "completed",
-      "cancelled",
-      "rejected",
-    ] as const;
-    if (
-      booking &&
-      terminalBookingStatuses.includes(
-        booking.status as (typeof terminalBookingStatuses)[number],
-      )
-    ) {
-      return fail(
-        `Cannot modify payment for booking in ${booking.status} state`,
-        400,
-      );
-    }
+      const terminalBookingStatuses = [
+        "completed",
+        "cancelled",
+        "rejected",
+      ] as const;
+      if (
+        booking &&
+        terminalBookingStatuses.includes(
+          booking.status as (typeof terminalBookingStatuses)[number],
+        )
+      ) {
+        return fail(
+          `Cannot modify payment for booking in ${booking.status} state`,
+          400,
+        );
+      }
 
-    const updatedMetadata = {
-      ...payment.metadata,
-      cancelledBy: session.user.id,
-      cancelledAt: new Date().toISOString(),
-      cancelReason: body.reason,
-    };
+      const updatedMetadata = {
+        ...payment.metadata,
+        cancelledBy: session.user.id,
+        cancelledAt: new Date().toISOString(),
+        cancelReason: body.reason,
+      };
 
-    await db
-      .update(payments)
-      .set({
-        status: "refunded",
-        metadata: updatedMetadata,
-        updatedAt: new Date(),
-      })
-      .where(eq(payments.id, paymentId));
-
-    if (
-      booking &&
-      (payment.purpose === "dp" || payment.purpose === "full_payment")
-    ) {
-      await db
-        .update(bookings)
+      await tx
+        .update(payments)
         .set({
-          status: "cancelled",
+          status: "refunded",
+          metadata: updatedMetadata,
           updatedAt: new Date(),
         })
-        .where(eq(bookings.id, booking.id));
-    }
+        .where(eq(payments.id, paymentId));
 
-    await createAuditLog({
-      action: "refund",
-      targetType: "payment",
-      targetId: paymentId,
-      adminId: session.user.id,
-      details: {
-        bookingId: payment.bookingId,
-        amount: payment.amount,
-        reason: body.reason,
-        previousStatus: payment.status,
-      },
+      await handleReferralFailureOnRefund(db, paymentId);
+
+      if (
+        booking &&
+        (payment.purpose === "dp" || payment.purpose === "full_payment")
+      ) {
+        await tx
+          .update(bookings)
+          .set({
+            status: "cancelled",
+            updatedAt: new Date(),
+          })
+          .where(eq(bookings.id, booking.id));
+      }
+
+      await createAuditLog({
+        action: "refund",
+        targetType: "payment",
+        targetId: paymentId,
+        adminId: session.user.id,
+        details: {
+          bookingId: payment.bookingId,
+          amount: payment.amount,
+          reason: body.reason,
+          previousStatus: payment.status,
+        },
+      });
+
+      return ok({ success: true });
     });
 
-    return ok({ success: true });
+    return result;
   } catch (error) {
     return handleApiError(error, "PATCH /api/admin/payments/[id]");
   }

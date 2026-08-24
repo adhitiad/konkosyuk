@@ -1,9 +1,9 @@
 import { Queue } from "bullmq";
 
-import { createRedisConnection } from "@/lib/redis";
+import { getSharedRedisConnection } from "@/lib/redis";
 
 export const cleanupExpiredBookingsQueue = new Queue("cleanup-expired-bookings", {
-  connection: createRedisConnection(),
+  connection: getSharedRedisConnection(),
   defaultJobOptions: {
     removeOnComplete: { count: 50 },
     removeOnFail: { count: 100 },
@@ -16,7 +16,7 @@ export const cleanupExpiredBookingsQueue = new Queue("cleanup-expired-bookings",
 });
 
 export const completeExpiredBookingsQueue = new Queue("complete-expired-bookings", {
-  connection: createRedisConnection(),
+  connection: getSharedRedisConnection(),
   defaultJobOptions: {
     removeOnComplete: { count: 50 },
     removeOnFail: { count: 100 },
@@ -29,7 +29,7 @@ export const completeExpiredBookingsQueue = new Queue("complete-expired-bookings
 });
 
 export const savedSearchMatcherQueue = new Queue("saved-search-matcher", {
-  connection: createRedisConnection(),
+  connection: getSharedRedisConnection(),
   defaultJobOptions: {
     removeOnComplete: { count: 50 },
     removeOnFail: { count: 100 },
@@ -42,7 +42,7 @@ export const savedSearchMatcherQueue = new Queue("saved-search-matcher", {
 });
 
 export const updateAreaCountsQueue = new Queue("update-area-counts", {
-  connection: createRedisConnection(),
+  connection: getSharedRedisConnection(),
   defaultJobOptions: {
     removeOnComplete: { count: 50 },
     removeOnFail: { count: 100 },
@@ -55,7 +55,20 @@ export const updateAreaCountsQueue = new Queue("update-area-counts", {
 });
 
 export const processExpiredRefundsQueue = new Queue("process-expired-refunds", {
-  connection: createRedisConnection(),
+  connection: getSharedRedisConnection(),
+  defaultJobOptions: {
+    removeOnComplete: { count: 50 },
+    removeOnFail: { count: 100 },
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 5000,
+    },
+  },
+});
+
+export const referralEligibilitySweepQueue = new Queue("referral-eligibility-sweep", {
+  connection: getSharedRedisConnection(),
   defaultJobOptions: {
     removeOnComplete: { count: 50 },
     removeOnFail: { count: 100 },

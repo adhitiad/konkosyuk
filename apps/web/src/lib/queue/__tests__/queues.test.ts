@@ -19,6 +19,7 @@ vi.mock("bullmq", () => {
 
 vi.mock("@/lib/redis", () => ({
   createRedisConnection: vi.fn().mockReturnValue({}),
+  getSharedRedisConnection: vi.fn().mockReturnValue({}),
 }));
 
 describe("queues.ts", () => {

@@ -47,8 +47,8 @@ export const ipaymuAdapter: PaymentProviderAdapter = {
     const payload = {
       va,
       amount: integerAmount,
-      notifyUrl: `${process.env.NEXT_PUBLIC_APP_URL1 || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/webhooks/ipaymu`,
-      returnUrl: `${process.env.NEXT_PUBLIC_APP_URL1 || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/payment/result?provider=ipaymu&bookingId=${referenceId}`,
+      notifyUrl: `${process.env.NEXT_PUBLIC_APP_URL_SECONDARY || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/webhooks/ipaymu`,
+      returnUrl: `${process.env.NEXT_PUBLIC_APP_URL_SECONDARY || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/payment/result?provider=ipaymu&bookingId=${referenceId}`,
       referenceId,
       name: input.metadata?.customerName ?? "Customer",
       phone: input.metadata?.phone ?? "",

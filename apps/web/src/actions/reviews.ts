@@ -11,6 +11,8 @@ import { createNotification } from "@/lib/notifications";
 import { eventEmitter } from "@/lib/notifications/event-emitter";
 import { sendWebPushNotification } from "@/lib/notifications";
 import { logError } from "@/lib/logger";
+import { validateActionCsrf } from "@/lib/api-auth";
+import { sanitizeString } from "@/lib/sanitize";
 
 const createReviewSchema = z.object({
   type: z.enum(["tenant", "property"]),
@@ -42,6 +44,11 @@ export async function updateReviewAction(
   prevState: UpdateReviewState | undefined,
   formData: FormData,
 ): Promise<UpdateReviewState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const validated = updateReviewSchema.parse({
       id: formData.get("id"),
@@ -77,7 +84,8 @@ export async function updateReviewAction(
 
     if (validated.rating !== undefined)
       updateData.rating = validated.rating.toString();
-    if (validated.comment !== undefined) updateData.comment = validated.comment;
+    if (validated.comment !== undefined)
+      updateData.comment = sanitizeString(validated.comment);
 
     const [updated] = await db
       .update(reviews)
@@ -108,6 +116,11 @@ export async function deleteReviewAction(
   prevState: DeleteReviewState | undefined,
   formData: FormData,
 ): Promise<DeleteReviewState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const reviewId = formData.get("id") as string;
     if (!reviewId) {
@@ -174,6 +187,11 @@ export async function replyReviewAction(
   prevState: ReplyReviewState | undefined,
   formData: FormData,
 ): Promise<ReplyReviewState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const validated = replyReviewSchema.parse({
       reviewId: formData.get("reviewId"),
@@ -292,6 +310,11 @@ export async function createReviewAction(
   prevState: CreateReviewState | undefined,
   formData: FormData,
 ): Promise<CreateReviewState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const validated = createReviewSchema.parse({
       type: formData.get("type"),
@@ -383,7 +406,7 @@ export async function createReviewAction(
           propertyId,
           type: validated.type,
           rating: validated.rating.toString(),
-          comment: validated.comment,
+          comment: sanitizeString(validated.comment) ?? validated.comment,
           bookingId: validated.bookingId,
           cleanliness: validated.rating.toString(),
           security: validated.rating.toString(),

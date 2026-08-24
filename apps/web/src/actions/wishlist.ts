@@ -6,6 +6,7 @@ import { eq, and, desc } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
+import { validateActionCsrf } from "@/lib/api-auth";
 
 const toggleWishlistSchema = z.object({
   propertyId: z.string().uuid(),
@@ -21,6 +22,11 @@ export async function toggleWishlist(
   prevState: ToggleWishlistState | undefined,
   formData: FormData,
 ): Promise<ToggleWishlistState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const validated = toggleWishlistSchema.parse({
       propertyId: formData.get("propertyId"),

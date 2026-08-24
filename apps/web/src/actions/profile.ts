@@ -7,6 +7,8 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { logError } from "@/lib/logger";
+import { validateActionCsrf } from "@/lib/api-auth";
+import { sanitizeString } from "@/lib/sanitize";
 
 const updateProfileSchema = z.object({
   name: z.string().min(3, "Nama minimal 3 karakter").max(255),
@@ -23,6 +25,11 @@ export async function updateProfileAction(
   prevState: UpdateProfileState | undefined,
   formData: FormData,
 ): Promise<UpdateProfileState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -40,7 +47,7 @@ export async function updateProfileAction(
     const [updated] = await db
       .update(users)
       .set({
-        name: validated.name,
+        name: sanitizeString(validated.name) || validated.name,
         phone: validated.phone,
         updatedAt: new Date(),
       })
@@ -82,6 +89,11 @@ export async function updateUserProfileAction(
   prevState: UpdateUserProfileState | undefined,
   formData: FormData,
 ): Promise<UpdateUserProfileState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -103,7 +115,7 @@ export async function updateUserProfileAction(
     const [updated] = await db
       .update(users)
       .set({
-        name: validated.name,
+        name: sanitizeString(validated.name) || validated.name,
         phone: validated.phone,
         image: validated.image ?? null,
         province: validated.province ?? null,

@@ -5,6 +5,7 @@ import {
   savedSearchMatcherQueue,
   updateAreaCountsQueue,
   processExpiredRefundsQueue,
+  referralEligibilitySweepQueue,
 } from "@/lib/queue/queues";
 
 import { logInfo } from "@/lib/logger";
@@ -78,5 +79,16 @@ export async function registerRepeatJobs() {
   logInfo("Repeat job terdaftar", {
     queue: "process-expired-refunds",
     pattern: "0 5 * * *",
+  });
+
+  await referralEligibilitySweepQueue.upsertJobScheduler(
+    "repeat:referral-eligibility-sweep",
+    { pattern: "0 * * * *" },
+    { name: "referral-eligibility-sweep", data: {} },
+  );
+
+  logInfo("Repeat job terdaftar", {
+    queue: "referral-eligibility-sweep",
+    pattern: "0 * * * *",
   });
 }

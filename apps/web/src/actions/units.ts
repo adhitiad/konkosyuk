@@ -9,6 +9,7 @@ import { z } from "zod";
 import { createUnitSchema, updateUnitSchema } from "@konkosyuk/shared";
 import { invalidateCacheByTag } from "@/lib/cache";
 import type { Role } from "@/lib/auth";
+import { validateActionCsrf } from "@/lib/api-auth";
 
 export type CreateUnitState = {
   success?: boolean;
@@ -30,6 +31,11 @@ export async function createUnitAction(
   prevState: CreateUnitState | undefined,
   formData: FormData,
 ): Promise<CreateUnitState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -118,6 +124,11 @@ export async function updateUnitAction(
   prevState: UpdateUnitState | undefined,
   formData: FormData,
 ): Promise<UpdateUnitState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -203,6 +214,11 @@ export async function deleteUnitAction(
   prevState: DeleteUnitState | undefined,
   formData: FormData,
 ): Promise<DeleteUnitState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

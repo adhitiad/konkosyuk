@@ -15,7 +15,7 @@ async function csrfHandler(): Promise<NextResponse> {
 
   response.cookies.set("csrf_token", token, {
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
     maxAge: 60 * 60 * 24,
     path: "/",
   });

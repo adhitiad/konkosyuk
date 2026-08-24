@@ -6,12 +6,14 @@ import { handleApiError } from "@/lib/api";
 import { eq } from "drizzle-orm";
 
 function escapeCsv(value: string): string {
-  if (
+  const needsQuotes =
     value.includes(",") ||
     value.includes('"') ||
     value.includes("\n") ||
-    value.includes("\r")
-  ) {
+    value.includes("\r") ||
+    /^[=+\-@\t\r]/.test(value);
+
+  if (needsQuotes) {
     return `"${value.replace(/"/g, '""')}"`;
   }
   return value;
@@ -21,6 +23,8 @@ export async function GET(req: NextRequest) {
   try {
     const authResult = await validateAdminRequest(req);
     if (authResult instanceof Response) return authResult;
+
+    const limit = Math.min(Number(req.nextUrl.searchParams.get("limit") || "1000"), 10000);
 
     const data = await db
       .select({
@@ -36,7 +40,8 @@ export async function GET(req: NextRequest) {
       .from(bookings)
       .innerJoin(users, eq(users.id, bookings.userId))
       .innerJoin(properties, eq(properties.id, bookings.propertyId))
-      .orderBy(bookings.createdAt);
+      .orderBy(bookings.createdAt)
+      .limit(limit);
 
     const header = [
       "ID",

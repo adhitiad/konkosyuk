@@ -9,6 +9,7 @@ import { z } from "zod";
 import { hashPassword } from "better-auth/crypto";
 import { createAuditLog } from "@/lib/audit-log";
 import { logError } from "@/lib/logger";
+import { validateActionCsrf } from "@/lib/api-auth";
 
 const updateUserSchema = z.object({
   id: z.string().uuid(),
@@ -36,6 +37,11 @@ export async function updateUserAction(
   prevState: UpdateUserState | undefined,
   formData: FormData,
 ): Promise<UpdateUserState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -198,6 +204,11 @@ export async function deleteUserAction(
   prevState: DeleteUserState | undefined,
   formData: FormData,
 ): Promise<DeleteUserState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -273,6 +284,11 @@ export async function banUserAction(
   prevState: BanUserState | undefined,
   formData: FormData,
 ): Promise<BanUserState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -372,6 +388,11 @@ export async function createUserAction(
   prevState: CreateUserState | undefined,
   formData: FormData,
 ): Promise<CreateUserState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

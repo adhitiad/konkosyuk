@@ -18,18 +18,24 @@ const createReviewSchema = z.object({
   propertyId: z.string().uuid().optional(),
 });
 
+const reviewsQuerySchema = z.object({
+  propertyId: z.string().uuid().optional(),
+  userId: z.string().uuid().optional(),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(200).default(50),
+});
+
 const reviewsRateLimitConfig = {
   windowMs: 60 * 1000,
   maxRequests: 5,
   keyPrefix: "rl:reviews",
 };
 
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     await requireSession();
-    const { searchParams } = new URL(_req.url);
-    const propertyId = searchParams.get("propertyId");
-    const userId = searchParams.get("userId");
+    const query = reviewsQuerySchema.parse(Object.fromEntries(req.nextUrl.searchParams));
+    const { propertyId, userId, page, limit } = query;
 
     let whereClause;
     if (propertyId) {
@@ -46,24 +52,40 @@ export async function GET(_req: NextRequest) {
       return fail("propertyId or userId is required", 400);
     }
 
-    const data = await db
-      .select({
-        id: reviews.id,
-        type: reviews.type,
-        rating: reviews.rating,
-        comment: reviews.comment,
-        createdAt: reviews.createdAt,
-        reviewerName: users.name,
-        reviewerImage: users.image,
-        propertyName: properties.name,
-      })
-      .from(reviews)
-      .leftJoin(users, eq(reviews.createdById, users.id))
-      .leftJoin(properties, eq(reviews.propertyId, properties.id))
-      .where(whereClause)
-      .orderBy(desc(reviews.createdAt));
+    const offset = (page - 1) * limit;
 
-    return ok({ data, meta: { total: data.length } });
+    const [data, countRow] = await Promise.all([
+      db
+        .select({
+          id: reviews.id,
+          type: reviews.type,
+          rating: reviews.rating,
+          comment: reviews.comment,
+          createdAt: reviews.createdAt,
+          reviewerName: users.name,
+          reviewerImage: users.image,
+          propertyName: properties.name,
+        })
+        .from(reviews)
+        .leftJoin(users, eq(reviews.createdById, users.id))
+        .leftJoin(properties, eq(reviews.propertyId, properties.id))
+        .where(whereClause)
+        .orderBy(desc(reviews.createdAt))
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(reviews)
+        .where(whereClause),
+    ]);
+
+    const total = Number(countRow[0]?.count ?? 0);
+    const totalPages = Math.ceil(total / limit);
+
+    return ok({
+      data,
+      meta: { page, limit, total, totalPages },
+    });
   } catch (error) {
     return handleApiError(error);
   }

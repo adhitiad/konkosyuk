@@ -28,10 +28,37 @@ export const auth = betterAuth({
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
     process.env.BETTER_AUTH_URL,
+    process.env.BETTER_AUTH_URL_SECONDARY,
     process.env.NEXT_PUBLIC_APP_URL,
-    process.env.NEXT_PUBLIC_APP_URL1,
-    process.env.NEXT_PUBLIC_APP_URL2,
+    process.env.NEXT_PUBLIC_APP_URL_SECONDARY,
   ].filter((origin): origin is string => Boolean(origin)),
+  rateLimit: {
+    enabled: process.env.NODE_ENV === "production",
+    window: 60,
+    max: 100,
+    customRules: {
+      "/sign-in/email": {
+        window: 10,
+        max: 5,
+      },
+      "/sign-up/email": {
+        window: 10,
+        max: 5,
+      },
+      "/forgot-password": {
+        window: 10,
+        max: 3,
+      },
+      "/reset-password": {
+        window: 10,
+        max: 5,
+      },
+      "/two-factor/verify": {
+        window: 10,
+        max: 3,
+      },
+    },
+  },
   database: drizzleAdapter(db, {
     provider: "pg",
     usePlural: true,
@@ -43,6 +70,11 @@ export const auth = betterAuth({
       process.env.NODE_ENV === "production" &&
       Boolean(process.env.RESEND_API_KEY || process.env.SMTP_HOST),
     minPasswordLength: 8,
+    sendResetPasswordToken: async (data: { token: string; user: { email: string } }) => {
+      const { token, user } = data;
+      const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
+      console.log(`Reset password for ${user.email}: ${resetUrl}`);
+    },
   },
   socialProviders: {
     google: {

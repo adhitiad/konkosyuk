@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { generateReceiptPdf } from "@/actions/payments";
 import { requireSession } from "@/lib/auth";
+import { handleApiError } from "@/lib/api";
 
 export const runtime = "nodejs";
 
@@ -28,7 +29,7 @@ export async function GET(
         "Cache-Control": "no-store",
       },
     });
-  } catch {
-    return new Response("Failed to generate receipt", { status: 500 });
+  } catch (error) {
+    return handleApiError(error, "GET /api/payments/[id]/receipt");
   }
 }

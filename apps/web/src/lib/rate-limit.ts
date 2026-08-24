@@ -43,8 +43,8 @@ export async function rateLimit(
     };
   } catch {
     return {
-      success: true,
-      remaining: maxRequests,
+      success: false,
+      remaining: 0,
       resetAt: new Date(Date.now() + ttlSeconds * 1000),
     };
   }

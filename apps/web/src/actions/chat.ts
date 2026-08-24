@@ -8,6 +8,8 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { sendChatNotificationEmail } from "@/lib/notifications/email";
 import { logError } from "@/lib/logger";
+import { validateActionCsrf } from "@/lib/api-auth";
+import { sanitizeString } from "@/lib/sanitize";
 
 const sendMessageSchema = z.object({
   roomId: z.string().uuid(),
@@ -34,6 +36,11 @@ export async function sendMessageAction(
   prevState: SendMessageState | undefined,
   formData: FormData,
 ): Promise<SendMessageState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -70,7 +77,7 @@ export async function sendMessageAction(
       .values({
         roomId: validated.roomId,
         senderId: session.user.id,
-        content: validated.content.trim(),
+        content: sanitizeString(validated.content.trim()) || "",
       })
       .returning();
 

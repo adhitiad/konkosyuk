@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { users, accounts } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { validateAdminOnlyRequest } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
@@ -22,6 +22,83 @@ const createUserSchema = z.object({
   district: z.string().optional(),
   isActive: z.boolean().default(true),
 });
+
+export async function GET(req: NextRequest) {
+  try {
+    const authResult = await validateAdminOnlyRequest(req);
+    if (authResult instanceof Response) return authResult;
+    const { session } = authResult;
+
+    const page = Number(req.nextUrl.searchParams.get("page") || "1");
+    const limit = Number(req.nextUrl.searchParams.get("limit") || "20");
+    const offset = (page - 1) * limit;
+
+    const isStaff = session.user.role === "staff";
+
+    const [data, [{ count: total }]] = isStaff
+      ? await Promise.all([
+          db
+            .select({
+              id: users.id,
+              name: users.name,
+              email: users.email,
+              role: users.role,
+              image: users.image,
+              province: users.province,
+              city: users.city,
+              district: users.district,
+              isActive: users.isActive,
+              createdAt: users.createdAt,
+              updatedAt: users.updatedAt,
+            })
+            .from(users)
+            .orderBy(users.createdAt)
+            .limit(limit)
+            .offset(offset),
+          db.select({ count: sql<number>`count(*)` }).from(users),
+        ])
+      : await Promise.all([
+          db
+            .select({
+              id: users.id,
+              name: users.name,
+              email: users.email,
+              role: users.role,
+              image: users.image,
+              phone: users.phone,
+              whatsapp: users.whatsapp,
+              telegram: users.telegram,
+              province: users.province,
+              city: users.city,
+              district: users.district,
+              isActive: users.isActive,
+              isBanned: users.isBanned,
+              banReason: users.banReason,
+              kycStatus: users.kycStatus,
+              reputationScore: users.reputationScore,
+              balance: users.balance,
+              referralCode: users.referralCode,
+              referredBy: users.referredBy,
+              loyaltyTier: users.loyaltyTier,
+              totalReferrals: users.totalReferrals,
+              createdAt: users.createdAt,
+              updatedAt: users.updatedAt,
+            })
+            .from(users)
+            .orderBy(users.createdAt)
+            .limit(limit)
+            .offset(offset),
+          db.select({ count: sql<number>`count(*)` }).from(users),
+        ]);
+
+    return ok({
+      data,
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
+  } catch (error) {
+    return handleApiError(error, "GET /api/admin/users");
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {

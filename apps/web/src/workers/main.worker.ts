@@ -1,7 +1,7 @@
 /** Worker utama BullMQ yang mendaftarkan dan mengelola semua processor. */
 import { Worker } from "bullmq";
 
-import { createRedisConnection } from "@/lib/redis";
+import { getSharedRedisConnection, closeSharedRedisConnection } from "@/lib/redis";
 import { logInfo } from "@/lib/logger";
 
 import { processCleanupExpiredBookings } from "@/workers/processors/cleanup.processor";
@@ -9,12 +9,14 @@ import { processCompleteExpiredBookings } from "@/workers/processors/complete.pr
 import { processSavedSearchMatcher } from "@/workers/processors/saved-search.processor";
 import { processUpdateAreaCounts } from "@/workers/processors/update-area-counts.processor";
 import { processExpiredPaymentRefundsJob } from "@/workers/processors/process-expired-refunds.processor";
+import { processReferralEligibilitySweep } from "@/workers/processors/referral-eligibility-sweep.processor";
 
 const CLEANUP_QUEUE_NAME = "cleanup-expired-bookings";
 const COMPLETE_QUEUE_NAME = "complete-expired-bookings";
 const SAVED_SEARCH_QUEUE_NAME = "saved-search-matcher";
 const UPDATE_AREA_COUNTS_QUEUE_NAME = "update-area-counts";
 const PROCESS_EXPIRED_REFUNDS_QUEUE_NAME = "process-expired-refunds";
+const REFERRAL_ELIGIBILITY_SWEEP_QUEUE_NAME = "referral-eligibility-sweep";
 
 const STALLED_INTERVAL = 600000;
 
@@ -25,7 +27,7 @@ export function startWorkers() {
     CLEANUP_QUEUE_NAME,
     processCleanupExpiredBookings,
     {
-      connection: createRedisConnection(),
+      connection: getSharedRedisConnection(),
       concurrency: 1,
       stalledInterval: STALLED_INTERVAL,
     },
@@ -35,7 +37,7 @@ export function startWorkers() {
     COMPLETE_QUEUE_NAME,
     processCompleteExpiredBookings,
     {
-      connection: createRedisConnection(),
+      connection: getSharedRedisConnection(),
       concurrency: 1,
       stalledInterval: STALLED_INTERVAL,
     },
@@ -45,7 +47,7 @@ export function startWorkers() {
     SAVED_SEARCH_QUEUE_NAME,
     processSavedSearchMatcher,
     {
-      connection: createRedisConnection(),
+      connection: getSharedRedisConnection(),
       concurrency: 1,
       stalledInterval: STALLED_INTERVAL,
     },
@@ -55,7 +57,7 @@ export function startWorkers() {
     UPDATE_AREA_COUNTS_QUEUE_NAME,
     processUpdateAreaCounts,
     {
-      connection: createRedisConnection(),
+      connection: getSharedRedisConnection(),
       concurrency: 1,
       stalledInterval: STALLED_INTERVAL,
     },
@@ -65,13 +67,23 @@ export function startWorkers() {
     PROCESS_EXPIRED_REFUNDS_QUEUE_NAME,
     processExpiredPaymentRefundsJob,
     {
-      connection: createRedisConnection(),
+      connection: getSharedRedisConnection(),
       concurrency: 1,
       stalledInterval: STALLED_INTERVAL,
     },
   );
 
-  workers.push(cleanupWorker, completeWorker, savedSearchWorker, updateAreaCountsWorker, processExpiredRefundsWorker);
+  const referralEligibilitySweepWorker = new Worker(
+    REFERRAL_ELIGIBILITY_SWEEP_QUEUE_NAME,
+    processReferralEligibilitySweep,
+    {
+      connection: getSharedRedisConnection(),
+      concurrency: 1,
+      stalledInterval: STALLED_INTERVAL,
+    },
+  );
+
+  workers.push(cleanupWorker, completeWorker, savedSearchWorker, updateAreaCountsWorker, processExpiredRefundsWorker, referralEligibilitySweepWorker);
 
   logInfo("Semua worker BullMQ telah dimulai", {
     workers: workers.length,
@@ -81,6 +93,7 @@ export function startWorkers() {
       SAVED_SEARCH_QUEUE_NAME,
       UPDATE_AREA_COUNTS_QUEUE_NAME,
       PROCESS_EXPIRED_REFUNDS_QUEUE_NAME,
+      REFERRAL_ELIGIBILITY_SWEEP_QUEUE_NAME,
     ],
   });
 }
@@ -93,6 +106,8 @@ export async function stopWorkers() {
   });
 
   await Promise.all(closePromises);
+
+  await closeSharedRedisConnection();
 
   logInfo("Semua worker BullMQ telah dihentikan");
 }

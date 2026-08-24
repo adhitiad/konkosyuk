@@ -28,8 +28,6 @@ export async function GET() {
         city: users.city,
         district: users.district,
         kycStatus: users.kycStatus,
-        ktpNumber: users.ktpNumber,
-        ktpImageUrl: users.ktpImageUrl,
         reputationScore: users.reputationScore,
         balance: users.balance,
         isActive: users.isActive,

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { referrals, users } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
+import { validateCsrfToken } from "@/lib/csrf";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import { eq, desc, and, sql } from "drizzle-orm";
@@ -34,6 +35,11 @@ const referralQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(20),
   category: z.enum(referralCategory).optional(),
   status: z.enum(referralStatus).optional(),
+});
+
+const referralActionSchema = z.object({
+  id: z.string().uuid(),
+  action: z.enum(["convert_voucher", "apply_offset"]),
 });
 
 function generateReferralCode(length = 8): string {
@@ -125,6 +131,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await requireSession();
+
+    const csrfResult = validateCsrfToken(req);
+    if (!csrfResult.success) return csrfResult.error!;
+
     const body = createReferralSchema.parse(await req.json());
 
     const [existingUser] = await db
@@ -150,6 +160,20 @@ export async function POST(req: NextRequest) {
 
     if (existingReferral.length > 0) {
       return fail("Referral untuk pengguna ini sudah ada", 400);
+    }
+
+    if (body.category === "tenant" && existingUser) {
+      const [priorCompleted] = await db.select().from(referrals).where(
+        and(
+          eq(referrals.referrerId, session.user.id),
+          eq(referrals.refereeId, existingUser.id),
+          eq(referrals.category, "tenant"),
+          eq(referrals.status, "completed"),
+        )
+      ).limit(1);
+      if (priorCompleted) {
+        return fail("Sudah pernah mendapat komisi tenant dari referee ini", 400);
+      }
     }
 
     const code = generateReferralCode();
@@ -198,78 +222,95 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const session = await requireSession();
-    const body = (await req.json()) as { id?: string; action?: string };
 
-    const id = body.id;
-    if (!id) {
-      return fail("ID referral diperlukan", 400);
-    }
+    const csrfResult = validateCsrfToken(req);
+    if (!csrfResult.success) return csrfResult.error!;
 
-    const [referral] = await db
-      .select()
-      .from(referrals)
-      .where(eq(referrals.id, id))
-      .limit(1);
+    const body = referralActionSchema.parse(await req.json());
 
-    if (!referral) {
-      return fail("Referral tidak ditemukan", 404);
-    }
+    const result = await db.transaction(async (tx) => {
+      const [referral] = await tx
+        .select()
+        .from(referrals)
+        .where(eq(referrals.id, body.id))
+        .for("update")
+        .limit(1);
 
-    if (
-      referral.referrerId !== session.user.id &&
-      session.user.role !== "admin"
-    ) {
-      return fail("Forbidden", 403);
-    }
-
-    if (body.action === "convert_voucher" && referral.category === "owner") {
-      if (referral.status !== "eligible") {
-        return fail("Referral belum eligible untuk dikonversi", 400);
+      if (!referral) {
+        return fail("Referral tidak ditemukan", 404);
       }
-      const voucherCode = `VOUCHER-${referral.code}`;
-      await db
-        .update(referrals)
-        .set({
-          status: "completed",
+
+      if (
+        referral.referrerId !== session.user.id &&
+        session.user.role !== "admin"
+      ) {
+        return fail("Forbidden", 403);
+      }
+
+      if (body.action === "convert_voucher" && referral.category === "owner") {
+        if (referral.status !== "eligible") {
+          return fail("Referral belum eligible untuk dikonversi", 400);
+        }
+        const voucherCode = `VOUCHER-${referral.code}`;
+        await tx
+          .update(referrals)
+          .set({
+            status: "completed",
+            voucherCode,
+            completedAt: new Date(),
+          })
+          .where(eq(referrals.id, body.id));
+
+        await tx
+          .update(users)
+          .set({ totalReferrals: sql`${users.totalReferrals} + 1` })
+          .where(eq(users.id, referral.referrerId));
+
+        dispatchReferralVoucherConverted(
+          session.user.id,
+          referral.code,
           voucherCode,
-          completedAt: new Date(),
-        })
-        .where(eq(referrals.id, id));
+        ).catch(() => {});
 
-      dispatchReferralVoucherConverted(
-        session.user.id,
-        referral.code,
-        voucherCode,
-      ).catch(() => {});
-
-      return ok({ ...referral, status: "completed", voucherCode });
-    }
-
-    if (body.action === "apply_offset" && referral.category === "tenant") {
-      if (referral.status !== "eligible") {
-        return fail("Referral belum eligible untuk dipotong", 400);
+        return ok({ ...referral, status: "completed", voucherCode });
       }
-      if (referral.offsetApplied) {
-        return fail("Offset sudah diterapkan", 400);
+
+      if (body.action === "apply_offset" && referral.category === "tenant") {
+        if (referral.status !== "eligible") {
+          return fail("Referral belum eligible untuk dipotong", 400);
+        }
+        if (referral.offsetApplied) {
+          return fail("Offset sudah diterapkan", 400);
+        }
+        await tx
+          .update(referrals)
+          .set({
+            offsetApplied: true,
+            status: "completed",
+            completedAt: new Date(),
+          })
+          .where(eq(referrals.id, body.id));
+
+        await tx
+          .update(users)
+          .set({ totalReferrals: sql`${users.totalReferrals} + 1` })
+          .where(eq(users.id, referral.referrerId));
+
+        dispatchReferralOffsetApplied(session.user.id, referral.code).catch(
+          () => {},
+        );
+
+        return ok({ ...referral, status: "completed", offsetApplied: true });
       }
-      await db
-        .update(referrals)
-        .set({
-          offsetApplied: true,
-          status: "completed",
-          completedAt: new Date(),
-        })
-        .where(eq(referrals.id, id));
 
-      dispatchReferralOffsetApplied(session.user.id, referral.code).catch(
-        () => {},
-      );
+      return fail("Action tidak dikenali", 400);
+    });
 
-      return ok({ ...referral, status: "completed", offsetApplied: true });
-    }
-
-    return fail("Action tidak dikenali", 400);
+    return result;
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return fail(error.issues[0]?.message || "Input tidak valid", 400);
+    }
     return handleApiError(error, "PUT /api/referrals/[id]");
   }
 }

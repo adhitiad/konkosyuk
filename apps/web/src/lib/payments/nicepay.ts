@@ -46,8 +46,8 @@ export const nicepayAdapter: PaymentProviderAdapter = {
         orderId,
         amount: integerAmount,
         paymentMethod: input.metadata?.paymentMethod as string | undefined,
-        callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL1 || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/webhooks/nicepay`,
-        returnUrl: `${process.env.NEXT_PUBLIC_APP_URL1 || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/payment/result?provider=nicepay&bookingId=${orderId}`,
+        callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL_SECONDARY || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/webhooks/nicepay`,
+        returnUrl: `${process.env.NEXT_PUBLIC_APP_URL_SECONDARY || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/payment/result?provider=nicepay&bookingId=${orderId}`,
         expiredIn: input.expiresIn ? String(input.expiresIn) : undefined,
       },
       {

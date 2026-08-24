@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { createAuditLog } from "@/lib/audit-log";
+import { validateActionCsrf } from "@/lib/api-auth";
 
 const processWithdrawalSchema = z.object({
   id: z.string().uuid(),
@@ -24,6 +25,11 @@ export async function processWithdrawalAction(
   prevState: ProcessWithdrawalState | undefined,
   formData: FormData,
 ): Promise<ProcessWithdrawalState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

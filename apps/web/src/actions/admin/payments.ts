@@ -9,6 +9,8 @@ import { z } from "zod";
 import type { Role } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit-log";
 import { logError } from "@/lib/logger";
+import { validateActionCsrf } from "@/lib/api-auth";
+import { handleReferralFailureOnRefund } from "@/lib/referrals/verification";
 
 const createManualPaymentSchema = z.object({
   userId: z.string().uuid(),
@@ -42,6 +44,11 @@ export async function createManualPaymentAction(
   prevState: CreateManualPaymentState | undefined,
   formData: FormData,
 ): Promise<CreateManualPaymentState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -162,6 +169,11 @@ export async function cancelPaymentAction(
   prevState: CancelPaymentState | undefined,
   formData: FormData,
 ): Promise<CancelPaymentState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -238,6 +250,8 @@ export async function cancelPaymentAction(
       })
       .where(eq(payments.id, validated.paymentId));
 
+    await handleReferralFailureOnRefund(db, validated.paymentId);
+
     if (
       booking &&
       (payment.purpose === "dp" || payment.purpose === "full_payment")
@@ -286,6 +300,11 @@ export async function reconcilePaymentAction(
   prevState: ReconcilePaymentState | undefined,
   formData: FormData,
 ): Promise<ReconcilePaymentState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

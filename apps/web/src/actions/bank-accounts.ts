@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { addBankAccountSchema } from "@konkosyuk/shared";
 import { invalidateCacheByTag } from "@/lib/cache";
+import { validateActionCsrf } from "@/lib/api-auth";
 
 export type AddBankAccountState = {
   success?: boolean;
@@ -28,6 +29,11 @@ export async function addBankAccountAction(
   prevState: AddBankAccountState | undefined,
   formData: FormData,
 ): Promise<AddBankAccountState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -127,6 +133,11 @@ export async function updateBankAccountAction(
   prevState: UpdateBankAccountState | undefined,
   formData: FormData,
 ): Promise<UpdateBankAccountState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -220,6 +231,11 @@ export async function deleteBankAccountAction(
   prevState: DeleteBankAccountState | undefined,
   formData: FormData,
 ): Promise<DeleteBankAccountState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

@@ -1,7 +1,9 @@
+import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { appSettings } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { requireSession } from "@/lib/auth";
+import { validateAdminOnlyRequest } from "@/lib/api-auth";
+import { validateCsrfToken } from "@/lib/csrf";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
 
@@ -14,7 +16,9 @@ const settingSchema = z.object({
 
 export async function GET() {
   try {
-    await requireSession(["admin"] as const);
+    const authResult = await validateAdminOnlyRequest(new NextRequest("http://localhost"));
+    if (authResult instanceof Response) return authResult;
+
     const settings = await db
       .select()
       .from(appSettings)
@@ -25,9 +29,14 @@ export async function GET() {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    await requireSession(["admin"] as const);
+    const authResult = await validateAdminOnlyRequest(req);
+    if (authResult instanceof Response) return authResult;
+
+    const csrfResult = validateCsrfToken(req);
+    if (!csrfResult.success) return csrfResult.error!;
+
     const body = await req.json();
     const validated = settingSchema.parse(body);
 
@@ -59,9 +68,14 @@ export async function POST(req: Request) {
   }
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
   try {
-    await requireSession(["admin"] as const);
+    const authResult = await validateAdminOnlyRequest(req);
+    if (authResult instanceof Response) return authResult;
+
+    const csrfResult = validateCsrfToken(req);
+    if (!csrfResult.success) return csrfResult.error!;
+
     const { searchParams } = new URL(req.url);
     const key = searchParams.get("key");
 

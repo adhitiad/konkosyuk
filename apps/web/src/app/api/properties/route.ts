@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { properties, bookings, seasonalPricingRules } from "@/db/schema";
 import type { NewProperty } from "@/db/schema";
-import { eq, and, or, sql, inArray } from "drizzle-orm";
+import { eq, and, or, sql, inArray, like } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
@@ -54,16 +54,18 @@ export async function GET(req: NextRequest) {
     const cursorLimit = Math.min(limit, 50);
 
     if (ids && ids.length > 0) {
+      const limitedIds = ids.slice(0, 100);
       const rows = await db
         .select()
         .from(properties)
-        .where(inArray(properties.id, ids));
+        .where(inArray(properties.id, limitedIds))
+        .limit(100);
 
       return ok({
         data: rows,
         meta: {
           page: 1,
-          limit: rows.length,
+          limit: Math.min(rows.length, 100),
           total: rows.length,
           totalPages: 1,
         },
@@ -101,12 +103,15 @@ export async function GET(req: NextRequest) {
     }
     if (area) {
       const areaCity = area.replace(/-/g, " ");
-      conditions.push(sql`${properties.city} ILIKE ${'%' + areaCity + '%'}`);
+      conditions.push(like(properties.city, `%${areaCity}%`));
     }
     if (campus) {
       const campusQuery = campus.replace(/-/g, " ");
       conditions.push(
-        sql`${properties.address} ILIKE ${'%' + campusQuery + '%'} OR ${properties.description} ILIKE ${'%' + campusQuery + '%'}`,
+        or(
+          like(properties.address, `%${campusQuery}%`),
+          like(properties.description, `%${campusQuery}%`),
+        ),
       );
     }
     if (amenities && amenities.length > 0) {

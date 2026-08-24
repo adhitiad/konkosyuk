@@ -23,6 +23,8 @@ vi.mock("@/lib/queue/queues", () => {
     completeExpiredBookingsQueue: createMockQueue("complete-expired-bookings"),
     savedSearchMatcherQueue: createMockQueue("saved-search-matcher"),
     updateAreaCountsQueue: createMockQueue("update-area-counts"),
+    processExpiredRefundsQueue: createMockQueue("process-expired-refunds"),
+    referralEligibilitySweepQueue: createMockQueue("referral-eligibility-sweep"),
   };
 });
 
@@ -43,7 +45,7 @@ describe("scheduler.ts", () => {
     const { registerRepeatJobs } = await import("@/workers/scheduler");
     await registerRepeatJobs();
 
-    expect(mockUpsertCalls).toHaveLength(4);
+    expect(mockUpsertCalls).toHaveLength(6);
   });
 
   it("should use correct cron patterns", async () => {
@@ -59,6 +61,8 @@ describe("scheduler.ts", () => {
     expect(patterns["complete-expired-bookings"]).toBe("0 2 * * *");
     expect(patterns["saved-search-matcher"]).toBe("0 3 * * *");
     expect(patterns["update-area-counts"]).toBe("0 4 * * *");
+    expect(patterns["process-expired-refunds"]).toBe("0 5 * * *");
+    expect(patterns["referral-eligibility-sweep"]).toBe("0 * * * *");
   });
 
   it("should use deterministic jobId to prevent duplicates", async () => {
@@ -66,7 +70,7 @@ describe("scheduler.ts", () => {
     await registerRepeatJobs();
 
     const jobIds = mockUpsertCalls.map((c) => c.jobId);
-    expect(new Set(jobIds).size).toBe(4);
+    expect(new Set(jobIds).size).toBe(6);
     jobIds.forEach((id) => expect(id).toContain("repeat:"));
   });
 

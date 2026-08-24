@@ -72,10 +72,10 @@ describe("rateLimit", () => {
     expect(headers["X-RateLimit-Reset"]).toBe("2025-01-01T00:01:00.000Z");
   });
 
-  it("allows request when Redis throws", async () => {
+  it("blocks request when Redis throws", async () => {
     mockIncr.mockRejectedValueOnce(new Error("Redis down"));
     const result = await rateLimit(config, "user-1");
-    expect(result.success).toBe(true);
-    expect(result.remaining).toBe(5);
+    expect(result.success).toBe(false);
+    expect(result.remaining).toBe(0);
   });
 });

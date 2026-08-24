@@ -2,11 +2,30 @@ import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { propertyAds, properties, adPackages } from "@/db/schema";
 import { eq, and, sql, desc } from "drizzle-orm";
-import { requireSession } from "@/lib/auth";
+import { validateAdminRequest, requireSession } from "@/lib/api-auth";
+import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, handleApiError } from "@/lib/api";
+import { z } from "zod";
 import { logApiRequest, logError } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
+
+const createAdSchema = z.object({
+  propertyId: z.string().uuid(),
+  advertiserName: z.string().min(1).max(255),
+  advertiserPhone: z.string().max(50).optional().nullable(),
+  advertiserWhatsApp: z.string().max(50).optional().nullable(),
+  title: z.string().min(1).max(255),
+  description: z.string().max(2000).optional().nullable(),
+  imageUrl: z.string().url().optional().nullable(),
+  targetUrl: z.string().url().optional().nullable(),
+  location: z.string().max(255).optional().nullable(),
+  price: z.coerce.number().nonnegative().optional().nullable(),
+  type: z.string().max(50).optional().nullable(),
+  position: z.coerce.number().int().nonnegative().default(0),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional().nullable(),
+});
 
 export async function GET(req: NextRequest) {
   const startTime = Date.now();
@@ -95,14 +114,17 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    await requireSession(["admin"]);
+    const authResult = await validateAdminRequest(req);
+    if (authResult instanceof Response) return authResult;
 
-    const body = await req.json();
+    const csrfError = validateMutationCsrf(req);
+    if (csrfError) return csrfError;
+
+    const body = createAdSchema.parse(await req.json());
 
     const [ad] = await db
       .insert(propertyAds)
       .values({
-        propertyId: body.propertyId,
         advertiserName: body.advertiserName,
         advertiserPhone: body.advertiserPhone,
         advertiserWhatsApp: body.advertiserWhatsApp,
@@ -113,10 +135,10 @@ export async function POST(req: NextRequest) {
         location: body.location,
         price: body.price,
         type: body.type,
-        position: body.position ?? 0,
+        position: body.position,
         startDate: body.startDate ? new Date(body.startDate) : new Date(),
         endDate: body.endDate ? new Date(body.endDate) : null,
-      })
+      } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .returning();
 
     return ok(ad, 201);

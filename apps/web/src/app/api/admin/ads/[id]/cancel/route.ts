@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { propertyAds } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
+import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { logError } from "@/lib/logger";
 
@@ -13,7 +14,10 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await requireSession(["admin", "staff", "owner"]);
+    await requireSession(["admin", "staff"]);
+
+    const csrfError = validateMutationCsrf(req);
+    if (csrfError) return csrfError;
 
     const { id } = await params;
     const [ad] = await db
@@ -24,10 +28,6 @@ export async function POST(
 
     if (!ad) {
       return fail("Iklan tidak ditemukan", 404);
-    }
-
-    if (session.user.role !== "admin" && session.user.role !== "staff") {
-      return fail("Tidak berwenang", 403);
     }
 
     await db

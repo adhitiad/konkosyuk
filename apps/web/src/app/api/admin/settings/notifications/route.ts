@@ -1,4 +1,6 @@
+import { NextRequest } from "next/server";
 import { requireSession, type Role } from "@/lib/auth";
+import { validateCsrfToken } from "@/lib/csrf";
 import { ok, fail, handleApiError } from "@/lib/api";
 import {
   getNotificationSettings,
@@ -41,9 +43,13 @@ export async function GET() {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     await requireSession(["admin"] as Role[]);
+
+    const csrfResult = validateCsrfToken(req);
+    if (!csrfResult.success) return csrfResult.error!;
+
     const body = await req.json();
     const validated = notificationSchema.parse(body);
 

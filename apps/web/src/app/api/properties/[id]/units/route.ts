@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { units, roomFacilities } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { ok, handleApiError } from "@/lib/api";
 import { logError } from "@/lib/logger";
 
@@ -31,20 +31,20 @@ export async function GET(
       .where(eq(units.propertyId, propertyId))
       .orderBy(units.createdAt, units.name);
 
-    const facilitiesRows = unitsRows.length > 0
-      ? await db
-          .select({
-            unitId: roomFacilities.unitId,
-            category: roomFacilities.category,
-            name: roomFacilities.name,
-            icon: roomFacilities.icon,
-          })
-          .from(roomFacilities)
-          .where(
-            sql`${roomFacilities.unitId} IN (${unitsRows.map((u) => u.id).join(",")})`,
-          )
-          .orderBy(roomFacilities.sortOrder, roomFacilities.name)
-      : [];
+    const unitIds = unitsRows.map((u) => u.id);
+    const facilitiesRows =
+      unitIds.length > 0
+        ? await db
+            .select({
+              unitId: roomFacilities.unitId,
+              category: roomFacilities.category,
+              name: roomFacilities.name,
+              icon: roomFacilities.icon,
+            })
+            .from(roomFacilities)
+            .where(inArray(roomFacilities.unitId, unitIds))
+            .orderBy(roomFacilities.sortOrder, roomFacilities.name)
+        : [];
 
     const facilitiesMap = new Map<string, {
       kamar: { name: string; icon: string }[];

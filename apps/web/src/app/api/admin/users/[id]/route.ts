@@ -15,6 +15,56 @@ const updateUserSchema = z.object({
   image: z.string().nullable().optional(),
 });
 
+const staffVisibleFields = [
+  "id",
+  "name",
+  "email",
+  "role",
+  "image",
+  "province",
+  "city",
+  "district",
+  "isActive",
+  "createdAt",
+  "updatedAt",
+] as const;
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const authResult = await validateAdminRequest(req);
+    if (authResult instanceof Response) return authResult;
+    const { session } = authResult;
+
+    const { id: userId } = await params;
+
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+
+    if (!user) {
+      return fail("User not found", 404);
+    }
+
+    const isStaff = session.user.role === "staff";
+
+    if (isStaff) {
+      const safeUser = staffVisibleFields.reduce<Record<string, unknown>>(
+        (acc, field) => {
+          if (field in user) acc[field] = (user as Record<string, unknown>)[field];
+          return acc;
+        },
+        {},
+      );
+      return ok(safeUser);
+    }
+
+    return ok(user);
+  } catch (error) {
+    return handleApiError(error, "GET /api/admin/users/[id]");
+  }
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },

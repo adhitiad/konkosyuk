@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { invalidateCacheByTag } from "@/lib/cache";
 import { createAuditLog } from "@/lib/audit-log";
+import { validateActionCsrf } from "@/lib/api-auth";
 import type { Role } from "@/lib/auth";
 
 const updateNotificationSchema = z.object({
@@ -24,6 +25,11 @@ export async function updateNotificationAction(
   _prevState: UpdateNotificationState | undefined,
   formData: FormData,
 ): Promise<UpdateNotificationState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -76,6 +82,11 @@ export async function adminUpdateNotificationAction(
   _prevState: AdminUpdateNotificationState | undefined,
   formData: FormData,
 ): Promise<AdminUpdateNotificationState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

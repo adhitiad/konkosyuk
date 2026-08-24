@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { users, properties } from "@/db/schema";
-import { sql, and, type SQL } from "drizzle-orm";
+import { sql, and, like } from "drizzle-orm";
 import { validateAdminOnlyRequest } from "@/lib/api-auth";
 import { ok, handleApiError } from "@/lib/api";
 
@@ -24,18 +24,17 @@ export async function GET(req: NextRequest) {
     const cityFilter = searchParams.get("city") || "";
     const districtFilter = searchParams.get("district") || "";
 
-    const conditions: SQL<unknown>[] = [];
+    const conditions = [];
     if (provinceFilter) {
-      const field =
-        filterType === "user" ? users.province : properties.province;
-      conditions.push(sql`${field} ILIKE ${`%${provinceFilter}%`}`);
+      const field = filterType === "user" ? users.province : properties.province;
+      conditions.push(like(field, `%${provinceFilter}%`));
     }
     if (cityFilter) {
       const field = filterType === "user" ? users.city : properties.city;
-      conditions.push(sql`${field} ILIKE ${`%${cityFilter}%`}`);
+      conditions.push(like(field, `%${cityFilter}%`));
     }
     if (districtFilter && filterType === "user") {
-      conditions.push(sql`${users.district} ILIKE ${`%${districtFilter}%`}`);
+      conditions.push(like(users.district, `%${districtFilter}%`));
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;

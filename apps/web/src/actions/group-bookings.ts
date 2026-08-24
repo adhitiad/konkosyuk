@@ -14,6 +14,7 @@ import { z } from "zod";
 import { invalidateCacheByTag } from "@/lib/cache";
 import { dispatchGroupBookingInvite } from "@/lib/notification-service";
 import { logError } from "@/lib/logger";
+import { validateActionCsrf } from "@/lib/api-auth";
 
 type GroupBookingInsert = typeof groupBookings.$inferInsert;
 type GroupBookingMemberInsert = typeof groupBookingMembers.$inferInsert;
@@ -45,6 +46,11 @@ export async function createGroupBookingAction(
   prevState: CreateGroupBookingState | undefined,
   formData: FormData,
 ): Promise<CreateGroupBookingState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

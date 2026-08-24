@@ -1,6 +1,64 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+// @vitest-environment jsdom
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, waitFor, cleanup } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PopularAreasSection } from "@/components/landing/popular-areas-section";
+
+const mockT = vi.fn((key: string, params?: Record<string, unknown>) => {
+  const translations: Record<string, string> = {
+    title: "Area Populer",
+    subtitle: "Temukan kos di area favorit",
+    viewAll: "Lihat Semua",
+    viewAllMobile: "Lihat Semua",
+    propertyCount: params?.count ? `${params.count} properti` : "0 properti",
+  };
+  return translations[key] || key;
+});
+
+vi.mock("next-intl", () => ({
+  useTranslations: () => mockT,
+}));
+
+vi.mock("@/config", () => ({
+  Link: (props: Record<string, unknown>) => {
+    const { href, children, ...rest } = props;
+    return <a href={href as string} {...rest}>{children}</a>;
+  },
+}));
+
+vi.mock("@/lib/cloudinary", () => ({
+  getCloudinaryUrl: (publicId: string, options?: Record<string, unknown>) => {
+    let url = `https://res.cloudinary.com/test/image/upload/${publicId}`;
+    if (options) {
+      const params: string[] = [];
+      if (options.width) params.push(`w_${options.width}`);
+      if (options.height) params.push(`h_${options.height}`);
+      if (options.quality) params.push(`q_${options.quality}`);
+      if (params.length > 0) url += `?${params.join(',')}`;
+    }
+    return url;
+  },
+}));
+
+const mockApiGet = vi.hoisted(() => vi.fn());
+
+vi.mock("@/lib/axios", () => ({
+  apiClient: {
+    get: (...args: unknown[]) => mockApiGet(...args),
+  },
+}));
+
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return function Wrapper({ children }: { children: React.ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+  };
+}
 
 const mockAreas = [
   {
@@ -19,46 +77,33 @@ const mockAreas = [
   },
 ];
 
-vi.mock("@/lib/cloudinary", () => ({
-  getCloudinaryUrl: (publicId: string, options?: Record<string, unknown>) => {
-    let url = `https://res.cloudinary.com/test/image/upload/${publicId}`;
-    if (options) {
-      const params: string[] = [];
-      if (options.width) params.push(`w_${options.width}`);
-      if (options.height) params.push(`h_${options.height}`);
-      if (options.quality) params.push(`q_${options.quality}`);
-      if (params.length > 0) url += `?${params.join(',')}`;
-    }
-    return url;
-  },
-}));
-
 describe("PopularAreasSection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockT.mockClear();
+    mockApiGet.mockReset();
+    cleanup();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it("displays loading skeleton while fetching", () => {
-    const mockFetch = vi.fn(() => new Promise(() => {})) as unknown as typeof fetch;
-    global.fetch = mockFetch;
+    mockApiGet.mockReturnValue(new Promise(() => {}));
 
-    render(<PopularAreasSection />);
+    render(<PopularAreasSection />, { wrapper: createWrapper() });
 
     const skeletons = document.querySelectorAll(".animate-pulse");
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
   it("displays area cards after data loaded", async () => {
-    const mockFetch = vi.fn(() =>
-      Promise.resolve({
-        json: () => Promise.resolve({ areas: mockAreas }),
-        ok: true,
-        status: 200,
-      }),
-    ) as unknown as typeof fetch;
-    global.fetch = mockFetch;
+    mockApiGet.mockResolvedValue({
+      data: { success: true, data: { areas: mockAreas } },
+    });
 
-    render(<PopularAreasSection />);
+    render(<PopularAreasSection />, { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(screen.getByText("Kos Yogyakarta")).toBeInTheDocument();
@@ -68,16 +113,11 @@ describe("PopularAreasSection", () => {
   });
 
   it("each card has link to /properties?area={slug}", async () => {
-    const mockFetch = vi.fn(() =>
-      Promise.resolve({
-        json: () => Promise.resolve({ areas: mockAreas }),
-        ok: true,
-        status: 200,
-      }),
-    ) as unknown as typeof fetch;
-    global.fetch = mockFetch;
+    mockApiGet.mockResolvedValue({
+      data: { success: true, data: { areas: mockAreas } },
+    });
 
-    render(<PopularAreasSection />);
+    render(<PopularAreasSection />, { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(screen.getByText("Kos Yogyakarta")).toBeInTheDocument();
@@ -90,16 +130,11 @@ describe("PopularAreasSection", () => {
   });
 
   it("displays area name and propertyCount", async () => {
-    const mockFetch = vi.fn(() =>
-      Promise.resolve({
-        json: () => Promise.resolve({ areas: mockAreas }),
-        ok: true,
-        status: 200,
-      }),
-    ) as unknown as typeof fetch;
-    global.fetch = mockFetch;
+    mockApiGet.mockResolvedValue({
+      data: { success: true, data: { areas: mockAreas } },
+    });
 
-    render(<PopularAreasSection />);
+    render(<PopularAreasSection />, { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(screen.getByText("Kos Yogyakarta")).toBeInTheDocument();
@@ -110,16 +145,11 @@ describe("PopularAreasSection", () => {
   });
 
   it("does not render if data is empty", async () => {
-    const mockFetch = vi.fn(() =>
-      Promise.resolve({
-        json: () => Promise.resolve({ areas: [] }),
-        ok: true,
-        status: 200,
-      }),
-    ) as unknown as typeof fetch;
-    global.fetch = mockFetch;
+    mockApiGet.mockResolvedValue({
+      data: { success: true, data: { areas: [] } },
+    });
 
-    const { container } = render(<PopularAreasSection />);
+    const { container } = render(<PopularAreasSection />, { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(container.innerHTML).toBe("");

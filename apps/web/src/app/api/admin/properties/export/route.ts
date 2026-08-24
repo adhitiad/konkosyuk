@@ -21,6 +21,8 @@ export async function GET(req: NextRequest) {
     const authResult = await validateAdminRequest(req);
     if (authResult instanceof Response) return authResult;
 
+    const limit = Math.min(Number(req.nextUrl.searchParams.get("limit") || "1000"), 10000);
+
     const data = await db
       .select({
         id: properties.id,
@@ -35,7 +37,8 @@ export async function GET(req: NextRequest) {
         createdAt: properties.createdAt,
       })
       .from(properties)
-      .orderBy(properties.createdAt);
+      .orderBy(properties.createdAt)
+      .limit(limit);
 
     const header = [
       "ID",

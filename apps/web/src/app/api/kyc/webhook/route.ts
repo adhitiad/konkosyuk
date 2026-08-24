@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { db } from "@/db";
 import {
   kycVerifications,
   users,
@@ -6,10 +7,10 @@ import {
   kycStatus,
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { getSettingRequired } from "@/lib/settings";
 import { enforceRateLimit, webhookRateLimit } from "@/lib/rate-limit";
+import { logError, logSecurityEvent } from "@/lib/logger";
 import crypto from "node:crypto";
 
 function shortenFloats(v: unknown): unknown {
@@ -59,7 +60,7 @@ export async function POST(req: NextRequest) {
     const ts = Number(req.headers.get("x-timestamp"));
 
     if (!ts || Math.abs(Date.now() / 1000 - ts) > 300) {
-      console.error("KYC webhook: stale or missing timestamp");
+      logSecurityEvent("kyc_webhook_stale_timestamp", {});
       return fail("Stale timestamp", 401);
     }
 
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
     try {
       webhookSecret = await getSettingRequired("DIDIT_WEBHOOK_SECRET");
     } catch {
-      console.error("KYC webhook misconfigured: missing webhook secret");
+      logSecurityEvent("kyc_webhook_misconfigured", {});
       return fail("Webhook secret not configured", 500);
     }
 
@@ -89,7 +90,7 @@ export async function POST(req: NextRequest) {
       sig.length !== expected.length ||
       !crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(sig))
     ) {
-      console.error("KYC webhook: invalid signature");
+      logSecurityEvent("kyc_webhook_invalid_signature", {});
       return fail("Invalid signature", 401);
     }
 
@@ -104,7 +105,7 @@ export async function POST(req: NextRequest) {
 
     const lookupKey = (vendor_data || session_id) as string | undefined;
     if (!lookupKey) {
-      console.error("KYC webhook: missing vendor_data and session_id");
+      logSecurityEvent("kyc_webhook_missing_identifier", {});
       return fail("Missing identifier", 400);
     }
 
@@ -120,7 +121,7 @@ export async function POST(req: NextRequest) {
       .limit(1);
 
     if (!verification) {
-      console.error("KYC webhook: verification not found for", lookupKey);
+      logSecurityEvent("kyc_webhook_verification_not_found", { lookupKey: lookupKey || "" });
       return fail("Session not found", 404);
     }
 
@@ -163,7 +164,7 @@ export async function POST(req: NextRequest) {
 
     return ok({ received: true });
   } catch (error) {
-    console.error("KYC webhook error:", error);
+    logError(error, "KYC_WEBHOOK_ERROR");
     return handleApiError(error, "KYC webhook");
   }
 }

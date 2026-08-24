@@ -178,11 +178,17 @@ export async function GET() {
       ? "degraded"
       : "healthy";
 
+  const isProd = process.env.NODE_ENV === "production";
+
   return NextResponse.json(
     {
       status: overallStatus,
       timestamp: new Date().toISOString(),
-      checks,
+      ...(isProd
+        ? {}
+        : {
+            checks,
+          }),
     },
     { status: overallStatus === "down" ? 503 : 200 },
   );

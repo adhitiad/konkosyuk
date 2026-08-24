@@ -41,8 +41,8 @@ describe("redis.ts", () => {
     const { createRedisConnection } = await import("@/lib/redis");
     const conn = createRedisConnection();
     expect(conn.options).toMatchObject({
-      maxRetriesPerRequest: null,
-      enableReadyCheck: false,
+      maxRetriesPerRequest: 3,
+      enableReadyCheck: true,
       lazyConnect: true,
     });
   });

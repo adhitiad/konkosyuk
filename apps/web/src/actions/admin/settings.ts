@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
+import { validateActionCsrf } from "@/lib/api-auth";
 
 const settingSchema = z.object({
   key: z.string().min(1, "Key is required"),
@@ -33,6 +34,11 @@ export async function upsertSettingAction(
   prevState: unknown,
   formData: FormData,
 ): Promise<Response> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return fail(csrfError, 400);
+  }
+
   try {
     await requireSession(["admin"] as const);
     const validated = settingSchema.parse({
@@ -89,6 +95,11 @@ export async function updatePlatformFeeAction(
   prevState: unknown,
   formData: FormData,
 ): Promise<Response> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return fail(csrfError, 400);
+  }
+
   try {
     await requireSession(["admin"] as const);
     const validated = platformFeeSchema.parse({

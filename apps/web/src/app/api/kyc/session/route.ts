@@ -5,12 +5,35 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { getSettingRequired, getSetting } from "@/lib/settings";
+import { z } from "zod";
+import { logError } from "@/lib/logger";
 
 const DIDIT_WORKFLOW_ID = "584faed8-a928-4f49-8d9e-d1f2b106035a";
 
-export async function POST(req: Request) {
+const DIDIT_ALLOWED_HOSTS = [
+  "verification.didit.me",
+  "didit-api.example.com",
+];
+
+const createKycSessionSchema = z.object({
+  documentType: z.enum(["ktp", "driving_license", "passport"]).default("ktp"),
+  ktpImageUrl: z.string().url("URL KTP tidak valid"),
+  selfieImageUrl: z.string().url().optional().nullable(),
+});
+
+function isAllowedDiditUrl(urlStr: string): boolean {
   try {
-    const session = await auth.api.getSession({
+    const url = new URL(urlStr);
+    return DIDIT_ALLOWED_HOSTS.includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+export async function POST(req: Request) {
+  let session: Awaited<ReturnType<typeof auth.api.getSession>> | null = null;
+  try {
+    session = await auth.api.getSession({
       headers: await headers(),
     });
 
@@ -19,11 +42,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { documentType, ktpImageUrl, selfieImageUrl } = body;
-
-    if (!ktpImageUrl) {
-      return fail("KTP image is required", 400);
-    }
+    const parsed = createKycSessionSchema.parse(body);
 
     let diditApiKey: string;
 
@@ -38,6 +57,10 @@ export async function POST(req: Request) {
       process.env.NEXT_PUBLIC_DIDIT_API_URL ||
       "https://verification.didit.me";
 
+    if (!isAllowedDiditUrl(diditApiUrl)) {
+      return fail("KYC service URL tidak diizinkan", 500);
+    }
+
     if (!diditApiKey) {
       return fail("KYC service not configured", 500);
     }
@@ -46,14 +69,14 @@ export async function POST(req: Request) {
       .insert(kycVerifications)
       .values({
         userId: session.user.id,
-        documentType: documentType || "ktp",
-        ktpImageUrl: ktpImageUrl || null,
-        selfieImageUrl: selfieImageUrl || null,
+        documentType: parsed.documentType,
+        ktpImageUrl: parsed.ktpImageUrl || null,
+        selfieImageUrl: parsed.selfieImageUrl || null,
         status: "pending",
       })
       .returning();
 
-    const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/owner/kyc`;;
+    const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/owner/kyc`;
 
     const diditResponse = await fetch(`${diditApiUrl}/v3/session/`, {
       method: "POST",
@@ -70,17 +93,10 @@ export async function POST(req: Request) {
 
     if (!diditResponse.ok) {
       const errorText = await diditResponse.text();
-      console.error("Didit API error:", errorText);
-      let detail = "Failed to create KYC session";
-      try {
-        const errorJson = JSON.parse(errorText);
-        if (errorJson.detail) {
-          detail = errorJson.detail;
-        } else if (errorJson.message) {
-          detail = errorJson.message;
-        }
-      } catch {}
-      return fail(detail, 502);
+      logError(new Error(`Didit API error: ${errorText}`), "KYC_API_ERROR", {
+        status: diditResponse.status,
+      });
+      return fail("KYC service unavailable", 502);
     }
 
     const diditData = await diditResponse.json();
@@ -102,13 +118,11 @@ export async function POST(req: Request) {
     return ok({
       sessionId: diditData.session_id,
       redirectUrl: diditData.url,
-      sessionToken: diditData.session_token,
     });
   } catch (error) {
-    console.error(
-      "KYC session error:",
-      error instanceof Error ? error.stack : error,
-    );
+    logError(error, "POST /api/kyc/session", {
+      userId: session?.user?.id,
+    });
     return handleApiError(error, "POST /api/kyc/session");
   }
 }

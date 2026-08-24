@@ -43,6 +43,7 @@ import { getPaymentProvider } from "@/lib/payments";
 import { generateInvoiceNumber, money } from "@/lib/utils";
 import { checkFraudFlags } from "@/lib/fraud-check";
 import { logError } from "@/lib/logger";
+import { validateActionCsrf } from "@/lib/api-auth";
 
 const createBookingSchema = z.object({
   propertyId: z.string().uuid(),
@@ -82,6 +83,11 @@ export async function createBookingAction(
   prevState: CreateBookingState | undefined,
   formData: FormData,
 ): Promise<CreateBookingState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -353,6 +359,11 @@ export async function reviewBookingAction(
   prevState: ReviewBookingState | undefined,
   formData: FormData,
 ): Promise<ReviewBookingState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const validated = reviewBookingSchema.parse({
       bookingId: formData.get("bookingId"),
@@ -576,6 +587,11 @@ export async function createBookingOrGroupAction(
   prevState: CreateBookingState | undefined,
   formData: FormData,
 ): Promise<CreateBookingState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   const isGroupBooking = formData.get("isGroupBooking") === "true";
 
   if (isGroupBooking) {
@@ -779,6 +795,11 @@ export async function getBookingByIdAction(bookingId: string) {
 }
 
 export async function checkoutBookingAction(bookingId: string, formData: FormData) {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { success: false, error: csrfError, status: 400 };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

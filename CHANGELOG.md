@@ -11,23 +11,27 @@
 
 | File | Perubahan | Alasan |
 |------|-----------|--------|
-| `src/actions/upload.ts` | Tambah `VALID_UPLOAD_TYPES` termasuk `"inspection"`, perbaiki validasi WebP magic bytes (cek `"WEBP"` di offset 8-11), tambah CSRF validation via `validateActionCsrf(formData)` | Bug A: type `"inspection"` ditolak karena tidak ada di array validasi. Bug B: CSRF protection hilang di server action. |
-| `src/lib/api-auth.ts` | Tambah helper `validateActionCsrf(formData)` yang baca CSRF token dari FormData dan cocokkan dengan cookie `csrf_token` | Diperlukan untuk melindungi server action dari CSRF attack, consiten dengan pattern API route. |
-| `src/components/property/property-images-upload.tsx` | Tambah `formData.append("csrf", getCsrfToken())` sebelum upload | Memastikan CSRF token terkirim ke server action. |
-| `src/components/reports/report-form.tsx` | Tambah `formData.append("csrf", getCsrfToken())` sebelum upload | Memastikan CSRF token terkirim ke server action. |
-| `src/components/inspection/inspection-photo-upload.tsx` | Tambah `formData.append("csrf", getCsrfToken())` sebelum upload | Memastikan CSRF token terkirim ke server action. |
-| `src/actions/reviews.ts` | Ganti reputation score calculation dari read-modify-write yang race-prone menjadi SATU atomic SQL `UPDATE ... SET reputation_score = (SELECT AVG(...))`, tambah `invalidateCacheByTag("reviews")` di semua mutasi (create, update, delete, reply) | Race condition saat concurrent review menyebabkan score salah. Cache invalidation hilang menyebabkan data stale. |
-| `src/lib/form-data-utils.ts` | Buat helper baru `parseJsonArrayField(formData, key)` yang validate JSON array dan throw error jelas jika invalid | JSON parsing sebelumnya silent-fail ke empty array, menyembunyikan error dari client. |
-| `src/actions/properties.ts` | Ganti semua `JSON.parse` inline untuk array fields (`images`, `amenities`, `units`) dengan `parseJsonArrayField`, tambah error handling untuk packages/metadata JSON invalid, tambah `createPropertyWithUnitsAction` dengan DB transaction | Hardening FormData parsing agar tidak silent-fail. Property wizard refactor untuk atomic property+units creation. |
-| `src/components/owner/property-wizard.tsx` | Restore & refactor: ganti loop `createUnitAction` + `deletePropertyAction` fallback menjadi single `createPropertyWithUnitsAction`, ganti `uploadFile` client-side menjadi `uploadImageAction` dengan CSRF token | Menghindari property orphan di DB jika unit gagal. Upload images kini lolos auth + validasi server. |
-| `src/lib/redis.ts` | Hapus `IoredisClient`, hapus provider `redis-cloud` dan `local`, tetap `UpstashClient` + `MemoryClient` | Opsi A: fokus Vercel deployment, hapus dependency duplikat `ioredis`. |
-| `web/package.json` | Hapus dependency `ioredis` | Dependency duplikat tidak diperlukan untuk Vercel-only deployment. |
-| `web/docker-compose.yml` | **Dihapus** | Opsi A: abaikan Docker self-hosted deployment. |
-| `src/lib/env.ts` | Hapus `REDIS_CLOUD_URL` dan `REDIS_URL` dari env schema | Konsisten dengan Vercel-only, hanya Upstash Redis. |
-| `web/.env.example` | Ganti contoh Redis env vars menjadi `UPSTASH_REDIS_REST_URL` dan `UPSTASH_REDIS_REST_TOKEN` | Dokumentasi konsisten dengan perubahan. |
-| `web/.env.local` | Hapus `REDIS_CLOUD_URL` dan `REDIS_URL` yang stale | Cleanup env vars yang tidak digunakan. |
-| `web/docs/DEPLOYMENT.md` | Hapus section Docker, update Redis secrets dan troubleshooting | Dokumentasi konsisten dengan Vercel-only deployment. |
-| `web/README.md` | Update contoh Redis env vars di README | Dokumentasi konsisten. |
-| `web/.github/workflows/ci.yml` | Hapus `REDIS_URL` dari env global dan deploy job | CI tidak perlu Redis self-hosted lagi. |
-| `AGENTS.md` | Update referensi Redis dari `REDIS_URL` ke `UPSTASH_REDIS_REST_URL/TOKEN` | Dokumentasi monorepo konsisten. |
-| `web/AGENTS.md` | Update referensi Redis | Dokumentasi web konsisten. |
+| `packages/shared/src/db/schema.ts` | Pindahkan schema Drizzle dari `apps/web/src/db/schema.ts` ke shared package | PR-1: schema harus di-shared agar `apps/grpc` bisa akses tanpa app-to-app dependency |
+| `packages/shared/src/db/index.ts` | Buat `createDb()` factory yang export schema dan tipe `Db` | Shared DB helper untuk web dan gRPC server |
+| `apps/web/src/db/schema.ts` | Ganti menjadi re-export dari `@konkosyuk/shared/db/schema` | Jangan duplikat schema, tetap backward-compatible via path alias `@/db/schema` |
+| `apps/web/src/db/index.ts` | Ganti menjadi panggil `createDb()` dari shared package | Gunakan shared DB factory |
+| `apps/web/tsconfig.json` | Tambah path alias `@konkosyuk/shared/*` → `../../packages/shared/src/*` | Perbaiki resolusi subpath import dari shared package |
+| `packages/shared/package.json` | Tambah `drizzle-orm`, `pg`, `@types/pg`, `@types/node` sebagai dependencies | Shared package butuh driver DB + types |
+| `proto/konkosyuk/v1/common.proto` | Buat proto baru dengan `Empty`, `PaginationRequest/Response`, `ApiResponse` | Contract shared untuk semua service |
+| `proto/konkosyuk/v1/auth.proto` | Buat proto AuthService (Register, Login, RefreshSession, GetMe, Logout) | Phase 0: contract auth gRPC |
+| `proto/konkosyuk/v1/properties.proto` | Buat proto PropertyService (ListProperties, GetProperty) + messages `PropertyPackages`, `Property`, `Unit` | Phase 1: contract properties gRPC |
+| `apps/grpc/package.json` | Buat package.json baru untuk gRPC server | Isolated service di Render |
+| `apps/grpc/tsconfig.json` | Buat tsconfig baru | Typecheck gRPC server |
+| `apps/grpc/Dockerfile.grpc` | Buat Dockerfile multi-stage untuk gRPC | Deploy ke Render Web Service |
+| `apps/grpc/scripts/gen-proto.sh` + `buf.yaml` + `buf.gen.ts.yaml` | Setup proto generation dengan buf + ts-proto | Generate TS stubs dari proto |
+| `apps/grpc/src/server.ts` | Buat gRPC server dengan AuthService + PropertyService | Phase 0: server siap di-port 50051 |
+| `apps/grpc/src/lib/auth-instance.ts` | Buat instance Better Auth terpisah untuk gRPC (bearer plugin) | PR-2: auth gRPC tanpa mengubah web auth.ts |
+| `apps/grpc/src/interceptors/auth.interceptor.ts` | Buat `requireAuth()` interceptor untuk extract Bearer token | Semua RPC kritis paksa auth |
+| `apps/grpc/src/services/auth.service.ts` | Implementasi Register, Login, RefreshSession, GetMe, Logout | Phase 0: auth siap pakai |
+| `apps/grpc/src/services/property.service.ts` | Implementasi stub ListProperties + GetProperty | Phase 1: port logic dari `apps/web/src/actions/properties.ts` |
+| `apps/mobile/pubspec.yaml` | Tambah dependencies: `grpc`, `protobuf`, `flutter_secure_storage`, `flutter_riverpod`, `fixnum` | PR-3: mobile siap pakai gRPC |
+| `apps/mobile/lib/core/network/grpc_channel.dart` | Buat `GrpcChannel` wrapper + Riverpod provider | Client utama untuk semua data call |
+| `apps/mobile/lib/features/auth/data/auth_grpc_client.dart` | Buat `AuthGrpcClient` dengan `register`, `login`, `getMe`, `logout` + `FlutterSecureStorage` | Mobile auth via gRPC |
+| `.kilo/rules/global-for-mobile.md` | Update §3 Networking & API: gRPC jadi utama, Dio fallback saja. Update §5: `flutter_secure_storage` wajib untuk token | Aturan mobile konsisten dengan arsitektur gRPC |
+| `turbo.json` | Tambah task `proto:gen` dan tambah `^proto:gen` ke dependsOn `build` | Turbo pipeline regenerate proto sebelum build |
+| `.gitignore` | Tambah `apps/grpc/gen/` dan `apps/mobile/lib/gen/` | Generated proto code tidak di-commit |

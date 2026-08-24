@@ -17,6 +17,8 @@ import { sendBookingRejectionEmail } from "@/lib/notifications/email";
 import { sendRefundApprovalWhatsApp } from "@/lib/notifications/whatsapp";
 import { createNotification } from "@/lib/notifications";
 import { logError } from "@/lib/logger";
+import { validateActionCsrf } from "@/lib/api-auth";
+import { handleReferralFailureOnRefund } from "@/lib/referrals/verification";
 
 const reviewRefundSchema = z.object({
   refundRequestId: z.string().uuid(),
@@ -40,6 +42,11 @@ export async function reviewRefundAction(
   prevState: ReviewRefundState | undefined,
   formData: FormData,
 ): Promise<ReviewRefundState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -118,6 +125,8 @@ export async function reviewRefundAction(
             updatedAt: now,
           })
           .where(eq(payments.id, payment.id));
+
+        await handleReferralFailureOnRefund(tx, payment.id);
 
         await tx
           .update(refundRequests)

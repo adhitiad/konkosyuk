@@ -6,9 +6,8 @@ import {
   units,
   properties,
   users,
-  paymentStatus,
 } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateAdminRequest } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
@@ -39,49 +38,56 @@ const createManualPaymentSchema = z.object({
     .default("pending"),
 });
 
+const paymentQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  status: z.enum(["pending", "success", "failed", "expired", "refunded"]).optional(),
+});
+
 export async function GET(req: NextRequest) {
   try {
     await requireSession(["admin", "staff"] as Role[]);
     const { searchParams } = new URL(req.url);
-    const status = searchParams.get("status");
+    const query = paymentQuerySchema.parse(Object.fromEntries(searchParams));
+    const { page, limit, status } = query;
 
-    const statusValue = typeof status === "string" ? status : undefined;
+    const offset = (page - 1) * limit;
 
-    const data = await db
-      .select({
-        id: payments.id,
-        bookingId: payments.bookingId,
-        provider: payments.provider,
-        purpose: payments.purpose,
-        amount: payments.amount,
-        currency: payments.currency,
-        status: payments.status,
-        transactionId: payments.transactionId,
-        paidAt: payments.paidAt,
-        createdAt: payments.createdAt,
-        updatedAt: payments.updatedAt,
-        bookingCode: bookings.id,
-        userName: users.name,
-        userEmail: users.email,
-        propertyName: properties.name,
-        unitName: units.name,
-      })
-      .from(payments)
-      .leftJoin(bookings, eq(payments.bookingId, bookings.id))
-      .leftJoin(properties, eq(bookings.propertyId, properties.id))
-      .leftJoin(units, eq(bookings.unitId, units.id))
-      .leftJoin(users, eq(bookings.userId, users.id))
-      .where(
-        statusValue
-          ? eq(payments.status, statusValue as (typeof paymentStatus)[number])
-          : undefined,
-      )
-      .orderBy(desc(payments.createdAt))
-      .limit(100);
+    const [data, [{ count: total }]] = await Promise.all([
+      db
+        .select({
+          id: payments.id,
+          bookingId: payments.bookingId,
+          provider: payments.provider,
+          purpose: payments.purpose,
+          amount: payments.amount,
+          currency: payments.currency,
+          status: payments.status,
+          transactionId: payments.transactionId,
+          paidAt: payments.paidAt,
+          createdAt: payments.createdAt,
+          updatedAt: payments.updatedAt,
+          bookingCode: bookings.id,
+          userName: users.name,
+          userEmail: users.email,
+          propertyName: properties.name,
+          unitName: units.name,
+        })
+        .from(payments)
+        .leftJoin(bookings, eq(payments.bookingId, bookings.id))
+        .leftJoin(properties, eq(bookings.propertyId, properties.id))
+        .leftJoin(units, eq(bookings.unitId, units.id))
+        .leftJoin(users, eq(bookings.userId, users.id))
+        .where(status ? eq(payments.status, status) : undefined)
+        .orderBy(desc(payments.createdAt))
+        .limit(limit)
+        .offset(offset),
+      db.select({ count: sql<number>`count(*)` }).from(payments),
+    ]);
 
-    return ok({ data, meta: { total: data.length } });
+    return ok({ data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } });
   } catch (error) {
-    return handleApiError(error);
+    return handleApiError(error, "GET /api/admin/payments");
   }
 }
 

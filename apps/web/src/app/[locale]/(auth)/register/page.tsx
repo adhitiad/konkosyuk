@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useSyncExternalStore } from "react";
+import { useState, useEffect, useSyncExternalStore, useRef } from "react";
 import Link from "next/link";
 import { useSession, authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
@@ -25,6 +25,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Globe, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 import { AuthLayout } from "@/components/auth/auth-layout";
 import type { SessionUserWithRole } from "@/lib/auth-client";
+import { linkReferralCode } from "@/actions/referrals";
+import { toast } from "sonner";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -39,11 +41,20 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const refCodeRef = useRef<string | null>(null);
   const mounted = useSyncExternalStore(
     () => () => {},
     () => false,
     () => true,
   );
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      refCodeRef.current = ref;
+    }
+  }, []);
 
   useEffect(() => {
     if (!isPending && session) {
@@ -75,7 +86,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const { error } = await authClient.signUp.email({
+      const { data, error } = await authClient.signUp.email({
         name,
         email,
         password,
@@ -84,6 +95,13 @@ export default function RegisterPage() {
       if (error) {
         setError(error.message || "Pendaftaran gagal");
         return;
+      }
+
+      if (refCodeRef.current && data?.user?.id) {
+        const result = await linkReferralCode(data.user.id, refCodeRef.current);
+        if (!result.success) {
+          toast.error(result.error ?? "Gagal menghubungkan kode referral");
+        }
       }
 
       router.push("/login?registered=1");

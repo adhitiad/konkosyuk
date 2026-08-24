@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { createWithdrawalSchema } from "@konkosyuk/shared";
 import { invalidateCacheByTag } from "@/lib/cache";
+import { validateActionCsrf } from "@/lib/api-auth";
 
 export type CreateWithdrawalState = {
   success?: boolean;
@@ -25,6 +26,11 @@ export async function createWithdrawalAction(
   prevState: CreateWithdrawalState | undefined,
   formData: FormData,
 ): Promise<CreateWithdrawalState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

@@ -95,8 +95,15 @@ vi.mock("@/lib/auth", () => ({
   },
 }));
 
+vi.mock("@/lib/api-auth", () => ({
+  validateActionCsrf: vi.fn().mockResolvedValue(null),
+}));
+
 vi.mock("next/headers", () => ({
   headers: vi.fn().mockResolvedValue(new Headers()),
+  cookies: vi.fn().mockResolvedValue({
+    get: vi.fn().mockReturnValue({ value: "test-csrf-token" }),
+  }),
 }));
 
 vi.mock("@/lib/cache", () => ({

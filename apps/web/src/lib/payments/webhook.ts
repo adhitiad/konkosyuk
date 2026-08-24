@@ -13,6 +13,7 @@ import { getPaymentProvider } from "./index";
 import type { WebhookContext, NormalizedWebhook } from "./types";
 import { sendPaymentReceivedEmail } from "@/lib/notifications/email";
 import { dispatchNotification } from "@/lib/notification-service";
+import { startReferralVerification } from "@/lib/referrals/verification";
 import crypto from "node:crypto";
 
 export async function handleWebhookRequest(
@@ -173,6 +174,12 @@ export async function handleWebhookRequest(
             .update(units)
             .set({ status: "booked", updatedAt: new Date() })
             .where(eq(units.id, foundBooking.unitId));
+
+          await startReferralVerification(tx, {
+            refereeUserId: foundBooking.userId,
+            paymentId: payment.id,
+            paymentAmount: Number(payment.amount),
+          });
         }
       } else if (payment.purpose === "dp") {
         const [foundBooking] = await tx

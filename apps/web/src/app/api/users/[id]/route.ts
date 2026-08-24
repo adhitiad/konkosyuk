@@ -23,6 +23,42 @@ const updateUserSchema = z.object({
   image: z.string().nullable().optional(),
 });
 
+const staffAllowedFields = [
+  "name",
+  "email",
+  "phone",
+  "whatsapp",
+  "telegram",
+  "district",
+  "city",
+  "province",
+  "image",
+] as const;
+
+function sanitizeUpdateBody(
+  body: z.infer<typeof updateUserSchema>,
+  requesterRole: string,
+  targetRole: string,
+) {
+  if (requesterRole === "admin") {
+    return body;
+  }
+
+  if (targetRole !== "cust") {
+    return fail("Forbidden - staff can only edit cust users", 403);
+  }
+
+  const updateData: Record<string, unknown> = {};
+  for (const key of staffAllowedFields) {
+    const value = body[key as keyof typeof body];
+    if (value !== undefined) {
+      updateData[key] = value;
+    }
+  }
+
+  return updateData;
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -30,7 +66,7 @@ export async function PATCH(
   try {
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
-    await requireSession(["admin", "staff"] as Role[]);
+    const session = await requireSession(["admin", "staff"] as Role[]);
     const { id: userId } = await params;
     const body = updateUserSchema.parse(await req.json());
 
@@ -44,10 +80,19 @@ export async function PATCH(
       return fail("User not found", 404);
     }
 
+    const updateData = sanitizeUpdateBody(body, session.user.role, existing.role);
+    if (updateData instanceof Response) return updateData;
+
+    if (session.user.role === "staff" && existing.id === session.user.id) {
+      if (body.role && body.role !== existing.role) {
+        return fail("Staff cannot change their own role", 403);
+      }
+    }
+
     const [updated] = await db
       .update(users)
       .set({
-        ...body,
+        ...updateData,
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId))
@@ -66,7 +111,7 @@ export async function PUT(
   try {
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
-    await requireSession(["admin", "staff"] as Role[]);
+    const session = await requireSession(["admin", "staff"] as Role[]);
     const { id: userId } = await params;
     const body = updateUserSchema.parse(await req.json());
 
@@ -80,10 +125,19 @@ export async function PUT(
       return fail("User not found", 404);
     }
 
+    const updateData = sanitizeUpdateBody(body, session.user.role, existing.role);
+    if (updateData instanceof Response) return updateData;
+
+    if (session.user.role === "staff" && existing.id === session.user.id) {
+      if (body.role && body.role !== existing.role) {
+        return fail("Staff cannot change their own role", 403);
+      }
+    }
+
     const [updated] = await db
       .update(users)
       .set({
-        ...body,
+        ...updateData,
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId))

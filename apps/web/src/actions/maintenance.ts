@@ -7,6 +7,8 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { logError } from "@/lib/logger";
+import { validateActionCsrf } from "@/lib/api-auth";
+import { sanitizeString } from "@/lib/sanitize";
 
 const createTicketSchema = z.object({
   unitId: z.string().uuid(),
@@ -26,6 +28,11 @@ export async function createMaintenanceTicketAction(
   prevState: CreateMaintenanceTicketState | undefined,
   formData: FormData,
 ): Promise<CreateMaintenanceTicketState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const imagesRaw = formData.get("images");
     let images: string[] = [];
@@ -90,8 +97,8 @@ export async function createMaintenanceTicketAction(
       .values({
         unitId: validated.unitId,
         tenantId: session.user.id,
-        title: validated.title,
-        description: validated.description,
+        title: sanitizeString(validated.title) || validated.title,
+        description: sanitizeString(validated.description) || validated.description,
         priority: validated.priority,
         images: validated.images ?? [],
       })
@@ -127,6 +134,11 @@ export async function updateMaintenanceTicketAction(
   prevState: UpdateMaintenanceTicketState | undefined,
   formData: FormData,
 ): Promise<UpdateMaintenanceTicketState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const ticketId = formData.get("id") as string;
     if (!ticketId) {

@@ -11,6 +11,7 @@ import {
 import { eq, sql, and, lt } from "drizzle-orm";
 import { createAuditLog } from "@/lib/audit-log";
 import { logError } from "@/lib/logger";
+import { handleReferralFailureOnRefund } from "@/lib/referrals/verification";
 
 export async function processExpiredPaymentRefunds() {
   try {
@@ -62,6 +63,8 @@ export async function processExpiredPaymentRefunds() {
           .update(payments)
           .set({ status: "refunded", updatedAt: now })
           .where(eq(payments.id, payment.id));
+
+        await handleReferralFailureOnRefund(tx, payment.id);
 
         await tx
           .update(bookings)

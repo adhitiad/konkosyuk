@@ -23,6 +23,8 @@ vi.mock("bullmq", () => {
 
 vi.mock("@/lib/redis", () => ({
   createRedisConnection: vi.fn().mockReturnValue({}),
+  getSharedRedisConnection: vi.fn().mockReturnValue({}),
+  closeSharedRedisConnection: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@/workers/processors/cleanup.processor", () => ({
@@ -41,6 +43,14 @@ vi.mock("@/workers/processors/update-area-counts.processor", () => ({
   processUpdateAreaCounts: vi.fn(),
 }));
 
+vi.mock("@/workers/processors/process-expired-refunds.processor", () => ({
+  processExpiredPaymentRefundsJob: vi.fn(),
+}));
+
+vi.mock("@/workers/processors/referral-eligibility-sweep.processor", () => ({
+  processReferralEligibilitySweep: vi.fn(),
+}));
+
 vi.mock("@/lib/logger", () => ({
   logInfo: vi.fn(),
   logError: vi.fn(),
@@ -54,11 +64,11 @@ describe("main.worker.ts", () => {
     workerCalls.length = 0;
   });
 
-  it("startWorkers should create 4 workers", async () => {
+  it("startWorkers should create 5 workers", async () => {
     const { startWorkers } = await import("@/workers/main.worker");
     startWorkers();
 
-    expect(mockWorkers).toHaveLength(4);
+    expect(mockWorkers).toHaveLength(6);
   });
 
   it("startWorkers should pass correct queue names", async () => {
@@ -71,6 +81,8 @@ describe("main.worker.ts", () => {
     expect(queueNames).toContain("complete-expired-bookings");
     expect(queueNames).toContain("saved-search-matcher");
     expect(queueNames).toContain("update-area-counts");
+    expect(queueNames).toContain("process-expired-refunds");
+    expect(queueNames).toContain("referral-eligibility-sweep");
   });
 
   it("startWorkers should set concurrency to 1", async () => {

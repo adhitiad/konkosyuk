@@ -1,0 +1,12 @@
+version: v1
+plugins:
+  - remote: buf.build/community/stephenh-ts-proto
+    out: src/gen
+    opt:
+      - outputServices=grpc-js
+      - outputServices=niceGrpc
+      - useExactTypes=false
+      - useOptionals=false
+      - snakeToCamel=true
+      - oneofType=union
+      - outputTypeRegistry=true

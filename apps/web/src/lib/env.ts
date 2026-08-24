@@ -5,11 +5,11 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url(),
 
   // Authentication Configuration
-  BETTER_AUTH_URL1: z.string().url(),
-  BETTER_AUTH_URL2: z.string().url(),
+  BETTER_AUTH_URL: z.string().url(),
+  BETTER_AUTH_URL_SECONDARY: z.string().url().optional(),
   BETTER_AUTH_SECRET: z.string().min(32),
-  NEXT_PUBLIC_APP_URL1: z.string().url(),
-  NEXT_PUBLIC_APP_URL2: z.string().url(),
+  NEXT_PUBLIC_APP_URL: z.string().url(),
+  NEXT_PUBLIC_APP_URL_SECONDARY: z.string().url().optional(),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
 

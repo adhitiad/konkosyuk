@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { createAuditLog } from "@/lib/audit-log";
+import { validateActionCsrf } from "@/lib/api-auth";
 import { getPaymentProvider } from "@/lib/payments";
 import { handleWebhookRequest } from "@/lib/payments/webhook";
 import type { WebhookContext } from "@/lib/payments/types";
@@ -24,6 +25,11 @@ export async function reprocessWebhookAction(
   prevState: ReprocessWebhookState | undefined,
   formData: FormData,
 ): Promise<ReprocessWebhookState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const validated = reprocessWebhookSchema.parse({
       webhookId: formData.get("webhookId"),

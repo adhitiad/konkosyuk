@@ -33,11 +33,27 @@ export function createRedisConnection(overrides?: RedisConnectionOptions): Redis
   }
 
   return new Redis(process.env.REDIS_URL, {
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false,
+    maxRetriesPerRequest: 3,
+    enableReadyCheck: true,
     lazyConnect: true,
     ...overrides,
   });
+}
+
+let sharedConnection: Redis | null = null;
+
+export function getSharedRedisConnection(): Redis {
+  if (!sharedConnection) {
+    sharedConnection = createRedisConnection();
+  }
+  return sharedConnection;
+}
+
+export async function closeSharedRedisConnection(): Promise<void> {
+  if (sharedConnection) {
+    await sharedConnection.quit();
+    sharedConnection = null;
+  }
 }
 
 export function createRedisClient(overrides?: RedisConnectionOptions): Redis {

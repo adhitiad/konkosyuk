@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { createAuditLog } from "@/lib/audit-log";
+import { validateActionCsrf } from "@/lib/api-auth";
 
 const approveKycSchema = z.object({
   userId: z.string().uuid(),
@@ -24,6 +25,11 @@ export async function approveKycAction(
   prevState: ApproveKycState | undefined,
   formData: FormData,
 ): Promise<ApproveKycState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

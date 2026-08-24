@@ -17,6 +17,7 @@
     "vercel": "^59.1.4"
   },
   "devDependencies": {
+    "@parcel/watcher": "^2.6.0",
     "globals": "^17.11.0",
     "turbo": "^2.0.0"
   },

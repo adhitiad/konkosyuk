@@ -47,8 +47,8 @@ export const dokuAdapter: PaymentProviderAdapter = {
         amount: integerAmount,
         customerName: input.metadata?.customerName ?? "Customer",
         email: input.metadata?.email ?? "",
-        callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL1 || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/webhooks/doku`,
-        returnUrl: `${process.env.NEXT_PUBLIC_APP_URL1 || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/payment/result?provider=doku&bookingId=${invoiceNumber}`,
+        callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL_SECONDARY || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/webhooks/doku`,
+        returnUrl: `${process.env.NEXT_PUBLIC_APP_URL_SECONDARY || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/payment/result?provider=doku&bookingId=${invoiceNumber}`,
         expiredIn: input.expiresIn ? String(input.expiresIn) : undefined,
       },
       {

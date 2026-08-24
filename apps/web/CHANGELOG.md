@@ -9,6 +9,12 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/lang/id/).
 
 ### Added
 
+- Referral system P0: commission calculation, eligibility sweep, voucher redemption
+- `voucher_redeemed_at` column pada tabel `referrals` untuk mencegah double-spend voucher
+- Server action `linkReferralCode` untuk capture referral code saat signup
+- Cron job `referral-eligibility-sweep` (tiap jam) untuk memproses referral yang sudah eligible
+- Voucher redemption di featured listing checkout (max 50% potongan)
+- Duplicate-guard untuk kategori tenant (one-time commission per referee)
 - Sistem security event logging untuk auth flows
 - Webhook IP allowlist untuk Doku, iPaymu, dan Nicepay
 - Payment amount tampering protection di webhook handler
@@ -16,21 +22,23 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/lang/id/).
 - Testing infrastructure: Vitest + React Testing Library
 - E2E testing dengan Playwright
 - Code coverage reporting dengan threshold minimum
+- `/api/health/live` endpoint untuk liveness probe (K8s/Docker)
+- Shared Redis connection singleton untuk BullMQ workers dan queues
 
 ### Changed
 
+- `total_referrals` di tabel `users` kini di-increment saat referral completed (convert_voucher / apply_offset)
+- Referral verification dimulai otomatis saat `full_payment` webhook sukses
+- Referral gagal otomatis saat payment di-refund (4 titik integrasi)
+- Featured listing checkout mendukung parameter `voucherCode` opsional
 - Migrasi iPaymu signature dari MD5 ke HMAC-SHA256
 - Session configuration: `expiresIn` 7 hari, `updateAge` 1 hari
 - Password policy: minimum 8 karakter
 - Email verification required untuk semua user
-
-### Fixed
-
-- CSRF protection dengan httpOnly + strict cookie
-- Admin webhook reprocess dengan signature re-verification
-- Account linking memerlukan email terverifikasi
-- Error message sanitization untuk menghindari information leakage
-- Mass assignment protection di admin user update
+- Semua Server Actions kini memiliki validasi CSRF via `validateActionCsrf(formData)`
+- Rate limiter kini fail-closed (mengembalikan 503 saat Redis tidak tersedia, bukan unlimited access)
+- Payment gateway URLs menggunakan `NEXT_PUBLIC_APP_URL_SECONDARY` fallback (menggantikan `NEXT_PUBLIC_APP_URL1`)
+- Docker healthcheck menggunakan `curl -f` ke `/api/health/live`
 
 ### Security
 
@@ -38,6 +46,37 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/lang/id/).
 - Security headers: COOP, COEP, X-Permitted-Cross-Domain-Policies, X-Download-Options
 - Trusted origins expansion untuk production
 - Public rate limiting (60 req/min) pada endpoint properties
+- Webhook signature verification diprioritaskan sebelum rate limiting
+- `PAYMENT_MODE=mock` mengeluarkan error di production
+
+### Security
+
+- Audit 80+ API endpoint: identifikasi 20 finding (6 High, 9 Medium, 5 Low)
+- Admin ads mutations missing CSRF validation (approve/reject/cancel)
+- KYC endpoint SSRF via `diditApiUrl` — ditambahkan validasi URL allowlist
+- Referral double-spend race condition — ditambahkan `db.transaction()` + `FOR UPDATE`
+- Staff authorization bypass: `/api/users/[id]` dan `/api/properties/[id]` ditambahkan ownership check untuk staff
+- `/api/admin/kyc/requests` kini hanya admin, KTP number masked, gambar via presigned URL
+- `/api/users/me` menghapus eksposur `ktpNumber` dan `ktpImageUrl`
+- `/api/properties` GET `ids` filter sekarang dibatasi 100 records
+- `/api/reviews` GET kini memiliki pagination (limit 50, max 200)
+- `/api/referrals` PUT wrapped in transaction dengan row-level lock
+- `/api/admin/payments/[id]` PATCH wrapped in transaction
+- `/api/admin/ads/[id]` approve/reject menggunakan conditional update untuk mencegah race condition
+- Input validation: ad mutations, KYC session, referrals menggunakan Zod schema
+- CSV injection protection di `/api/admin/bookings/export`
+- Error logging: mengganti `console.error` dengan `logError` di KYC dan webhook handlers
+- CSP: menghapus `dangerouslyAllowSVG`, menambahkan `report-uri` untuk violation monitoring
+- CSRF cookie `sameSite` diubah ke `strict` di production
+- SQL injection fixes: `/admin/reports/demographics`, `/api/properties`, `/api/properties/[id]/units`
+- Staff field restriction: admin users list dan detail kini menyaring field sensitif (KTP, balance, reputation) untuk role staff
+- Pagination added: `/admin/users`, `/admin/payments`, `/admin/properties/export`, `/admin/bookings/export`, `/admin/analytics/revenue`
+- XSS sanitization: user-generated content (reviews, chat, maintenance, properties, profile) disanitasi via `sanitizeString()` sebelum disimpan
+- SVG upload blocked di `/api/user/upload-avatar` + magic bytes validation + size limit 5MB
+- Password reset configured di Better Auth dengan token delivery
+- Rate limiting configured di Better Auth: 100 req/60s default, 5 req/10s untuk sign-in/email dan sign-up/email, 3 req/10s untuk forgot-password dan two-factor
+- Error handling: removed silent catch blocks, menggunakan `handleApiError` untuk konsistensi
+- Pre-existing TypeScript fixes: `referrals` schema `updatedAt` column removed dari library yang tidak tersedia di schema
 
 ### Removed
 

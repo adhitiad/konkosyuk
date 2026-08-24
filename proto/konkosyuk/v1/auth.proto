@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package konkosyuk.v1;
+
+import "konkosyuk/v1/common.proto";
+
+option java_multiple_files = true;
+option java_package = "com.konkosyuk.api.v1";
+
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  CUST = 1;
+  OWNER = 2;
+  ADMIN = 3;
+  STAFF = 4;
+}
+
+enum KycStatus {
+  KYC_STATUS_UNSPECIFIED = 0;
+  KYC_NONE = 1;
+  KYC_PENDING = 2;
+  KYC_VERIFIED = 3;
+  KYC_REJECTED = 4;
+}
+
+message User {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  string phone = 4;
+  string whatsapp = 5;
+  string telegram = 6;
+  UserRole role = 7;
+  bool is_active = 8;
+  bool is_banned = 9;
+  string ban_reason = 10;
+  bool two_factor_enabled = 11;
+  KycStatus kyc_status = 12;
+  string ktp_number = 13;
+  string ktp_image_url = 14;
+  string reputation_score = 15;
+  string balance = 16;
+  string province = 17;
+  string city = 18;
+  string district = 19;
+  string referral_code = 20;
+  string referred_by = 21;
+  string loyalty_tier = 22;
+  int32 total_referrals = 23;
+  string created_at = 24;
+  string updated_at = 25;
+}
+
+message Session {
+  string id = 1;
+  string user_id = 2;
+  string expires_at = 3;
+  string token = 4;
+  string ip_address = 5;
+  string user_agent = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string name = 3;
+  string phone = 4;
+  UserRole role = 5;
+}
+
+message RegisterResponse {
+  User user = 1;
+  Session session = 2;
+  string token = 3;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  User user = 1;
+  Session session = 2;
+  string token = 3;
+}
+
+message RefreshSessionRequest {
+  string refresh_token = 1;
+}
+
+message RefreshSessionResponse {
+  Session session = 1;
+  string token = 2;
+}
+
+message GetMeRequest {
+  Empty empty = 1;
+}
+
+message GetMeResponse {
+  User user = 1;
+}
+
+message LogoutRequest {
+  Empty empty = 1;
+}
+
+message LogoutResponse {
+  ApiResponse result = 1;
+}
+
+service AuthService {
+  rpc Register (RegisterRequest) returns (RegisterResponse);
+  rpc Login (LoginRequest) returns (LoginResponse);
+  rpc RefreshSession (RefreshSessionRequest) returns (RefreshSessionResponse);
+  rpc GetMe (GetMeRequest) returns (GetMeResponse);
+  rpc Logout (LogoutRequest) returns (LogoutResponse);
+}

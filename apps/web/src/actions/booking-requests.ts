@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { logInfo, logError } from "@/lib/logger";
+import { validateActionCsrf } from "@/lib/api-auth";
 
 const createBookingRequestSchema = z.object({
   unitId: z.string().uuid(),
@@ -25,6 +26,11 @@ export async function createBookingRequestAction(
   prevState: CreateBookingRequestState | undefined,
   formData: FormData,
 ): Promise<CreateBookingRequestState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const validated = createBookingRequestSchema.parse({
       unitId: formData.get("unitId"),
@@ -147,6 +153,11 @@ export async function reviewBookingRequestAction(
   prevState: ReviewBookingRequestState | undefined,
   formData: FormData,
 ): Promise<ReviewBookingRequestState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const validated = reviewBookingRequestSchema.parse({
       bookingRequestId: formData.get("bookingRequestId"),

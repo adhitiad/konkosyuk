@@ -23,6 +23,9 @@ import { getPaymentProvider } from "@/lib/payments";
 import { createAuditLog } from "@/lib/audit-log";
 import type { PropertyPackages } from "@/lib/types/property-packages";
 import type { NewProperty, NewPayment } from "@/db/schema";
+import { validateActionCsrf } from "@/lib/api-auth";
+import { validateAndApplyVoucher, markVoucherRedeemed } from "@/lib/referrals/voucher";
+import { sanitizeString } from "@/lib/sanitize";
 
 export type CreatePropertyState = {
   success?: boolean;
@@ -39,6 +42,11 @@ export async function createPropertyAction(
   prevState: CreatePropertyState | undefined,
   formData: FormData,
 ): Promise<CreatePropertyState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -119,8 +127,8 @@ export async function createPropertyAction(
     const [property] = await db
       .insert(properties)
       .values({
-        name: validated.title,
-        description: validated.description,
+        name: sanitizeString(validated.title) || validated.title,
+        description: validated.description ? sanitizeString(validated.description) : null,
         address: validated.address ?? "",
         province: validated.province,
         city: validated.city,
@@ -182,6 +190,11 @@ export async function updatePropertyAction(
   prevState: UpdatePropertyState | undefined,
   formData: FormData,
 ): Promise<UpdatePropertyState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -323,6 +336,11 @@ export async function deletePropertyAction(
   prevState: DeletePropertyState | undefined,
   formData: FormData,
 ): Promise<DeletePropertyState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -379,6 +397,11 @@ export async function featurePropertyAction(
   prevState: FeaturePropertyState | undefined,
   formData: FormData,
 ): Promise<FeaturePropertyState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -475,6 +498,11 @@ export async function approvePropertyAction(
   prevState: ApprovePropertyState | undefined,
   formData: FormData,
 ): Promise<ApprovePropertyState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -572,12 +600,18 @@ export type CheckoutFeaturedState = {
 const checkoutFeaturedSchema = z.object({
   propertyId: z.string().uuid(),
   paymentProvider: z.enum(["doku", "ipaymu", "nicepay", "mock"]),
+  voucherCode: z.string().optional(),
 });
 
 export async function checkoutFeaturedAction(
   prevState: CheckoutFeaturedState | undefined,
   formData: FormData,
 ): Promise<CheckoutFeaturedState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -640,6 +674,17 @@ export async function checkoutFeaturedAction(
       };
     }
 
+    let finalAmount = amount;
+    let appliedReferralId: string | undefined;
+    if (validated.voucherCode) {
+      const result = await validateAndApplyVoucher(validated.voucherCode, property.ownerId, amount);
+      if (!result.valid) {
+        return { error: result.error, success: false };
+      }
+      finalAmount = result.finalAmount!;
+      appliedReferralId = result.referralId;
+    }
+
     const invoiceNumber = generateInvoiceNumber("FEATURED");
 
     const [payment] = await db
@@ -649,13 +694,15 @@ export async function checkoutFeaturedAction(
         propertyId: property.id,
         provider: validated.paymentProvider,
         purpose: "featured_listing",
-        amount: money(amount),
+        amount: money(finalAmount),
         currency: "IDR",
         status: "pending",
         transactionId: invoiceNumber,
         metadata: {
           propertyId: property.id,
           ownerId: property.ownerId,
+          voucherCode: validated.voucherCode || null,
+          originalAmount: amount,
         },
       } satisfies NewPayment)
       .returning();
@@ -665,7 +712,7 @@ export async function checkoutFeaturedAction(
         bookingId: property.id,
         provider: validated.paymentProvider,
         purpose: "featured_listing",
-        amount,
+        amount: finalAmount,
         currency: "IDR",
         metadata: {
           invoiceNumber,
@@ -681,6 +728,10 @@ export async function checkoutFeaturedAction(
           updatedAt: new Date(),
         })
         .where(eq(payments.id, payment.id));
+
+      if (appliedReferralId) {
+        await markVoucherRedeemed(appliedReferralId);
+      }
 
       return {
         success: true,

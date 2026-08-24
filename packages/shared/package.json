@@ -8,18 +8,30 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./db": {
+      "types": "./dist/db/index.d.ts",
+      "default": "./dist/db/index.js"
+    },
+    "./db/schema": {
+      "types": "./dist/db/schema.d.ts",
+      "default": "./dist/db/schema.js"
     }
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --external zod",
+    "build": "bun x tsc",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "pg": "^8.22.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/pg": "^8.23.1",
     "@typescript-eslint/parser": "^8.67.0",
     "eslint": "^9",
     "typescript": "^6",

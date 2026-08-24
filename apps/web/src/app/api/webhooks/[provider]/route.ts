@@ -24,6 +24,29 @@ export async function POST(
       );
     }
 
+    const rawBody = await req.text();
+    const ctx = {
+      provider: provider as "ipaymu" | "doku" | "nicepay",
+      headers: req.headers,
+      rawBody,
+    };
+
+    const isValid = await adapter.verifyWebhookSignature(ctx);
+    if (!isValid) {
+      logSecurityEvent("webhook_invalid_signature", {
+        provider,
+        ip: getClientIp(req),
+        userAgent: req.headers.get("user-agent"),
+      });
+      return NextResponse.json(
+        { success: false, error: "Invalid signature" },
+        { status: 401 },
+      );
+    }
+
+    const limited = await enforceRateLimit(req, webhookRateLimit);
+    if (limited) return limited;
+
     const clientIp = getClientIp(req);
     if (!isWebhookIpAllowed(provider, req)) {
       logSecurityEvent("webhook_ip_blocked", {
@@ -36,16 +59,6 @@ export async function POST(
         { status: 403 },
       );
     }
-
-    const limited = await enforceRateLimit(req, webhookRateLimit);
-    if (limited) return limited;
-
-    const rawBody = await req.text();
-    const ctx = {
-      provider: provider as "ipaymu" | "doku" | "nicepay",
-      headers: req.headers,
-      rawBody,
-    };
 
     const result = await handleWebhookRequest(provider, ctx);
 

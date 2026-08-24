@@ -6,15 +6,14 @@ import { eq, desc, sql } from "drizzle-orm";
 
 export async function GET() {
   try {
-    await requireSession(["admin", "staff"]);
+    await requireSession(["admin"]);
 
     const verifications = await db
       .select({
         id: users.id,
         email: users.email,
         name: users.name,
-        ktpNumber: users.ktpNumber,
-        ktpImageUrl: users.ktpImageUrl,
+        ktpNumber: sql<string>`CASE WHEN LENGTH(${users.ktpNumber}) >= 8 THEN '****-**-****' ELSE ${users.ktpNumber} END`,
         kycStatus: users.kycStatus,
         updatedAt: users.updatedAt,
         createdAt: users.createdAt,

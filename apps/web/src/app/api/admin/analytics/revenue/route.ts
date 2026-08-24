@@ -7,17 +7,25 @@ import {
   users,
   platformSettings,
 } from "@/db/schema";
-import { eq, desc, and, gte, lte } from "drizzle-orm";
+import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { ok, handleApiError } from "@/lib/api";
 import type { Role } from "@/lib/auth";
+import { z } from "zod";
+
+const revenueQuerySchema = z.object({
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+});
 
 export async function GET(req: NextRequest) {
   try {
-    await requireSession(["admin", "staff"] as Role[]);
+    await requireSession(["admin"] as Role[]);
     const { searchParams } = new URL(req.url);
-    const startDate = searchParams.get("startDate");
-    const endDate = searchParams.get("endDate");
+    const query = revenueQuerySchema.parse(Object.fromEntries(searchParams));
+    const { startDate, endDate, page, limit } = query;
 
     const now = new Date();
     const defaultEnd = new Date(
@@ -40,31 +48,47 @@ export async function GET(req: NextRequest) {
 
     const feePercent = parseFloat(settings?.platformFeePercent || "1.8") / 100;
 
-    const successPayments = await db
-      .select({
-        id: payments.id,
-        amount: payments.amount,
-        paidAt: payments.paidAt,
-        provider: payments.provider,
-        purpose: payments.purpose,
-        bookingId: payments.bookingId,
-        propertyId: properties.id,
-        ownerId: properties.ownerId,
-        ownerName: users.name,
-        ownerEmail: users.email,
-      })
-      .from(payments)
-      .leftJoin(bookings, eq(payments.bookingId, bookings.id))
-      .leftJoin(properties, eq(bookings.propertyId, properties.id))
-      .leftJoin(users, eq(properties.ownerId, users.id))
-      .where(
-        and(
-          eq(payments.status, "success"),
-          gte(payments.paidAt, start),
-          lte(payments.paidAt, end),
+    const offset = (page - 1) * limit;
+
+    const [successPayments, [{ count: total }]] = await Promise.all([
+      db
+        .select({
+          id: payments.id,
+          amount: payments.amount,
+          paidAt: payments.paidAt,
+          provider: payments.provider,
+          purpose: payments.purpose,
+          bookingId: payments.bookingId,
+          propertyId: properties.id,
+          ownerId: properties.ownerId,
+          ownerName: users.name,
+          ownerEmail: users.email,
+        })
+        .from(payments)
+        .leftJoin(bookings, eq(payments.bookingId, bookings.id))
+        .leftJoin(properties, eq(bookings.propertyId, properties.id))
+        .leftJoin(users, eq(properties.ownerId, users.id))
+        .where(
+          and(
+            eq(payments.status, "success"),
+            gte(payments.paidAt, start),
+            lte(payments.paidAt, end),
+          ),
+        )
+        .orderBy(desc(payments.paidAt))
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(payments)
+        .where(
+          and(
+            eq(payments.status, "success"),
+            gte(payments.paidAt, start),
+            lte(payments.paidAt, end),
+          ),
         ),
-      )
-      .orderBy(desc(payments.paidAt));
+    ]);
 
     const totalGMV = successPayments.reduce(
       (sum, p) => sum + Number(p.amount),
@@ -100,6 +124,8 @@ export async function GET(req: NextRequest) {
     }));
 
     return ok({
+      data: successPayments,
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
       totalGMV: Number(totalGMV.toFixed(2)),
       platformProfit: Number(platformProfit.toFixed(2)),
       totalPaidToOwner: Number((totalGMV - platformProfit).toFixed(2)),

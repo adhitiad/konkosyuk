@@ -6,6 +6,7 @@ import { eq, and, desc } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
+import { validateActionCsrf } from "@/lib/api-auth";
 
 const createSavedSearchSchema = z.object({
   name: z.string().optional(),
@@ -22,6 +23,11 @@ export async function createSavedSearch(
   _prevState: ActionState | undefined,
   formData: FormData,
 ): Promise<ActionState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

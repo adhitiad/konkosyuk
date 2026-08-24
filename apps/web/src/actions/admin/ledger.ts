@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import type { Role } from "@/lib/auth";
 import { logError } from "@/lib/logger";
+import { validateActionCsrf } from "@/lib/api-auth";
 
 const createLedgerEntrySchema = z
   .object({
@@ -54,6 +55,11 @@ export async function createLedgerEntryAction(
   prevState: CreateLedgerEntryState | undefined,
   formData: FormData,
 ): Promise<CreateLedgerEntryState> {
+  const csrfError = await validateActionCsrf(formData);
+  if (csrfError) {
+    return { error: csrfError, success: false };
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
