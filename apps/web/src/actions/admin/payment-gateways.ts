@@ -36,6 +36,12 @@ const nicepayConfigSchema = z.object({
   webhookSecret: z.string().optional(),
 });
 
+const ottoConfigSchema = z.object({
+  clientId: z.string().optional(),
+  secretKey: z.string().min(1, "Secret key wajib diisi"),
+  webhookSecret: z.string().optional(),
+});
+
 const providerConfigSchemas: Record<
   string,
   z.ZodType<Record<string, unknown>>
@@ -43,10 +49,11 @@ const providerConfigSchemas: Record<
   doku: dokuConfigSchema,
   ipaymu: ipaymuConfigSchema,
   nicepay: nicepayConfigSchema,
+  otto: ottoConfigSchema,
 };
 
 const upsertGatewaySchema = z.object({
-  provider: z.enum(["doku", "ipaymu", "nicepay"]),
+  provider: z.enum(["doku", "ipaymu", "nicepay", "otto"]),
   config: z.record(z.string(), z.unknown()),
   environment: z.enum(["sandbox", "production"]).default("sandbox"),
   isActive: z.boolean().default(false),
@@ -207,7 +214,7 @@ export async function upsertPaymentGatewayAction(
 }
 
 const deleteGatewaySchema = z.object({
-  provider: z.enum(["doku", "ipaymu", "nicepay"]),
+  provider: z.enum(["doku", "ipaymu", "nicepay", "otto"]),
 });
 
 export type DeletePaymentGatewayState = {

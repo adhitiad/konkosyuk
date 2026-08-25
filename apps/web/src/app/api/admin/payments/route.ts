@@ -24,7 +24,7 @@ const createManualPaymentSchema = z.object({
         message: "Amount must be a valid positive number less than 1 trillion",
       },
     ),
-  provider: z.enum(["doku", "ipaymu", "nicepay"]),
+  provider: z.enum(["doku", "ipaymu", "nicepay", "otto"]),
   purpose: z.enum(["dp", "full_payment"]),
   transactionId: z.string().optional(),
   status: z

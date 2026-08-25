@@ -5,6 +5,8 @@ const ALLOWED_WEBHOOK_IPS: Record<string, string[]> = {
   doku: ["103.28.36.0/24", "103.28.37.0/24", "103.28.38.0/24"],
   ipaymu: ["103.28.36.0/24", "103.28.37.0/24"],
   nicepay: ["103.28.36.0/24", "103.28.37.0/24", "103.28.38.0/24"],
+  // TODO: Isi dengan range IP OttoPay setelah mendapat dokumentasi resmi
+  otto: [],
 };
 
 function ipToNumber(ip: string): number {

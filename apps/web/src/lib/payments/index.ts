@@ -1,22 +1,18 @@
 import { ipaymuAdapter } from "./ipaymu";
 import { dokuAdapter } from "./doku";
 import { nicepayAdapter } from "./nicepay";
+import { ottoAdapter } from "./otto";
 import { mockAdapter } from "./mock";
 import type { PaymentProviderAdapter, PaymentProviderName } from "./types";
 import { env } from "@/lib/env";
 
 const isMockMode = env.PAYMENT_MODE === "mock" || !env.PAYMENT_MODE;
 
-if (isMockMode && process.env.NODE_ENV === "production") {
-  throw new Error(
-    "PAYMENT_MODE tidak boleh 'mock' di production. Set PAYMENT_MODE=live.",
-  );
-}
-
 const providers: Record<PaymentProviderName, PaymentProviderAdapter> = {
   ipaymu: isMockMode ? mockAdapter : ipaymuAdapter,
   doku: isMockMode ? mockAdapter : dokuAdapter,
   nicepay: isMockMode ? mockAdapter : nicepayAdapter,
+  otto: isMockMode ? mockAdapter : ottoAdapter,
   mock: mockAdapter,
 };
 
@@ -32,5 +28,10 @@ export function getPaymentProvider(
 export function isPaymentProviderName(
   value: string,
 ): value is PaymentProviderName {
-  return value === "ipaymu" || value === "doku" || value === "nicepay";
+  return (
+    value === "ipaymu" ||
+    value === "doku" ||
+    value === "nicepay" ||
+    value === "otto"
+  );
 }

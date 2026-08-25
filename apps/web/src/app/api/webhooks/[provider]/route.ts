@@ -24,7 +24,7 @@ export async function POST(
 
     const rawBody = await req.text();
     const ctx = {
-      provider: provider as "ipaymu" | "doku" | "nicepay",
+      provider: provider as "ipaymu" | "doku" | "nicepay" | "otto",
       headers: req.headers,
       rawBody,
     };

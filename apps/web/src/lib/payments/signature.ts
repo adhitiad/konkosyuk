@@ -13,6 +13,19 @@ export function generateSha256Signature(data: string, secret: string): string {
   return createHmac("sha256", secret).update(data).digest("hex");
 }
 
+export function hmacSha512Hex(payload: string, secret: string): string {
+  return createHmac("sha512", secret).update(payload).digest("hex");
+}
+
+export function generateOttoSignature(
+  minifiedBody: string,
+  timestamp: string,
+  secretKey: string,
+): string {
+  const stringToSign = `${minifiedBody}&${timestamp}&${secretKey}`;
+  return hmacSha512Hex(stringToSign, secretKey);
+}
+
 export function generateMd5Signature(data: string): string {
   return createHash("md5").update(data).digest("hex");
 }
@@ -24,7 +37,6 @@ export function verifySignature(
 ): boolean {
   if (!signatureHeader) return false;
 
-  // Gunakan timingSafeCompare dari buffer-pool — reuse pre-allocated buffers
   return timingSafeCompare(expectedSignature, signatureHeader);
 }
 
@@ -41,6 +53,5 @@ export function verifyHmacHex(
     ? signatureHeader.slice(prefix.length)
     : signatureHeader;
 
-  // Gunakan timingSafeCompare — pre-allocated buffers alih-alih Buffer.from() per-call
   return timingSafeCompare(expected, actual);
 }

@@ -35,6 +35,12 @@ const nicepayConfigSchema = z.object({
   webhookSecret: z.string().optional(),
 });
 
+const ottoConfigSchema = z.object({
+  clientId: z.string().optional(),
+  secretKey: z.string().min(1, "Secret key wajib diisi"),
+  webhookSecret: z.string().optional(),
+});
+
 const providerConfigSchemas: Record<
   string,
   z.ZodType<Record<string, unknown>>
@@ -42,10 +48,11 @@ const providerConfigSchemas: Record<
   doku: dokuConfigSchema,
   ipaymu: ipaymuConfigSchema,
   nicepay: nicepayConfigSchema,
+  otto: ottoConfigSchema,
 };
 
 const upsertGatewaySchema = z.object({
-  provider: z.enum(["doku", "ipaymu", "nicepay"]),
+  provider: z.enum(["doku", "ipaymu", "nicepay", "otto"]),
   config: z.record(z.string(), z.any()),
   environment: z.enum(["sandbox", "production"]).default("sandbox"),
   isActive: z.boolean().default(false),
@@ -197,11 +204,11 @@ export async function DELETE(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const provider = searchParams.get("provider");
 
-    if (!provider || !["doku", "ipaymu", "nicepay"].includes(provider)) {
+    if (!provider || !["doku", "ipaymu", "nicepay", "otto"].includes(provider)) {
       return fail("Invalid provider", 400);
     }
 
-    const providerValue = provider as "doku" | "ipaymu" | "nicepay";
+    const providerValue = provider as "doku" | "ipaymu" | "nicepay" | "otto";
     await db
       .delete(paymentGatewayConfigs)
       .where(eq(paymentGatewayConfigs.provider, providerValue));

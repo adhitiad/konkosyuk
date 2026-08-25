@@ -8,16 +8,22 @@ import type {
 
 export const mockAdapter: PaymentProviderAdapter = {
   async createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult> {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "PAYMENT_MODE tidak boleh 'sandbox' di production. Set PAYMENT_MODE=live.",
+      );
+    }
+
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const invoiceNumber = input.bookingId;
 
     return {
-      paymentId: `mock-${Date.now()}`,
+      paymentId: `sandbox-${Date.now()}`,
       transactionId: invoiceNumber,
       redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/mock-checkout/${invoiceNumber}`,
       rawResponse: {
-        mock: true,
+        sandbox: true,
         invoiceNumber,
         amount: input.amount,
       },
@@ -38,7 +44,7 @@ export const mockAdapter: PaymentProviderAdapter = {
 
     return {
       provider: "mock",
-      eventId: context.eventId ?? `mock-event-${Date.now()}`,
+      eventId: context.eventId ?? `sandbox-event-${Date.now()}`,
       transactionId: String(body.transactionId ?? body.invoiceNumber ?? ""),
       status: (body.status as "success" | "failed" | "expired") ?? "pending",
       amount:

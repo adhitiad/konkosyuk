@@ -24,6 +24,11 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/lang/id/).
 - Code coverage reporting dengan threshold minimum
 - `/api/health/live` endpoint untuk liveness probe (K8s/Docker)
 - Shared Redis connection singleton untuk BullMQ workers dan queues
+- Payment gateway Otto Digital (Secure Page v2 + webhook + status check)
+- HMAC-SHA512 signature support untuk Otto Digital
+- Environment variables `OTTO_BASE_URL`, `OTTO_CLIENT_ID`, `OTTO_SECRET_KEY`, `OTTO_WEBHOOK_SECRET`
+- Graceful fallback pada `env.ts` saat variabel environment belum di-set di Vercel
+- Sandbox adapter production guard: mock/sandbox mode ditolak di production
 
 ### Changed
 

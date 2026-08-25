@@ -46,3 +46,7 @@ export async function getNicepayConfig() {
 export async function getIpaymuConfig() {
   return getPaymentGatewayConfig("ipaymu");
 }
+
+export async function getOttoConfig() {
+  return getPaymentGatewayConfig("otto");
+}

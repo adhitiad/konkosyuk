@@ -52,6 +52,12 @@ const envSchema = z.object({
   DIDIT_WEBHOOK_SECRET: z.string().min(1),
   NEXT_PUBLIC_DIDIT_API_URL: z.string().url().optional(),
 
+  // Payment Gateway - Otto Digital (Optional)
+  OTTO_BASE_URL: z.string().url().optional(),
+  OTTO_CLIENT_ID: z.string().optional(),
+  OTTO_SECRET_KEY: z.string().min(1).optional(),
+  OTTO_WEBHOOK_SECRET: z.string().min(1).optional(),
+
   // Maps
   NEXT_PUBLIC_STADIA_MAPS_API_KEY: z.string().optional(),
 

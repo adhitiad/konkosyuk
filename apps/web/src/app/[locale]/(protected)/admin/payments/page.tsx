@@ -109,7 +109,7 @@ function AdminPaymentsPage() {
   const [manualBookingId, setManualBookingId] = useState("");
   const [manualAmount, setManualAmount] = useState("");
   const [manualProvider, setManualProvider] = useState<
-    "doku" | "ipaymu" | "nicepay"
+    "doku" | "ipaymu" | "nicepay" | "otto"
   >("doku");
   const [manualPurpose, setManualPurpose] = useState<"dp" | "full_payment">(
     "dp",
@@ -657,7 +657,7 @@ function AdminPaymentsPage() {
               <Select<string>
                 value={manualProvider}
                 onValueChange={(v) =>
-                  setManualProvider(v as "doku" | "ipaymu" | "nicepay")
+                  setManualProvider(v as "doku" | "ipaymu" | "nicepay" | "otto")
                 }
               >
                 <SelectTrigger className="w-full">
@@ -667,6 +667,7 @@ function AdminPaymentsPage() {
                   <SelectItem value="doku">Doku</SelectItem>
                   <SelectItem value="ipaymu">iPaymu</SelectItem>
                   <SelectItem value="nicepay">NicePay</SelectItem>
+                  <SelectItem value="otto">Otto Digital</SelectItem>
                 </SelectContent>
               </Select>
             </div>

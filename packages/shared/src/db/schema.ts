@@ -110,7 +110,7 @@ export const maintenanceReportStatus = [
   "resolved",
   "rejected",
 ] as const;
-export const paymentProvider = ["doku", "ipaymu", "nicepay", "mock"] as const;
+export const paymentProvider = ["doku", "ipaymu", "nicepay", "otto", "mock"] as const;
 export const paymentPurpose = [
   "dp",
   "full_payment",

@@ -1,4 +1,4 @@
-export type PaymentProviderName = "doku" | "ipaymu" | "nicepay" | "mock";
+export type PaymentProviderName = "doku" | "ipaymu" | "nicepay" | "otto" | "mock";
 export type PaymentPurpose = "dp" | "full_payment" | "featured_listing";
 export type WebhookPaymentStatus = "success" | "failed" | "expired" | "pending";
 

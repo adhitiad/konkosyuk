@@ -3,7 +3,7 @@ import { getAxiosInstance } from "@/lib/api";
 import { decryptPaymentConfig } from "@/lib/payment-config-crypto";
 import type { AxiosError } from "axios";
 
-export type GatewayProvider = "doku" | "ipaymu" | "nicepay";
+export type GatewayProvider = "doku" | "ipaymu" | "nicepay" | "otto";
 
 export interface GatewayConfig {
   clientId?: string;

@@ -939,7 +939,7 @@ export async function checkoutBookingAction(
     }
 
     const validatedProvider = body.paymentProvider as
-      "doku" | "ipaymu" | "nicepay" | "mock";
+      "doku" | "ipaymu" | "nicepay" | "otto" | "mock";
 
     const [user] = await db
       .select({ name: users.name, email: users.email })

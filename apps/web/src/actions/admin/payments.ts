@@ -27,7 +27,7 @@ const createManualPaymentSchema = z.object({
         message: "Amount harus angka positif",
       },
     ),
-  provider: z.enum(["doku", "ipaymu", "nicepay"]),
+  provider: z.enum(["doku", "ipaymu", "nicepay", "otto"]),
   purpose: z.enum(["dp", "full_payment"]),
   status: z
     .enum(["pending", "success", "failed", "expired", "refunded"])

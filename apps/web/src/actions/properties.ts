@@ -607,7 +607,7 @@ export type CheckoutFeaturedState = {
 
 const checkoutFeaturedSchema = z.object({
   propertyId: z.string().uuid(),
-  paymentProvider: z.enum(["doku", "ipaymu", "nicepay", "mock"]),
+  paymentProvider: z.enum(["doku", "ipaymu", "nicepay", "otto", "mock"]),
   voucherCode: z.string().optional(),
 });
 
