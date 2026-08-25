@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node -e \"const fs=require('fs');const p='.next/next-server.js.nft.json';if(!fs.existsSync(p))fs.writeFileSync(p,'{}')\"",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
