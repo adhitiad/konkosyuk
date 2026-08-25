@@ -64,10 +64,6 @@ const envSchema = z.object({
   CRON_SECRET: z.string().min(32),
 });
 
-export const env = process.env as z.infer<typeof envSchema>;
-
-export function validateEnv(): z.infer<typeof envSchema> {
-  return envSchema.parse(process.env);
-}
+export const env = envSchema.parse(process.env);
 
 export type Env = z.infer<typeof envSchema>;
