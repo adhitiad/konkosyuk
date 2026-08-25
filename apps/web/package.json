@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node -e \"const fs=require('fs');const p='.next/next-server.js.nft.json';if(!fs.existsSync(p))fs.writeFileSync(p,'{}')\"",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
