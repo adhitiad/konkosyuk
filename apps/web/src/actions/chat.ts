@@ -10,13 +10,14 @@ import { sendChatNotificationEmail } from "@/lib/notifications/email";
 import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
 import { sanitizeString } from "@/lib/sanitize";
+import { MAX_CHAT_MESSAGE_LENGTH } from "@/lib/constants/actions";
 
 const sendMessageSchema = z.object({
   roomId: z.string().uuid(),
   content: z
     .string()
     .min(1, "Pesan tidak boleh kosong")
-    .max(5000, "Pesan terlalu panjang"),
+    .max(MAX_CHAT_MESSAGE_LENGTH, "Pesan terlalu panjang"),
 });
 
 export type SendMessageState = {

@@ -47,7 +47,7 @@ const providerConfigSchemas: Record<
 
 const upsertGatewaySchema = z.object({
   provider: z.enum(["doku", "ipaymu", "nicepay"]),
-  config: z.record(z.string(), z.any()),
+  config: z.record(z.string(), z.unknown()),
   environment: z.enum(["sandbox", "production"]).default("sandbox"),
   isActive: z.boolean().default(false),
 });

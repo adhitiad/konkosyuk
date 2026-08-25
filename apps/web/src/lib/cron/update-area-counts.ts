@@ -1,11 +1,12 @@
 import { db } from "@/db";
 import { properties, popularAreas, campusAreas } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
+import { logInfo, logError } from "@/lib/logger";
 
 export async function updateAreaCounts(): Promise<void> {
   // F-2 note: idempotent by design — menghitung ulang dari data listing,
   // bukan increment counter. Jika dijalankan berulang kali, hasilnya sama.
-  console.log(`[${new Date().toISOString()}] Running update area counts...`);
+  logInfo("Running update area counts");
 
   try {
     const cityCounts = await db
@@ -62,11 +63,8 @@ export async function updateAreaCounts(): Promise<void> {
       }
     }
 
-    console.log("Update area counts completed:", {
-      updatedPopular,
-      updatedCampus,
-    });
+    logInfo("Update area counts completed", { updatedPopular, updatedCampus });
   } catch (error) {
-    console.error("Update area counts failed:", error);
+    logError(error, "Update area counts failed");
   }
 }

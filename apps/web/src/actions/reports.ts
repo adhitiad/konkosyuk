@@ -21,12 +21,13 @@ import {
 } from "@/lib/notifications/email";
 import { sendMaintenanceWhatsApp } from "@/lib/notifications/whatsapp";
 import { validateActionCsrf } from "@/lib/api-auth";
+import { MAX_DESCRIPTION_LENGTH } from "@/lib/constants/actions";
 
 const createReportSchema = z.object({
   propertyId: z.string().uuid(),
   unitId: z.string().uuid().nullable().optional(),
   category: z.enum(maintenanceReportCategory),
-  description: z.string().trim().min(10).max(2000),
+  description: z.string().trim().min(10).max(MAX_DESCRIPTION_LENGTH),
   images: z.array(z.string().url()).max(5).default([]),
 });
 
@@ -225,7 +226,7 @@ export async function createReportAction(
 const updateSchema = z.object({
   id: z.string().uuid(),
   status: z.enum(maintenanceReportStatus),
-  resolutionNote: z.string().trim().max(2000).nullable().optional(),
+  resolutionNote: z.string().trim().max(MAX_DESCRIPTION_LENGTH).nullable().optional(),
 });
 
 export type UpdateReportState = {

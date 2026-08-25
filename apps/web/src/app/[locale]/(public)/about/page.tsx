@@ -1,4 +1,31 @@
 import { StaticPageLayout } from "@/components/static-page-layout";
+import { Metadata } from "next";
+import { locales } from "@/config";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const isIndonesian = locale === "id";
+
+  return {
+    title: isIndonesian
+      ? "Tentang KonkosYuk - Platform Sewa Kost & Ruko Aman"
+      : "About KonkosYuk - Safe Boarding House & Shophouse Rental Platform",
+    description: isIndonesian
+      ? "Pelajari misi KonkosYuk: menghapus penipuan DP, transparansi harga, dan memudahkan owner mengelola properti."
+      : "Learn about KonkosYuk's mission: eliminating booking fraud, transparent pricing, and simplifying property management for owners.",
+    alternates: {
+      canonical: `/${locale}/about`,
+      languages: Object.fromEntries(
+        locales.map((l) => [l, `/${l}/about`]),
+      ) as Record<string, string>,
+      "x-default": "/id/about",
+    },
+  };
+}
 
 export default function AboutPage() {
   return (

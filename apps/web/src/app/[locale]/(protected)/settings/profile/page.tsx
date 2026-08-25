@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useActionState } from "react";
+import { useState, useEffect, useActionState, useRef } from "react";
 import { useSession } from "@/lib/auth-client";
 import type { SessionUserWithRole } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
@@ -37,6 +37,7 @@ interface RegionOption {
 }
 
 export default function ProfileSettingsPage() {
+  const avatarRef = useRef<HTMLInputElement>(null);
   const { data: session, isPending } = useSession();
   const router = useRouter();
 
@@ -205,7 +206,7 @@ export default function ProfileSettingsPage() {
 
           <div className="flex items-center gap-2">
             <Input
-              id="avatar"
+              ref={avatarRef}
               type="file"
               accept="image/*"
               className="hidden"
@@ -215,7 +216,7 @@ export default function ProfileSettingsPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => document.getElementById("avatar")?.click()}
+              onClick={() => avatarRef.current?.click()}
               disabled={isProfilePending || isUploadPending}
             >
               <Upload className="mr-2 h-4 w-4" />

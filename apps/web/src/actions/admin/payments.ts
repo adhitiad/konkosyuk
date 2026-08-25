@@ -241,32 +241,34 @@ export async function cancelPaymentAction(
       cancelReason: validated.reason,
     };
 
-    await db
-      .update(payments)
-      .set({
-        status: "refunded",
-        metadata: updatedMetadata,
-        updatedAt: new Date(),
-      })
-      .where(eq(payments.id, validated.paymentId));
-
-    await handleReferralFailureOnRefund(db, validated.paymentId);
-
-    if (
-      booking &&
-      (payment.purpose === "dp" || payment.purpose === "full_payment")
-    ) {
-      await db
-        .update(bookings)
+    await db.transaction(async (tx) => {
+      await tx
+        .update(payments)
         .set({
           status: "cancelled",
+          metadata: updatedMetadata,
           updatedAt: new Date(),
         })
-        .where(eq(bookings.id, booking.id));
-    }
+        .where(eq(payments.id, validated.paymentId));
+
+      await handleReferralFailureOnRefund(tx, validated.paymentId);
+
+      if (
+        booking &&
+        (payment.purpose === "dp" || payment.purpose === "full_payment")
+      ) {
+        await tx
+          .update(bookings)
+          .set({
+            status: "cancelled",
+            updatedAt: new Date(),
+          })
+          .where(eq(bookings.id, booking.id));
+      }
+    });
 
     await createAuditLog({
-      action: "refund",
+      action: "cancel",
       targetType: "payment",
       targetId: validated.paymentId,
       adminId: session.user.id,

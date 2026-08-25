@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { env } from "@/lib/env";
 import { handleWebhookRequest } from "@/lib/payments/webhook";
 import { enforceRateLimit, webhookRateLimit } from "@/lib/rate-limit";
+import { fail } from "@/lib/api";
 
 export const runtime = "nodejs";
 
@@ -10,13 +11,7 @@ export async function POST(req: NextRequest) {
   if (limited) return limited;
 
   if (env.PAYMENT_MODE !== "mock") {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Mock webhooks are only available in mock mode",
-      },
-      { status: 403 },
-    );
+    return fail("Mock webhooks are only available in mock mode", 403, "FORBIDDEN");
   }
 
   const raw = await req.text();
@@ -25,14 +20,14 @@ export async function POST(req: NextRequest) {
   try {
     body = JSON.parse(raw);
   } catch {
-    return new Response("Invalid JSON payload", { status: 400 });
+    return fail("Invalid JSON payload", 400);
   }
 
   const invoiceNumber = (body as Record<string, unknown>)?.invoiceNumber;
   const status = (body as Record<string, unknown>)?.status;
 
   if (!invoiceNumber || !status) {
-    return new Response("Missing invoiceNumber or status", { status: 400 });
+    return fail("Missing invoiceNumber or status", 400);
   }
 
   const ctx = {

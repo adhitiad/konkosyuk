@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { getNotificationSettings } from "@/lib/notification-settings";
+import { logInfo, logError } from "@/lib/logger";
 
 function escapeHtml(value: string): string {
   return value.replace(
@@ -19,9 +20,7 @@ export async function getResendClient() {
   const settings = await getNotificationSettings();
   const apiKey = settings.resendApiKey || process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.warn(
-      "RESEND_API_KEY belum dikonfigurasi, email maintenance dilewati",
-    );
+    logInfo("RESEND_API_KEY belum dikonfigurasi, email maintenance dilewati");
     return null;
   }
   return new Resend(apiKey);
@@ -53,7 +52,7 @@ async function sendMaintenanceEmail(
       html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:20px;color:#333"><h2 style="color:#2563eb">${escapeHtml(heading)}</h2>${content}<p style="margin-top:24px;font-size:12px;color:#64748b">Email otomatis dari KonkosYuk.</p></div>`,
     });
   } catch (error) {
-    console.error("Failed to send maintenance email:", error);
+    logError(error, "Failed to send maintenance email");
   }
 }
 
@@ -118,7 +117,7 @@ export async function sendApprovalEmail(
       `,
     });
   } catch (error) {
-    console.error("Failed to send approval email:", error);
+    logError(error, "Failed to send approval email");
   }
 }
 
@@ -153,7 +152,7 @@ export async function sendBookingRequestEmail(
       `,
     });
   } catch (error) {
-    console.error("Failed to send booking request email:", error);
+    logError(error, "Failed to send booking request email");
   }
 }
 
@@ -185,7 +184,7 @@ export async function sendChatNotificationEmail(
       `,
     });
   } catch (error) {
-    console.error("Failed to send chat notification email:", error);
+    logError(error, "Failed to send chat notification email");
   }
 }
 
@@ -219,7 +218,7 @@ export async function sendPaymentReceivedEmail(
       `,
     });
   } catch (error) {
-    console.error("Failed to send payment received email:", error);
+    logError(error, "Failed to send payment received email");
   }
 }
 
@@ -253,6 +252,6 @@ export async function sendBookingRejectionEmail(
       `,
     });
   } catch (error) {
-    console.error("Failed to send booking rejection email:", error);
+    logError(error, "Failed to send booking rejection email");
   }
 }

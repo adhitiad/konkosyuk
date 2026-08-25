@@ -7,6 +7,7 @@ import { z } from "zod";
 import { eq, sql } from "drizzle-orm";
 import type { Role } from "@/lib/auth";
 import { dispatchNotification } from "@/lib/notification-service";
+import { logError } from "@/lib/logger";
 
 const completeInspectionSchema = z.object({
   overallCondition: z.enum(["excellent", "good", "fair", "poor", "damaged"]),
@@ -77,12 +78,7 @@ export async function POST(
         actionUrl: "/dashboard/inspections",
         referenceId: inspection.id,
         referenceType: "inspection",
-      }).catch((err) =>
-        console.error(
-          "Failed to dispatch inspection completed notification:",
-          err,
-        ),
-      );
+      }).catch((err) => logError(err, "Failed to dispatch inspection completed notification"));
     }
 
     return ok(updated);

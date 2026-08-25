@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useLayoutEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -19,9 +19,16 @@ export default withOwnerAuth(OwnerDashboardPage);
 
 function OwnerDashboardPage() {
   const [period, setPeriod] = useState<"month" | "quarter" | "year">("month");
-  const [year, setYear] = useState(new Date().getFullYear());
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const [year, setYear] = useState<number | undefined>(undefined);
+  const [month, setMonth] = useState<number | undefined>(undefined);
   const [propertyId, setPropertyId] = useState<string | undefined>(undefined);
+
+  useLayoutEffect(() => {
+    queueMicrotask(() => {
+      setYear(new Date().getFullYear());
+      setMonth(new Date().getMonth() + 1);
+    });
+  }, []);
 
   const {
     data: revenueData,

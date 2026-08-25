@@ -34,9 +34,9 @@ function buildCsp(nonce: string, isProd: boolean): string {
     "default-src 'self'",
     `script-src ${scriptSrc}`,
     `style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com`,
-    "img-src 'self' data: blob: https://res.cloudinary.com https://*.placehold.co https://via.placeholder.com https://images.unsplash.com https://cdn.jsdelivr.net https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://*.cartocdn.com https://tile.openstreetmap.org https://*.tile.openstreetmap.org",
+    "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://a.basemaps.cartocdn.com https://b.basemaps.cartocdn.com https://c.basemaps.cartocdn.com https://tile.openstreetmap.org https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://tiles.openstreetmap.org https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://*.cartocdn.com https://*.cartodb.com https://api.maptiler.com https://tiles.maptiler.com https://*.maptiler.com https://va.vercel-scripts.com https://vitals.vercel-insights.com blob: data: ws: wss:",
+    "connect-src 'self' https://nominatim.openstreetmap.org https://tile.openstreetmap.org https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://tiles.openstreetmap.org https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://a.basemaps.cartocdn.com https://b.basemaps.cartocdn.com https://c.basemaps.cartocdn.com https://*.cartodb.com https://api.maptiler.com https://tiles.maptiler.com https://*.maptiler.com https://demotiles.maplibre.org https://va.vercel-scripts.com https://vitals.vercel-insights.com blob: data: ws: wss:",
     "frame-src 'self'",
     "worker-src 'self' blob:",
     "media-src 'self' blob:",
@@ -55,22 +55,31 @@ export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isProd = process.env.NODE_ENV === "production";
 
+  const requestId =
+    request.headers.get("x-request-id") || crypto.randomUUID();
+
   // Skip Next.js internals and static assets
   if (path.startsWith("/_next") || path.startsWith("/favicon")) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set("x-request-id", requestId);
+    return response;
   }
 
   // Service workers must be served directly. A redirect (for example, to a
   // locale-prefixed URL) is forbidden when registering a service worker.
   if (path === "/sw.js") {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set("x-request-id", requestId);
+    return response;
   }
 
   if (
     path.endsWith("/manifest.webmanifest") ||
     path === "/manifest.webmanifest"
   ) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set("x-request-id", requestId);
+    return response;
   }
 
   // Skip static assets from internationalization
@@ -90,13 +99,17 @@ export async function proxy(request: NextRequest) {
     ".js",
   ];
   if (staticAssetExtensions.some((ext) => path.endsWith(ext))) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set("x-request-id", requestId);
+    return response;
   }
 
   // API routes must bypass next-intl. Authentication, rate limiting, and CSRF
   // validation are handled by the route handlers, not Edge middleware.
   if (path.startsWith("/api/")) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set("x-request-id", requestId);
+    return response;
   }
 
   const nonce = generateNonce();
@@ -104,6 +117,7 @@ export async function proxy(request: NextRequest) {
   requestHeaders.set("x-nonce", nonce);
 
   const response = await intlMiddleware(request);
+  response.headers.set("x-request-id", requestId);
   response.headers.set("x-nonce", nonce);
   response.headers.set("Content-Security-Policy", buildCsp(nonce, isProd));
 

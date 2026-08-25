@@ -6,11 +6,17 @@ import { validateCsrfToken } from "@/lib/csrf";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import { eq, desc, and, sql } from "drizzle-orm";
+import { enforceRateLimit, generalRateLimit } from "@/lib/rate-limit";
 import {
   dispatchReferralStatusUpdate,
   dispatchReferralVoucherConverted,
   dispatchReferralOffsetApplied,
 } from "@/lib/notification-service";
+import {
+  createReferralSchema,
+  referralQuerySchema,
+  referralActionSchema,
+} from "@konkosyuk/shared";
 
 export const referralStatus = [
   "pending",
@@ -21,26 +27,6 @@ export const referralStatus = [
   "cancelled",
 ] as const;
 export const referralCategory = ["owner", "tenant"] as const;
-
-const createReferralSchema = z.object({
-  refereeEmail: z.string().email("Format email tidak valid"),
-  refereeName: z.string().min(1, "Nama harus diisi"),
-  category: z.enum(referralCategory).default("tenant"),
-  propertyId: z.string().uuid().optional(),
-  message: z.string().optional(),
-});
-
-const referralQuerySchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().max(100).default(20),
-  category: z.enum(referralCategory).optional(),
-  status: z.enum(referralStatus).optional(),
-});
-
-const referralActionSchema = z.object({
-  id: z.string().uuid(),
-  action: z.enum(["convert_voucher", "apply_offset"]),
-});
 
 function generateReferralCode(length = 8): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -130,6 +116,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await enforceRateLimit(req, generalRateLimit);
+    if (limited) return limited;
+
     const session = await requireSession();
 
     const csrfResult = validateCsrfToken(req);
@@ -221,6 +210,9 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
+    const limited = await enforceRateLimit(req, generalRateLimit);
+    if (limited) return limited;
+
     const session = await requireSession();
 
     const csrfResult = validateCsrfToken(req);

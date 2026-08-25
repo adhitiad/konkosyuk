@@ -1,6 +1,33 @@
 import { StaticPageLayout } from "@/components/static-page-layout";
 import Link from "next/link";
 import { useLocale } from "next-intl";
+import { Metadata } from "next";
+import { locales } from "@/config";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const isIndonesian = locale === "id";
+
+  return {
+    title: isIndonesian
+      ? "Kebijakan Refund - KonkosYuk"
+      : "Refund Policy - KonkosYuk",
+    description: isIndonesian
+      ? "Ketahui kebijakan refund dan pengembalian dana di KonkosYuk."
+      : "Learn about KonkosYuk's refund and money-back policies.",
+    alternates: {
+      canonical: `/${locale}/refund-policy`,
+      languages: Object.fromEntries(
+        locales.map((l) => [l, `/${l}/refund-policy`]),
+      ) as Record<string, string>,
+      "x-default": "/id/refund-policy",
+    },
+  };
+}
 
 export default function RefundPolicyPage() {
   const locale = useLocale();

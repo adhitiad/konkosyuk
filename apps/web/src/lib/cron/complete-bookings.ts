@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { bookings, units, inspections, properties } from "@/db/schema";
 import { eq, lt, and, inArray, desc } from "drizzle-orm";
+import { logError } from "@/lib/logger";
 
 export interface CompleteBookingsResult {
   completedCount: number;
@@ -77,6 +78,14 @@ export async function completeExpiredBookings(): Promise<CompleteBookingsResult>
       }
     }
 
+    const existingInspections = new Set(
+      (await tx
+        .select({ bookingId: inspections.bookingId })
+        .from(inspections)
+        .where(inArray(inspections.bookingId, bookingIds)))
+        .map((i) => i.bookingId),
+    );
+
     for (const booking of expiredBookings) {
       completedBookings.push({
         id: booking.id,
@@ -89,14 +98,7 @@ export async function completeExpiredBookings(): Promise<CompleteBookingsResult>
       const property = propertiesMap.get(booking.propertyId);
 
       try {
-        // F-2 fix: idempotency — cek inspection sudah ada sebelum membuat
-        const existingInspection = await tx
-          .select()
-          .from(inspections)
-          .where(eq(inspections.bookingId, booking.id))
-          .limit(1);
-
-        if (existingInspection.length > 0) {
+        if (existingInspections.has(booking.id)) {
           continue;
         }
 
@@ -111,10 +113,7 @@ export async function completeExpiredBookings(): Promise<CompleteBookingsResult>
         });
         inspectionCreatedCount++;
       } catch (error) {
-        console.error(
-          `Failed to create move-out inspection for booking ${booking.id}:`,
-          error,
-        );
+        logError(error, `Failed to create move-out inspection for booking ${booking.id}`);
       }
     }
   });

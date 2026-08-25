@@ -7,7 +7,7 @@ import {
   users,
   properties,
 } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
@@ -112,19 +112,13 @@ export async function createGroupBookingAction(
         status: "accepted",
       } as GroupBookingMemberInsert);
 
-      return [gb];
-    });
+      const memberUsers = validated.memberEmails.length > 0
+        ? await tx.select().from(users).where(inArray(users.email, validated.memberEmails))
+        : [];
 
-    for (const email of validated.memberEmails) {
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, email))
-        .limit(1);
-
-      if (user) {
-        await db.insert(groupBookingMembers).values({
-          groupBookingId: groupBooking.id,
+      for (const user of memberUsers) {
+        await tx.insert(groupBookingMembers).values({
+          groupBookingId: gb.id,
           userId: user.id,
           sharePercentage: sharePercentage.toString(),
           shareAmount: "0",
@@ -134,12 +128,14 @@ export async function createGroupBookingAction(
 
         dispatchGroupBookingInvite(
           user.id,
-          groupBooking.id,
+          gb.id,
           property.name,
           session.user.name,
         ).catch(() => {});
       }
-    }
+
+      return [gb];
+    });
 
     await invalidateCacheByTag("group-bookings");
 

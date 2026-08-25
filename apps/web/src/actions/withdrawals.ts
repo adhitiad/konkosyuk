@@ -49,23 +49,6 @@ export async function createWithdrawalAction(
       amount: formData.get("amount"),
     });
 
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, session.user.id))
-      .limit(1);
-
-    if (!user) {
-      return { error: "Pengguna tidak ditemukan", success: false };
-    }
-
-    const balance = Number(user.balance || 0);
-    const amount = Number(validated.amount);
-
-    if (balance < amount) {
-      return { error: "Saldo tidak mencukupi", success: false };
-    }
-
     const [account] = await db
       .select()
       .from(ownerBankAccounts)
@@ -81,7 +64,26 @@ export async function createWithdrawalAction(
       return { error: "Rekening tidak ditemukan", success: false };
     }
 
-    const [withdrawal] = await db.transaction(async (tx) => {
+    const amount = Number(validated.amount);
+
+    const txResult = await db.transaction(async (tx) => {
+      const [user] = await tx
+        .select()
+        .from(users)
+        .where(eq(users.id, session.user.id))
+        .for("update")
+        .limit(1);
+
+      if (!user) {
+        return { error: "Pengguna tidak ditemukan", success: false } as const;
+      }
+
+      const balance = Number(user.balance || 0);
+
+      if (balance < amount) {
+        return { error: "Saldo tidak mencukupi", success: false } as const;
+      }
+
       const [w] = await tx
         .insert(withdrawals)
         .values({
@@ -100,8 +102,14 @@ export async function createWithdrawalAction(
         })
         .where(eq(users.id, session.user.id));
 
-      return [w];
+      return { success: true, withdrawal: w } as const;
     });
+
+    if (!txResult.success) {
+      return txResult;
+    }
+
+    const withdrawal = txResult.withdrawal;
 
     await invalidateCacheByTag("withdrawals");
 

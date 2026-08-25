@@ -1,18 +1,21 @@
 export type CommissionCategory = "owner" | "tenant";
 
-const OWNER_TIER_RATES: Record<number, number> = {
+export const OWNER_TIER_RATES: Record<number, number> = {
   1: 0.01,
-  2: 0.0125,
-  3: 0.015,
-  4: 0.02,
+  2: 0.02,
+  3: 0.0367,
+  4: 0.0482,
 };
 
-const TENANT_TIER_RATES: Record<number, number> = {
-  1: 0.015,
+export const TENANT_TIER_RATES: Record<number, number> = {
+  1: 0.009,
   2: 0.0186,
-  3: 0.022,
-  4: 0.025,
+  3: 0.0279,
+  4: 0.0396,
 };
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const REFERRAL_ELIGIBILITY_DAYS = 5;
 
 export function getCommissionRate(
   category: CommissionCategory,
@@ -32,6 +35,6 @@ export function calculateCommissionAmount(
 }
 
 export function calculateEligibleAt(fromDate: Date = new Date()): Date {
-  const eligibleAt = new Date(fromDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const eligibleAt = new Date(fromDate.getTime() + REFERRAL_ELIGIBILITY_DAYS * MS_PER_DAY);
   return eligibleAt;
 }

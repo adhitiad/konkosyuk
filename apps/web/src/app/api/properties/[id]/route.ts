@@ -8,6 +8,7 @@ import { ok, fail, handleApiError } from "@/lib/api";
 import { updatePropertySchema } from "@konkosyuk/shared";
 import type { Role } from "@/lib/auth";
 import { jitterCoordinates } from "@/lib/utils/location";
+import { enforceRateLimit, generalRateLimit } from "@/lib/rate-limit";
 
 export async function GET(
   req: NextRequest,
@@ -167,6 +168,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const limited = await enforceRateLimit(req, generalRateLimit);
+    if (limited) return limited;
+
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
     const session = await requireSession(["owner", "staff", "admin"] as Role[]);
@@ -222,6 +226,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const limited = await enforceRateLimit(req, generalRateLimit);
+    if (limited) return limited;
+
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
     const session = await requireSession(["owner", "staff", "admin"] as Role[]);

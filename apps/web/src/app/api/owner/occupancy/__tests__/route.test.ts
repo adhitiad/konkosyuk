@@ -72,10 +72,13 @@ describe("GET /api/owner/occupancy", () => {
       [{ id: "prop-1" }],
       [{ count: 5 }],
       [{ count: 3 }],
+      [{ propertyId: "prop-1", propertyName: "Test", totalUnits: 5, occupiedUnits: 3, avgDailyRate: 0 }],
+      [{ count: 3 }],
+      [{ date: "2026-01-01", count: 3 }],
     ]);
 
     const req = {
-      url: "http://localhost/api/owner/occupancy",
+      url: "http://localhost/api/owner/occupancy?year=2026&month=1",
       headers: new Headers(),
     } as unknown as Parameters<typeof GET>[0];
 
@@ -91,6 +94,9 @@ describe("GET /api/owner/occupancy", () => {
       [{ id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890" }],
       [{ count: 5 }],
       [{ count: 3 }],
+      [{ propertyId: "a1b2c3d4", propertyName: "Test", totalUnits: 5, occupiedUnits: 3, avgDailyRate: 0 }],
+      [{ count: 3 }],
+      [{ date: "2026-01-01", count: 3 }],
     ]);
 
     const req = {
@@ -104,20 +110,18 @@ describe("GET /api/owner/occupancy", () => {
   });
 
   it("returns daily data for the month", async () => {
+    const dailyRows = Array.from({ length: 31 }, (_, i) => ({
+      date: `2026-01-${String(i + 1).padStart(2, "0")}`,
+      count: 0,
+    }));
+
     setupOccupancyMocks([
       [{ id: "prop-1" }],
       [{ count: 5 }],
       [{ count: 3 }],
-      [
-        {
-          propertyId: "prop-1",
-          propertyName: "Test Property",
-          totalUnits: 5,
-          occupiedUnits: 3,
-        },
-      ],
-      [{ avg: 500000 }],
-      ...Array.from({ length: 31 }, () => [{ count: 0 }]),
+      [{ propertyId: "prop-1", propertyName: "Test Property", totalUnits: 5, occupiedUnits: 3, avgDailyRate: 500000 }],
+      [{ count: 3 }],
+      dailyRows,
     ]);
 
     const req = {
@@ -141,16 +145,9 @@ describe("GET /api/owner/occupancy", () => {
       [{ id: "prop-1" }],
       [{ count: 0 }],
       [{ count: 0 }],
-      [
-        {
-          propertyId: "prop-1",
-          propertyName: "Test Property",
-          totalUnits: 0,
-          occupiedUnits: 0,
-        },
-      ],
-      [{ avg: 0 }],
-      ...Array.from({ length: 31 }, () => [{ count: 0 }]),
+      [{ propertyId: "prop-1", propertyName: "Test Property", totalUnits: 0, occupiedUnits: 0, avgDailyRate: 0 }],
+      [{ count: 0 }],
+      [],
     ]);
 
     const req = {

@@ -41,7 +41,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string; locale: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
+  const { id, locale } = await params;
 
   const [property] = await db
     .select({
@@ -73,6 +73,20 @@ export async function generateMetadata({
   return {
     title,
     description,
+    alternates: {
+      canonical: `/${locale}/properties/${id}`,
+      languages: {
+        id: `/id/properties/${id}`,
+        en: `/en/properties/${id}`,
+        my: `/my/properties/${id}`,
+        th: `/th/properties/${id}`,
+        vi: `/vi/properties/${id}`,
+        ko: `/ko/properties/${id}`,
+        zh: `/zh/properties/${id}`,
+        ru: `/ru/properties/${id}`,
+      },
+      "x-default": `/id/properties/${id}`,
+    },
     openGraph: {
       title: property.name,
       description,
@@ -94,7 +108,7 @@ export default async function PropertyDetailPage({
 }: {
   params: Promise<{ id: string; locale: string }>;
 }) {
-  const { id } = await params;
+  const { id, locale } = await params;
 
   const propertyResult = await db
     .select()
@@ -263,8 +277,21 @@ export default async function PropertyDetailPage({
             streetAddress: property.address,
             addressLocality: property.city,
             addressRegion: property.province,
+            addressDistrict: property.district,
             addressCountry: "ID",
           },
+          geo:
+            property.latitude && property.longitude
+              ? {
+                  "@type": "GeoCoordinates",
+                  latitude: property.latitude,
+                  longitude: property.longitude,
+                }
+              : undefined,
+          hasMap:
+            property.latitude && property.longitude
+              ? `https://www.google.com/maps/search/?api=1&query=${property.latitude},${property.longitude}`
+              : undefined,
           image: images[0],
           priceRange:
             property.basePrice
@@ -288,19 +315,19 @@ export default async function PropertyDetailPage({
               "@type": "ListItem",
               position: 1,
               name: "Home",
-              item: "https://konkosyuk.com",
+              item: `https://konkosyuk.com/${locale}`,
             },
             {
               "@type": "ListItem",
               position: 2,
               name: "Properties",
-              item: "https://konkosyuk.com/properties",
+              item: `https://konkosyuk.com/${locale}/properties`,
             },
             {
               "@type": "ListItem",
               position: 3,
               name: property.name,
-              item: `https://konkosyuk.com/properties/${property.id}`,
+              item: `https://konkosyuk.com/${locale}/properties/${property.id}`,
             },
           ],
         }}

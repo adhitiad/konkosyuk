@@ -1,7 +1,11 @@
-import { eq } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
+import type { PgTransaction } from "drizzle-orm/pg-core";
+import type { ExtractTablesWithRelations } from "drizzle-orm";
+import type { NodePgQueryResultHKT } from "drizzle-orm/node-postgres";
 
 import { referrals } from "@/db/schema";
 import { db } from "@/db";
+import * as schemaModule from "@/db/schema";
 
 const MAX_VOUCHER_DISCOUNT_PERCENT = 0.5;
 
@@ -53,6 +57,26 @@ export async function validateAndApplyVoucher(
     finalAmount,
     referralId: referral.id,
   };
+}
+
+export async function redeemVoucherAtomically(
+  tx: PgTransaction<NodePgQueryResultHKT, typeof schemaModule, ExtractTablesWithRelations<typeof schemaModule>>,
+  referralId: string,
+): Promise<boolean> {
+  const result = await tx
+    .update(referrals)
+    .set({
+      voucherRedeemedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(referrals.id, referralId),
+        sql`${referrals.voucherRedeemedAt} IS NULL`,
+      ),
+    )
+    .returning({ id: referrals.id });
+
+  return result.length > 0;
 }
 
 export async function markVoucherRedeemed(referralId: string): Promise<void> {

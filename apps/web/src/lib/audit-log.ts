@@ -10,6 +10,7 @@ export type AuditAction =
   | "reject"
   | "reconcile"
   | "refund"
+  | "cancel"
   | "refund_request"
   | "refund_rejected"
   | "login"

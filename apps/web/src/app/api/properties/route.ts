@@ -56,7 +56,30 @@ export async function GET(req: NextRequest) {
     if (ids && ids.length > 0) {
       const limitedIds = ids.slice(0, 100);
       const rows = await db
-        .select()
+        .select({
+          id: properties.id,
+          name: properties.name,
+          description: properties.description,
+          address: properties.address,
+          province: properties.province,
+          city: properties.city,
+          district: properties.district,
+          type: properties.type,
+          basePrice: properties.basePrice,
+          packages: properties.packages,
+          status: properties.status,
+          amenities: properties.amenities,
+          metadata: properties.metadata,
+          images: properties.images,
+          latitude: properties.latitude,
+          longitude: properties.longitude,
+          isActive: properties.isActive,
+          isFeatured: properties.isFeatured,
+          gpsVerified: properties.gpsVerified,
+          featuredUntil: properties.featuredUntil,
+          createdAt: properties.createdAt,
+          updatedAt: properties.updatedAt,
+        })
         .from(properties)
         .where(inArray(properties.id, limitedIds))
         .limit(100);
@@ -189,7 +212,30 @@ export async function GET(req: NextRequest) {
 
         const [rows, [{ count: totalCount }]] = await Promise.all([
           db
-            .select()
+            .select({
+              id: properties.id,
+              name: properties.name,
+              description: properties.description,
+              address: properties.address,
+              province: properties.province,
+              city: properties.city,
+              district: properties.district,
+              type: properties.type,
+              basePrice: properties.basePrice,
+              packages: properties.packages,
+              status: properties.status,
+              amenities: properties.amenities,
+              metadata: properties.metadata,
+              images: properties.images,
+              latitude: properties.latitude,
+              longitude: properties.longitude,
+              isActive: properties.isActive,
+              isFeatured: properties.isFeatured,
+              gpsVerified: properties.gpsVerified,
+              featuredUntil: properties.featuredUntil,
+              createdAt: properties.createdAt,
+              updatedAt: properties.updatedAt,
+            })
             .from(properties)
             .where(where)
             .orderBy(orderBy)

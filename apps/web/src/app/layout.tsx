@@ -79,6 +79,19 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  alternates: {
+    canonical: "/",
+    languages: {
+      id: "/id",
+      en: "/en",
+      my: "/my",
+      th: "/th",
+      vi: "/vi",
+      ko: "/ko",
+      zh: "/zh",
+      ru: "/ru",
+    },
+  },
 };
 
 export default async function RootLayout({

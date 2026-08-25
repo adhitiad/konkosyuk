@@ -13,7 +13,7 @@ export async function GET() {
         id: users.id,
         email: users.email,
         name: users.name,
-        ktpNumber: sql<string>`CASE WHEN LENGTH(${users.ktpNumber}) >= 8 THEN '****-**-****' ELSE ${users.ktpNumber} END`,
+        ktpNumber: sql<string>`CASE WHEN ${users.ktpNumber} IS NULL THEN NULL ELSE '****-**-****' END`,
         kycStatus: users.kycStatus,
         updatedAt: users.updatedAt,
         createdAt: users.createdAt,

@@ -1,6 +1,7 @@
 import { getAxiosInstance } from "@/lib/api";
 import type { AxiosError } from "axios";
 import { getNotificationSettings } from "@/lib/notification-settings";
+import { logInfo, logError } from "@/lib/logger";
 
 type WhatsAppTemplateParameter = { type: "text"; text: string };
 
@@ -11,9 +12,7 @@ async function getWhatsAppCredentials() {
   const accessToken = settings.metaAccessToken || process.env.META_ACCESS_TOKEN;
 
   if (!phoneNumberId || !accessToken) {
-    console.warn(
-      "WhatsApp credentials belum dikonfigurasi, notifikasi maintenance dilewati",
-    );
+    logInfo("WhatsApp credentials belum dikonfigurasi, notifikasi maintenance dilewati");
     return null;
   }
 
@@ -61,11 +60,7 @@ export async function sendMaintenanceWhatsApp(
   } catch (error) {
     const axiosError = error as AxiosError<unknown>;
     const response = axiosError.response;
-    console.error(
-      "WhatsApp maintenance API error:",
-      response?.status,
-      response?.data ?? error,
-    );
+    logError(error, "WhatsApp maintenance API error", { status: response?.status != null ? String(response.status) : undefined, data: response?.data });
   }
 }
 
@@ -120,7 +115,7 @@ export async function sendApprovalWhatsApp(
     const axiosError = error as AxiosError<unknown>;
     const status = axiosError.response?.status;
     const text = axiosError.response?.data;
-    console.error("WhatsApp API error:", status, text);
+    logError(error, "WhatsApp API error", { status: status != null ? String(status) : undefined, data: text });
   }
 }
 
@@ -179,6 +174,6 @@ export async function sendRefundApprovalWhatsApp(
     const axiosError = error as AxiosError<unknown>;
     const status = axiosError.response?.status;
     const text = axiosError.response?.data;
-    console.error("WhatsApp refund approval API error:", status, text);
+    logError(error, "WhatsApp refund approval API error", { status: status != null ? String(status) : undefined, data: text });
   }
 }

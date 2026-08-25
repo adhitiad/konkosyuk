@@ -46,13 +46,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticUrls,
-    ...propertyUrls,
-    {
-      url: `${baseUrl}/id/properties`,
+    ...locales.map((locale) => ({
+      url: `${baseUrl}/${locale}/properties`,
       lastModified: generatedAt,
-      changeFrequency: "daily",
+      changeFrequency: "daily" as const,
       priority: 0.9,
       alternates: { languages: alternates },
-    },
+    })),
+    ...propertyUrls,
   ];
 }

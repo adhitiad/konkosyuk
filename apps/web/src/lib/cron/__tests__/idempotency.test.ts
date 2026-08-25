@@ -185,7 +185,11 @@ describe("Idempotency Guards (F-2)", () => {
           }),
           transaction: vi.fn().mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
             const tx = {
-              select: vi.fn().mockImplementation(() => {
+              select: vi.fn().mockImplementation((args?: unknown) => {
+                const selectArgs = args as { bookingId?: unknown } | undefined;
+                if (selectArgs?.bookingId) {
+                  return createAsyncArray([{ bookingId: "b1" }]);
+                }
                 return createAsyncArray([{ id: "insp1" }]);
               }),
               update: vi.fn().mockReturnValue({

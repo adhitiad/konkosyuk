@@ -35,6 +35,14 @@ const adminFields = {
   banReason: users.banReason,
 };
 
+const staffFields = {
+  ...publicFields,
+  email: users.email,
+  emailVerified: users.emailVerified,
+  kycStatus: users.kycStatus,
+  isBanned: users.isBanned,
+};
+
 export async function GET(req: NextRequest) {
   try {
     const session = await requireSession(["admin", "staff"] as Role[]);
@@ -59,7 +67,8 @@ export async function GET(req: NextRequest) {
         : undefined;
 
     const isAdmin = session.user.role === "admin";
-    const selectedFields = isAdmin ? adminFields : publicFields;
+    const isStaff = session.user.role === "staff";
+    const selectedFields = isAdmin ? adminFields : isStaff ? staffFields : publicFields;
 
     const data = await db
       .select(selectedFields)

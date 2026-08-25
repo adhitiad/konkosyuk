@@ -13,6 +13,7 @@ import {
   buildCacheKey,
   invalidateCacheByTag,
 } from "@/lib/cache";
+import { enforceRateLimit, generalRateLimit } from "@/lib/rate-limit";
 
 export async function GET(req: NextRequest) {
   const startTime = Date.now();
@@ -89,6 +90,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await enforceRateLimit(req, generalRateLimit);
+    if (limited) return limited;
+
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
     const session = await requireSession(["owner", "staff", "admin"] as Role[]);

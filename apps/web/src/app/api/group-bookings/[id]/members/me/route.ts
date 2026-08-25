@@ -48,38 +48,49 @@ export async function PUT(
     const { id } = await params;
     const body = respondToInviteSchema.parse(await req.json());
 
-    const [membership] = await db
-      .select()
-      .from(groupBookingMembers)
-      .where(
-        and(
-          eq(groupBookingMembers.groupBookingId, id),
-          eq(groupBookingMembers.userId, session.user.id),
-        ),
-      )
-      .limit(1);
+    const updated = await db.transaction(async (tx) => {
+      const [membership] = await tx
+        .select()
+        .from(groupBookingMembers)
+        .where(
+          and(
+            eq(groupBookingMembers.groupBookingId, id),
+            eq(groupBookingMembers.userId, session.user.id),
+          ),
+        )
+        .for("update")
+        .limit(1);
 
-    if (!membership) {
-      return fail("Anda bukan anggota group booking ini", 403);
-    }
+      if (!membership) {
+        throw new Error("Anda bukan anggota group booking ini");
+      }
 
-    if (membership.status !== "invited") {
-      return fail("Undangan sudah direspon", 400);
-    }
+      if (membership.status !== "invited") {
+        throw new Error("Undangan sudah direspon");
+      }
 
-    const [updated] = await db
-      .update(groupBookingMembers)
-      .set({
-        status: body.status,
-        joinedAt: body.status === "accepted" ? new Date() : null,
-      })
-      .where(eq(groupBookingMembers.id, membership.id))
-      .returning();
+      const [updated] = await tx
+        .update(groupBookingMembers)
+        .set({
+          status: body.status,
+          joinedAt: body.status === "accepted" ? new Date() : null,
+        })
+        .where(eq(groupBookingMembers.id, membership.id))
+        .returning();
+
+      return updated;
+    });
 
     return ok(updated);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return fail(error.issues[0]?.message || "Input tidak valid", 400);
+    }
+    if (error instanceof Error && error.message === "Anda bukan anggota group booking ini") {
+      return fail("Anda bukan anggota group booking ini", 403);
+    }
+    if (error instanceof Error && error.message === "Undangan sudah direspon") {
+      return fail("Undangan sudah direspon", 400);
     }
     return handleApiError(error, "PUT /api/group-bookings/[id]/members/me");
   }

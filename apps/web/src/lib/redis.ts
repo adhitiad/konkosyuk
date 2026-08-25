@@ -1,5 +1,6 @@
 /** Konfigurasi koneksi Redis menggunakan ioredis untuk seluruh aplikasi. */
 import Redis from "ioredis";
+import { logInfo } from "@/lib/logger";
 
 export type RedisProvider = "ioredis" | "memory";
 
@@ -27,17 +28,68 @@ export interface RedisConnectionOptions {
   lazyConnect?: boolean;
 }
 
+/** Timeout koneksi TCP (ms) sebelum dianggap gagal. */
+const CONNECT_TIMEOUT_MS = 5_000;
+
+/** Timeout tunggu hasil probe PING (ms) sebelum fallback ke memory client. */
+const PROBE_TIMEOUT_MS = 3_000;
+
+/**
+ * Pasang listener "error" agar ioredis tidak memunculkan
+ * "[ioredis] Unhandled error event" saat koneksi gagal.
+ */
+function attachErrorHandler(client: Redis): void {
+  client.on("error", (err: Error) => {
+    logInfo("[ioredis] Connection error", { message: err.message });
+  });
+}
+
+/** Tutup koneksi secara paksa tanpa melempar error (untuk cleanup client gagal). */
+function safeDisconnect(client: Redis | null): void {
+  if (!client) return;
+  try {
+    client.disconnect();
+  } catch {
+    /* abaikan — client mungkin sudah tertutup */
+  }
+}
+
+/** Batas waktu Promise agar operasi Redis tidak menggantung tanpa batas. */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`Redis operation timed out after ${ms}ms`)),
+      ms,
+    );
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
 export function createRedisConnection(overrides?: RedisConnectionOptions): Redis {
   if (!process.env.REDIS_URL) {
     throw new Error("REDIS_URL harus diisi di environment variables");
   }
 
-  return new Redis(process.env.REDIS_URL, {
+  const connection = new Redis(process.env.REDIS_URL, {
     maxRetriesPerRequest: 3,
     enableReadyCheck: true,
     lazyConnect: true,
+    connectTimeout: CONNECT_TIMEOUT_MS,
+    // Coba ulang maksimal ~5 detik antar percobaan agar tidak hang selamanya.
+    retryStrategy: (times: number) => Math.min(times * 500, 5_000),
     ...overrides,
   });
+  attachErrorHandler(connection);
+  return connection;
 }
 
 let sharedConnection: Redis | null = null;
@@ -61,10 +113,17 @@ export function createRedisClient(overrides?: RedisConnectionOptions): Redis {
     throw new Error("REDIS_URL harus diisi di environment variables");
   }
 
-  return new Redis(process.env.REDIS_URL, {
+  const client = new Redis(process.env.REDIS_URL, {
     lazyConnect: true,
+    connectTimeout: CONNECT_TIMEOUT_MS,
+    // Gagal cepat per-perintah agar request API tidak menggantung puluhan detik.
+    commandTimeout: PROBE_TIMEOUT_MS,
+    maxRetriesPerRequest: 2,
+    retryStrategy: (times: number) => Math.min(times * 500, 5_000),
     ...overrides,
   });
+  attachErrorHandler(client);
+  return client;
 }
 
 class IoredisClient implements RedisClient {
@@ -178,13 +237,18 @@ export async function getRedis(): Promise<RedisClient> {
   if (selectedClient) return selectedClient;
 
   if (process.env.REDIS_URL) {
+    let client: Redis | null = null;
     try {
-      const client = createRedisClient();
-      await client.ping();
+      client = createRedisClient();
+      // Batasi waktu probe agar rate-limit/auth tidak menggantung saat Redis down.
+      await withTimeout(client.ping(), PROBE_TIMEOUT_MS);
       selectedClient = new IoredisClient(client);
       selectedProvider = "ioredis";
       return selectedClient;
     } catch {
+      // Disconnect client gagal supaya tidak jadi instance yatim yang terus
+      // mencoba koneksi ulang dan memunculkan "Unhandled error event".
+      safeDisconnect(client);
       /* fallback to memory */
     }
   }
@@ -200,12 +264,16 @@ export function getRedisProvider(): RedisProvider {
 
 export async function redisHealth() {
   if (process.env.REDIS_URL) {
-    const client = createRedisClient();
+    let client: Redis | null = null;
     try {
-      await client.ping();
+      client = createRedisClient();
+      await withTimeout(client.ping(), PROBE_TIMEOUT_MS);
       return { ok: true, provider: "ioredis" as const };
     } catch {
       return { ok: false, provider: "ioredis" as const };
+    } finally {
+      // Health check memakai client sekali pakai — selalu tutup agar tidak bocor.
+      safeDisconnect(client);
     }
   }
 

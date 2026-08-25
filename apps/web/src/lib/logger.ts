@@ -1,6 +1,14 @@
 import { createLogger, format, transports } from "winston";
 
 export interface LogMetadata {
+  requestId?: string;
+  userId?: string;
+  route?: string;
+  action?: string;
+  status?: string;
+  duration?: number;
+  ip?: string;
+  userAgent?: string;
   [key: string]: unknown;
 }
 
@@ -22,6 +30,9 @@ const SENSITIVE_KEYS = [
   "ktpNumber",
   "ktpImageUrl",
   "balance",
+  "otp",
+  "cardNumber",
+  "cvv",
 ];
 
 function sanitizeValue(key: string, value: unknown): unknown {
@@ -154,6 +165,7 @@ export function logApiRequest(
   statusCode: number,
   duration: number,
   userId?: string,
+  requestId?: string,
 ) {
   logger.info({
     message: `${method} ${path} ${statusCode} ${duration}ms`,
@@ -163,6 +175,7 @@ export function logApiRequest(
     statusCode,
     duration,
     userId,
+    requestId,
   });
 }
 
@@ -170,6 +183,7 @@ export function logDatabaseQuery(
   query: string,
   duration: number,
   rowsAffected?: number,
+  requestId?: string,
 ) {
   logger.debug({
     message: `DB Query: ${duration}ms`,
@@ -177,6 +191,7 @@ export function logDatabaseQuery(
     query,
     duration,
     rowsAffected,
+    requestId,
   });
 }
 

@@ -1,11 +1,12 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { reviews, users, properties, reviewReplies } from "@/db/schema";
+import { reviews, reviewReplies, users, properties } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
+import { enforceRateLimit, generalRateLimit } from "@/lib/rate-limit";
 
 const updateReviewSchema = z.object({
   rating: z.coerce.number().min(1).max(5).optional(),
@@ -57,6 +58,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const limited = await enforceRateLimit(req, generalRateLimit);
+    if (limited) return limited;
+
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
     const session = await requireSession();
@@ -101,6 +105,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const limited = await enforceRateLimit(req, generalRateLimit);
+    if (limited) return limited;
+
     const session = await requireSession();
     const { id } = await params;
     const isAdmin = session.user.role === "admin";

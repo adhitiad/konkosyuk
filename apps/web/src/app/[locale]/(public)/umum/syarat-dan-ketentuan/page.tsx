@@ -1,4 +1,31 @@
 import { StaticPageLayout } from "@/components/static-page-layout";
+import { Metadata } from "next";
+import { locales } from "@/config";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const isIndonesian = locale === "id";
+
+  return {
+    title: isIndonesian
+      ? "Syarat & Ketentuan - KonkosYuk"
+      : "Terms & Conditions - KonkosYuk",
+    description: isIndonesian
+      ? "Baca syarat dan ketentuan penggunaan platform KonkosYuk."
+      : "Read KonkosYuk's terms and conditions for using our platform.",
+    alternates: {
+      canonical: `/${locale}/umum/syarat-dan-ketentuan`,
+      languages: Object.fromEntries(
+        locales.map((l) => [l, `/${l}/umum/syarat-dan-ketentuan`]),
+      ) as Record<string, string>,
+      "x-default": "/id/umum/syarat-dan-ketentuan",
+    },
+  };
+}
 
 export default function TermsPage() {
   return (

@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
 
     if (query.search) {
       conditions.push(
-        ilike(sql`CAST(${auditLogs.details} AS TEXT)`, `%${query.search}%`),
+        ilike(sql`CAST(${auditLogs.details} AS TEXT)`, sql`${`%${query.search}%`}`),
       );
     }
 

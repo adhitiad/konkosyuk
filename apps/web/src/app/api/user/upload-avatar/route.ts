@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
-import { logError } from "@/lib/logger";
 import { logSecurityEvent } from "@/lib/logger";
+import { ok, fail, handleApiError } from "@/lib/api";
+import { withRateLimit } from "@/lib/rate-limit";
 
 const ALLOWED_MIME_TYPES = [
   "image/jpeg",
@@ -34,33 +35,34 @@ function validateMagicBytes(buffer: Buffer, mimeType: string): boolean {
   return magic.every((byte, index) => buffer[index] === byte);
 }
 
-export async function POST(req: NextRequest) {
+const avatarUploadRateLimit = {
+  windowMs: 60 * 1000,
+  maxRequests: 10,
+  keyPrefix: "rl:avatar-upload",
+};
+
+async function avatarUploadHandler(req: NextRequest): Promise<Response> {
   try {
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
+
     const session = await requireSession();
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return fail("Unauthorized", 401, "UNAUTHORIZED");
     }
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      return fail("No file provided", 400);
     }
 
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      return NextResponse.json(
-        { error: "Tipe file tidak diizinkan" },
-        { status: 400 },
-      );
+      return fail("Tipe file tidak diizinkan", 400);
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { error: "Ukuran file maksimal 5MB" },
-        { status: 400 },
-      );
+      return fail("Ukuran file maksimal 5MB", 400);
     }
 
     const bytes = await file.arrayBuffer();
@@ -71,7 +73,7 @@ export async function POST(req: NextRequest) {
         userId: session.user.id,
         mimeType: file.type,
       });
-      return NextResponse.json({ error: "File tidak valid" }, { status: 400 });
+      return fail("File tidak valid", 400);
     }
 
     const uploadDir = path.join(process.cwd(), "public/uploads/avatars");
@@ -87,12 +89,12 @@ export async function POST(req: NextRequest) {
       req.headers.get("host") || "localhost:3001" || "localhost:3000";
     const protocol = req.headers.get("x-forwarded-proto") || "http";
     const publicUrl = `${protocol}://${host}/uploads/avatars/${filename}`;
-    return NextResponse.json({ url: publicUrl });
+    return ok({ url: publicUrl });
   } catch (error) {
-    logError(error, "POST /api/user/upload-avatar");
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return handleApiError(error, "POST /api/user/upload-avatar");
   }
+}
+
+export async function POST(req: NextRequest) {
+  return withRateLimit(avatarUploadRateLimit, req, avatarUploadHandler);
 }

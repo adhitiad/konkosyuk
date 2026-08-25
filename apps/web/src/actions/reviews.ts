@@ -13,11 +13,12 @@ import { sendWebPushNotification } from "@/lib/notifications";
 import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
 import { sanitizeString } from "@/lib/sanitize";
+import { MAX_REVIEW_LENGTH } from "@/lib/constants/actions";
 
 const createReviewSchema = z.object({
   type: z.enum(["tenant", "property"]),
   rating: z.coerce.number().int().min(1).max(5),
-  comment: z.string().max(1000).min(1, "Komentar tidak boleh kosong"),
+  comment: z.string().max(MAX_REVIEW_LENGTH).min(1, "Komentar tidak boleh kosong"),
   bookingId: z.string().uuid(),
   reviewedUserId: z.string().uuid().optional(),
   propertyId: z.string().uuid().optional(),

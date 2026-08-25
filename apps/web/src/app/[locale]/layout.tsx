@@ -6,6 +6,9 @@ import { Providers } from "@/app/providers";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/components/language-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { generateMetadata } from "./Metadata";
+
+export { generateMetadata };
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));

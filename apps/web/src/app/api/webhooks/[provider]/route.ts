@@ -1,12 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getPaymentProvider } from "@/lib/payments";
 import { handleWebhookRequest } from "@/lib/payments/webhook";
 import { enforceRateLimit, webhookRateLimit } from "@/lib/rate-limit";
 import { isWebhookIpAllowed, getClientIp } from "@/lib/webhook-ip-allowlist";
 import { logSecurityEvent } from "@/lib/logger";
+import { fail, handleApiError } from "@/lib/api";
 
 export async function GET() {
-  return NextResponse.json({ message: "Webhook endpoint" }, { status: 405 });
+  return fail("Method Not Allowed", 405, "METHOD_NOT_ALLOWED");
 }
 
 export async function POST(
@@ -18,10 +19,7 @@ export async function POST(
     const adapter = getPaymentProvider(provider);
 
     if (!adapter) {
-      return NextResponse.json(
-        { success: false, error: "Unknown provider" },
-        { status: 400 },
-      );
+      return fail("Unknown provider", 400);
     }
 
     const rawBody = await req.text();
@@ -38,10 +36,7 @@ export async function POST(
         ip: getClientIp(req),
         userAgent: req.headers.get("user-agent"),
       });
-      return NextResponse.json(
-        { success: false, error: "Invalid signature" },
-        { status: 401 },
-      );
+      return fail("Invalid signature", 401, "UNAUTHORIZED");
     }
 
     const limited = await enforceRateLimit(req, webhookRateLimit);
@@ -54,10 +49,7 @@ export async function POST(
         ip: clientIp,
         userAgent: req.headers.get("user-agent"),
       });
-      return NextResponse.json(
-        { success: false, error: "Unauthorized IP" },
-        { status: 403 },
-      );
+      return fail("Unauthorized IP", 403, "FORBIDDEN");
     }
 
     const result = await handleWebhookRequest(provider, ctx);
@@ -77,12 +69,6 @@ export async function POST(
       ip: getClientIp(req),
       error: error instanceof Error ? error.message : "Unknown",
     });
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "Webhook failed",
-      },
-      { status: 500 },
-    );
+    return handleApiError(error, "POST /api/webhooks/[provider]");
   }
 }

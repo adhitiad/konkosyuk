@@ -1,6 +1,6 @@
 import { getAblyAuth } from "@/lib/ably/server";
 import { requireSession } from "@/lib/auth";
-import { ok, fail } from "@/lib/api";
+import { ok, fail, handleApiError } from "@/lib/api";
 
 export const runtime = "nodejs";
 
@@ -36,7 +36,6 @@ export async function POST(req: Request) {
       expiresIn: 3600,
     });
   } catch (error) {
-    console.error("[Ably Token] Error:", error);
-    return fail("Gagal generate Ably token", 500);
+    return handleApiError(error, "POST /api/auth/ably-token");
   }
 }

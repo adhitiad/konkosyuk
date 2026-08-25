@@ -6,6 +6,7 @@ import { ok, fail, handleApiError } from "@/lib/api";
 import { enforceRateLimit, publicRateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 import { logApiRequest, logError } from "@/lib/logger";
+import { validateMutationCsrf } from "@/lib/api-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,9 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now();
 
   try {
+    const csrfError = validateMutationCsrf(req);
+    if (csrfError) return csrfError;
+
     const limited = await enforceRateLimit(req, publicRateLimit);
     if (limited) return limited;
 

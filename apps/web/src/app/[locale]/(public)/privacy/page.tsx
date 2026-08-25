@@ -1,4 +1,31 @@
 import { StaticPageLayout } from "@/components/static-page-layout";
+import { Metadata } from "next";
+import { locales } from "@/config";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const isIndonesian = locale === "id";
+
+  return {
+    title: isIndonesian
+      ? "Kebijakan Privasi - KonkosYuk"
+      : "Privacy Policy - KonkosYuk",
+    description: isIndonesian
+      ? "Pelajari bagaimana KonkosYuk mengumpulkan, menggunakan, dan melindungi data pribadi Anda."
+      : "Learn how KonkosYuk collects, uses, and protects your personal data.",
+    alternates: {
+      canonical: `/${locale}/privacy`,
+      languages: Object.fromEntries(
+        locales.map((l) => [l, `/${l}/privacy`]),
+      ) as Record<string, string>,
+      "x-default": "/id/privacy",
+    },
+  };
+}
 
 export default function PrivacyPage() {
   return (

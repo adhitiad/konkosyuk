@@ -8,8 +8,20 @@ export function captureException(
     process.env.NODE_ENV === "production" ||
     process.env.NEXT_PUBLIC_SENTRY_DSN
   ) {
-    Sentry.captureException(error, {
-      extra: context,
+    Sentry.withScope((scope) => {
+      if (context?.requestId) {
+        scope.setTag("requestId", String(context.requestId));
+      }
+      if (context?.userId) {
+        scope.setUser({ id: String(context.userId) });
+      }
+      if (context?.route) {
+        scope.setTag("route", String(context.route));
+      }
+      if (context?.method) {
+        scope.setTag("method", String(context.method));
+      }
+      Sentry.captureException(error, { extra: context });
     });
   }
 }
@@ -23,9 +35,17 @@ export function captureMessage(
     process.env.NODE_ENV === "production" ||
     process.env.NEXT_PUBLIC_SENTRY_DSN
   ) {
-    Sentry.captureMessage(message, {
-      level,
-      extra: context,
+    Sentry.withScope((scope) => {
+      if (context?.requestId) {
+        scope.setTag("requestId", String(context.requestId));
+      }
+      if (context?.userId) {
+        scope.setUser({ id: String(context.userId) });
+      }
+      Sentry.captureMessage(message, {
+        level,
+        extra: context,
+      });
     });
   }
 }

@@ -7,6 +7,7 @@ import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
+import { enforceRateLimit, generalRateLimit } from "@/lib/rate-limit";
 
 const createTicketSchema = z.object({
   unitId: z.string().uuid(),
@@ -90,6 +91,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await enforceRateLimit(req, generalRateLimit);
+    if (limited) return limited;
+
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
     const session = await requireSession(["cust"] as const);

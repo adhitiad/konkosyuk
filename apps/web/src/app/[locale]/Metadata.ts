@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { locales } from "@/config";
 
 export async function generateMetadata({
   params,
@@ -8,6 +9,14 @@ export async function generateMetadata({
   const { locale } = await params;
   const isIndonesian = locale === "id";
 
+  const alternates = {
+    canonical: `/${locale}`,
+    languages: Object.fromEntries(
+      locales.map((l) => [l, `/${l}`]),
+    ) as Record<string, string>,
+    "x-default": "/id",
+  };
+
   return {
     title: isIndonesian
       ? "KonkosYuk - Platform Sewa Kost & Ruko Paling Aman di Indonesia"
@@ -15,6 +24,7 @@ export async function generateMetadata({
     description: isIndonesian
       ? "Cari hunian ideal atau kelola properti Anda tanpa ribet. Pembayaran terjamin, lokasi terverifikasi GPS, dan bebas penipuan."
       : "Find your ideal rental or manage your property hassle-free. Guaranteed payments, GPS-verified locations, and fraud-free.",
+    alternates,
     openGraph: {
       title: "KonkosYuk - Sewa Kost & Ruko Aman",
       description:
@@ -40,6 +50,10 @@ export async function generateMetadata({
       images: [
         "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&h=630&fit=crop",
       ],
+    },
+    robots: {
+      index: true,
+      follow: true,
     },
   };
 }

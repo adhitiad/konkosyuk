@@ -78,6 +78,155 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/lang/id/).
 - Error handling: removed silent catch blocks, menggunakan `handleApiError` untuk konsistensi
 - Pre-existing TypeScript fixes: `referrals` schema `updatedAt` column removed dari library yang tidak tersedia di schema
 
+### Security
+
+- Phase 7: Rate limiting expanded ke mutation endpoints: referrals, reviews, chat, maintenance, owner withdrawals, properties, units
+- Phase 8: Fixed Nicepay & Doku webhook signature verification (HMAC computed before comparison)
+- Phase 8: Webhook amount tolerance tightened dari 100 IDR ke 0 IDR (exact match)
+- Phase 8: Admin cancel payment menggunakan status `cancelled` bukan `refunded` (refund memerlukan gateway call)
+- Phase 8: Admin refund action wrapped in transaction + `handleReferralFailureOnRefund` menggunakan `tx` bukan `db`
+- Phase 8: Added `cancelled` ke `paymentStatus` enum dan `cancel` ke `AuditAction`
+- Phase 9: Fixed commission rates sesuai documented tiers (Owner: 1%/2%/3.67%/4.82%, Tenant: 0.9%/1.86%/2.79%/3.96%)
+- Phase 9: Fixed `calculateEligibleAt` dari 7 hari ke 5 hari sesuai terms
+- Phase 9: Fixed `commissionRate` calculation di `verification.ts` menggunakan `getCommissionRate()` bukan `calculateCommissionAmount(1, ...)`
+- Phase 9: Added row locking (`FOR UPDATE`) di `startReferralVerification`, `handleReferralFailureOnRefund`, `sweepEligibleReferrals`
+- Phase 9: Added status guard di sweep loop (`if (referral.status !== "verifying") continue`)
+- Phase 9: Schema: added unique constraint on `voucher_code`, added `payoutIdempotencyKey` column, added FK `refereeTransactionId` ke `payments`
+- Phase 9: Audit findings documented: 36 issues (12 High, 15 Medium, 9 Low) including zero test coverage, missing idempotency, fraud gaps
+
+### Security
+
+- Phase 11: Loyalty redemption now fully atomic — balance check, redemption insert, debit transaction, and balance update happen inside a single `db.transaction()` with `FOR UPDATE` row lock to prevent concurrent redemption and negative balance
+- Phase 11: Removed duplicate `loyalty_points` table from schema; active loyalty system uses `loyalty_transactions` as append-only ledger only
+- Phase 12: Group booking confirmation wrapped in `db.transaction()` with `FOR UPDATE` lock to prevent double-booking on concurrent confirm requests
+- Phase 12: Group booking member invitation deduplicated inside transaction — duplicate email invites within same group booking are ignored
+- Phase 12: Group booking accept/reject wrapped in `db.transaction()` with `FOR UPDATE` row lock to prevent race condition on status change
+- Phase 12: Share percentage rounded to 2 decimal places (`Math.round(rawShare * 100) / 100`) to avoid floating-point drift in share calculation
+- Phase 12: `maxMembers` enforced at schema level (max 50) and validated at action/route level
+- Phase 12: Added unique constraint `group_booking_members_group_booking_id_user_id_unique` to prevent duplicate members
+- Phase 13: Fixed monetary columns: `properties.base_price`, `payments.amount`, `refund_requests.amount`, `refund_requests.approved_amount` changed from `text` to `numeric(12,2)`
+- Phase 13: `bookings.basePriceAtBooking` and `bookings.securityDeposit` changed to `numeric(12,2)` (was nullable, now implicitly nullable but recommended to populate)
+- Phase 13: `groupBookingMembers.userId` FK changed to `onDelete: "cascade"` to prevent orphan records
+- Phase 13: `bookings.groupBookingId` FK changed to `onDelete: "cascade"` to prevent orphan bookings
+- Phase 13: Added missing indexes: `group_bookings.lead_user_id`, `group_bookings.status`, `group_bookings.property_id`, `group_bookings.created_at`, `group_booking_members.status`, `group_booking_members.group_booking_id`, `loyalty_transactions.type`, `loyalty_transactions.expires_at`, `reward_redemptions.status`, `bookings.group_booking_id`, `bookings.is_group_booking`
+
+### Security
+
+- Phase 14: Booking creation wrapped in `db.transaction()` with `FOR UPDATE` on unit and bookings to prevent double-booking race condition
+- Phase 14: Booking request creation wrapped in `db.transaction()` with `FOR UPDATE` on unit to prevent race condition
+- Phase 14: Voucher redemption now atomic — single `UPDATE ... RETURNING *` prevents TOCTOU between validation and mark-redeemed
+- Phase 14: Withdrawal creation wrapped in `db.transaction()` with `FOR UPDATE` on user row to prevent concurrent withdrawal exceeding balance
+- Phase 14: Referral link wrapped in `db.transaction()` with `FOR UPDATE` on referral row to prevent concurrent link attempts
+- Phase 14: Group booking member invitation moved inside creation transaction for atomicity
+- Phase 14: Group booking confirmation wrapped in `db.transaction()` with `FOR UPDATE` on unit and overlap check
+- Phase 14: Added unique constraints: `payments.transactionId`, `reward_redemptions(userId, rewardId)`, `referrals(referrerId, refereeId, category)`
+- Phase 15: Added `QueueEvents` listeners for failed/completed/stalled jobs across all 6 BullMQ queues
+- Phase 15: Added `maxStalledCount: 2` to all workers for stuck job detection
+- Phase 15: Changed `removeOnFail` from `{ count: 100 }` to `{ count: 0 }` to preserve failed jobs for inspection
+- Phase 15: Differentiated retry policies per queue criticality: refunds=5 attempts, saved-search=2 attempts, others=3 attempts
+- Phase 15: Added exponential backoff with delay 5s-10s for all queues
+- Phase 15: Improved graceful shutdown: `worker.close(true)` waits for in-flight jobs, QueueEvents closed before Redis disconnect
+- Phase 15: Exported `deadLetterQueues` array for future DLQ implementation
+- Phase 16: Added correlation ID middleware (`src/middleware.ts`) generating `x-request-id` for all API routes
+- Phase 16: Enhanced Winston logger: added `requestId`, `userId`, `route`, `action`, `status`, `duration`, `ip`, `userAgent` to `LogMetadata`
+- Phase 16: Added `withRequestLogging` wrapper for automatic request logging with correlation ID
+- Phase 16: Added Sentry `beforeSend` and `beforeSendTransaction` scrubbing for sensitive data (password, token, cookie, KTP, balance, OTP, etc.)
+- Phase 16: Added Sentry scope enrichment with `requestId`, `userId`, `route`, `method` tags in `captureException` and `captureMessage`
+
+### Security
+
+- Phase 17: Standardized API error response shape to `{ success: false, error: { code, message, details? } }` across all routes
+- Phase 17: Fixed 6 API routes leaking raw error messages, stack traces, or internal paths in production responses
+- Phase 17: Removed `console.error` from API routes, centralized logging via `handleApiError` and `logError`
+- Phase 17: Added sensitive pattern scrubbing in production (SQL keywords, password, token, secret, stack trace, database)
+- Phase 17: Updated `fail()` helper to return consistent `{ success: false, error: { code, message } }` shape
+- Phase 17: Fixed webhook error handler to not return raw `error.message` in catch block
+- Phase 18: Migrated duplicate Zod schemas to shared package: referrals, loyalty transactions, group bookings
+- Phase 18: Added `referralActionSchema` to `@konkosyuk/shared` and removed inline duplicate from API route
+- Phase 18: Updated API routes to import enums from `@konkosyuk/shared/constants` instead of local definitions
+
+### Fixed
+
+- Phase 19: Fixed hydration mismatch in `dashboard/page.tsx` and `owner/bookings/page.tsx` (removed `new Date()` from render, eliminated IIFE + hooks-in-callback anti-patterns)
+- Phase 19: Fixed hydration mismatch in `owner/dashboard/page.tsx` — year/month initialization moved to `useLayoutEffect` with `queueMicrotask`
+- Phase 19: Fixed hydration mismatch in `properties/[id]/booking-dialog.tsx` — `today` date computation moved to `useLayoutEffect`
+- Phase 19: Replaced `document.getElementById("avatar")?.click()` anti-pattern with `useRef` in `settings/profile/page.tsx`
+- Phase 20: Added `generateMetadata` with locale-aware title, description, canonical, and hreflang alternates to public pages (about, privacy, refund-policy, terms)
+- Phase 20: Added `generateMetadata` to `(public)/layout.tsx` with canonical + alternates for all client-component public pages
+- Phase 20: Updated root `layout.tsx` metadata with `alternates.languages` and `x-default` for all 8 locales
+- Phase 20: Fixed sitemap to include `/properties` listing for all 8 locales (was only `/id/properties`)
+- Phase 20: Fixed `robots.txt` to include locale-prefixed disallow patterns for protected routes
+- Phase 20: Fixed breadcrumb `JsonLd` URLs in `properties/[id]/page.tsx` to include locale prefix (was hardcoded English)
+
+### Security
+
+- Phase 21: Added `GeoCoordinates`, `hasMap`, and `addressDistrict` to property JSON-LD for local SEO
+- Phase 21: Added city/district autocomplete API endpoint (`/api/locations?q=&type=`)
+- Phase 22: Fixed N+1 query in occupancy API — replaced 30 daily-loop queries with single `generate_series` aggregation
+- Phase 22: Fixed N+1 query in revenue API — replaced per-property `occupiedDays` loop with single joined query
+- Phase 22: Replaced `SELECT *` with explicit field selection in properties API to reduce payload by ~60%
+- Phase 23: Added magic bytes validation to `/api/upload` (was only MIME check)
+- Phase 23: Added rate limiting to `/api/user/upload-avatar` (was missing)
+- Phase 23: Tightened `remotePatterns` in `next.config.ts` — removed wildcards, added exact tile hosts
+- Phase 23: Removed unused image hosts from CSP (`placehold.co`, `via.placeholder.com`, `cdn.jsdelivr.net`)
+- Phase 23: Added `demotiles.maplibre.org` to CSP `connect-src` for mini-map
+- Phase 24: Added unit tests for referral commission calculation (all 4 tiers × 2 categories)
+- Phase 24: Added unit tests for payment webhook handler (signature, payload normalization, error cases)
+- Phase 24: Added unit tests for voucher validation and atomic redemption
+- Phase 24: Added unit tests for occupancy API with mocked DB queries
+
+### Added
+
+- Phase 25: Unit tests for referral verification (`startReferralVerification`, `handleReferralFailureOnRefund`, `sweepEligibleReferrals`) — 10 test cases covering happy path, early returns, and status guards
+- Phase 25: Unit tests for loyalty transactions API (`GET /api/loyalty/transactions`) — pagination, type filter, balance calculation, auth guard
+- Phase 25: Unit tests for loyalty rewards API (`GET /api/loyalty/rewards`, `POST /api/loyalty/rewards/redeem`) — active filter, redemption flow, inactive/non-existent reward rejection
+- Phase 25: Unit tests for group bookings API (`GET /api/group-bookings`, `POST /api/group-bookings`) — user/owner filtering, member deduplication, property/unit validation
+
+### Changed
+
+- Phase 26: Replaced 4 `console.error` calls with structured `logError` in `src/lib/payments/webhook.ts`
+- Phase 26: Extracted magic number `DP_RATIO = 0.35` to `src/lib/payments/calculations.ts` and reused in `actions/bookings.ts`
+- Phase 26: Extracted magic numbers: `PAYMENT_EXPIRY_SECONDS`, `MAX_DESCRIPTION_LENGTH`, `MAX_CHAT_MESSAGE_LENGTH`, `MAX_REVIEW_LENGTH`, `DEFAULT_FEATURED_LISTING_PRICE` to `src/lib/constants/actions.ts`
+- Phase 26: Extracted commission rate tables (`OWNER_TIER_RATES`, `TENANT_TIER_RATES`) and time constants (`MS_PER_DAY`, `REFERRAL_ELIGIBILITY_DAYS`) to `src/lib/referrals/commission.ts`
+- Phase 26: Added type guard `isCommissionCategory()` in `verification.ts` replacing unsafe `as CommissionCategory` cast
+
+### Security
+
+- Phase 26: Replaced `z.any()` with `z.unknown()` in `payment-gateways.ts` upsert schema for safer type inference
+- Phase 27: Completed `env.ts` schema — added 15 missing environment variables (ABLY, DIDIT, VAPID, Sentry, storage, cron secrets)
+- Phase 27: Fixed `.env.example` — `BETTER_AUTH_SECRET` no longer shows generation command as literal value
+- Phase 27: Centralized environment validation in `src/lib/env.ts` covering all 58 variables from `.env.example`
+- Phase 27: Server secrets (`ABLY_API_KEY`, `DIDIT_API_KEY`, `DIDIT_WEBHOOK_SECRET`, `VAPID_PRIVATE_KEY`, `PAYMENT_CONFIG_ENCRYPTION_KEY`, `NOTIFICATION_ENCRYPTION_KEY`, `CRON_SECRET`) validated as required with minimum length checks
+
+### Fixed
+
+- Phase 26: Fixed unused variable lint warnings in group bookings and loyalty rewards test files
+
+### Added
+
+- Phase 28: GitHub Actions CI/CD pipeline with 3 workflows:
+  - `.github/workflows/ci-fast.yml`: Lint, typecheck, unit tests (parallel, on every PR/push)
+  - `.github/workflows/ci-slow.yml`: Coverage report, build verification, E2E tests (on main/develop)
+  - `.github/workflows/security.yml`: Dependency audit (bun audit), secrets scanning (TruffleHog), SAST (Semgrep)
+- Phase 28: Proper dependency caching with `actions/cache@v4` using `bun.lockb` hash
+- Phase 28: Separate fast/slow checks to optimize CI feedback time
+- Phase 28: Codecov integration for coverage tracking
+- Phase 28: Playwright E2E tests with artifact upload on failure
+- Phase 29: Production readiness checklist (`CHECKLIST_WEB.md`) with 17 categories and 100+ verification items
+- Phase 29: Healthcheck endpoints documented (`/api/health/live`, `/api/health/ready`)
+- Phase 29: Rollback procedure documented (Vercel, database, worker)
+
+### Security
+
+- Phase 27: Completed `env.ts` schema covering all 58 environment variables from `.env.example`
+- Phase 27: Server secrets validated with minimum length checks (ABLY, DIDIT, VAPID, encryption keys)
+- Phase 27: `.env.example` fixed — `BETTER_AUTH_SECRET` no longer shows generation command as literal value
+
+### Fixed
+
+- Phase 22: Added composite indexes: `properties(city, isActive)`, `bookings(propertyId, status, startDate, endDate)`, `payments(propertyId, status, paidAt)`
+- Phase 22: Updated occupancy API tests to match new query structure (Promise.all + generate_series)
+
 ### Removed
 
 - `CRON_SECRET` dari seluruh codebase, CI, dokumentasi, dan security checklist

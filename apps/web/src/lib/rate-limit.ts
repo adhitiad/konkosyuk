@@ -1,5 +1,6 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { getRedis } from "@/lib/redis";
+import { getClientIp } from "@/lib/webhook-ip-allowlist";
 
 export interface RateLimitConfig {
   windowMs: number;
@@ -114,6 +115,7 @@ export interface RateLimitOptions {
 export interface RateLimitDeviceInput {
   deviceId?: string;
   deviceName?: string;
+  clientIp?: string;
 }
 
 export function rateLimitByDevice(
@@ -124,7 +126,8 @@ export function rateLimitByDevice(
   return async (req: RateLimitDeviceInput) => {
     const deviceId = req.deviceId || key;
     const deviceName = req.deviceName || "";
-    const clientKey = `${key}:${deviceId}:${deviceName}`;
+    const clientIp = req.clientIp || "unknown";
+    const clientKey = `${key}:${clientIp}:${deviceId}:${deviceName}`;
     const redis = await getRedis();
     const ttlSeconds = Math.ceil(windowMs / 1000);
     const count = await redis.incr(`ratelimit:${clientKey}`, ttlSeconds);
@@ -185,7 +188,13 @@ export async function enforceRateLimit(
   req: NextRequest,
   limiter: (input: RateLimitDeviceInput) => Promise<RateLimitResult>,
 ) {
-  const result = await limiter(getDeviceInfoFromRequest(req));
+  const deviceInfo = getDeviceInfoFromRequest(req);
+  const clientIp = getClientIp(req);
+  const result = await limiter({
+    deviceId: deviceInfo.deviceId,
+    deviceName: deviceInfo.deviceName,
+    clientIp,
+  });
   if (result.success) return null;
 
   return NextResponse.json(

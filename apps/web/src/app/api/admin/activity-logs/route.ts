@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { auditLogs, users } from "@/db/schema";
 import { eq, desc, and, or, ilike, count } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import type { Role } from "@/lib/auth";
+import { ok, handleApiError } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
   try {
@@ -63,18 +64,8 @@ export async function GET(req: NextRequest) {
       createdAt: item.createdAt,
     }));
 
-    return NextResponse.json({
-      data: mappedData,
-      meta: { total: countResult?.count ?? 0 },
-    });
+    return ok({ data: mappedData, meta: { total: countResult?.count ?? 0 } });
   } catch (error) {
-    console.error("[API] Activity Logs Error:", error);
-    return NextResponse.json(
-      {
-        error: "Gagal memuat activity logs",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 },
-    );
+    return handleApiError(error, "GET /api/admin/activity-logs");
   }
 }

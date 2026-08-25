@@ -29,8 +29,10 @@ export default function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const mounted = useSyncExternalStore(
     () => () => {},
-    () => false,
+    // Client snapshot: true SETELAH hidrasi selesai.
     () => true,
+    // Server snapshot: false agar SSR dan render hidrasi konsisten (render form).
+    () => false,
   );
 
   useEffect(() => {

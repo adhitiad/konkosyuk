@@ -17,6 +17,7 @@ import type { NewPayment } from "@/db/schema";
 
 type BookingStatus = (typeof bookingStatus)[number];
 import { eq, and, or, gte, lte, sql, desc, inArray } from "drizzle-orm";
+import { previewAvailableOffset, computeOffsetDiscount } from "@/lib/referrals/offset";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
@@ -40,6 +41,8 @@ import {
 } from "@/lib/notifications/email";
 import { dispatchNotification } from "@/lib/notification-service";
 import { getPaymentProvider } from "@/lib/payments";
+import { DP_RATIO } from "@/lib/payments/calculations";
+import { PAYMENT_EXPIRY_SECONDS } from "@/lib/payments/constants";
 import { generateInvoiceNumber, money } from "@/lib/utils";
 import { checkFraudFlags } from "@/lib/fraud-check";
 import { logError } from "@/lib/logger";
@@ -115,16 +118,6 @@ export async function createBookingAction(
       paymentType: formData.get("paymentType") || "dp",
     });
 
-    const [unit] = await db
-      .select()
-      .from(units)
-      .where(eq(units.id, validated.unitId))
-      .limit(1);
-
-    if (!unit) {
-      return { error: "Unit tidak ditemukan", success: false };
-    }
-
     const [property] = await db
       .select()
       .from(properties)
@@ -135,160 +128,182 @@ export async function createBookingAction(
       return { error: "Properti tidak ditemukan", success: false };
     }
 
-    if (unit.propertyId !== property.id) {
-      return { error: "Unit tidak milik properti ini", success: false };
-    }
+    const result = await db.transaction(async (tx) => {
+      const [unit] = await tx
+        .select()
+        .from(units)
+        .where(eq(units.id, validated.unitId))
+        .for("update")
+        .limit(1);
 
-    if (unit.status !== "available") {
-      return { error: "Unit tidak tersedia", success: false };
-    }
+      if (!unit) {
+        return { error: "Unit tidak ditemukan", success: false } as const;
+      }
 
-    const packageValidation = validateBookingPackage(
-      property.packages,
-      validated.packageId,
-      validated.customDuration,
-    );
-    if (!packageValidation.valid) {
-      return {
-        error: packageValidation.error || "Paket tidak valid",
-        success: false,
-      };
-    }
+      if (unit.propertyId !== property.id) {
+        return { error: "Unit tidak milik properti ini", success: false } as const;
+      }
 
-    const pkg = getPackageById(property.packages, validated.packageId);
-    if (!pkg) {
-      return { error: "Paket tidak ditemukan", success: false };
-    }
+      if (unit.status !== "available") {
+        return { error: "Unit tidak tersedia", success: false } as const;
+      }
 
-    let totalPrice: number;
-    let endDate: Date;
-    let appliedSeasonalRuleId: string | undefined;
-
-    const checkIn = new Date(validated.startDate);
-    const seasonalRules = await db
-      .select()
-      .from(seasonalPricingRules)
-      .where(
-        and(
-          eq(seasonalPricingRules.propertyId, property.id),
-          eq(seasonalPricingRules.isActive, true),
-          or(
-            sql`${seasonalPricingRules.unitId} IS NULL`,
-            eq(seasonalPricingRules.unitId, unit.id),
-          ),
-        ),
-      )
-      .orderBy(
-        desc(seasonalPricingRules.priority),
-        desc(seasonalPricingRules.createdAt),
-      );
-
-    if (validated.packageId === "custom" && property.packages.custom.enabled) {
-      const customResult = calculateCustomPrice(
+      const packageValidation = validateBookingPackage(
         property.packages,
-        validated.customDuration!,
-        seasonalRules,
-        checkIn,
+        validated.packageId,
+        validated.customDuration,
       );
-      totalPrice = customResult.finalPrice;
-      appliedSeasonalRuleId = customResult.seasonal?.ruleId;
-      endDate = calculatePackageEndDate(
-        validated.startDate,
-        property.packages.custom.unit,
-        validated.customDuration!,
-      );
-    } else {
-      const priceResult = calculatePackagePriceWithSeasonal(
-        pkg.basePrice,
-        pkg.discountPercent,
-        pkg.ppnPercent,
-        pkg.appFeePercent,
-        seasonalRules,
-        checkIn,
-      );
-      totalPrice = priceResult.finalPrice;
-      appliedSeasonalRuleId = priceResult.seasonal?.ruleId;
-      endDate = calculatePackageEndDate(
-        validated.startDate,
-        pkg.unit,
-        pkg.value,
-      );
-    }
+      if (!packageValidation.valid) {
+        return {
+          error: packageValidation.error || "Paket tidak valid",
+          success: false,
+        } as const;
+      }
 
-    const dpAmount = Math.round(totalPrice * 0.35);
-    const remainingAmount = totalPrice - dpAmount;
+      const pkg = getPackageById(property.packages, validated.packageId);
+      if (!pkg) {
+        return { error: "Paket tidak ditemukan", success: false } as const;
+      }
 
-    const isFullPayment = validated.paymentType === "full";
-    const bookingStatus = isFullPayment
-      ? "awaiting_full_payment"
-      : "pending_dp";
-    const bookingDpAmount = isFullPayment ? 0 : dpAmount;
-    const bookingRemainingAmount = isFullPayment ? totalPrice : remainingAmount;
+      let totalPrice: number;
+      let endDate: Date;
+      let appliedSeasonalRuleId: string | undefined;
 
-    const bookingType = unit.status === "available" ? "instant" : "request";
-
-    const overlapping = await db
-      .select()
-      .from(bookings)
-      .where(
-        and(
-          eq(bookings.unitId, validated.unitId),
-          or(
-            and(
-              gte(bookings.startDate, new Date(validated.startDate)),
-              lte(bookings.startDate, endDate),
-            ),
-            and(
-              gte(bookings.endDate, new Date(validated.startDate)),
-              lte(bookings.endDate, endDate),
-            ),
-            and(
-              lte(bookings.startDate, new Date(validated.startDate)),
-              gte(bookings.endDate, endDate),
+      const checkIn = new Date(validated.startDate);
+      const seasonalRules = await tx
+        .select()
+        .from(seasonalPricingRules)
+        .where(
+          and(
+            eq(seasonalPricingRules.propertyId, property.id),
+            eq(seasonalPricingRules.isActive, true),
+            or(
+              sql`${seasonalPricingRules.unitId} IS NULL`,
+              eq(seasonalPricingRules.unitId, unit.id),
             ),
           ),
-        ),
-      )
-      .limit(1);
+        )
+        .orderBy(
+          desc(seasonalPricingRules.priority),
+          desc(seasonalPricingRules.createdAt),
+        );
 
-    if (overlapping.length > 0) {
-      return {
-        error: "Unit sudah dibooking untuk tanggal yang dipilih",
-        success: false,
-      };
+      if (validated.packageId === "custom" && property.packages.custom.enabled) {
+        const customResult = calculateCustomPrice(
+          property.packages,
+          validated.customDuration!,
+          seasonalRules,
+          checkIn,
+        );
+        totalPrice = customResult.finalPrice;
+        appliedSeasonalRuleId = customResult.seasonal?.ruleId;
+        endDate = calculatePackageEndDate(
+          validated.startDate,
+          property.packages.custom.unit,
+          validated.customDuration!,
+        );
+      } else {
+        const priceResult = calculatePackagePriceWithSeasonal(
+          pkg.basePrice,
+          pkg.discountPercent,
+          pkg.ppnPercent,
+          pkg.appFeePercent,
+          seasonalRules,
+          checkIn,
+        );
+        totalPrice = priceResult.finalPrice;
+        appliedSeasonalRuleId = priceResult.seasonal?.ruleId;
+        endDate = calculatePackageEndDate(
+          validated.startDate,
+          pkg.unit,
+          pkg.value,
+        );
+      }
+
+      const dpAmount = Math.round(totalPrice * DP_RATIO);
+      const remainingAmount = totalPrice - dpAmount;
+
+      const isFullPayment = validated.paymentType === "full";
+      const bookingStatus = isFullPayment
+        ? "awaiting_full_payment"
+        : "pending_dp";
+      const bookingDpAmount = isFullPayment ? 0 : dpAmount;
+      const bookingRemainingAmount = isFullPayment ? totalPrice : remainingAmount;
+
+      const bookingType = "instant";
+
+      const overlapping = await tx
+        .select()
+        .from(bookings)
+        .where(
+          and(
+            eq(bookings.unitId, validated.unitId),
+            or(
+              and(
+                gte(bookings.startDate, new Date(validated.startDate)),
+                lte(bookings.startDate, endDate),
+              ),
+              and(
+                gte(bookings.endDate, new Date(validated.startDate)),
+                lte(bookings.endDate, endDate),
+              ),
+              and(
+                lte(bookings.startDate, new Date(validated.startDate)),
+                gte(bookings.endDate, endDate),
+              ),
+            ),
+          ),
+        )
+        .for("update")
+        .limit(1);
+
+      if (overlapping.length > 0) {
+        return {
+          error: "Unit sudah dibooking untuk tanggal yang dipilih",
+          success: false,
+        } as const;
+      }
+
+      const [booking] = await tx
+        .insert(bookings)
+        .values({
+          userId: session.user.id,
+          propertyId: property.id,
+          unitId: unit.id,
+          bookingType,
+          status: bookingStatus,
+          startDate: new Date(validated.startDate),
+          endDate: endDate,
+          metadata: {
+            packageId: validated.packageId,
+            customDuration: validated.customDuration,
+            totalPrice,
+            dpAmount: bookingDpAmount,
+            remainingAmount: bookingRemainingAmount,
+            basePrice: pkg.basePrice,
+            discountPercent: pkg.discountPercent,
+            ppnPercent: pkg.ppnPercent,
+            appFeePercent: pkg.appFeePercent,
+            pricingRuleId: appliedSeasonalRuleId,
+          },
+        })
+        .returning();
+
+      return { success: true, booking, unit, property, totalPrice, dpAmount: bookingDpAmount, remainingAmount: bookingRemainingAmount, appliedSeasonalRuleId } as const;
+    });
+
+    if (!result.success) {
+      return result;
     }
 
-    const [booking] = await db
-      .insert(bookings)
-      .values({
-        userId: session.user.id,
-        propertyId: property.id,
-        unitId: unit.id,
-        bookingType,
-        status: bookingStatus,
-        startDate: new Date(validated.startDate),
-        endDate: endDate,
-        metadata: {
-          packageId: validated.packageId,
-          customDuration: validated.customDuration,
-          totalPrice,
-          dpAmount: bookingDpAmount,
-          remainingAmount: bookingRemainingAmount,
-          basePrice: pkg.basePrice,
-          discountPercent: pkg.discountPercent,
-          ppnPercent: pkg.ppnPercent,
-          appFeePercent: pkg.appFeePercent,
-          pricingRuleId: appliedSeasonalRuleId,
-        },
-      })
-      .returning();
+    const { booking, unit, property: txProperty, totalPrice, dpAmount: bookingDpAmount, remainingAmount: bookingRemainingAmount } = result;
 
     await invalidateCacheByTag("bookings");
 
     const [owner] = await db
       .select()
       .from(users)
-      .where(eq(users.id, property.ownerId))
+      .where(eq(users.id, txProperty.ownerId))
       .limit(1);
 
     if (owner?.email) {
@@ -296,18 +311,18 @@ export async function createBookingAction(
         owner.email,
         owner.name,
         session.user.name,
-        property.name,
+        txProperty.name,
         unit.name,
         `${process.env.NEXT_PUBLIC_APP_URL}/owner/booking-requests`,
       ).catch((err) => logError(err, "Failed to send booking request email"));
     }
 
     dispatchNotification({
-      userId: property.ownerId,
+      userId: txProperty.ownerId,
       type: "booking_created",
       category: "booking",
       title: "Booking Baru",
-      message: `${session.user.name} membuat booking untuk ${property.name} - ${unit.name}`,
+      message: `${session.user.name} membuat booking untuk ${txProperty.name} - ${unit.name}`,
       actionUrl: "/owner/booking-requests",
       referenceId: booking.id,
       referenceType: "booking",
@@ -315,7 +330,7 @@ export async function createBookingAction(
         ownerEmail: owner?.email,
         ownerName: owner?.name,
         tenantName: session.user.name,
-        propertyName: property.name,
+        propertyName: txProperty.name,
         unitName: unit.name,
         bookingUrl: `${process.env.NEXT_PUBLIC_APP_URL}/owner/booking-requests`,
       },
@@ -842,6 +857,22 @@ export async function checkoutBookingAction(bookingId: string, formData: FormDat
       return { success: false, error: "Jumlah pembayaran tidak valid", status: 400 };
     }
 
+    let finalAmount = amount;
+    let appliedOffsetReferralIds: string[] = [];
+    if (purpose === "full_payment") {
+      const offsetPreview = await previewAvailableOffset(booking.userId);
+      if (offsetPreview.availableBalance > 0) {
+        const { discountAmount, finalAmount: computed } = computeOffsetDiscount(
+          offsetPreview.availableBalance,
+          amount,
+        );
+        if (discountAmount > 0) {
+          finalAmount = computed;
+          appliedOffsetReferralIds = offsetPreview.referralIds;
+        }
+      }
+    }
+
     const adapter = getPaymentProvider(body.paymentProvider);
     if (!adapter) {
       return { success: false, error: "Provider pembayaran tidak didukung", status: 400 };
@@ -873,6 +904,10 @@ export async function checkoutBookingAction(bookingId: string, formData: FormDat
       bookingCode: booking.metadata?.bookingCode,
     };
 
+    if (appliedOffsetReferralIds.length > 0) {
+      paymentMetadata.appliedOffsetReferralIds = appliedOffsetReferralIds;
+    }
+
     if (fraudResult.requiresManualReview) {
       paymentMetadata.fraudReview = true;
       paymentMetadata.fraudReason = "amount_exceeds_10m";
@@ -882,7 +917,7 @@ export async function checkoutBookingAction(bookingId: string, formData: FormDat
       bookingId: booking.id,
       provider: validatedProvider,
       purpose,
-      amount: money(amount),
+      amount: money(finalAmount),
       currency: "IDR",
       status: "pending",
       transactionId: invoiceNumber,
@@ -899,9 +934,9 @@ export async function checkoutBookingAction(bookingId: string, formData: FormDat
         bookingId: booking.id,
         provider: validatedProvider,
         purpose,
-        amount,
+        amount: finalAmount,
         currency: "IDR",
-        expiresIn: 21600,
+        expiresIn: PAYMENT_EXPIRY_SECONDS,
         metadata: {
           invoiceNumber,
           bookingCode: booking.metadata?.bookingCode,

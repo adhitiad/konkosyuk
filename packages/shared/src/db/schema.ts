@@ -15,7 +15,13 @@ import { relations, sql } from "drizzle-orm";
 import type { PropertyPackages } from "../types/property-packages";
 
 export const userRole = ["cust", "owner", "admin", "staff"] as const;
-export const propertyType = ["kost", "kontrakan", "apartemen", "rumah", "ruko"] as const;
+export const propertyType = [
+  "kost",
+  "kontrakan",
+  "apartemen",
+  "rumah",
+  "ruko",
+] as const;
 export const unitStatus = ["available", "booked", "maintenance"] as const;
 export const bookingType = ["instant", "request"] as const;
 export const bookingRequestStatus = [
@@ -116,6 +122,7 @@ export const paymentStatus = [
   "failed",
   "expired",
   "refunded",
+  "cancelled",
 ] as const;
 export const paymentTransactionStatus = [
   "pending",
@@ -383,7 +390,7 @@ export const properties = pgTable(
     city: text("city"),
     district: text("district"),
     type: text("type", { enum: propertyType }).notNull(),
-    basePrice: text("base_price"),
+    basePrice: numeric("base_price", { precision: 12, scale: 2 }),
     packages: jsonb("packages")
       .$type<PropertyPackages>()
       .notNull()
@@ -433,7 +440,14 @@ export const properties = pgTable(
       "gin",
       table.metadata,
     ),
-    coordsIdx: index("idx_properties_coords").on(table.latitude, table.longitude),
+    coordsIdx: index("idx_properties_coords").on(
+      table.latitude,
+      table.longitude,
+    ),
+    cityActiveIdx: index("idx_properties_city_active").on(
+      table.city,
+      table.isActive,
+    ),
   }),
 );
 
@@ -452,7 +466,9 @@ export const units = pgTable(
     status: text("status", { enum: unitStatus }).notNull().default("available"),
     metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
     roomSize: text("room_size"),
-    electricityIncluded: boolean("electricity_included").notNull().default(false),
+    electricityIncluded: boolean("electricity_included")
+      .notNull()
+      .default(false),
     furnitureIncluded: boolean("furniture_included").notNull().default(false),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
@@ -520,64 +536,71 @@ export const bookingRequests = pgTable(
   }),
 );
 
-export const loyaltyPoints = pgTable("loyalty_points", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id")
-    .references(() => users.id)
-    .notNull(),
-  points: integer("points").notNull().default(0),
-  type: text("type", {
-    enum: ["earned", "redeemed", "expired", "bonus"] as const,
-  }).notNull(),
-  source: text("source"),
-  referenceId: text("reference_id"),
-  description: text("description"),
-  expiresAt: timestamp("expires_at", { mode: "date" }),
-  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
-});
+export const groupBookings = pgTable(
+  "group_bookings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leadUserId: uuid("lead_user_id")
+      .references(() => users.id)
+      .notNull(),
+    propertyId: uuid("property_id")
+      .references(() => properties.id)
+      .notNull(),
+    unitId: uuid("unit_id")
+      .references(() => units.id)
+      .notNull(),
+    status: text("status", {
+      enum: ["pending", "confirmed", "cancelled", "completed"] as const,
+    }).default("pending"),
+    totalAmount: numeric("total_amount").notNull(),
+    depositAmount: numeric("deposit_amount").notNull(),
+    startDate: timestamp("start_date", { mode: "date" }).notNull(),
+    endDate: timestamp("end_date", { mode: "date" }).notNull(),
+    metadata: jsonb("metadata").default({}),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
+  },
+  (table) => ({
+    leadUserIdIdx: index("group_bookings_lead_user_id_idx").on(
+      table.leadUserId,
+    ),
+    statusIdx: index("group_bookings_status_idx").on(table.status),
+    propertyIdIdx: index("group_bookings_property_id_idx").on(table.propertyId),
+    createdAtIdx: index("group_bookings_created_at_idx").on(table.createdAt),
+  }),
+);
 
-export const groupBookings = pgTable("group_bookings", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  leadUserId: uuid("lead_user_id")
-    .references(() => users.id)
-    .notNull(),
-  propertyId: uuid("property_id")
-    .references(() => properties.id)
-    .notNull(),
-  unitId: uuid("unit_id")
-    .references(() => units.id)
-    .notNull(),
-  status: text("status", {
-    enum: ["pending", "confirmed", "cancelled", "completed"] as const,
-  }).default("pending"),
-  totalAmount: numeric("total_amount").notNull(),
-  depositAmount: numeric("deposit_amount").notNull(),
-  startDate: timestamp("start_date", { mode: "date" }).notNull(),
-  endDate: timestamp("end_date", { mode: "date" }).notNull(),
-  metadata: jsonb("metadata").default({}),
-  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
-});
-
-export const groupBookingMembers = pgTable("group_booking_members", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  groupBookingId: uuid("group_booking_id")
-    .references(() => groupBookings.id, { onDelete: "cascade" })
-    .notNull(),
-  userId: uuid("user_id")
-    .references(() => users.id)
-    .notNull(),
-  sharePercentage: numeric("share_percentage", {
-    precision: 5,
-    scale: 2,
-  }).notNull(),
-  shareAmount: numeric("share_amount").notNull(),
-  paidAmount: numeric("paid_amount").default("0"),
-  status: text("status", {
-    enum: ["invited", "accepted", "rejected", "paid"] as const,
-  }).default("invited"),
-  joinedAt: timestamp("joined_at", { mode: "date" }),
-  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
-});
+export const groupBookingMembers = pgTable(
+  "group_booking_members",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    groupBookingId: uuid("group_booking_id")
+      .references(() => groupBookings.id, { onDelete: "cascade" })
+      .notNull(),
+    userId: uuid("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    sharePercentage: numeric("share_percentage", {
+      precision: 5,
+      scale: 2,
+    }).notNull(),
+    shareAmount: numeric("share_amount").notNull(),
+    paidAmount: numeric("paid_amount").default("0"),
+    status: text("status", {
+      enum: ["invited", "accepted", "rejected", "paid"] as const,
+    }).default("invited"),
+    joinedAt: timestamp("joined_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    groupBookingIdUserIdUnique: unique(
+      "group_booking_members_group_booking_id_user_id_unique",
+    ).on(table.groupBookingId, table.userId),
+    statusIdx: index("group_booking_members_status_idx").on(table.status),
+    groupBookingIdIdx: index("group_booking_members_group_booking_id_idx").on(
+      table.groupBookingId,
+    ),
+  }),
+);
 
 export const roommatePreferences = pgTable("roommate_preferences", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -877,7 +900,12 @@ export const bookings = pgTable(
     metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
     rejectionReason: text("rejection_reason"),
     isGroupBooking: boolean("is_group_booking").default(false),
-    groupBookingId: uuid("group_booking_id").references(() => groupBookings.id),
+    groupBookingId: uuid("group_booking_id").references(
+      () => groupBookings.id,
+      {
+        onDelete: "cascade",
+      },
+    ),
     pricingRuleId: uuid("pricing_rule_id").references(
       () => seasonalPricingRules.id,
     ),
@@ -909,6 +937,18 @@ export const bookings = pgTable(
       table.status,
       table.createdAt,
     ),
+    propertyAvailabilityIdx: index("bookings_property_availability_idx").on(
+      table.propertyId,
+      table.status,
+      table.startDate,
+      table.endDate,
+    ),
+    groupBookingIdIdx: index("bookings_group_booking_id_idx").on(
+      table.groupBookingId,
+    ),
+    isGroupBookingIdx: index("bookings_is_group_booking_idx").on(
+      table.isGroupBooking,
+    ),
   }),
 );
 
@@ -924,7 +964,7 @@ export const payments = pgTable(
     }),
     provider: text("provider", { enum: paymentProvider }).notNull(),
     purpose: text("purpose", { enum: paymentPurpose }).notNull(),
-    amount: text("amount").notNull(),
+    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
     currency: text("currency").notNull().default("IDR"),
     status: text("status", { enum: paymentStatus })
       .notNull()
@@ -943,6 +983,14 @@ export const payments = pgTable(
     providerIdx: index("payments_provider_idx").on(table.provider),
     statusIdx: index("payments_status_idx").on(table.status),
     propertyIdIdx: index("payments_property_id_idx").on(table.propertyId),
+    propertyStatusPaidAtIdx: index("payments_property_status_paidat_idx").on(
+      table.propertyId,
+      table.status,
+      table.paidAt,
+    ),
+    transactionIdUnique: unique("payments_transaction_id_unique").on(
+      table.transactionId,
+    ),
   }),
 );
 
@@ -961,8 +1009,8 @@ export const refundRequests = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    amount: text("amount").notNull(),
-    approvedAmount: text("approved_amount"),
+    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+    approvedAmount: numeric("approved_amount", { precision: 12, scale: 2 }),
     reason: text("reason").notNull(),
     status: text("status", { enum: refundRequestStatus })
       .notNull()
@@ -1354,8 +1402,6 @@ export type TwoFactor = typeof twoFactor.$inferSelect;
 export type NewTwoFactor = typeof twoFactor.$inferInsert;
 export type Referral = typeof referrals.$inferSelect;
 export type NewReferral = typeof referrals.$inferInsert;
-export type LoyaltyPoint = typeof loyaltyPoints.$inferSelect;
-export type NewLoyaltyPoint = typeof loyaltyPoints.$inferInsert;
 export type Reward = typeof rewards.$inferSelect;
 export type NewReward = typeof rewards.$inferInsert;
 export type RewardRedemption = typeof rewardRedemptions.$inferSelect;
@@ -1401,7 +1447,6 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   twoFactors: many(twoFactor),
   referrals: many(referrals, { relationName: "referrer" }),
   refereeReferrals: many(referrals, { relationName: "referee" }),
-  loyaltyPoints: many(loyaltyPoints),
   rewardRedemptions: many(rewardRedemptions),
   leadGroupBookings: many(groupBookings),
   groupBookingMemberships: many(groupBookingMembers),
@@ -2094,13 +2139,6 @@ export const notificationSettings = pgTable(
   }),
 );
 
-export const loyaltyPointsRelations = relations(loyaltyPoints, ({ one }) => ({
-  user: one(users, {
-    fields: [loyaltyPoints.userId],
-    references: [users.id],
-  }),
-}));
-
 export const groupBookingsRelations = relations(
   groupBookings,
   ({ one, many }) => ({
@@ -2335,13 +2373,19 @@ export const referrals = pgTable(
       precision: 12,
       scale: 2,
     }).default("0"),
-    refereeTransactionId: uuid("referee_transaction_id"),
+    refereeTransactionId: uuid("referee_transaction_id").references(
+      () => payments.id,
+      {
+        onDelete: "set null",
+      },
+    ),
     eligibleAt: timestamp("eligible_at", { mode: "date" }),
     payoutScheduledAt: timestamp("payout_scheduled_at", { mode: "date" }),
-    voucherCode: text("voucher_code"),
+    voucherCode: text("voucher_code").unique(),
     voucherRedeemedAt: timestamp("voucher_redeemed_at", { mode: "date" }),
     offsetApplied: boolean("offset_applied").default(false),
     tier: integer("tier").default(1),
+    payoutIdempotencyKey: text("payout_idempotency_key").unique(),
     metadata: jsonb("metadata").default({}),
     completedAt: timestamp("completed_at", { mode: "date" }),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
@@ -2350,6 +2394,15 @@ export const referrals = pgTable(
     referrerIdx: index("referrals_referrer_id_idx").on(table.referrerId),
     refereeIdx: index("referrals_referee_id_idx").on(table.refereeId),
     codeIdx: uniqueIndex("referrals_code_idx").on(table.code),
+    voucherCodeIdx: uniqueIndex("referrals_voucher_code_idx").on(
+      table.voucherCode,
+    ),
+    payoutIdempotencyKeyIdx: uniqueIndex(
+      "referrals_payout_idempotency_key_idx",
+    ).on(table.payoutIdempotencyKey),
+    referrerRefereeCategoryUnique: uniqueIndex(
+      "referrals_referrer_referee_category_unique",
+    ).on(table.referrerId, table.refereeId, table.category),
   }),
 );
 
@@ -2372,6 +2425,10 @@ export const loyaltyTransactions = pgTable(
   },
   (table) => ({
     userIdIdx: index("loyalty_transactions_user_id_idx").on(table.userId),
+    typeIdx: index("loyalty_transactions_type_idx").on(table.type),
+    expiresAtIdx: index("loyalty_transactions_expires_at_idx").on(
+      table.expiresAt,
+    ),
   }),
 );
 
@@ -2403,6 +2460,11 @@ export const rewardRedemptions = pgTable(
   },
   (table) => ({
     userIdIdx: index("reward_redemptions_user_id_idx").on(table.userId),
+    statusIdx: index("reward_redemptions_status_idx").on(table.status),
+    userRewardUnique: unique("reward_redemptions_user_reward_unique").on(
+      table.userId,
+      table.rewardId,
+    ),
   }),
 );
 
@@ -2452,16 +2514,22 @@ export const rewardRedemptionsRelations = relations(
 export const userNotificationPreferencesRelations = relations(
   userNotificationPreferences,
   ({ one }) => ({
-  user: one(users, {
-    fields: [userNotificationPreferences.userId],
-    references: [users.id],
+    user: one(users, {
+      fields: [userNotificationPreferences.userId],
+      references: [users.id],
+    }),
   }),
-}),
 );
 
 export const adType = ["kos", "kontrakan", "apartemen", "rumah"] as const;
 export const adTier = ["reguler", "utama", "premium"] as const;
-export const adPaymentStatus = ["pending", "paid", "rejected", "expired", "cancelled"] as const;
+export const adPaymentStatus = [
+  "pending",
+  "paid",
+  "rejected",
+  "expired",
+  "cancelled",
+] as const;
 export const positionType = ["rotation", "fixed_1", "fixed_2"] as const;
 
 export const propertyAds = pgTable(
@@ -2490,7 +2558,9 @@ export const propertyAds = pgTable(
     impressions: integer("impressions").notNull().default(0),
     startDate: timestamp("start_date", { mode: "date" }).notNull().defaultNow(),
     endDate: timestamp("end_date", { mode: "date" }),
-    paymentStatus: text("payment_status", { enum: adPaymentStatus }).notNull().default("pending"),
+    paymentStatus: text("payment_status", { enum: adPaymentStatus })
+      .notNull()
+      .default("pending"),
     paidAt: timestamp("paid_at", { mode: "date" }),
     adminNote: text("admin_note"),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
@@ -2498,9 +2568,14 @@ export const propertyAds = pgTable(
   },
   (table) => ({
     activeIdx: index("idx_property_ads_active").on(table.isActive),
-    datesIdx: index("idx_property_ads_dates").on(table.startDate, table.endDate),
+    datesIdx: index("idx_property_ads_dates").on(
+      table.startDate,
+      table.endDate,
+    ),
     positionIdx: index("idx_property_ads_position").on(table.position),
-    paymentStatusIdx: index("idx_property_ads_payment_status").on(table.paymentStatus),
+    paymentStatusIdx: index("idx_property_ads_payment_status").on(
+      table.paymentStatus,
+    ),
     paidAtIdx: index("idx_property_ads_paid_at").on(table.paidAt),
     packageIdIdx: index("idx_property_ads_package_id").on(table.packageId),
   }),
@@ -2541,7 +2616,13 @@ export const adPackagesRelations = relations(adPackages, ({ many }) => ({
   ads: many(propertyAds),
 }));
 
-export const propertyRuleType = ["general", "quiet_hours", "guest", "payment", "safety"] as const;
+export const propertyRuleType = [
+  "general",
+  "quiet_hours",
+  "guest",
+  "payment",
+  "safety",
+] as const;
 
 export const propertyRules = pgTable(
   "property_rules",
@@ -2551,7 +2632,9 @@ export const propertyRules = pgTable(
       .references(() => properties.id, { onDelete: "cascade" })
       .notNull(),
     rule: text("property_rule_text").notNull(),
-    type: text("property_rule_type", { enum: propertyRuleType }).notNull().default("general"),
+    type: text("property_rule_type", { enum: propertyRuleType })
+      .notNull()
+      .default("general"),
     sortOrder: integer("property_rule_sort_order").notNull().default(0),
     createdAt: timestamp("property_rule_created_at").defaultNow().notNull(),
   },
@@ -2560,7 +2643,17 @@ export const propertyRules = pgTable(
   }),
 );
 
-export const nearbyPlaceType = ["makanan", "minuman", "atk", "ibadah", "belanja", "kesehatan", "pendidikan", "transportasi", "lainnya"] as const;
+export const nearbyPlaceType = [
+  "makanan",
+  "minuman",
+  "atk",
+  "ibadah",
+  "belanja",
+  "kesehatan",
+  "pendidikan",
+  "transportasi",
+  "lainnya",
+] as const;
 
 export const nearbyPlaces = pgTable(
   "nearby_places",
@@ -2572,8 +2665,14 @@ export const nearbyPlaces = pgTable(
     name: text("nearby_place_name").notNull(),
     type: text("nearby_place_type", { enum: nearbyPlaceType }).notNull(),
     distance: integer("nearby_place_distance").notNull(),
-    latitude: numeric("nearby_place_latitude", { precision: 10, scale: 8 }).notNull(),
-    longitude: numeric("nearby_place_longitude", { precision: 10, scale: 8 }).notNull(),
+    latitude: numeric("nearby_place_latitude", {
+      precision: 10,
+      scale: 8,
+    }).notNull(),
+    longitude: numeric("nearby_place_longitude", {
+      precision: 10,
+      scale: 8,
+    }).notNull(),
     sortOrder: integer("nearby_place_sort_order").notNull().default(0),
     createdAt: timestamp("nearby_place_created_at").defaultNow().notNull(),
   },
@@ -2592,7 +2691,9 @@ export const roomFacilities = pgTable(
     unitId: uuid("room_facility_unit_id")
       .references(() => units.id, { onDelete: "cascade" })
       .notNull(),
-    category: text("room_facility_category", { enum: roomFacilityCategory }).notNull(),
+    category: text("room_facility_category", {
+      enum: roomFacilityCategory,
+    }).notNull(),
     name: text("room_facility_name").notNull(),
     icon: text("room_facility_icon").notNull().default("circle-dot"),
     sortOrder: integer("room_facility_sort_order").notNull().default(0),
@@ -2601,43 +2702,35 @@ export const roomFacilities = pgTable(
   (table) => ({
     unitIdIdx: index("idx_room_facilities_unit").on(table.unitId),
     categoryIdx: index("idx_room_facilities_category").on(table.category),
-    unitCategoryNameUnique: unique("room_facilities_unit_category_name_unique").on(
-      table.unitId,
-      table.category,
-      table.name,
-    ),
+    unitCategoryNameUnique: unique(
+      "room_facilities_unit_category_name_unique",
+    ).on(table.unitId, table.category, table.name),
   }),
 );
 
-export const popularAreas = pgTable(
-  "popular_areas",
-  {
-    id: uuid("popular_area_id").defaultRandom().primaryKey(),
-    slug: text("popular_area_slug").notNull().unique(),
-    name: text("popular_area_name").notNull(),
-    imageKey: text("popular_area_image_key").notNull(),
-    propertyCount: integer("popular_area_property_count").notNull().default(0),
-    sortOrder: integer("popular_area_sort_order").notNull().default(0),
-    isActive: boolean("popular_area_is_active").notNull().default(true),
-    createdAt: timestamp("popular_area_created_at").defaultNow().notNull(),
-    updatedAt: timestamp("popular_area_updated_at").defaultNow().notNull(),
-  },
-);
+export const popularAreas = pgTable("popular_areas", {
+  id: uuid("popular_area_id").defaultRandom().primaryKey(),
+  slug: text("popular_area_slug").notNull().unique(),
+  name: text("popular_area_name").notNull(),
+  imageKey: text("popular_area_image_key").notNull(),
+  propertyCount: integer("popular_area_property_count").notNull().default(0),
+  sortOrder: integer("popular_area_sort_order").notNull().default(0),
+  isActive: boolean("popular_area_is_active").notNull().default(true),
+  createdAt: timestamp("popular_area_created_at").defaultNow().notNull(),
+  updatedAt: timestamp("popular_area_updated_at").defaultNow().notNull(),
+});
 
-export const campusAreas = pgTable(
-  "campus_areas",
-  {
-    id: uuid("campus_area_id").defaultRandom().primaryKey(),
-    slug: text("campus_area_slug").notNull().unique(),
-    name: text("campus_area_name").notNull(),
-    imageKey: text("campus_area_image_key").notNull(),
-    propertyCount: integer("campus_area_property_count").notNull().default(0),
-    sortOrder: integer("campus_area_sort_order").notNull().default(0),
-    isActive: boolean("campus_area_is_active").notNull().default(true),
-    createdAt: timestamp("campus_area_created_at").defaultNow().notNull(),
-    updatedAt: timestamp("campus_area_updated_at").defaultNow().notNull(),
-  },
-);
+export const campusAreas = pgTable("campus_areas", {
+  id: uuid("campus_area_id").defaultRandom().primaryKey(),
+  slug: text("campus_area_slug").notNull().unique(),
+  name: text("campus_area_name").notNull(),
+  imageKey: text("campus_area_image_key").notNull(),
+  propertyCount: integer("campus_area_property_count").notNull().default(0),
+  sortOrder: integer("campus_area_sort_order").notNull().default(0),
+  isActive: boolean("campus_area_is_active").notNull().default(true),
+  createdAt: timestamp("campus_area_created_at").defaultNow().notNull(),
+  updatedAt: timestamp("campus_area_updated_at").defaultNow().notNull(),
+});
 
 export const propertyRulesRelations = relations(propertyRules, ({ one }) => ({
   property: one(properties, {

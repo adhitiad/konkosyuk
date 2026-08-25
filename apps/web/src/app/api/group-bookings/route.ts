@@ -135,7 +135,8 @@ export async function POST(req: NextRequest) {
     }
 
     const memberCount = body.memberEmails.length + 1;
-    const sharePercentage = memberCount > 0 ? 100 / memberCount : 100;
+    const rawShare = memberCount > 0 ? 100 / memberCount : 100;
+    const sharePercentage = Math.round(rawShare * 100) / 100;
 
     const groupBooking = await db.transaction(async (tx) => {
       const [gb] = await tx
@@ -162,34 +163,47 @@ export async function POST(req: NextRequest) {
         status: "accepted",
       } as GroupBookingMemberInsert);
 
+      for (const email of body.memberEmails) {
+        const [user] = await tx
+          .select()
+          .from(users)
+          .where(eq(users.email, email))
+          .limit(1);
+
+        if (user) {
+          const [existing] = await tx
+            .select()
+            .from(groupBookingMembers)
+            .where(
+              and(
+                eq(groupBookingMembers.groupBookingId, gb.id),
+                eq(groupBookingMembers.userId, user.id),
+              ),
+            )
+            .limit(1);
+
+          if (!existing) {
+            await tx.insert(groupBookingMembers).values({
+              groupBookingId: gb.id,
+              userId: user.id,
+              sharePercentage: String(sharePercentage),
+              shareAmount: "0",
+              paidAmount: "0",
+              status: "invited",
+            } as GroupBookingMemberInsert);
+
+            dispatchGroupBookingInvite(
+              user.id,
+              gb.id,
+              property.name,
+              session.user.name,
+            ).catch(() => {});
+          }
+        }
+      }
+
       return gb;
     });
-
-    for (const email of body.memberEmails) {
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, email))
-        .limit(1);
-
-      if (user) {
-        await db.insert(groupBookingMembers).values({
-          groupBookingId: groupBooking.id,
-          userId: user.id,
-          sharePercentage: String(sharePercentage),
-          shareAmount: "0",
-          paidAmount: "0",
-          status: "invited",
-        } as GroupBookingMemberInsert);
-
-        dispatchGroupBookingInvite(
-          user.id,
-          groupBooking.id,
-          property.name,
-          session.user.name,
-        ).catch(() => {});
-      }
-    }
 
     return ok(groupBooking, 201);
   } catch (error) {

@@ -68,6 +68,11 @@ export const groupBookingQuerySchema = z.object({
   propertyId: z.string().uuid().optional(),
 });
 
+export const referralActionSchema = z.object({
+  id: z.string().uuid(),
+  action: z.enum(["convert_voucher", "apply_offset"]),
+});
+
 export type CreateReferralInput = z.infer<typeof createReferralSchema>;
 export type ReferralQuery = z.infer<typeof referralQuerySchema>;
 export type RedeemRewardInput = z.infer<typeof redeemRewardSchema>;

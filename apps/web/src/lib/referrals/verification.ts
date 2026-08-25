@@ -6,12 +6,17 @@ import { db as defaultDb } from "@/db";
 import {
   calculateCommissionAmount,
   calculateEligibleAt,
+  getCommissionRate,
   type CommissionCategory,
 } from "./commission";
 import { dispatchReferralStatusUpdate } from "@/lib/notification-service";
 import { logInfo, logError } from "@/lib/logger";
 
 type DbExecutor = NodePgDatabase<typeof import("@/db/schema")>;
+
+function isCommissionCategory(value: unknown): value is CommissionCategory {
+  return value === "owner" || value === "tenant";
+}
 
 export interface StartReferralVerificationInput {
   refereeUserId: string;
@@ -34,14 +39,16 @@ export async function startReferralVerification(
         eq(referrals.status, "verifying"),
       ),
     )
+    .for("update")
     .limit(1);
 
   if (!referral) {
     return;
   }
 
-  const category: CommissionCategory =
-    (referral.category as CommissionCategory) || "tenant";
+  const category: CommissionCategory = isCommissionCategory(referral.category)
+    ? referral.category
+    : "tenant";
   const tier = referral.tier || 1;
   const baseAmount = paymentAmount;
   const commissionAmount = calculateCommissionAmount(
@@ -49,7 +56,7 @@ export async function startReferralVerification(
     category,
     tier,
   );
-  const commissionRate = calculateCommissionAmount(1, category, tier) / 1;
+  const commissionRate = getCommissionRate(category, tier);
   const eligibleAt = calculateEligibleAt();
 
   await executor
@@ -76,6 +83,7 @@ export async function handleReferralFailureOnRefund(
     .select()
     .from(referrals)
     .where(eq(referrals.refereeTransactionId, paymentId))
+    .for("update")
     .limit(1);
 
   if (!referral) {
@@ -117,11 +125,16 @@ export async function sweepEligibleReferrals(): Promise<number> {
           lt(referrals.eligibleAt, now),
         ),
       )
+      .for("update")
       .limit(100);
 
     let processedCount = 0;
 
     for (const referral of candidates) {
+      if (referral.status !== "verifying") {
+        continue;
+      }
+
       await defaultDb
         .update(referrals)
         .set({

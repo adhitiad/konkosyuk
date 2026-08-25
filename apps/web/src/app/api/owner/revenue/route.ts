@@ -272,10 +272,24 @@ export async function GET(req: NextRequest) {
         revenue: sql<number>`sum(CAST(${payments.amount} AS NUMERIC))`,
         transactions: sql<number>`count(*)`,
         avgDailyRate: sql<number>`avg(CAST(${units.price} AS NUMERIC))`,
+        occupiedDays: sql<number>`coalesce(sum(
+          EXTRACT(EPOCH FROM (
+            least(${bookings.endDate}, ${endDate}) - greatest(${bookings.startDate}, ${startDate})
+          )) / 86400
+        ), 0)`,
       })
       .from(payments)
       .innerJoin(properties, eq(payments.propertyId, properties.id))
       .leftJoin(units, and(eq(units.propertyId, properties.id), eq(units.status, "booked")))
+      .leftJoin(
+        bookings,
+        and(
+          eq(bookings.propertyId, properties.id),
+          inArray(bookings.status, ["confirmed", "completed"]),
+          gte(bookings.startDate, startDate),
+          lte(bookings.endDate, endDate),
+        ),
+      )
       .where(and(...baseConditions))
       .groupBy(properties.id, properties.name)
       .orderBy(sql`sum(CAST(${payments.amount} AS NUMERIC)) DESC`)
@@ -284,36 +298,20 @@ export async function GET(req: NextRequest) {
     const totalDays =
       (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
 
-    const topProperties = await Promise.all(
-      topPropertiesRows.map(async (row) => {
-        const occupiedDaysRow = await db
-          .select({
-            days: sql<number>`sum(EXTRACT(EPOCH FROM (${bookings.endDate} - ${bookings.startDate})) / 86400`,
-          })
-          .from(bookings)
-          .where(
-            and(
-              eq(bookings.propertyId, row.propertyId),
-              inArray(bookings.status, ["confirmed", "completed"]),
-              gte(bookings.startDate, startDate),
-              lte(bookings.endDate, endDate),
-            ),
-          );
+    const topProperties = topPropertiesRows.map((row) => {
+      const occupiedDays = Number(row.occupiedDays || 0);
+      const occupancyRate =
+        totalDays > 0 ? Math.round((occupiedDays / totalDays) * 100) : 0;
 
-        const occupiedDays = Number(occupiedDaysRow[0]?.days || 0);
-        const occupancyRate =
-          totalDays > 0 ? Math.round((occupiedDays / totalDays) * 100) : 0;
-
-        return {
-          propertyId: row.propertyId,
-          propertyName: row.propertyName,
-          revenue: Number(row.revenue || 0),
-          transactions: Number(row.transactions || 0),
-          occupancyRate,
-          avgDailyRate: Number(row.avgDailyRate || 0),
-        };
-      }),
-    );
+      return {
+        propertyId: row.propertyId,
+        propertyName: row.propertyName,
+        revenue: Number(row.revenue || 0),
+        transactions: Number(row.transactions || 0),
+        occupancyRate,
+        avgDailyRate: Number(row.avgDailyRate || 0),
+      };
+    });
 
     return ok({
       totalRevenue,

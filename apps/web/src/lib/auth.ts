@@ -8,7 +8,7 @@ import * as schema from "@/db/schema";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
-import { logSecurityEvent } from "@/lib/logger";
+import { logSecurityEvent, logInfo } from "@/lib/logger";
 import type { Session, User } from "better-auth";
 
 interface SesiPengguna {
@@ -70,18 +70,23 @@ export const auth = betterAuth({
       process.env.NODE_ENV === "production" &&
       Boolean(process.env.RESEND_API_KEY || process.env.SMTP_HOST),
     minPasswordLength: 8,
-    sendResetPasswordToken: async (data: { token: string; user: { email: string } }) => {
-      const { token, user } = data;
-      const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
-      console.log(`Reset password for ${user.email}: ${resetUrl}`);
-    },
+      sendResetPasswordToken: async (data: { token: string; user: { email: string } }) => {
+        const { user } = data;
+        logInfo("Password reset email sent", { email: user.email });
+      },
   },
   socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      prompt: "select_account" as const,
-    },
+    // Daftarkan provider Google hanya jika credential tersedia,
+    // agar tidak muncul WARN "missing clientId or clientSecret".
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? {
+          google: {
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            prompt: "select_account" as const,
+          },
+        }
+      : {}),
   },
   account: {
     accountLinking: {

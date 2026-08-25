@@ -363,6 +363,8 @@ export default function DashboardPage() {
                     const dpAmount = metadata?.dpAmount
                       ? Number(metadata.dpAmount)
                       : 0;
+                    const isEnded = new Date(booking.endDate) < new Date();
+                    const isActive = new Date(booking.endDate) >= new Date();
                     const config = statusConfig[booking.status] ?? {
                       label: booking.status,
                       variant: "outline",
@@ -426,7 +428,7 @@ export default function DashboardPage() {
                           )}
                           {(booking.status === "confirmed" ||
                             booking.status === "completed") &&
-                            new Date(booking.endDate) < new Date() && (
+                            isEnded && (
                               <Dialog
                                 open={reviewBookingId === booking.id}
                                 onOpenChange={(open) =>
@@ -465,7 +467,7 @@ export default function DashboardPage() {
                               </Dialog>
                             )}
                           {booking.status === "confirmed" &&
-                            new Date(booking.endDate) >= new Date() && (
+                            isActive && (
                               <Button
                                 render={
                                   <Link
@@ -481,11 +483,11 @@ export default function DashboardPage() {
                             )}
                           {(booking.status === "rejected" ||
                             booking.status === "cancelled") && (
-                            <span className="text-xs text-muted-foreground">
-                              -
-                            </span>
-                          )}
-                        </TableCell>
+                             <span className="text-xs text-muted-foreground">
+                               -
+                             </span>
+                           )}
+                         </TableCell>
                       </TableRow>
                     );
                   })}

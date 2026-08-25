@@ -55,77 +55,96 @@ export async function GET(req: NextRequest) {
     const monthStart = new Date(year, month - 1, 1);
     const monthEnd = new Date(year, month, 0, 23, 59, 59);
 
-    const totalUnitsRow = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(units)
-      .where(inArray(units.propertyId, effectivePropertyIds));
+    const [totalUnitsRow, occupiedUnitsRow, byPropertyRows, dailyRows] =
+      await Promise.all([
+        db
+          .select({ count: sql<number>`count(*)` })
+          .from(units)
+          .where(inArray(units.propertyId, effectivePropertyIds)),
+        db
+          .select({ count: sql<number>`count(DISTINCT ${bookings.unitId})` })
+          .from(bookings)
+          .where(
+            and(
+              inArray(bookings.propertyId, effectivePropertyIds),
+              inArray(bookings.status, ["confirmed", "completed"]),
+              lte(bookings.startDate, monthEnd),
+              gte(bookings.endDate, monthStart),
+            ),
+          ),
+        db
+          .select({
+            propertyId: properties.id,
+            propertyName: properties.name,
+            totalUnits: sql<number>`count(DISTINCT ${units.id})`,
+            occupiedUnits: sql<number>`count(DISTINCT ${bookings.unitId})`,
+            avgDailyRate: sql<number>`coalesce(avg(CAST(${units.price} AS NUMERIC)), 0)`,
+          })
+          .from(properties)
+          .leftJoin(
+            units,
+            and(
+              inArray(units.propertyId, effectivePropertyIds),
+              eq(units.status, "booked"),
+            ),
+          )
+          .leftJoin(
+            bookings,
+            and(
+              eq(bookings.propertyId, properties.id),
+              inArray(bookings.status, ["confirmed", "completed"]),
+              lte(bookings.startDate, monthEnd),
+              gte(bookings.endDate, monthStart),
+            ),
+          )
+          .where(inArray(properties.id, effectivePropertyIds))
+          .groupBy(properties.id, properties.name),
+        db
+          .select({
+            date: sql<Date>`generate_series(
+              ${monthStart}::date,
+              ${monthEnd}::date,
+              '1 day'::interval
+            )::date`.as("date"),
+            occupied: sql<number>`count(DISTINCT ${bookings.unitId})`,
+          })
+          .from(bookings)
+          .where(
+            and(
+              inArray(bookings.propertyId, effectivePropertyIds),
+              inArray(bookings.status, ["confirmed", "completed"]),
+              lte(bookings.startDate, monthEnd),
+              gte(bookings.endDate, monthStart),
+            ),
+          )
+          .groupBy(sql`1`),
+      ]);
 
     const totalUnits = Number(totalUnitsRow[0]?.count || 0);
-
-    const occupiedUnitsRow = await db
-      .select({ count: sql<number>`count(DISTINCT ${bookings.unitId})` })
-      .from(bookings)
-      .where(
-        and(
-          inArray(bookings.propertyId, effectivePropertyIds),
-          inArray(bookings.status, ["confirmed", "completed"]),
-          lte(bookings.startDate, monthEnd),
-          gte(bookings.endDate, monthStart),
-        ),
-      );
-
     const occupiedUnits = Number(occupiedUnitsRow[0]?.count || 0);
     const overallOccupancy =
       totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
 
-    const byPropertyRows = await db
-      .select({
-        propertyId: properties.id,
-        propertyName: properties.name,
-        totalUnits: sql<number>`count(DISTINCT ${units.id})`,
-        occupiedUnits: sql<number>`count(DISTINCT ${bookings.unitId})`,
-      })
-      .from(properties)
-      .leftJoin(
-        units,
-        and(inArray(units.propertyId, effectivePropertyIds)),
-      )
-      .leftJoin(
-        bookings,
-        and(
-          eq(bookings.propertyId, properties.id),
-          inArray(bookings.status, ["confirmed", "completed"]),
-          lte(bookings.startDate, monthEnd),
-          gte(bookings.endDate, monthStart),
-        ),
-      )
-      .where(inArray(properties.id, effectivePropertyIds))
-      .groupBy(properties.id, properties.name);
+    const byProperty = byPropertyRows.map((row) => {
+      const total = Number(row.totalUnits || 0);
+      const occupied = Number(row.occupiedUnits || 0);
+      const rate = total > 0 ? Math.round((occupied / total) * 100) : 0;
+      return {
+        propertyId: row.propertyId,
+        propertyName: row.propertyName,
+        totalUnits: total,
+        occupiedUnits: occupied,
+        occupancyRate: rate,
+        avgDailyRate: Number(row.avgDailyRate || 0),
+      };
+    });
 
-    const byProperty = await Promise.all(
-      byPropertyRows.map(async (row) => {
-        const avgDailyRateRow = await db
-          .select({ avg: sql<number>`avg(CAST(${units.price} AS NUMERIC))` })
-          .from(units)
-          .where(
-            and(
-              eq(units.propertyId, row.propertyId),
-              eq(units.status, "booked"),
-            ),
-          );
-
-        const total = Number(row.totalUnits || 0);
-        const occupied = Number(row.occupiedUnits || 0);
-        const rate = total > 0 ? Math.round((occupied / total) * 100) : 0;
-
-        return {
-          propertyId: row.propertyId,
-          propertyName: row.propertyName,
-          totalUnits: total,
-          occupiedUnits: occupied,
-          occupancyRate: rate,
-          avgDailyRate: Number(avgDailyRateRow[0]?.avg || 0),
-        };
+    const dailyMap = new Map(
+      dailyRows.map((r) => {
+        const dateStr = r.date instanceof Date
+          ? r.date.toISOString().split("T")[0]
+          : String(r.date);
+        return [dateStr, Number(r.occupied || 0)];
       }),
     );
 
@@ -135,30 +154,9 @@ export async function GET(req: NextRequest) {
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month - 1, day);
       const dateStr = date.toISOString().split("T")[0];
-      const dayStart = new Date(year, month - 1, day, 0, 0, 0);
-      const dayEnd = new Date(year, month - 1, day, 23, 59, 59);
-
-      const occupiedRow = await db
-        .select({ count: sql<number>`count(DISTINCT ${bookings.unitId})` })
-        .from(bookings)
-        .where(
-          and(
-            inArray(bookings.propertyId, effectivePropertyIds),
-            inArray(bookings.status, ["confirmed", "completed"]),
-            lte(bookings.startDate, dayEnd),
-            gte(bookings.endDate, dayStart),
-          ),
-        );
-
-      const occupied = Number(occupiedRow[0]?.count || 0);
+      const occupied = dailyMap.get(dateStr) || 0;
       const rate = totalUnits > 0 ? Math.round((occupied / totalUnits) * 100) : 0;
-
-      dailyData.push({
-        date: dateStr,
-        occupied,
-        total: totalUnits,
-        rate,
-      });
+      dailyData.push({ date: dateStr, occupied, total: totalUnits, rate });
     }
 
     return ok({

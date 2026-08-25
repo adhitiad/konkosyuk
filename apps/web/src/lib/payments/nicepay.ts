@@ -119,7 +119,11 @@ export const nicepayAdapter: PaymentProviderAdapter = {
     if (!webhookSecret) return false;
 
     const signature = context.headers.get("x-nicepay-signature");
-    return verifySignature(context.rawBody, signature, webhookSecret);
+    const expectedSignature = generateSha256Signature(
+      context.rawBody,
+      webhookSecret,
+    );
+    return verifySignature(context.rawBody, signature, expectedSignature);
   },
 
   async normalizeWebhook(context: WebhookContext): Promise<NormalizedWebhook> {

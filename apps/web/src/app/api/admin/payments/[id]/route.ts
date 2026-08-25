@@ -77,13 +77,13 @@ export async function PATCH(
       await tx
         .update(payments)
         .set({
-          status: "refunded",
+          status: "cancelled",
           metadata: updatedMetadata,
           updatedAt: new Date(),
         })
         .where(eq(payments.id, paymentId));
 
-      await handleReferralFailureOnRefund(db, paymentId);
+      await handleReferralFailureOnRefund(tx, paymentId);
 
       if (
         booking &&

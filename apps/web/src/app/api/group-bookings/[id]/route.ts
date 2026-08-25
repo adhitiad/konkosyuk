@@ -5,11 +5,12 @@ import {
   groupBookingMembers,
   bookings,
   properties,
+  units,
 } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, or, gte, lte } from "drizzle-orm";
 import { dispatchGroupBookingUpdated } from "@/lib/notification-service";
 
 const updateGroupBookingSchema = z.object({
@@ -99,63 +100,113 @@ export async function PUT(
       const depositAmount =
         body.depositAmount ?? Number(groupBooking.depositAmount);
 
-      await db
-        .update(groupBookings)
-        .set({
-          status: "confirmed",
-          totalAmount: sql`${totalAmount}`,
-          depositAmount: sql`${depositAmount}`,
-          ...(body.metadata !== undefined ? { metadata: body.metadata } : {}),
-        })
-        .where(eq(groupBookings.id, id))
-        .returning();
+      await db.transaction(async (tx) => {
+        const [locked] = await tx
+          .select()
+          .from(groupBookings)
+          .where(eq(groupBookings.id, id))
+          .for("update")
+          .limit(1);
 
-      const members = await db
-        .select()
-        .from(groupBookingMembers)
-        .where(eq(groupBookingMembers.groupBookingId, id));
-
-      const [property] = await db
-        .select()
-        .from(properties)
-        .where(eq(properties.id, groupBooking.propertyId))
-        .limit(1);
-
-      for (const member of members) {
-        const memberShare =
-          (Number(member.sharePercentage) / 100) * totalAmount;
-        const memberDeposit =
-          (Number(member.sharePercentage) / 100) * depositAmount;
-
-        await db.insert(bookings).values({
-          userId: member.userId,
-          propertyId: groupBooking.propertyId,
-          unitId: groupBooking.unitId,
-          bookingType: "instant",
-          status: "pending_dp",
-          startDate: new Date(groupBooking.startDate),
-          endDate: new Date(groupBooking.endDate),
-          metadata: {
-            groupBookingId: groupBooking.id,
-            sharePercentage: Number(member.sharePercentage),
-            shareAmount: memberShare,
-            depositAmount: memberDeposit,
-          },
-          isGroupBooking: true,
-          groupBookingId: groupBooking.id,
-          basePriceAtBooking: sql`${memberShare}`,
-          securityDeposit: sql`${memberDeposit}`,
-        });
-
-        if (member.userId !== session.user.id) {
-          dispatchGroupBookingUpdated(
-            member.userId,
-            id,
-            property?.name || "Group Booking",
-            "Group booking telah dikonfirmasi. Silakan lanjutkan pembayaran.",
-          ).catch(() => {});
+        if (!locked || locked.status === "confirmed") {
+          return;
         }
-      }
+
+        const [unit] = await tx
+          .select()
+          .from(units)
+          .where(eq(units.id, groupBooking.unitId))
+          .for("update")
+          .limit(1);
+
+        if (!unit || unit.status !== "available") {
+          throw new Error("Unit tidak tersedia untuk dikonfirmasi");
+        }
+
+        const overlapping = await tx
+          .select()
+          .from(bookings)
+          .where(
+            and(
+              eq(bookings.unitId, groupBooking.unitId),
+              or(
+                and(
+                  gte(bookings.startDate, groupBooking.startDate),
+                  lte(bookings.startDate, groupBooking.endDate),
+                ),
+                and(
+                  gte(bookings.endDate, groupBooking.startDate),
+                  lte(bookings.endDate, groupBooking.endDate),
+                ),
+                and(
+                  lte(bookings.startDate, groupBooking.startDate),
+                  gte(bookings.endDate, groupBooking.endDate),
+                ),
+              ),
+            ),
+          )
+          .for("update")
+          .limit(1);
+
+        if (overlapping.length > 0) {
+          throw new Error("Unit sudah memiliki booking yang tumpang tindih");
+        }
+
+        await tx
+          .update(groupBookings)
+          .set({
+            status: "confirmed",
+            totalAmount: sql`${totalAmount}`,
+            depositAmount: sql`${depositAmount}`,
+            ...(body.metadata !== undefined ? { metadata: body.metadata } : {}),
+          })
+          .where(eq(groupBookings.id, id));
+
+        const members = await tx
+          .select()
+          .from(groupBookingMembers)
+          .where(eq(groupBookingMembers.groupBookingId, id));
+
+        const acceptedMembers = members.filter(
+          (m) => m.status === "accepted" || m.status === "paid",
+        );
+
+        for (const member of acceptedMembers) {
+          const memberShare =
+            (Number(member.sharePercentage) / 100) * totalAmount;
+          const memberDeposit =
+            (Number(member.sharePercentage) / 100) * depositAmount;
+
+          await tx.insert(bookings).values({
+            userId: member.userId,
+            propertyId: groupBooking.propertyId,
+            unitId: groupBooking.unitId,
+            bookingType: "instant",
+            status: "pending_dp",
+            startDate: new Date(groupBooking.startDate),
+            endDate: new Date(groupBooking.endDate),
+            metadata: {
+              groupBookingId: groupBooking.id,
+              sharePercentage: Number(member.sharePercentage),
+              shareAmount: memberShare,
+              depositAmount: memberDeposit,
+            },
+            isGroupBooking: true,
+            groupBookingId: groupBooking.id,
+            basePriceAtBooking: sql`${memberShare}`,
+            securityDeposit: sql`${memberDeposit}`,
+          });
+
+          if (member.userId !== session.user.id) {
+            dispatchGroupBookingUpdated(
+              member.userId,
+              id,
+              property?.name || "Group Booking",
+              "Group booking telah dikonfirmasi. Silakan lanjutkan pembayaran.",
+            ).catch(() => {});
+          }
+        }
+      });
     } else {
       await db
         .update(groupBookings)

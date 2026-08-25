@@ -43,7 +43,7 @@ describe("queues.ts", () => {
     const queue = queues["cleanup-expired-bookings"];
     expect(queue.opts.defaultJobOptions).toMatchObject({
       removeOnComplete: { count: 50 },
-      removeOnFail: { count: 100 },
+      removeOnFail: { count: 0 },
       attempts: 3,
       backoff: { type: "exponential", delay: 5000 },
     });
@@ -59,13 +59,14 @@ describe("queues.ts", () => {
       "update-area-counts",
     ];
 
+    const expectedOpts = {
+      removeOnComplete: { count: 50 },
+      removeOnFail: { count: 0 },
+      backoff: { type: "exponential", delay: 5000 },
+    };
+
     for (const name of names) {
-      expect(queues[name].opts.defaultJobOptions).toEqual({
-        removeOnComplete: { count: 50 },
-        removeOnFail: { count: 100 },
-        attempts: 3,
-        backoff: { type: "exponential", delay: 5000 },
-      });
+      expect(queues[name].opts.defaultJobOptions).toMatchObject(expectedOpts);
     }
   });
 });

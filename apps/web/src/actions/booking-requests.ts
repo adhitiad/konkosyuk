@@ -47,78 +47,89 @@ export async function createBookingRequestAction(
       return { error: "Tidak terotorisasi", success: false };
     }
 
-    const [unit] = await db
-      .select()
-      .from(units)
-      .where(eq(units.id, validated.unitId))
-      .limit(1);
+    const result = await db.transaction(async (tx) => {
+      const [unit] = await tx
+        .select()
+        .from(units)
+        .where(eq(units.id, validated.unitId))
+        .for("update")
+        .limit(1);
 
-    if (!unit) {
-      return { error: "Unit tidak ditemukan", success: false };
+      if (!unit) {
+        return { error: "Unit tidak ditemukan", success: false } as const;
+      }
+
+      if (unit.status !== "available") {
+        return { error: "Unit tidak tersedia", success: false } as const;
+      }
+
+      const [property] = await tx
+        .select()
+        .from(properties)
+        .where(eq(properties.id, validated.propertyId))
+        .limit(1);
+
+      if (!property) {
+        return { error: "Properti tidak ditemukan", success: false } as const;
+      }
+
+      if (unit.propertyId !== property.id) {
+        return { error: "Unit bukan bagian dari properti ini", success: false } as const;
+      }
+
+      const capacity = unit.capacity ? parseInt(unit.capacity, 10) : Infinity;
+      if (validated.numOccupants > capacity) {
+        return {
+          error: `Jumlah penghuni melebihi kapasitas kamar (${capacity})`,
+          success: false,
+        } as const;
+      }
+
+      const [existing] = await tx
+        .select()
+        .from(bookingRequests)
+        .where(
+          and(
+            eq(bookingRequests.unitId, validated.unitId),
+            eq(bookingRequests.tenantId, session.user.id),
+            eq(bookingRequests.status, "pending"),
+          ),
+        )
+        .limit(1);
+
+      if (existing) {
+        return {
+          error:
+            "Anda sudah memiliki permintaan booking yang sedang menunggu untuk unit ini",
+          success: false,
+        } as const;
+      }
+
+      const id = crypto.randomUUID();
+
+      const [request] = await tx
+        .insert(bookingRequests)
+        .values({
+          id,
+          tenantId: session.user.id,
+          unitId: validated.unitId,
+          propertyId: validated.propertyId,
+          numOccupants: validated.numOccupants,
+          startDate: new Date(validated.startDate),
+        })
+        .returning();
+
+      return { success: true, request } as const;
+    });
+
+    if (!result.success) {
+      return result;
     }
 
-    if (unit.status !== "available") {
-      return { error: "Unit tidak tersedia", success: false };
-    }
-
-    const [property] = await db
-      .select()
-      .from(properties)
-      .where(eq(properties.id, validated.propertyId))
-      .limit(1);
-
-    if (!property) {
-      return { error: "Properti tidak ditemukan", success: false };
-    }
-
-    if (unit.propertyId !== property.id) {
-      return { error: "Unit bukan bagian dari properti ini", success: false };
-    }
-
-    const capacity = unit.capacity ? parseInt(unit.capacity, 10) : Infinity;
-    if (validated.numOccupants > capacity) {
-      return {
-        error: `Jumlah penghuni melebihi kapasitas kamar (${capacity})`,
-        success: false,
-      };
-    }
-
-    const [existing] = await db
-      .select()
-      .from(bookingRequests)
-      .where(
-        and(
-          eq(bookingRequests.unitId, validated.unitId),
-          eq(bookingRequests.tenantId, session.user.id),
-          eq(bookingRequests.status, "pending"),
-        ),
-      )
-      .limit(1);
-
-    if (existing) {
-      return {
-        error:
-          "Anda sudah memiliki permintaan booking yang sedang menunggu untuk unit ini",
-        success: false,
-      };
-    }
-
-    const id = crypto.randomUUID();
-
-    const [request] = await db
-      .insert(bookingRequests)
-      .values({
-        id,
-        tenantId: session.user.id,
-        unitId: validated.unitId,
-        propertyId: validated.propertyId,
-        numOccupants: validated.numOccupants,
-        startDate: new Date(validated.startDate),
-      })
-      .returning();
+    const { request } = result;
 
     logInfo("booking_request_created", {
-      bookingRequestId: id,
+      bookingRequestId: request.id,
       tenantId: session.user.id,
       unitId: validated.unitId,
       propertyId: validated.propertyId,

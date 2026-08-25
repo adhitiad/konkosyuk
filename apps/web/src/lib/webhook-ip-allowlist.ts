@@ -45,10 +45,7 @@ export function isWebhookIpAllowed(
     return false;
   }
 
-  const clientIp =
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    req.headers.get("x-real-ip") ||
-    "";
+  const clientIp = getTrustedClientIp(req);
 
   if (!clientIp) {
     return false;
@@ -58,9 +55,21 @@ export function isWebhookIpAllowed(
 }
 
 export function getClientIp(req: NextRequest): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    req.headers.get("x-real-ip") ||
-    "unknown"
-  );
+  return getTrustedClientIp(req);
+}
+
+function getTrustedClientIp(req: NextRequest): string {
+  const vercelIp = req.headers.get("x-vercel-ip");
+  if (vercelIp) {
+    return vercelIp.split(",")[0].trim();
+  }
+
+  const forwarded = req.headers.get("x-forwarded-for");
+  const isVercel = req.headers.get("x-vercel-forwarded-for") !== null || req.headers.get("x-vercel-ip") !== null;
+  
+  if (isVercel && forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
+
+  return "unknown";
 }

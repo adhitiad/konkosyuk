@@ -11,10 +11,7 @@ import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import { eq, desc, sql } from "drizzle-orm";
 import { dispatchNotification } from "@/lib/notification-service";
-
-const redeemRewardSchema = z.object({
-  rewardId: z.string().uuid(),
-});
+import { redeemRewardSchema } from "@konkosyuk/shared";
 
 export async function GET(req: NextRequest) {
   try {
@@ -52,28 +49,29 @@ export async function POST(req: NextRequest) {
       return fail("Reward tidak aktif", 400);
     }
 
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, session.user.id))
-      .limit(1);
-
-    if (!user) {
-      return fail("User tidak ditemukan", 404);
-    }
-
-    const pointsBalanceResult = await db
-      .select({ balance: sql<number>`sum(${loyaltyTransactions.amount})` })
-      .from(loyaltyTransactions)
-      .where(eq(loyaltyTransactions.userId, session.user.id));
-
-    const pointsBalance = Number(pointsBalanceResult[0]?.balance ?? 0);
-
-    if (pointsBalance < reward.pointsCost) {
-      return fail("Poin tidak cukup", 400);
-    }
-
     const redemption = await db.transaction(async (tx) => {
+      const [user] = await tx
+        .select()
+        .from(users)
+        .where(eq(users.id, session.user.id))
+        .limit(1);
+
+      if (!user) {
+        throw new Error("User tidak ditemukan");
+      }
+
+      const [balanceResult] = await tx
+        .select({ balance: sql<number>`sum(${loyaltyTransactions.amount})` })
+        .from(loyaltyTransactions)
+        .where(eq(loyaltyTransactions.userId, session.user.id))
+        .for("update");
+
+      const pointsBalance = Number(balanceResult?.balance ?? 0);
+
+      if (pointsBalance < reward.pointsCost) {
+        throw new Error("Poin tidak cukup");
+      }
+
       const [redemption] = await tx
         .insert(rewardRedemptions)
         .values({
@@ -111,6 +109,12 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return fail(error.issues[0]?.message || "Input tidak valid", 400);
+    }
+    if (error instanceof Error && error.message === "Poin tidak cukup") {
+      return fail("Poin tidak cukup", 400);
+    }
+    if (error instanceof Error && error.message === "User tidak ditemukan") {
+      return fail("User tidak ditemukan", 404);
     }
     return handleApiError(error, "POST /api/loyalty/rewards/redeem");
   }

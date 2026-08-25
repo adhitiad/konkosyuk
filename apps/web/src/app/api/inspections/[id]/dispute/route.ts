@@ -6,6 +6,7 @@ import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { dispatchNotification } from "@/lib/notification-service";
+import { logError } from "@/lib/logger";
 
 const disputeInspectionSchema = z.object({
   disputeReason: z.string().min(1, "Alasan sengketa harus diisi"),
@@ -78,12 +79,7 @@ export async function POST(
             : "/dashboard/inspections",
         referenceId: inspection.id,
         referenceType: "inspection",
-      }).catch((err) =>
-        console.error(
-          "Failed to dispatch inspection disputed notification:",
-          err,
-        ),
-      );
+      }).catch((err) => logError(err, "Failed to dispatch inspection disputed notification"));
     }
 
     return ok(updated);

@@ -14,6 +14,8 @@ import type { WebhookContext, NormalizedWebhook } from "./types";
 import { sendPaymentReceivedEmail } from "@/lib/notifications/email";
 import { dispatchNotification } from "@/lib/notification-service";
 import { startReferralVerification } from "@/lib/referrals/verification";
+import { markOffsetConsumed } from "@/lib/referrals/offset";
+import { logError } from "@/lib/logger";
 import crypto from "node:crypto";
 
 export async function handleWebhookRequest(
@@ -103,7 +105,7 @@ export async function handleWebhookRequest(
     const expectedAmount = Number(payment.amount);
     const receivedAmount = Number(normalized.amount);
 
-    if (Math.abs(expectedAmount - receivedAmount) > 100) {
+    if (Math.abs(expectedAmount - receivedAmount) >= 0.01) {
       await tx
         .update(webhookEvents)
         .set({
@@ -180,6 +182,11 @@ export async function handleWebhookRequest(
             paymentId: payment.id,
             paymentAmount: Number(payment.amount),
           });
+
+          const appliedOffsetReferralIds = payment.metadata?.appliedOffsetReferralIds as string[] | undefined;
+          if (appliedOffsetReferralIds?.length) {
+            await markOffsetConsumed(tx, appliedOffsetReferralIds);
+          }
         }
       } else if (payment.purpose === "dp") {
         const [foundBooking] = await tx
@@ -249,9 +256,7 @@ export async function handleWebhookRequest(
               property.name,
               Number(payment.amount),
               `${process.env.NEXT_PUBLIC_APP_URL}/owner/payments`,
-            ).catch((err) =>
-              console.error("Failed to send payment received email:", err),
-            );
+            ).catch((err) => logError(err, "Failed to send payment received email"));
           }
 
           if (payment.purpose === "full_payment" && booking) {
@@ -273,9 +278,7 @@ export async function handleWebhookRequest(
                 amount: Number(payment.amount),
                 paymentUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/bookings`,
               },
-            }).catch((err) =>
-              console.error("Failed to dispatch payment notification:", err),
-            );
+            }).catch((err) => logError(err, "Failed to dispatch payment notification"));
           } else if (payment.purpose === "dp" && booking) {
             dispatchNotification({
               userId: booking.userId,
@@ -287,9 +290,7 @@ export async function handleWebhookRequest(
               actionUrl: "/dashboard/bookings",
               referenceId: booking.id,
               referenceType: "booking",
-            }).catch((err) =>
-              console.error("Failed to dispatch dp notification:", err),
-            );
+            }).catch((err) => logError(err, "Failed to dispatch dp notification"));
           }
         }
       }
@@ -324,10 +325,7 @@ export async function handleWebhookRequest(
             referenceId: foundBooking.id,
             referenceType: "booking",
           }).catch((err) =>
-            console.error(
-              "Failed to dispatch payment failed notification:",
-              err,
-            ),
+            logError(err, "Failed to dispatch payment failed notification")
           );
 
           const [bookingRequest] = await tx

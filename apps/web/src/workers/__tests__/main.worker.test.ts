@@ -16,8 +16,14 @@ vi.mock("bullmq", () => {
       mockWorkers.push(this);
     }
   }
+  class MockQueueEvents {
+    close = vi.fn().mockResolvedValue(undefined);
+    constructor() {}
+    on = vi.fn();
+  }
   return {
     Worker: MockWorker,
+    QueueEvents: MockQueueEvents,
   };
 });
 

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { users, ownerBankAccounts } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
@@ -46,13 +46,10 @@ export async function POST(req: NextRequest) {
       str.toLowerCase().trim().replace(/\s+/g, " ");
 
     if (normalize(user.name) !== normalize(body.account_name)) {
-      return NextResponse.json(
-        {
-          error:
-            "Nama rekening tidak sesuai dengan nama profil KonkosYuk Anda. Silakan perbarui nama profil Anda terlebih dahulu di halaman Pengaturan Profil agar sesuai dengan KTP/Buku Tabungan.",
-          code: "NAME_MISMATCH",
-        },
-        { status: 400 },
+      return fail(
+        "Nama rekening tidak sesuai dengan nama profil KonkosYuk Anda. Silakan perbarui nama profil Anda terlebih dahulu di halaman Pengaturan Profil agar sesuai dengan KTP/Buku Tabungan.",
+        400,
+        "NAME_MISMATCH",
       );
     }
 

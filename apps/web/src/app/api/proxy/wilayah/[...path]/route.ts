@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { fail, handleApiError } from "@/lib/api";
 
 const WILAYAH_API_BASE = "https://www.emsifa.com/api-wilayah-indonesia/api";
 
@@ -18,18 +19,15 @@ export async function GET(
     });
 
     if (!response.ok) {
-      return NextResponse.json(
-        { error: `Upstream API responded with ${response.status}` },
-        { status: response.status },
+      return fail(
+        `Upstream API responded with ${response.status}`,
+        response.status,
       );
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to fetch wilayah data" },
-      { status: 500 },
-    );
+    return Response.json(data);
+  } catch (error) {
+    return handleApiError(error, "GET /api/proxy/wilayah");
   }
 }

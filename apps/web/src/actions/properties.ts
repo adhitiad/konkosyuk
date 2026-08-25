@@ -18,13 +18,14 @@ import { invalidateCacheByTag } from "@/lib/cache";
 import { parseJsonArrayField } from "@/lib/form-data-utils";
 import type { Role } from "@/lib/auth";
 import { money, generateInvoiceNumber } from "@/lib/utils";
+import { DEFAULT_FEATURED_LISTING_PRICE } from "@/lib/constants/actions";
 import { logError } from "@/lib/logger";
 import { getPaymentProvider } from "@/lib/payments";
 import { createAuditLog } from "@/lib/audit-log";
 import type { PropertyPackages } from "@/lib/types/property-packages";
 import type { NewProperty, NewPayment } from "@/db/schema";
 import { validateActionCsrf } from "@/lib/api-auth";
-import { validateAndApplyVoucher, markVoucherRedeemed } from "@/lib/referrals/voucher";
+import { validateAndApplyVoucher, redeemVoucherAtomically } from "@/lib/referrals/voucher";
 import { sanitizeString } from "@/lib/sanitize";
 
 export type CreatePropertyState = {
@@ -666,7 +667,7 @@ export async function checkoutFeaturedAction(
       .where(eq(platformSettings.id, "default"))
       .limit(1);
 
-    const amount = parseFloat(settings?.featuredListingPrice || "50000");
+    const amount = parseFloat(settings?.featuredListingPrice || String(DEFAULT_FEATURED_LISTING_PRICE));
     if (amount <= 0) {
       return {
         error: "Harga featured listing belum dikonfigurasi",
@@ -687,71 +688,83 @@ export async function checkoutFeaturedAction(
 
     const invoiceNumber = generateInvoiceNumber("FEATURED");
 
-    const [payment] = await db
-      .insert(payments)
-      .values({
-        bookingId: "00000000-0000-0000-0000-000000000000",
-        propertyId: property.id,
-        provider: validated.paymentProvider,
-        purpose: "featured_listing",
-        amount: money(finalAmount),
-        currency: "IDR",
-        status: "pending",
-        transactionId: invoiceNumber,
-        metadata: {
+    const result = await db.transaction(async (tx) => {
+      const [payment] = await tx
+        .insert(payments)
+        .values({
+          bookingId: "00000000-0000-0000-0000-000000000000",
           propertyId: property.id,
-          ownerId: property.ownerId,
-          voucherCode: validated.voucherCode || null,
-          originalAmount: amount,
-        },
-      } satisfies NewPayment)
-      .returning();
+          provider: validated.paymentProvider,
+          purpose: "featured_listing",
+          amount: money(finalAmount),
+          currency: "IDR",
+          status: "pending",
+          transactionId: invoiceNumber,
+          metadata: {
+            propertyId: property.id,
+            ownerId: property.ownerId,
+            voucherCode: validated.voucherCode || null,
+            originalAmount: amount,
+          },
+        } satisfies NewPayment)
+        .returning();
 
-    try {
-      const result = await adapter.createPayment({
-        bookingId: property.id,
-        provider: validated.paymentProvider,
-        purpose: "featured_listing",
-        amount: finalAmount,
-        currency: "IDR",
-        metadata: {
-          invoiceNumber,
-          propertyId: property.id,
-        },
-      });
+      try {
+        const adapterResult = await adapter.createPayment({
+          bookingId: property.id,
+          provider: validated.paymentProvider,
+          purpose: "featured_listing",
+          amount: finalAmount,
+          currency: "IDR",
+          metadata: {
+            invoiceNumber,
+            propertyId: property.id,
+          },
+        });
 
-      await db
-        .update(payments)
-        .set({
-          transactionId: result.transactionId,
-          rawResponse: result.rawResponse,
-          updatedAt: new Date(),
-        })
-        .where(eq(payments.id, payment.id));
+        await tx
+          .update(payments)
+          .set({
+            transactionId: adapterResult.transactionId,
+            rawResponse: adapterResult.rawResponse,
+            updatedAt: new Date(),
+          })
+          .where(eq(payments.id, payment.id));
 
-      if (appliedReferralId) {
-        await markVoucherRedeemed(appliedReferralId);
+        if (appliedReferralId) {
+          const redeemed = await redeemVoucherAtomically(tx, appliedReferralId);
+          if (!redeemed) {
+            throw new Error("Voucher sudah digunakan atau tidak valid");
+          }
+        }
+
+        return { success: true, payment, adapterResult } as const;
+      } catch (error) {
+        await tx
+          .update(payments)
+          .set({ status: "failed", updatedAt: new Date() })
+          .where(eq(payments.id, payment.id));
+        throw error;
       }
+    });
 
-      return {
-        success: true,
-        data: {
-          paymentId: payment.id,
-          invoiceNumber,
-          redirectUrl: result.redirectUrl,
-          qrCode: result.qrCode,
-          vaNumber: result.vaNumber,
-          expiresAt: result.expiresAt,
-        },
-      };
-    } catch (error) {
-      await db
-        .update(payments)
-        .set({ status: "failed", updatedAt: new Date() })
-        .where(eq(payments.id, payment.id));
-
-      throw error;
+    if (!result.success) {
+      return { error: "Gagal memproses pembayaran", success: false };
     }
+
+    const { payment, adapterResult } = result;
+
+    return {
+      success: true,
+      data: {
+        paymentId: payment.id,
+        invoiceNumber,
+        redirectUrl: adapterResult.redirectUrl,
+        qrCode: adapterResult.qrCode,
+        vaNumber: adapterResult.vaNumber,
+        expiresAt: adapterResult.expiresAt,
+      },
+    };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return {

@@ -1,9 +1,10 @@
+export const DP_RATIO = 0.35;
+
 export function calculateDp(totalPrice: number): {
   dpAmount: number;
   remainingAmount: number;
 } {
-  const dpRatio = 0.35;
-  const dpAmount = totalPrice * dpRatio;
+  const dpAmount = totalPrice * DP_RATIO;
   const remainingAmount = totalPrice - dpAmount;
   return { dpAmount, remainingAmount };
 }

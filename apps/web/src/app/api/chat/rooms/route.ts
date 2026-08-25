@@ -1,17 +1,22 @@
+import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { chatRooms, properties } from "@/db/schema";
 import { eq, and, desc, sql, or } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
+import { enforceRateLimit, generalRateLimit } from "@/lib/rate-limit";
 
 const createRoomSchema = z.object({
   propertyId: z.string().uuid(),
   tenantId: z.string().uuid().optional(),
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const limited = await enforceRateLimit(req, generalRateLimit);
+    if (limited) return limited;
+
     const session = await requireSession(["cust", "owner"] as const);
     const body = await req.json();
     const { propertyId, tenantId } = createRoomSchema.parse(body);

@@ -7,6 +7,7 @@ import { z } from "zod";
 import { eq, and, desc, sql, inArray } from "drizzle-orm";
 import type { Role } from "@/lib/auth";
 import { dispatchNotification } from "@/lib/notification-service";
+import { logError } from "@/lib/logger";
 
 const createInspectionSchema = z.object({
   bookingId: z.string().uuid(),
@@ -178,12 +179,7 @@ export async function POST(req: NextRequest) {
         actionUrl: `/owner/inspections`,
         referenceId: inspection.id,
         referenceType: "inspection",
-      }).catch((err) =>
-        console.error(
-          "Failed to dispatch inspection created notification:",
-          err,
-        ),
-      );
+      }).catch((err) => logError(err, "Failed to dispatch inspection created notification"));
     }
 
     return ok(inspection, 201);

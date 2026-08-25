@@ -28,8 +28,11 @@ export function ok(data: unknown, status = 200) {
   return Response.json({ success: true, data }, { status });
 }
 
-export function fail(message: string, status = 400) {
-  return Response.json({ success: false, error: message }, { status });
+export function fail(message: string, status = 400, code = "BAD_REQUEST") {
+  return Response.json(
+    { success: false, error: { code, message } },
+    { status },
+  );
 }
 
 export function handleApiError(error: unknown, context?: string) {

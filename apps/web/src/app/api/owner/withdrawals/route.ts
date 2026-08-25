@@ -7,9 +7,13 @@ import { ok, fail, handleApiError } from "@/lib/api";
 import { eq, desc, sql } from "drizzle-orm";
 import { createWithdrawalSchema } from "@konkosyuk/shared";
 import { logError } from "@/lib/logger";
+import { enforceRateLimit, generalRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await enforceRateLimit(req, generalRateLimit);
+    if (limited) return limited;
+
     const csrfError = validateMutationCsrf(req);
     if (csrfError) return csrfError;
     const session = await requireSession(["owner"] as const);
