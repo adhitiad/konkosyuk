@@ -276,6 +276,10 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/lang/id/).
 - Perbaiki instruksi Redis di `AGENTS.md`: ganti `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` → `REDIS_URL` (format ioredis/TCP)
 - Tambah section "Deployment Worker ke Render" di `docs/DEPLOYMENT.md`
 
+### Fixed
+
+- Vercel build error `UnknownLockfileVersion`: menambahkan `BUN_VERSION=1.4.0` ke `vercel.json` agar build menggunakan Bun yang kompatibel dengan `lockfileVersion: 2`
+
 > **Catatan environment:** Full `bun run build` tidak dapat diselesaikan di sandbox karena masalah dependency pre-existing (moduleNotFound pada `zod` locales dan `recharts`/`es-toolkit`). `tsc --noEmit` dan `bun run lint` berhasil hijau. Test suite menjalankan 207 test lolos, 1 gagal timeout (pre-existing di `idempotency.test.ts`), dan 17 suite gagal load module (pre-existing dependency resolution issues). Jalankan `bun install && bun run build` di environment lokal sebelum deploy.
 
 ---

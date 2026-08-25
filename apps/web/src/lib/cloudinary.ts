@@ -1,16 +1,23 @@
 import { v2 as cloudinary } from "cloudinary";
-import { env } from "@/lib/env";
 
-cloudinary.config({
-  cloud_name: env.CLOUDINARY_CLOUD_NAME,
-  api_key: env.CLOUDINARY_API_KEY,
-  api_secret: env.CLOUDINARY_API_SECRET,
-});
+export interface UploadResult {
+  url: string;
+  provider: "cloudinary";
+}
+
+function ensureConfigured() {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+}
 
 export async function uploadToCloudinary(
   fileBuffer: Buffer,
   folderName: string,
 ): Promise<{ secure_url: string }> {
+  ensureConfigured();
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
@@ -33,13 +40,7 @@ export async function uploadToCloudinary(
 }
 
 export async function checkCloudinaryConnection(): Promise<void> {
-  if (
-    !env.CLOUDINARY_CLOUD_NAME ||
-    !env.CLOUDINARY_API_KEY ||
-    !env.CLOUDINARY_API_SECRET
-  ) {
-    throw new Error("Cloudinary credentials are not configured");
-  }
+  ensureConfigured();
   await cloudinary.api.ping();
 }
 

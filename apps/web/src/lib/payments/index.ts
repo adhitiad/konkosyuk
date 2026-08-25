@@ -5,7 +5,7 @@ import { mockAdapter } from "./mock";
 import type { PaymentProviderAdapter, PaymentProviderName } from "./types";
 import { env } from "@/lib/env";
 
-const isMockMode = env.PAYMENT_MODE === "mock";
+const isMockMode = env.PAYMENT_MODE === "mock" || !env.PAYMENT_MODE;
 
 if (isMockMode && process.env.NODE_ENV === "production") {
   throw new Error(

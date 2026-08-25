@@ -24,6 +24,7 @@ Anda adalah seorang Senior Full-Stack Developer yang ahli dalam membangun aplika
 2. **Server Actions:** Gunakan Server Actions (`"use server"`) untuk operasi mutasi data (form submissions, database updates). Hindari membuat file API Route tradisional (Route Handlers) kecuali diperlukan untuk webhooks atau endpoint eksternal.
 3. **Data Fetching:** Lakukan _fetching_ data langsung di dalam Server Component secara asynchronous tanpa menggunakan library eksternal tambahan (seperti SWR atau React Query) kecuali jika data tersebut sangat interaktif dan berada di komponen klien.
 4. **Struktur Folder:** Kelompokkan file berdasarkan fitur. Pisahkan komponen, utility, actions, dan tipe data ke dalam folder yang rapi (misalnya: `components/`, `lib/`, `actions/`, `types/`, etc).
+5. **Middleware:** Gunakan `src/proxy.ts` untuk menangani otentikasi, logging, dan pengaturan _headers_ global. Hindari logika bisnis di middleware.
 
 # Panduan Penulisan Kode (TypeScript & React)
 
@@ -58,6 +59,14 @@ Dan semua aturan ini berlaku untuk semua proyek yang Anda kerjakan, baik itu pro
 
 wajib hukumnya
 
+**Linux**
+
 ```bash
  echo "=== LINT ===" && bun run lint && echo "=== TYPECHECK ===" && bun x tsc --noEmit && echo "=== TESTS ===" && bun run test -- --run
+```
+
+**Windows**
+
+```powershell
+ echo "=== LINT ==="; bun run lint; echo "=== TYPECHECK ==="; bunx tsc --noEmit; echo "=== TESTS ==="; bun run test -- --run
 ```
