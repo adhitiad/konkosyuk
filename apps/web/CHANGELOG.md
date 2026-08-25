@@ -30,6 +30,10 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/lang/id/).
 - Graceful fallback pada `env.ts` saat variabel environment belum di-set di Vercel
 - Sandbox adapter production guard: mock/sandbox mode ditolak di production
 
+### Fixed
+
+- Vercel build `ENOENT` error pada `next-server.js.nft.json` dengan menghapus `outputDirectory` eksplisit dari `vercel.json`
+
 ### Changed
 
 - `total_referrals` di tabel `users` kini di-increment saat referral completed (convert_voucher / apply_offset)
