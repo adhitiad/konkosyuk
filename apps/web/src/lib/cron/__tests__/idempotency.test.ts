@@ -146,20 +146,18 @@ describe("Idempotency Guards (F-2)", () => {
     it("should create inspection when none exists", async () => {
       vi.doMock("@/db", () => ({
         db: {
-          select: vi
-            .fn()
-            .mockReturnValue(
-              createAsyncArray([
-                {
-                  id: "b1",
-                  status: "confirmed",
-                  unitId: "u1",
-                  propertyId: "p1",
-                  userId: "user1",
-                  endDate: new Date(Date.now() - 1000),
-                },
-              ]),
-            ),
+          select: vi.fn().mockReturnValue(
+            createAsyncArray([
+              {
+                id: "b1",
+                status: "confirmed",
+                unitId: "u1",
+                propertyId: "p1",
+                userId: "user1",
+                endDate: new Date(Date.now() - 1000),
+              },
+            ]),
+          ),
           update: vi.fn().mockReturnValue({
             set: vi.fn().mockReturnValue({
               where: vi.fn().mockResolvedValue(undefined),
@@ -207,20 +205,18 @@ describe("Idempotency Guards (F-2)", () => {
     it("should not create duplicate inspection when one already exists", async () => {
       vi.doMock("@/db", () => ({
         db: {
-          select: vi
-            .fn()
-            .mockReturnValue(
-              createAsyncArray([
-                {
-                  id: "b1",
-                  status: "confirmed",
-                  unitId: "u1",
-                  propertyId: "p1",
-                  userId: "user1",
-                  endDate: new Date(Date.now() - 1000),
-                },
-              ]),
-            ),
+          select: vi.fn().mockReturnValue(
+            createAsyncArray([
+              {
+                id: "b1",
+                status: "confirmed",
+                unitId: "u1",
+                propertyId: "p1",
+                userId: "user1",
+                endDate: new Date(Date.now() - 1000),
+              },
+            ]),
+          ),
           update: vi.fn().mockReturnValue({
             set: vi.fn().mockReturnValue({
               where: vi.fn().mockResolvedValue(undefined),

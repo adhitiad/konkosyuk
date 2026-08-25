@@ -204,7 +204,10 @@ export async function DELETE(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const provider = searchParams.get("provider");
 
-    if (!provider || !["doku", "ipaymu", "nicepay", "otto"].includes(provider)) {
+    if (
+      !provider ||
+      !["doku", "ipaymu", "nicepay", "otto"].includes(provider)
+    ) {
       return fail("Invalid provider", 400);
     }
 
