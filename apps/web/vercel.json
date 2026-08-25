@@ -5,6 +5,9 @@
   "framework": "nextjs",
   "outputDirectory": ".next",
   "regions": ["iad1"],
+  "env": {
+    "BUN_VERSION": "1.4.0"
+  },
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 30
