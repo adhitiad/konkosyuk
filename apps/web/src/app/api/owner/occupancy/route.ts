@@ -141,21 +141,28 @@ export async function GET(req: NextRequest) {
 
     const dailyMap = new Map(
       dailyRows.map((r) => {
-        const dateStr = r.date instanceof Date
-          ? r.date.toISOString().split("T")[0]
-          : String(r.date);
+        const dateStr =
+          r.date instanceof Date
+            ? r.date.toISOString().split("T")[0]
+            : String(r.date);
         return [dateStr, Number(r.occupied || 0)];
       }),
     );
 
     const daysInMonth = new Date(year, month, 0).getDate();
-    const dailyData: { date: string; occupied: number; total: number; rate: number }[] = [];
+    const dailyData: {
+      date: string;
+      occupied: number;
+      total: number;
+      rate: number;
+    }[] = [];
 
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month - 1, day);
       const dateStr = date.toISOString().split("T")[0];
       const occupied = dailyMap.get(dateStr) || 0;
-      const rate = totalUnits > 0 ? Math.round((occupied / totalUnits) * 100) : 0;
+      const rate =
+        totalUnits > 0 ? Math.round((occupied / totalUnits) * 100) : 0;
       dailyData.push({ date: dateStr, occupied, total: totalUnits, rate });
     }
 

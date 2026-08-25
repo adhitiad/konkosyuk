@@ -46,7 +46,8 @@ export async function GET(req: NextRequest) {
     const limit = query.limit;
     const offset = (page - 1) * limit;
 
-    const conditions: Array<ReturnType<typeof eq> | ReturnType<typeof and>> = [];
+    const conditions: Array<ReturnType<typeof eq> | ReturnType<typeof and>> =
+      [];
 
     if (query.userId) {
       conditions.push(eq(auditLogs.adminId, query.userId));
@@ -70,7 +71,10 @@ export async function GET(req: NextRequest) {
 
     if (query.search) {
       conditions.push(
-        ilike(sql`CAST(${auditLogs.details} AS TEXT)`, sql`${`%${query.search}%`}`),
+        ilike(
+          sql`CAST(${auditLogs.details} AS TEXT)`,
+          sql`${`%${query.search}%`}`,
+        ),
       );
     }
 
@@ -95,7 +99,10 @@ export async function GET(req: NextRequest) {
         .orderBy(desc(auditLogs.createdAt))
         .limit(limit)
         .offset(offset),
-      db.select({ count: sql<number>`count(*)` }).from(auditLogs).where(whereClause),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(auditLogs)
+        .where(whereClause),
     ]);
 
     const total = Number(count);

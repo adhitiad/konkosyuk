@@ -88,9 +88,7 @@ describe("FilterChipsBar", () => {
     );
 
     fireEvent.click(screen.getByText("AC"));
-    expect(screen.getByText("AC").closest("button")).toHaveClass(
-      "bg-primary",
-    );
+    expect(screen.getByText("AC").closest("button")).toHaveClass("bg-primary");
 
     fireEvent.click(screen.getByText("WiFi"));
     expect(screen.getByText("WiFi").closest("button")).not.toHaveClass(
@@ -108,9 +106,7 @@ describe("FilterChipsBar", () => {
     expect(screen.getByText("WiFi").closest("button")).toHaveClass(
       "bg-primary",
     );
-    expect(screen.getByText("AC").closest("button")).toHaveClass(
-      "bg-primary",
-    );
+    expect(screen.getByText("AC").closest("button")).toHaveClass("bg-primary");
     expect(screen.getByText("Parkir").closest("button")).toHaveClass(
       "bg-primary",
     );

@@ -80,7 +80,11 @@ export async function PATCH(
       return fail("User not found", 404);
     }
 
-    const updateData = sanitizeUpdateBody(body, session.user.role, existing.role);
+    const updateData = sanitizeUpdateBody(
+      body,
+      session.user.role,
+      existing.role,
+    );
     if (updateData instanceof Response) return updateData;
 
     if (session.user.role === "staff" && existing.id === session.user.id) {
@@ -125,7 +129,11 @@ export async function PUT(
       return fail("User not found", 404);
     }
 
-    const updateData = sanitizeUpdateBody(body, session.user.role, existing.role);
+    const updateData = sanitizeUpdateBody(
+      body,
+      session.user.role,
+      existing.role,
+    );
     if (updateData instanceof Response) return updateData;
 
     if (session.user.role === "staff" && existing.id === session.user.id) {

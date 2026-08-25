@@ -26,13 +26,20 @@ export async function GET() {
     const packages = await db
       .select()
       .from(adPackages)
-      .orderBy(desc(adPackages.isActive), adPackages.tier, adPackages.sortOrder);
+      .orderBy(
+        desc(adPackages.isActive),
+        adPackages.tier,
+        adPackages.sortOrder,
+      );
 
-    const grouped = packages.reduce<Record<string, typeof packages>>((acc, pkg) => {
-      if (!acc[pkg.tier]) acc[pkg.tier] = [];
-      acc[pkg.tier].push(pkg);
-      return acc;
-    }, {});
+    const grouped = packages.reduce<Record<string, typeof packages>>(
+      (acc, pkg) => {
+        if (!acc[pkg.tier]) acc[pkg.tier] = [];
+        acc[pkg.tier].push(pkg);
+        return acc;
+      },
+      {},
+    );
 
     return ok({ packages: grouped });
   } catch (error) {

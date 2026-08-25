@@ -4,9 +4,30 @@ import { NearbyPlacesList } from "@/components/property/nearby-places-list";
 
 describe("NearbyPlacesList", () => {
   const places = [
-    { id: "1", name: "Warung Makan", type: "makanan", distance: 150, latitude: 0, longitude: 0 },
-    { id: "2", name: "Minimarket", type: "belanja", distance: 80, latitude: 0, longitude: 0 },
-    { id: "3", name: "Kampus", type: "pendidikan", distance: 1200, latitude: 0, longitude: 0 },
+    {
+      id: "1",
+      name: "Warung Makan",
+      type: "makanan",
+      distance: 150,
+      latitude: 0,
+      longitude: 0,
+    },
+    {
+      id: "2",
+      name: "Minimarket",
+      type: "belanja",
+      distance: 80,
+      latitude: 0,
+      longitude: 0,
+    },
+    {
+      id: "3",
+      name: "Kampus",
+      type: "pendidikan",
+      distance: 1200,
+      latitude: 0,
+      longitude: 0,
+    },
   ];
 
   it("displays all nearby places", () => {
@@ -45,6 +66,8 @@ describe("NearbyPlacesList", () => {
   it("displays empty message when places are empty", () => {
     render(<NearbyPlacesList places={[]} />);
 
-    expect(screen.getByText("Belum ada tempat terdekat yang didaftarkan")).toBeInTheDocument();
+    expect(
+      screen.getByText("Belum ada tempat terdekat yang didaftarkan"),
+    ).toBeInTheDocument();
   });
 });

@@ -14,7 +14,10 @@ import { MAX_DESCRIPTION_LENGTH } from "@/lib/constants/actions";
 const createTicketSchema = z.object({
   unitId: z.string().uuid(),
   title: z.string().min(1, "Judul harus diisi").max(100),
-  description: z.string().min(1, "Deskripsi harus diisi").max(MAX_DESCRIPTION_LENGTH),
+  description: z
+    .string()
+    .min(1, "Deskripsi harus diisi")
+    .max(MAX_DESCRIPTION_LENGTH),
   priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
   images: z.array(z.string().url("URL gambar tidak valid")).optional(),
 });
@@ -99,7 +102,8 @@ export async function createMaintenanceTicketAction(
         unitId: validated.unitId,
         tenantId: session.user.id,
         title: sanitizeString(validated.title) || validated.title,
-        description: sanitizeString(validated.description) || validated.description,
+        description:
+          sanitizeString(validated.description) || validated.description,
         priority: validated.priority,
         images: validated.images ?? [],
       })

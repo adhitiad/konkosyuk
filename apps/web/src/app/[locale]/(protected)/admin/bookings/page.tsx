@@ -180,9 +180,14 @@ function AdminBookingsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                            onClick={() =>
-                              router.push(localeHref(locale, `/admin/bookings/${booking.id}`))
-                            }
+                          onClick={() =>
+                            router.push(
+                              localeHref(
+                                locale,
+                                `/admin/bookings/${booking.id}`,
+                              ),
+                            )
+                          }
                         >
                           <Eye className="h-4 w-4 mr-1" />
                           Detail

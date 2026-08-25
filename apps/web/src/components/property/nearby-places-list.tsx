@@ -1,6 +1,16 @@
 "use client";
 
-import { MapPin, Utensils, Coffee, Flame, Church, ShoppingCart, HeartPulse, GraduationCap, Bus } from "lucide-react";
+import {
+  MapPin,
+  Utensils,
+  Coffee,
+  Flame,
+  Church,
+  ShoppingCart,
+  HeartPulse,
+  GraduationCap,
+  Bus,
+} from "lucide-react";
 
 interface NearbyPlace {
   id: string;
@@ -39,7 +49,10 @@ function formatDistance(meters: number): string {
   return `${(meters / 1000).toFixed(1)}km`;
 }
 
-export function NearbyPlacesList({ places, onPlaceClick }: NearbyPlacesListProps) {
+export function NearbyPlacesList({
+  places,
+  onPlaceClick,
+}: NearbyPlacesListProps) {
   const sortedPlaces = [...places].sort((a, b) => a.distance - b.distance);
 
   return (

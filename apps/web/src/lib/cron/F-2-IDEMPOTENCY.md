@@ -1,6 +1,7 @@
 # Idempotency Guard — Hasil Implementasi
 
 ## cleanup-bookings.ts
+
 - Status: DIPERBAIKI
 - Pola: filter by status (pending_dp) + UPDATE safeguard
 - Detail:
@@ -9,6 +10,7 @@
   - Ditambahkan komentar `F-2 fix` yang menjelaskan idempotency by status filter
 
 ## complete-bookings.ts
+
 - Status: DIPERBAIKI
 - Pola: filter by status + cek inspection existing
 - Detail:
@@ -18,6 +20,7 @@
   - Ditambahkan komentar `F-2 fix` pada pengecekan inspection
 
 ## saved-search-matcher.ts
+
 - Status: DIPERBAIKI
 - Pola: Redis key dengan TTL 24 jam
 - Detail:
@@ -29,6 +32,7 @@
   - Ditambahkan komentar `F-2 fix`
 
 ## update-area-counts.ts
+
 - Status: SUDAH IDEMPOTENT
 - Pola: SET from count query (bukan increment)
 - Detail:

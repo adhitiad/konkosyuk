@@ -87,7 +87,15 @@ export function SearchPageContainer() {
     }
 
     return p;
-  }, [filters, searchQuery, gps.latitude, gps.longitude, mapBounds, page, pageSize]);
+  }, [
+    filters,
+    searchQuery,
+    gps.latitude,
+    gps.longitude,
+    mapBounds,
+    page,
+    pageSize,
+  ]);
 
   const { data, isLoading } = useQuery<PropertyResponse>({
     queryKey: ["properties", params],
@@ -121,7 +129,12 @@ export function SearchPageContainer() {
   }, []);
 
   const handleMapBoundsChange = useCallback(
-    (bounds: { swLat: number; swLng: number; neLat: number; neLng: number }) => {
+    (bounds: {
+      swLat: number;
+      swLng: number;
+      neLat: number;
+      neLng: number;
+    }) => {
       setMapBounds(bounds);
       setPage(1);
     },

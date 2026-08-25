@@ -80,7 +80,9 @@ describe("PropertyListPanel", () => {
       />,
     );
 
-    expect(screen.getByText("Menampilkan 2 dari 2 properti")).toBeInTheDocument();
+    expect(
+      screen.getByText("Menampilkan 2 dari 2 properti"),
+    ).toBeInTheDocument();
   });
 
   it("shows loading skeleton when loading is true", () => {

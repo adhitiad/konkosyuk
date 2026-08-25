@@ -99,7 +99,9 @@ export async function sendMessageAction(
           session.user.name,
           validated.content.trim().slice(0, 200),
           `${process.env.NEXT_PUBLIC_APP_URL}/chat`,
-        ).catch((err) => logError(err, "Failed to send chat notification email"));
+        ).catch((err) =>
+          logError(err, "Failed to send chat notification email"),
+        );
       }
     }
 

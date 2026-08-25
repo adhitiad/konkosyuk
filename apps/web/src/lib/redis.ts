@@ -5,12 +5,7 @@ import { logInfo } from "@/lib/logger";
 export type RedisProvider = "ioredis" | "memory";
 
 export type RedisValue =
-  | string
-  | number
-  | boolean
-  | null
-  | Record<string, unknown>
-  | unknown[];
+  string | number | boolean | null | Record<string, unknown> | unknown[];
 
 export interface RedisClient {
   get<T = unknown>(key: string): Promise<T | null>;
@@ -74,7 +69,9 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   });
 }
 
-export function createRedisConnection(overrides?: RedisConnectionOptions): Redis {
+export function createRedisConnection(
+  overrides?: RedisConnectionOptions,
+): Redis {
   if (!process.env.REDIS_URL) {
     throw new Error("REDIS_URL harus diisi di environment variables");
   }

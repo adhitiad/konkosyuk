@@ -111,8 +111,7 @@ vi.mock("@/lib/cache", () => ({
 }));
 
 vi.mock("@/lib/notifications", () => ({
-  createNotification: (...args: unknown[]) =>
-    mockCreateNotification(...args),
+  createNotification: (...args: unknown[]) => mockCreateNotification(...args),
   sendWebPushNotification: (...args: unknown[]) =>
     mockSendWebPushNotification(...args),
 }));

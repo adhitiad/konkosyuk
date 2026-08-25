@@ -94,7 +94,9 @@ export function CreateFeatureFlagDialog({
       const flag = response.data.data;
       queryClient.invalidateQueries({ queryKey: ["admin-feature-flags"] });
       showToastSuccess(
-        editFlag ? "Feature flag berhasil diperbarui" : "Feature flag berhasil dibuat",
+        editFlag
+          ? "Feature flag berhasil diperbarui"
+          : "Feature flag berhasil dibuat",
       );
       resetForm();
       setOpen(false);
@@ -102,7 +104,9 @@ export function CreateFeatureFlagDialog({
     },
     onError: () => {
       showToastError(
-        editFlag ? "Gagal memperbarui feature flag" : "Gagal membuat feature flag",
+        editFlag
+          ? "Gagal memperbarui feature flag"
+          : "Gagal membuat feature flag",
       );
     },
   });
@@ -123,19 +127,36 @@ export function CreateFeatureFlagDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
-        render={<Button variant="default"><HugeiconsIcon icon={Add01Icon} strokeWidth={2} className="size-4 mr-2" />Create Flag</Button>}
+        render={
+          <Button variant="default">
+            <HugeiconsIcon
+              icon={Add01Icon}
+              strokeWidth={2}
+              className="size-4 mr-2"
+            />
+            Create Flag
+          </Button>
+        }
       />
       <DialogContent showCloseButton={!editFlag}>
         <DialogHeader>
-          <DialogTitle>{editFlag ? "Edit Feature Flag" : "Create Feature Flag"}</DialogTitle>
+          <DialogTitle>
+            {editFlag ? "Edit Feature Flag" : "Create Feature Flag"}
+          </DialogTitle>
         </DialogHeader>
-        <form key={editFlag?.id ?? "new"} onSubmit={handleSubmit} className="space-y-4">
+        <form
+          key={editFlag?.id ?? "new"}
+          onSubmit={handleSubmit}
+          className="space-y-4"
+        >
           <div className="space-y-2">
             <Label htmlFor="key">Key</Label>
             <Input
               id="key"
               value={key}
-              onChange={(e) => setKey(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_"))}
+              onChange={(e) =>
+                setKey(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_"))
+              }
               placeholder="new_payment_flow"
               disabled={!!editFlag}
               required
@@ -162,7 +183,11 @@ export function CreateFeatureFlagDialog({
           </div>
           <div className="flex items-center justify-between">
             <Label htmlFor="enabled">Enabled</Label>
-            <Switch id="enabled" checked={enabled} onCheckedChange={setEnabled} />
+            <Switch
+              id="enabled"
+              checked={enabled}
+              onCheckedChange={setEnabled}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="rollout">Rollout Percentage</Label>

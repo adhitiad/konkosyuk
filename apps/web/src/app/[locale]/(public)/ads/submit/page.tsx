@@ -127,7 +127,8 @@ export default function SubmitAdPage() {
         type: "success",
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Gagal mengirim iklan";
+      const message =
+        err instanceof Error ? err.message : "Gagal mengirim iklan";
       toast({
         title: "Gagal",
         description: message,
@@ -138,18 +139,26 @@ export default function SubmitAdPage() {
     }
   }
 
-  const groupedPackages = packages.reduce<Record<string, AdPackage[]>>((acc, pkg) => {
-    if (!acc[pkg.tier]) acc[pkg.tier] = [];
-    acc[pkg.tier].push(pkg);
-    return acc;
-  }, {});
+  const groupedPackages = packages.reduce<Record<string, AdPackage[]>>(
+    (acc, pkg) => {
+      if (!acc[pkg.tier]) acc[pkg.tier] = [];
+      acc[pkg.tier].push(pkg);
+      return acc;
+    },
+    {},
+  );
 
   return (
     <StaticPageLayout title="Pasang Iklan Properti">
       {submitted ? (
         <div className="rounded-lg border border-green-200 bg-green-50 p-6 text-sm text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
-          <h3 className="text-lg font-semibold mb-2">Iklan Anda Telah Dikirim</h3>
-          <p>Iklan Anda akan ditinjau dalam 1x24 jam. Tim kami akan menghubungi Anda setelah disetujui.</p>
+          <h3 className="text-lg font-semibold mb-2">
+            Iklan Anda Telah Dikirim
+          </h3>
+          <p>
+            Iklan Anda akan ditinjau dalam 1x24 jam. Tim kami akan menghubungi
+            Anda setelah disetujui.
+          </p>
           <Button onClick={() => router.push("/")} className="mt-4">
             Kembali ke Beranda
           </Button>
@@ -168,13 +177,20 @@ export default function SubmitAdPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="advertiserWhatsApp">WhatsApp (opsional, jika beda dengan HP)</Label>
+            <Label htmlFor="advertiserWhatsApp">
+              WhatsApp (opsional, jika beda dengan HP)
+            </Label>
             <Input id="advertiserWhatsApp" name="advertiserWhatsApp" />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="title">Judul Iklan</Label>
-            <Input id="title" name="title" required placeholder="Contoh: Kost Nyaman Dekat UI" />
+            <Input
+              id="title"
+              name="title"
+              required
+              placeholder="Contoh: Kost Nyaman Dekat UI"
+            />
           </div>
 
           <div className="space-y-2">
@@ -188,7 +204,9 @@ export default function SubmitAdPage() {
               placeholder="Deskripsi singkat properti Anda..."
               onChange={(e) => setDescriptionLength(e.target.value.length)}
             />
-            <p className="text-xs text-muted-foreground">{descriptionLength}/200 karakter</p>
+            <p className="text-xs text-muted-foreground">
+              {descriptionLength}/200 karakter
+            </p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -209,18 +227,36 @@ export default function SubmitAdPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="location">Lokasi</Label>
-              <Input id="location" name="location" required placeholder="Contoh: Depok, Jawa Barat" />
+              <Input
+                id="location"
+                name="location"
+                required
+                placeholder="Contoh: Depok, Jawa Barat"
+              />
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="imageUrl">URL Gambar</Label>
-            <Input id="imageUrl" name="imageUrl" type="url" required placeholder="https://..." />
+            <Input
+              id="imageUrl"
+              name="imageUrl"
+              type="url"
+              required
+              placeholder="https://..."
+            />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="targetUrl">URL Tujuan (opsional, default ke detail properti)</Label>
-            <Input id="targetUrl" name="targetUrl" type="url" placeholder="https://..." />
+            <Label htmlFor="targetUrl">
+              URL Tujuan (opsional, default ke detail properti)
+            </Label>
+            <Input
+              id="targetUrl"
+              name="targetUrl"
+              type="url"
+              placeholder="https://..."
+            />
           </div>
 
           <div className="space-y-3">
@@ -229,14 +265,20 @@ export default function SubmitAdPage() {
               <p className="text-sm text-muted-foreground">Memuat paket...</p>
             ) : (
               <div className="space-y-4">
-                {(Object.keys(groupedPackages) as Array<keyof typeof groupedPackages>).map((tier) => (
+                {(
+                  Object.keys(groupedPackages) as Array<
+                    keyof typeof groupedPackages
+                  >
+                ).map((tier) => (
                   <div
                     key={tier}
                     className={`rounded-lg border p-4 space-y-3 ${TIER_COLORS[tier] || "border-gray-200 bg-gray-50/50"}`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-semibold capitalize">{tier}</span>
-                      <span className="text-xs text-muted-foreground">{TIER_LABELS[tier]}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {TIER_LABELS[tier]}
+                      </span>
                     </div>
                     {groupedPackages[tier].map((pkg) => (
                       <button
@@ -252,7 +294,9 @@ export default function SubmitAdPage() {
                         <div className="flex items-center gap-3">
                           <div
                             className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
-                              selectedPackageId === pkg.id ? "border-primary" : "border-muted-foreground"
+                              selectedPackageId === pkg.id
+                                ? "border-primary"
+                                : "border-muted-foreground"
                             }`}
                           >
                             {selectedPackageId === pkg.id && (
@@ -277,7 +321,8 @@ export default function SubmitAdPage() {
             )}
             {selectedPackage && (
               <p className="text-sm font-medium">
-                Total: Rp {Number(selectedPackage.price).toLocaleString("id-ID")}
+                Total: Rp{" "}
+                {Number(selectedPackage.price).toLocaleString("id-ID")}
               </p>
             )}
           </div>

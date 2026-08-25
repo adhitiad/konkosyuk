@@ -238,14 +238,14 @@ export default function MaintenanceTicketForm({
             {imageUrls.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {imageUrls.map((url) => (
-              <div key={url} className="relative h-16 w-20 group">
-                <Image
-                  src={url}
-                  alt="Preview gambar tiket"
-                  fill
-                  className="object-cover rounded-lg border"
-                  sizes="80px"
-                />
+                  <div key={url} className="relative h-16 w-20 group">
+                    <Image
+                      src={url}
+                      alt="Preview gambar tiket"
+                      fill
+                      className="object-cover rounded-lg border"
+                      sizes="80px"
+                    />
                     <button
                       type="button"
                       onClick={() => removeImage(url)}

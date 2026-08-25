@@ -68,7 +68,11 @@ export async function GET(req: NextRequest) {
 
     const isAdmin = session.user.role === "admin";
     const isStaff = session.user.role === "staff";
-    const selectedFields = isAdmin ? adminFields : isStaff ? staffFields : publicFields;
+    const selectedFields = isAdmin
+      ? adminFields
+      : isStaff
+        ? staffFields
+        : publicFields;
 
     const data = await db
       .select(selectedFields)

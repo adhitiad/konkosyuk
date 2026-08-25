@@ -16,7 +16,9 @@ const settingSchema = z.object({
 
 export async function GET() {
   try {
-    const authResult = await validateAdminOnlyRequest(new NextRequest("http://localhost"));
+    const authResult = await validateAdminOnlyRequest(
+      new NextRequest("http://localhost"),
+    );
     if (authResult instanceof Response) return authResult;
 
     const settings = await db

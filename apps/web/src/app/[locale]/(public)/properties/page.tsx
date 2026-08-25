@@ -253,25 +253,19 @@ export default function PropertiesPage() {
     router.push(`/${locale}/properties`);
   }, [router, locale]);
 
-  const handleLocationChange = useCallback(
-    (lat: number, lng: number) => {
-      setUserLocation({ lat, lng });
-      setRadius(30);
-    },
-    [],
-  );
+  const handleLocationChange = useCallback((lat: number, lng: number) => {
+    setUserLocation({ lat, lng });
+    setRadius(30);
+  }, []);
 
   const handleClearLocation = useCallback(() => {
     setUserLocation(null);
     setRadius(30);
   }, []);
 
-  const handleRadiusChange = useCallback(
-    (newRadius: number) => {
-      setRadius(newRadius);
-    },
-    [],
-  );
+  const handleRadiusChange = useCallback((newRadius: number) => {
+    setRadius(newRadius);
+  }, []);
 
   const items = useMemo(() => data?.data ?? [], [data?.data]);
   const totalPages = data?.meta?.totalPages ?? 1;
@@ -422,17 +416,10 @@ export default function PropertiesPage() {
                 onClear={handleClearLocation}
               />
               {userLocation && (
-                <RadiusSelector
-                  value={radius}
-                  onChange={handleRadiusChange}
-                />
+                <RadiusSelector value={radius} onChange={handleRadiusChange} />
               )}
               {userLocation && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClearLocation}
-                >
+                <Button variant="ghost" size="sm" onClick={handleClearLocation}>
                   <HugeiconsIcon
                     icon={Cancel01Icon}
                     strokeWidth={2}
@@ -477,11 +464,7 @@ export default function PropertiesPage() {
 
       {userLocation && (
         <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-          <HugeiconsIcon
-            icon={MapPinIcon}
-            strokeWidth={2}
-            className="size-4"
-          />
+          <HugeiconsIcon icon={MapPinIcon} strokeWidth={2} className="size-4" />
           <span>
             Menampilkan properti dalam radius {radius}km dari lokasi Anda
           </span>

@@ -98,7 +98,10 @@ export default function NotificationBell() {
           ? `/${locale}/admin/maintenance-reports?reportId=${notification.referenceId}`
           : `/${locale}/owner/reports`,
       );
-    } else if (notification.type === "review_reply" && notification.referenceId) {
+    } else if (
+      notification.type === "review_reply" &&
+      notification.referenceId
+    ) {
       try {
         const { data: reviewData } = await apiClient.get(
           `/api/reviews/${notification.referenceId}`,

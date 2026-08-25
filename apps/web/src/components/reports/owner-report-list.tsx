@@ -85,17 +85,17 @@ function ReportItem({
       <p className="text-sm whitespace-pre-wrap">{report.description}</p>
       {report.images?.length ? (
         <div className="flex flex-wrap gap-2">
-            {report.images.map((url) => (
-              <div key={url} className="relative size-20">
-                <Image
-                  src={url}
-                  alt="Lampiran laporan"
-                  fill
-                  className="object-cover rounded-md border"
-                  sizes="80px"
-                />
-              </div>
-            ))}
+          {report.images.map((url) => (
+            <div key={url} className="relative size-20">
+              <Image
+                src={url}
+                alt="Lampiran laporan"
+                fill
+                className="object-cover rounded-md border"
+                sizes="80px"
+              />
+            </div>
+          ))}
         </div>
       ) : null}
       {report.status !== "resolved" && report.status !== "rejected" && (

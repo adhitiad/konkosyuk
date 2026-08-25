@@ -5,14 +5,14 @@ export async function POST(req: NextRequest) {
   try {
     const report = await req.json();
     const violation = report["csp-report"] || report;
-    
+
     logSecurityEvent("csp_violation", {
       blockedUri: violation["blocked-uri"],
       violatedDirective: violation["violated-directive"],
       originalPolicy: violation["original-policy"],
       documentUri: violation["document-uri"],
       referrer: violation["referrer"],
-      userAgent: req.headers.get("user-agent"),
+      userAgent: req.headers.get("user-agent") ?? undefined,
     });
 
     return NextResponse.json({ received: true });

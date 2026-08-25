@@ -26,7 +26,9 @@ const mockTx = {
   for: vi.fn().mockReturnThis(),
   insert: vi.fn().mockReturnThis(),
   values: vi.fn().mockReturnThis(),
-  returning: vi.fn().mockImplementation(() => Promise.resolve([{ id: "redemption-1" }])),
+  returning: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve([{ id: "redemption-1" }])),
   then(resolve: (value: unknown) => unknown) {
     const result = mockResults[resultIndex] ?? [];
     resultIndex++;
@@ -44,7 +46,9 @@ const mockDb = vi.hoisted(() => {
     insert: vi.fn().mockReturnThis(),
     values: vi.fn().mockReturnThis(),
     returning: vi.fn().mockReturnThis(),
-    transaction: vi.fn().mockImplementation(async (fn: (tx: unknown) => unknown) => fn(mockTx)),
+    transaction: vi
+      .fn()
+      .mockImplementation(async (fn: (tx: unknown) => unknown) => fn(mockTx)),
     for: vi.fn().mockReturnThis(),
     then(resolve: (value: unknown) => unknown) {
       const result = mockResults[resultIndex] ?? [];
@@ -78,7 +82,14 @@ describe("GET /api/loyalty/rewards", () => {
 
   it("returns active rewards by default", async () => {
     setupMocks([
-      [{ id: "reward-1", name: "Test Reward", pointsCost: 100, isActive: true }],
+      [
+        {
+          id: "reward-1",
+          name: "Test Reward",
+          pointsCost: 100,
+          isActive: true,
+        },
+      ],
     ]);
 
     const req = {
@@ -96,7 +107,14 @@ describe("GET /api/loyalty/rewards", () => {
 
   it("returns all rewards when active=false", async () => {
     setupMocks([
-      [{ id: "reward-1", name: "Test Reward", pointsCost: 100, isActive: false }],
+      [
+        {
+          id: "reward-1",
+          name: "Test Reward",
+          pointsCost: 100,
+          isActive: false,
+        },
+      ],
     ]);
 
     const req = {
@@ -120,14 +138,22 @@ describe("POST /api/loyalty/rewards", () => {
 
   it("redeems reward successfully with sufficient balance", async () => {
     setupMocks([
-      [{ id: "reward-1", pointsCost: 100, name: "Test Reward", isActive: true }],
+      [
+        {
+          id: "reward-1",
+          pointsCost: 100,
+          name: "Test Reward",
+          isActive: true,
+        },
+      ],
       [{ id: "user-1" }],
       [{ balance: 500 }],
       [{ id: "redemption-1" }],
     ]);
 
     const req = {
-      json: () => Promise.resolve({ rewardId: "123e4567-e89b-12d3-a456-426614174000" }),
+      json: () =>
+        Promise.resolve({ rewardId: "123e4567-e89b-12d3-a456-426614174000" }),
     } as unknown as Parameters<typeof POST>[0];
 
     const response = await POST(req);
@@ -139,9 +165,7 @@ describe("POST /api/loyalty/rewards", () => {
   });
 
   it("rejects inactive reward", async () => {
-    setupMocks([
-      [{ id: "reward-1", pointsCost: 100, isActive: false }],
-    ]);
+    setupMocks([[{ id: "reward-1", pointsCost: 100, isActive: false }]]);
 
     const req = {
       json: () => Promise.resolve({ rewardId: "reward-1" }),
@@ -158,7 +182,8 @@ describe("POST /api/loyalty/rewards", () => {
     setupMocks([[]]);
 
     const req = {
-      json: () => Promise.resolve({ rewardId: "00000000-0000-0000-0000-000000000000" }),
+      json: () =>
+        Promise.resolve({ rewardId: "00000000-0000-0000-0000-000000000000" }),
     } as unknown as Parameters<typeof POST>[0];
 
     const response = await POST(req);

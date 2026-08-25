@@ -22,8 +22,7 @@ export async function generateMetadata({
       languages: Object.fromEntries(
         locales.map((l) => [l, `/${l}/umum/syarat-dan-ketentuan`]),
       ) as Record<string, string>,
-      "x-default": "/id/umum/syarat-dan-ketentuan",
-    },
+    } as Metadata["alternates"] & { "x-default": string },
   };
 }
 

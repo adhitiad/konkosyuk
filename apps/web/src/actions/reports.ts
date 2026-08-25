@@ -226,7 +226,12 @@ export async function createReportAction(
 const updateSchema = z.object({
   id: z.string().uuid(),
   status: z.enum(maintenanceReportStatus),
-  resolutionNote: z.string().trim().max(MAX_DESCRIPTION_LENGTH).nullable().optional(),
+  resolutionNote: z
+    .string()
+    .trim()
+    .max(MAX_DESCRIPTION_LENGTH)
+    .nullable()
+    .optional(),
 });
 
 export type UpdateReportState = {

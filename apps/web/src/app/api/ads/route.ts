@@ -29,7 +29,12 @@ export async function GET(req: NextRequest) {
     ];
 
     if (type) {
-      conditions.push(eq(propertyAds.type, type as "kos" | "kontrakan" | "apartemen" | "rumah"));
+      conditions.push(
+        eq(
+          propertyAds.type,
+          type as "kos" | "kontrakan" | "apartemen" | "rumah",
+        ),
+      );
     }
 
     const ads = await db
@@ -48,7 +53,9 @@ export async function GET(req: NextRequest) {
       .leftJoin(adPackages, eq(propertyAds.packageId, adPackages.id))
       .where(and(...conditions))
       .orderBy(
-        asc(sql`CASE WHEN ${adPackages.positionType} = 'fixed_1' THEN 1 WHEN ${adPackages.positionType} = 'fixed_2' THEN 2 ELSE 3 END`),
+        asc(
+          sql`CASE WHEN ${adPackages.positionType} = 'fixed_1' THEN 1 WHEN ${adPackages.positionType} = 'fixed_2' THEN 2 ELSE 3 END`,
+        ),
         desc(propertyAds.paidAt),
       )
       .limit(limit);

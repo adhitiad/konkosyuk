@@ -1,4 +1,4 @@
-import { eq, and, inArray, sql } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import type { PgTransaction } from "drizzle-orm/pg-core";
 import type { ExtractTablesWithRelations } from "drizzle-orm";
 import type { NodePgQueryResultHKT } from "drizzle-orm/node-postgres";
@@ -11,7 +11,9 @@ export interface OffsetPreview {
   referralIds: string[];
 }
 
-export async function previewAvailableOffset(userId: string): Promise<OffsetPreview> {
+export async function previewAvailableOffset(
+  userId: string,
+): Promise<OffsetPreview> {
   const availableReferrals = await db
     .select({
       id: referrals.id,
@@ -23,9 +25,8 @@ export async function previewAvailableOffset(userId: string): Promise<OffsetPrev
         eq(referrals.referrerId, userId),
         eq(referrals.category, "tenant"),
         eq(referrals.status, "completed"),
-        eq(referrals.offsetApplied, true),
-        sql`${referrals.offsetConsumedAt} IS NULL`
-      )
+        eq(referrals.offsetApplied, false),
+      ),
     );
 
   let availableBalance = 0;
@@ -41,7 +42,7 @@ export async function previewAvailableOffset(userId: string): Promise<OffsetPrev
 
 export function computeOffsetDiscount(
   availableBalance: number,
-  originalAmount: number
+  originalAmount: number,
 ): { discountAmount: number; finalAmount: number } {
   const discountAmount = Math.min(availableBalance, originalAmount);
   const finalAmount = Math.max(0, originalAmount - discountAmount);
@@ -49,15 +50,19 @@ export function computeOffsetDiscount(
 }
 
 export async function markOffsetConsumed(
-  tx: PgTransaction<NodePgQueryResultHKT, typeof schemaModule, ExtractTablesWithRelations<typeof schemaModule>>,
-  referralIds: string[]
+  tx: PgTransaction<
+    NodePgQueryResultHKT,
+    typeof schemaModule,
+    ExtractTablesWithRelations<typeof schemaModule>
+  >,
+  referralIds: string[],
 ): Promise<void> {
   if (referralIds.length === 0) return;
 
   await tx
     .update(referrals)
     .set({
-      offsetConsumedAt: new Date(),
+      offsetApplied: true,
     })
     .where(inArray(referrals.id, referralIds));
 }

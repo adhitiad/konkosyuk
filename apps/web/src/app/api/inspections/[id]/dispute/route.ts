@@ -79,7 +79,9 @@ export async function POST(
             : "/dashboard/inspections",
         referenceId: inspection.id,
         referenceType: "inspection",
-      }).catch((err) => logError(err, "Failed to dispatch inspection disputed notification"));
+      }).catch((err) =>
+        logError(err, "Failed to dispatch inspection disputed notification"),
+      );
     }
 
     return ok(updated);

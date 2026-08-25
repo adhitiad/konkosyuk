@@ -24,7 +24,9 @@ vi.mock("@/lib/queue/queues", () => {
     savedSearchMatcherQueue: createMockQueue("saved-search-matcher"),
     updateAreaCountsQueue: createMockQueue("update-area-counts"),
     processExpiredRefundsQueue: createMockQueue("process-expired-refunds"),
-    referralEligibilitySweepQueue: createMockQueue("referral-eligibility-sweep"),
+    referralEligibilitySweepQueue: createMockQueue(
+      "referral-eligibility-sweep",
+    ),
   };
 });
 
@@ -54,7 +56,7 @@ describe("scheduler.ts", () => {
 
     const patterns = mockUpsertCalls.reduce(
       (acc, call) => ({ ...acc, [call.queueName]: call.pattern }),
-      {} as Record<string, string>
+      {} as Record<string, string>,
     );
 
     expect(patterns["cleanup-expired-bookings"]).toBe("0 * * * *");
@@ -79,7 +81,7 @@ describe("scheduler.ts", () => {
     await registerRepeatJobs();
 
     const cleanupCall = mockUpsertCalls.find(
-      (c) => c.queueName === "cleanup-expired-bookings"
+      (c) => c.queueName === "cleanup-expired-bookings",
     );
     expect(cleanupCall).toBeDefined();
     expect(cleanupCall?.jobId).toBe("repeat:cleanup-expired-bookings");

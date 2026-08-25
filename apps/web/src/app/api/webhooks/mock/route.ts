@@ -11,7 +11,11 @@ export async function POST(req: NextRequest) {
   if (limited) return limited;
 
   if (env.PAYMENT_MODE !== "mock") {
-    return fail("Mock webhooks are only available in mock mode", 403, "FORBIDDEN");
+    return fail(
+      "Mock webhooks are only available in mock mode",
+      403,
+      "FORBIDDEN",
+    );
   }
 
   const raw = await req.text();

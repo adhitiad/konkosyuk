@@ -26,7 +26,10 @@ function readLastLocation(): { latitude: number; longitude: number } | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as { latitude: number; longitude: number };
-    if (typeof parsed.latitude === "number" && typeof parsed.longitude === "number") {
+    if (
+      typeof parsed.latitude === "number" &&
+      typeof parsed.longitude === "number"
+    ) {
       return parsed;
     }
   } catch {
@@ -44,8 +47,12 @@ export function useGeolocation(): GeolocationState & {
   const initialLocation = initialEnabled ? readLastLocation() : null;
 
   const [enabled, setEnabledState] = useState<boolean>(initialEnabled);
-  const [latitude, setLatitude] = useState<number | null>(initialLocation?.latitude ?? null);
-  const [longitude, setLongitude] = useState<number | null>(initialLocation?.longitude ?? null);
+  const [latitude, setLatitude] = useState<number | null>(
+    initialLocation?.latitude ?? null,
+  );
+  const [longitude, setLongitude] = useState<number | null>(
+    initialLocation?.longitude ?? null,
+  );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,7 +75,8 @@ export function useGeolocation(): GeolocationState & {
         }
       })
       .catch((err) => {
-        const message = err instanceof Error ? err.message : "Gagal mendapatkan lokasi.";
+        const message =
+          err instanceof Error ? err.message : "Gagal mendapatkan lokasi.";
         setError(message);
         setLatitude(null);
         setLongitude(null);

@@ -28,10 +28,7 @@ export async function POST(
         .select()
         .from(propertyAds)
         .where(
-          and(
-            eq(propertyAds.id, id),
-            eq(propertyAds.paymentStatus, "pending"),
-          ),
+          and(eq(propertyAds.id, id), eq(propertyAds.paymentStatus, "pending")),
         )
         .for("update")
         .limit(1);
@@ -54,7 +51,9 @@ export async function POST(
         return fail("Paket iklan tidak ditemukan", 400);
       }
 
-      const endDate = new Date(now.getTime() + pkg.duration * 24 * 60 * 60 * 1000);
+      const endDate = new Date(
+        now.getTime() + pkg.duration * 24 * 60 * 60 * 1000,
+      );
 
       const [updated] = await tx
         .update(propertyAds)
@@ -66,10 +65,7 @@ export async function POST(
           updatedAt: now,
         })
         .where(
-          and(
-            eq(propertyAds.id, id),
-            eq(propertyAds.paymentStatus, "pending"),
-          ),
+          and(eq(propertyAds.id, id), eq(propertyAds.paymentStatus, "pending")),
         )
         .returning();
 

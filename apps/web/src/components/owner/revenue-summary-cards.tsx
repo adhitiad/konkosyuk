@@ -58,10 +58,7 @@ export function RevenueSummaryCards({ data, loading }: SummaryCardsProps) {
     return (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-28 animate-pulse rounded-lg bg-muted"
-          />
+          <div key={i} className="h-28 animate-pulse rounded-lg bg-muted" />
         ))}
       </div>
     );
@@ -85,7 +82,9 @@ export function RevenueSummaryCards({ data, loading }: SummaryCardsProps) {
           {data.totalTransactions} transaksi
         </p>
         <div className="mt-2">
-          <ChangeBadge value={data.comparedToPreviousPeriod.transactionChange} />
+          <ChangeBadge
+            value={data.comparedToPreviousPeriod.transactionChange}
+          />
         </div>
       </div>
 

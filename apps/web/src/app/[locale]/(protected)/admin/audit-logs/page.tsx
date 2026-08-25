@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AuditLogsTable, type AuditLog } from "@/components/admin/audit-logs-table";
+import {
+  AuditLogsTable,
+  type AuditLog,
+} from "@/components/admin/audit-logs-table";
 import { AuditLogsFilters } from "@/components/admin/audit-logs-filters";
 import { withAdminAuth } from "@/lib/with-admin-auth";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
@@ -30,9 +33,7 @@ function AuditLogsPage() {
           ]}
         />
         <h1 className="text-3xl font-bold tracking-tight">Audit Logs</h1>
-        <p className="text-muted-foreground">
-          Log aktivitas semua pengguna
-        </p>
+        <p className="text-muted-foreground">Log aktivitas semua pengguna</p>
       </div>
 
       <Card>
@@ -57,7 +58,11 @@ function AuditLogsPage() {
               <p className="text-muted-foreground">Tidak ada audit logs</p>
             </div>
           ) : null}
-          <AuditLogsTable logs={logs} isLoading={false} pagination={pagination} />
+          <AuditLogsTable
+            logs={logs}
+            isLoading={false}
+            pagination={pagination}
+          />
         </CardContent>
       </Card>
     </div>

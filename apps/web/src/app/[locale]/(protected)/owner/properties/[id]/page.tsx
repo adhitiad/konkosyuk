@@ -28,7 +28,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import type { Property } from "@/db/schema";
-import { updatePropertySchema, type UpdatePropertyInput } from "@konkosyuk/shared";
+import {
+  updatePropertySchema,
+  type UpdatePropertyInput,
+} from "@konkosyuk/shared";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
 import {
   updatePropertyAction,

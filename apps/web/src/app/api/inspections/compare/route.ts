@@ -25,7 +25,10 @@ export async function GET(req: NextRequest) {
       return fail("Booking tidak ditemukan", 404);
     }
 
-    if (booking.userId !== session.user.id && !["admin", "staff"].includes(session.user.role)) {
+    if (
+      booking.userId !== session.user.id &&
+      !["admin", "staff"].includes(session.user.role)
+    ) {
       return fail("Tidak berwenang", 403);
     }
 

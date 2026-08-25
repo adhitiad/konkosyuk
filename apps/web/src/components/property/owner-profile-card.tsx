@@ -59,7 +59,9 @@ export function OwnerProfileCard({ owner, propertyId }: OwnerProfileCardProps) {
 
       <div className="flex items-center gap-1 text-xs text-muted-foreground">
         <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-        <span>{owner.transactionCount.toLocaleString()} transaksi berhasil</span>
+        <span>
+          {owner.transactionCount.toLocaleString()} transaksi berhasil
+        </span>
       </div>
 
       <a

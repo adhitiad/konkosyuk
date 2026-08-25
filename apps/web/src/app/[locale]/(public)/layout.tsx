@@ -13,11 +13,11 @@ export async function generateMetadata({
   return {
     alternates: {
       canonical: `/${locale}`,
-      languages: Object.fromEntries(
-        locales.map((l) => [l, `/${l}`]),
-      ) as Record<string, string>,
-      "x-default": "/id",
-    },
+      languages: Object.fromEntries(locales.map((l) => [l, `/${l}`])) as Record<
+        string,
+        string
+      >,
+    } as Metadata["alternates"] & { "x-default": string },
     robots: {
       index: true,
       follow: true,

@@ -12,7 +12,11 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getSavedSearches, toggleSavedSearchActive, deleteSavedSearch } from "@/actions/saved-searches";
+import {
+  getSavedSearches,
+  toggleSavedSearchActive,
+  deleteSavedSearch,
+} from "@/actions/saved-searches";
 import type { SavedSearch } from "@/db/schema";
 import { useLocale } from "next-intl";
 
@@ -39,12 +43,20 @@ function formatFilterPreview(filters: Record<string, unknown>): string {
   if (filters.location) parts.push(`Lokasi: ${filters.location}`);
   if (filters.city) parts.push(`Kota: ${filters.city}`);
   if (filters.minPrice || filters.maxPrice) {
-    const min = filters.minPrice ? `Rp ${Number(filters.minPrice).toLocaleString("id-ID")}` : "Rp 0";
-    const max = filters.maxPrice ? `Rp ${Number(filters.maxPrice).toLocaleString("id-ID")}` : "Tanpa batas";
+    const min = filters.minPrice
+      ? `Rp ${Number(filters.minPrice).toLocaleString("id-ID")}`
+      : "Rp 0";
+    const max = filters.maxPrice
+      ? `Rp ${Number(filters.maxPrice).toLocaleString("id-ID")}`
+      : "Tanpa batas";
     parts.push(`Harga: ${min} - ${max}`);
   }
   if (filters.type) parts.push(`Tipe: ${filters.type}`);
-  if (filters.amenities && Array.isArray(filters.amenities) && filters.amenities.length > 0) {
+  if (
+    filters.amenities &&
+    Array.isArray(filters.amenities) &&
+    filters.amenities.length > 0
+  ) {
     parts.push(`Fasilitas: ${(filters.amenities as string[]).join(", ")}`);
   }
 
@@ -111,7 +123,9 @@ export function SavedSearchesClient() {
     if (filters.maxPrice) params.set("maxPrice", String(filters.maxPrice));
     if (filters.type) params.set("type", String(filters.type));
     if (filters.amenities && Array.isArray(filters.amenities)) {
-      (filters.amenities as string[]).forEach((a) => params.append("amenities", a));
+      (filters.amenities as string[]).forEach((a) =>
+        params.append("amenities", a),
+      );
     }
 
     router.push(`/${locale}/properties?${params.toString()}`);
@@ -124,10 +138,17 @@ export function SavedSearchesClient() {
   if (searches.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <HugeiconsIcon icon={Bookmark01Icon} strokeWidth={1.5} className="size-16 text-muted-foreground mb-4" />
-        <h2 className="text-lg font-semibold mb-2">Belum ada pencarian tersimpan</h2>
+        <HugeiconsIcon
+          icon={Bookmark01Icon}
+          strokeWidth={1.5}
+          className="size-16 text-muted-foreground mb-4"
+        />
+        <h2 className="text-lg font-semibold mb-2">
+          Belum ada pencarian tersimpan
+        </h2>
         <p className="text-muted-foreground mb-6 max-w-md">
-          Simpan kriteria pencarian properti Anda untuk menerima notifikasi saat ada properti baru yang cocok.
+          Simpan kriteria pencarian properti Anda untuk menerima notifikasi saat
+          ada properti baru yang cocok.
         </p>
         <Button onClick={() => router.push(`/${locale}/properties`)}>
           <HugeiconsIcon icon={Search01Icon} strokeWidth={2} className="mr-2" />
@@ -159,7 +180,10 @@ export function SavedSearchesClient() {
             <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
               <span>Dibuat: {formatRelativeTime(search.createdAt)}</span>
               {search.lastNotifiedAt && (
-                <span>Notifikasi terakhir: {formatRelativeTime(search.lastNotifiedAt)}</span>
+                <span>
+                  Notifikasi terakhir:{" "}
+                  {formatRelativeTime(search.lastNotifiedAt)}
+                </span>
               )}
             </div>
           </div>
@@ -168,9 +192,15 @@ export function SavedSearchesClient() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleSearchAgain(search.filters as Record<string, unknown>)}
+              onClick={() =>
+                handleSearchAgain(search.filters as Record<string, unknown>)
+              }
             >
-              <HugeiconsIcon icon={Search01Icon} strokeWidth={2} className="mr-2" />
+              <HugeiconsIcon
+                icon={Search01Icon}
+                strokeWidth={2}
+                className="mr-2"
+              />
               Cari Lagi
             </Button>
             <Button
@@ -180,7 +210,9 @@ export function SavedSearchesClient() {
               title={search.isActive ? "Nonaktifkan" : "Aktifkan"}
             >
               <HugeiconsIcon
-                icon={search.isActive ? CheckmarkCircle01Icon : CancelCircleIcon}
+                icon={
+                  search.isActive ? CheckmarkCircle01Icon : CancelCircleIcon
+                }
                 strokeWidth={2}
               />
             </Button>

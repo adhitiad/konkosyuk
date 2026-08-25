@@ -86,7 +86,10 @@ export async function PUT(
     if (error instanceof z.ZodError) {
       return fail(error.issues[0]?.message || "Input tidak valid", 400);
     }
-    if (error instanceof Error && error.message === "Anda bukan anggota group booking ini") {
+    if (
+      error instanceof Error &&
+      error.message === "Anda bukan anggota group booking ini"
+    ) {
       return fail("Anda bukan anggota group booking ini", 403);
     }
     if (error instanceof Error && error.message === "Undangan sudah direspon") {

@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Bookmark01Icon, CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
+import {
+  Bookmark01Icon,
+  CheckmarkCircle01Icon,
+} from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,19 +32,30 @@ function formatFilterPreview(filters: Record<string, unknown>): string {
   if (filters.location) parts.push(`Lokasi: ${filters.location}`);
   if (filters.city) parts.push(`Kota: ${filters.city}`);
   if (filters.minPrice || filters.maxPrice) {
-    const min = filters.minPrice ? `Rp ${Number(filters.minPrice).toLocaleString("id-ID")}` : "Rp 0";
-    const max = filters.maxPrice ? `Rp ${Number(filters.maxPrice).toLocaleString("id-ID")}` : "Tanpa batas";
+    const min = filters.minPrice
+      ? `Rp ${Number(filters.minPrice).toLocaleString("id-ID")}`
+      : "Rp 0";
+    const max = filters.maxPrice
+      ? `Rp ${Number(filters.maxPrice).toLocaleString("id-ID")}`
+      : "Tanpa batas";
     parts.push(`Harga: ${min} - ${max}`);
   }
   if (filters.type) parts.push(`Tipe: ${filters.type}`);
-  if (filters.amenities && Array.isArray(filters.amenities) && filters.amenities.length > 0) {
+  if (
+    filters.amenities &&
+    Array.isArray(filters.amenities) &&
+    filters.amenities.length > 0
+  ) {
     parts.push(`Fasilitas: ${(filters.amenities as string[]).join(", ")}`);
   }
 
   return parts.length > 0 ? parts.join(" | ") : "Semua properti";
 }
 
-export function SaveSearchButton({ filters, existingSearch }: SaveSearchButtonProps) {
+export function SaveSearchButton({
+  filters,
+  existingSearch,
+}: SaveSearchButtonProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -97,14 +111,16 @@ export function SaveSearchButton({ filters, existingSearch }: SaveSearchButtonPr
         <DialogHeader>
           <DialogTitle>Simpan Pencarian</DialogTitle>
           <DialogDescription>
-            Simpan kriteria pencarian ini untuk menerima notifikasi saat ada properti baru yang cocok.
+            Simpan kriteria pencarian ini untuk menerima notifikasi saat ada
+            properti baru yang cocok.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="name" className="text-sm font-medium">
-              Nama Pencarian <span className="text-muted-foreground">(opsional)</span>
+              Nama Pencarian{" "}
+              <span className="text-muted-foreground">(opsional)</span>
             </label>
             <Input
               id="name"

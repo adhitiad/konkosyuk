@@ -3,7 +3,8 @@ import type { Job } from "bullmq";
 
 vi.mock("winston", () => {
   const fn = vi.fn();
-  const mockFormat = ((cb: (info: unknown) => unknown) => cb) as unknown as Record<string, unknown>;
+  const mockFormat = ((cb: (info: unknown) => unknown) =>
+    cb) as unknown as Record<string, unknown>;
   mockFormat.combine = () => mockFormat;
   mockFormat.timestamp = () => mockFormat;
   mockFormat.printf = () => mockFormat;
@@ -36,8 +37,20 @@ vi.mock("@/lib/cron/cleanup-bookings", () => ({
     cancelledCount: 2,
     unitReleasedCount: 2,
     cancelledBookings: [
-      { id: "b1", unitId: "u1", propertyId: "p1", userId: "user1", createdAt: "2024-01-01T00:00:00Z" },
-      { id: "b2", unitId: "u2", propertyId: "p2", userId: "user2", createdAt: "2024-01-01T00:00:00Z" },
+      {
+        id: "b1",
+        unitId: "u1",
+        propertyId: "p1",
+        userId: "user1",
+        createdAt: "2024-01-01T00:00:00Z",
+      },
+      {
+        id: "b2",
+        unitId: "u2",
+        propertyId: "p2",
+        userId: "user2",
+        createdAt: "2024-01-01T00:00:00Z",
+      },
     ],
   }),
 }));
@@ -48,7 +61,13 @@ vi.mock("@/lib/cron/complete-bookings", () => ({
     inspectionCreatedCount: 1,
     unitReleasedCount: 1,
     completedBookings: [
-      { id: "b3", unitId: "u3", propertyId: "p3", userId: "user3", endDate: "2024-01-02T00:00:00Z" },
+      {
+        id: "b3",
+        unitId: "u3",
+        propertyId: "p3",
+        userId: "user3",
+        endDate: "2024-01-02T00:00:00Z",
+      },
     ],
   }),
 }));
@@ -85,9 +104,7 @@ describe("Job Processors", () => {
 
   describe("cleanup processor", () => {
     it("should return result from cleanupExpiredBookings", async () => {
-      const mod = await import(
-        "@/workers/processors/cleanup.processor"
-      );
+      const mod = await import("@/workers/processors/cleanup.processor");
       const processor = mod.processCleanupExpiredBookings;
       const job = createMockJob("cleanup-expired-bookings");
       const result = await processor(job);
@@ -98,16 +115,13 @@ describe("Job Processors", () => {
 
     it("should call Sentry when business logic throws", async () => {
       const { captureException } = await import("@sentry/nextjs");
-      const { cleanupExpiredBookings } = await import(
-        "@/lib/cron/cleanup-bookings"
-      );
+      const { cleanupExpiredBookings } =
+        await import("@/lib/cron/cleanup-bookings");
       vi.mocked(cleanupExpiredBookings).mockRejectedValueOnce(
-        new Error("DB connection failed")
+        new Error("DB connection failed"),
       );
 
-      const mod = await import(
-        "@/workers/processors/cleanup.processor"
-      );
+      const mod = await import("@/workers/processors/cleanup.processor");
       const processor = mod.processCleanupExpiredBookings;
       const job = createMockJob("cleanup-expired-bookings");
 
@@ -125,9 +139,7 @@ describe("Job Processors", () => {
 
   describe("complete processor", () => {
     it("should return result from completeExpiredBookings", async () => {
-      const mod = await import(
-        "@/workers/processors/complete.processor"
-      );
+      const mod = await import("@/workers/processors/complete.processor");
       const processor = mod.processCompleteExpiredBookings;
       const job = createMockJob("complete-expired-bookings");
       const result = await processor(job);
@@ -139,9 +151,7 @@ describe("Job Processors", () => {
 
   describe("saved search processor", () => {
     it("should return result from matchAndNotifySavedSearches", async () => {
-      const mod = await import(
-        "@/workers/processors/saved-search.processor"
-      );
+      const mod = await import("@/workers/processors/saved-search.processor");
       const processor = mod.processSavedSearchMatcher;
       const job = createMockJob("saved-search-matcher");
       const result = await processor(job);
@@ -153,9 +163,8 @@ describe("Job Processors", () => {
 
   describe("update area counts processor", () => {
     it("should complete without throwing for updateAreaCounts", async () => {
-      const mod = await import(
-        "@/workers/processors/update-area-counts.processor"
-      );
+      const mod =
+        await import("@/workers/processors/update-area-counts.processor");
       const processor = mod.processUpdateAreaCounts;
       const job = createMockJob("update-area-counts");
 

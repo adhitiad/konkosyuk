@@ -11,7 +11,11 @@ const workerCalls: Array<{
 vi.mock("bullmq", () => {
   class MockWorker {
     close = vi.fn().mockResolvedValue(undefined);
-    constructor(queueName: string, processor: (job: Job) => Promise<unknown>, opts: Record<string, unknown>) {
+    constructor(
+      queueName: string,
+      processor: (job: Job) => Promise<unknown>,
+      opts: Record<string, unknown>,
+    ) {
       workerCalls.push({ queueName, processor, opts });
       mockWorkers.push(this);
     }
@@ -101,9 +105,7 @@ describe("main.worker.ts", () => {
   });
 
   it("stopWorkers should close all workers", async () => {
-    const { startWorkers, stopWorkers } = await import(
-      "@/workers/main.worker"
-    );
+    const { startWorkers, stopWorkers } = await import("@/workers/main.worker");
     startWorkers();
 
     await stopWorkers();

@@ -15,7 +15,9 @@ test.describe("CSP Nonce", () => {
 
     await page.goto("/id");
 
-    const mainResponse = responses.find((r) => r.url === "http://localhost:3000/id");
+    const mainResponse = responses.find(
+      (r) => r.url === "http://localhost:3000/id",
+    );
     expect(mainResponse).toBeDefined();
 
     const headers = mainResponse!.headers;
@@ -44,7 +46,9 @@ test.describe("CSP Nonce", () => {
 
     await page.goto("/id");
 
-    const mainResponse = responses.find((r) => r.url === "http://localhost:3000/id");
+    const mainResponse = responses.find(
+      (r) => r.url === "http://localhost:3000/id",
+    );
     expect(mainResponse).toBeDefined();
 
     const csp = mainResponse!.headers["content-security-policy"];
@@ -74,7 +78,9 @@ test.describe("CSP Nonce", () => {
 
     await page.goto("/id");
 
-    const mainResponse = responses.find((r) => r.url === "http://localhost:3000/id");
+    const mainResponse = responses.find(
+      (r) => r.url === "http://localhost:3000/id",
+    );
     expect(mainResponse).toBeDefined();
 
     const csp = mainResponse!.headers["content-security-policy"];

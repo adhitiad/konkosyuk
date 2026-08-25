@@ -70,9 +70,14 @@ export async function startReferralVerification(
     })
     .where(eq(referrals.id, referral.id));
 
-  dispatchReferralStatusUpdate(referral.referrerId, referral.code, "verifying", {
-    eligibleAt: eligibleAt.toISOString(),
-  }).catch(() => {});
+  dispatchReferralStatusUpdate(
+    referral.referrerId,
+    referral.code,
+    "verifying",
+    {
+      eligibleAt: eligibleAt.toISOString(),
+    },
+  ).catch(() => {});
 }
 
 export async function handleReferralFailureOnRefund(
@@ -113,17 +118,16 @@ export async function handleReferralFailureOnRefund(
 export async function sweepEligibleReferrals(): Promise<number> {
   const now = new Date();
 
-  logInfo("Sweep referral eligibility dimulai", { timestamp: now.toISOString() });
+  logInfo("Sweep referral eligibility dimulai", {
+    timestamp: now.toISOString(),
+  });
 
   try {
     const candidates = await defaultDb
       .select()
       .from(referrals)
       .where(
-        and(
-          eq(referrals.status, "verifying"),
-          lt(referrals.eligibleAt, now),
-        ),
+        and(eq(referrals.status, "verifying"), lt(referrals.eligibleAt, now)),
       )
       .for("update")
       .limit(100);

@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { rateLimit, getRateLimitHeaders, type RateLimitConfig } from "@/lib/rate-limit";
+import {
+  rateLimit,
+  getRateLimitHeaders,
+  type RateLimitConfig,
+} from "@/lib/rate-limit";
 
 const mockIncr = vi.fn();
 

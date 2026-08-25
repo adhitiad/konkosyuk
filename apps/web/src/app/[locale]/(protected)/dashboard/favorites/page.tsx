@@ -44,7 +44,11 @@ async function ambilFavorit(): Promise<FavoriteProperty[]> {
   return data;
 }
 
-export default async function FavoritesPage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function FavoritesPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
   const { locale } = await params;
   const favorites = await ambilFavorit();
 
@@ -93,7 +97,11 @@ export default async function FavoritesPage({ params }: { params: Promise<{ loca
                       initialFavorite
                     />
                     <Button
-                      render={<Link href={`/${locale}/properties/${fav.propertyId}`} />}
+                      render={
+                        <Link
+                          href={`/${locale}/properties/${fav.propertyId}`}
+                        />
+                      }
                       size="sm"
                       nativeButton={false}
                     >

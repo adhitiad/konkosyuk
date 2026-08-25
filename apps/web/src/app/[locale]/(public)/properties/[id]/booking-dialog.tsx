@@ -259,7 +259,9 @@ export default function BookingDialogClient({
     setIsGroupBooking(false);
     setMemberEmails("");
     router.push(
-      isGroupBooking ? `/${locale}/dashboard/group-bookings` : `/${locale}/dashboard/bookings`,
+      isGroupBooking
+        ? `/${locale}/dashboard/group-bookings`
+        : `/${locale}/dashboard/bookings`,
     );
   } else if (state?.error) {
     setError(state.error);

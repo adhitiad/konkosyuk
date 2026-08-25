@@ -74,7 +74,10 @@ export async function createBookingRequestAction(
       }
 
       if (unit.propertyId !== property.id) {
-        return { error: "Unit bukan bagian dari properti ini", success: false } as const;
+        return {
+          error: "Unit bukan bagian dari properti ini",
+          success: false,
+        } as const;
       }
 
       const capacity = unit.capacity ? parseInt(unit.capacity, 10) : Infinity;

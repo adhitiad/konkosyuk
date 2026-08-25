@@ -7,7 +7,9 @@ import { locales } from "@/config";
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") || "https://konkosyuk.com";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") ||
+    "https://konkosyuk.com";
   const generatedAt = new Date();
 
   let activeProperties: { id: string; updatedAt: Date }[] = [];

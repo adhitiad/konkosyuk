@@ -122,8 +122,7 @@ describe("GET /api/admin/audit-logs", () => {
     mockAuditLogs.push(originalLogs[0]);
 
     const req = {
-      url:
-        "http://localhost/api/admin/audit-logs?startDate=2025-01-01T00:00:00Z&endDate=2025-01-01T23:59:59Z",
+      url: "http://localhost/api/admin/audit-logs?startDate=2025-01-01T00:00:00Z&endDate=2025-01-01T23:59:59Z",
       headers: new Headers(),
     } as unknown as Parameters<typeof GET>[0];
 

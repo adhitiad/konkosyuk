@@ -24,7 +24,11 @@ export async function GET(
     await validateAdminRequest(req);
 
     const { id } = await params;
-    const [flag] = await db.select().from(featureFlags).where(eq(featureFlags.id, id)).limit(1);
+    const [flag] = await db
+      .select()
+      .from(featureFlags)
+      .where(eq(featureFlags.id, id))
+      .limit(1);
 
     if (!flag) {
       return fail("Feature flag not found", 404);
@@ -47,7 +51,11 @@ export async function PUT(
     const body = await req.json();
     const parsed = updateFeatureFlagSchema.parse(body);
 
-    const [flag] = await db.update(featureFlags).set(parsed).where(eq(featureFlags.id, id)).returning();
+    const [flag] = await db
+      .update(featureFlags)
+      .set(parsed)
+      .where(eq(featureFlags.id, id))
+      .returning();
 
     if (!flag) {
       return fail("Feature flag not found", 404);

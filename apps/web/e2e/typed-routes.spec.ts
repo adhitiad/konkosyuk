@@ -42,7 +42,9 @@ test.describe("Typed Routes Smoke", () => {
     expect(failed, `Routes failed: ${failed.join(", ")}`).toEqual([]);
   });
 
-  test("internal links should not point to missing routes", async ({ page }) => {
+  test("internal links should not point to missing routes", async ({
+    page,
+  }) => {
     await page.goto("/id", { waitUntil: "domcontentloaded" });
 
     const links = await page.locator('a[href^="/"]').all();

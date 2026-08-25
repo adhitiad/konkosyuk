@@ -54,7 +54,13 @@ const typeLabel: Record<string, string> = {
   ruko: "Ruko",
 };
 
-function PropertyCard({ property, locale }: { property: Property; locale: string }) {
+function PropertyCard({
+  property,
+  locale,
+}: {
+  property: Property;
+  locale: string;
+}) {
   const packages = (property.packages ?? {}) as PropertyPackages;
   const availablePackages =
     packages.predefined?.filter((p) => p.isAvailable) ?? [];
@@ -142,7 +148,9 @@ function PropertyCard({ property, locale }: { property: Property; locale: string
 
         <div className="flex items-center gap-2 pt-2">
           <Button
-            render={<Link href={`/${locale}/owner/properties/${property.id}`} />}
+            render={
+              <Link href={`/${locale}/owner/properties/${property.id}`} />
+            }
             size="sm"
             variant="outline"
             className="flex-1"
@@ -261,12 +269,18 @@ export default function PropertiesPage() {
         <KycGuard>
           <Button
             render={
-              <Link href={`/${locale}/owner/properties/add`}>Tambah Properti Baru</Link>
+              <Link href={`/${locale}/owner/properties/add`}>
+                Tambah Properti Baru
+              </Link>
             }
             nativeButton={false}
             className="w-full sm:w-auto"
           >
-            <HugeiconsIcon icon={Add01Icon} strokeWidth={2} className="size-4" />
+            <HugeiconsIcon
+              icon={Add01Icon}
+              strokeWidth={2}
+              className="size-4"
+            />
             Tambah Properti Baru
           </Button>
         </KycGuard>
@@ -307,7 +321,11 @@ export default function PropertiesPage() {
           {/* Mobile: Card Layout */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:hidden">
             {properties.map((property) => (
-              <PropertyCard key={property.id} property={property} locale={locale} />
+              <PropertyCard
+                key={property.id}
+                property={property}
+                locale={locale}
+              />
             ))}
           </div>
 

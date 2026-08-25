@@ -11,12 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  ChevronDown,
-  ChevronRight,
-  Copy,
-  Check,
-} from "lucide-react";
+import { ChevronDown, ChevronRight, Copy, Check } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 export type AuditLog = {
@@ -67,7 +62,12 @@ export function AuditLogsTable({
 }: {
   logs: AuditLog[];
   isLoading: boolean;
-  pagination?: { page: number; limit: number; total: number; totalPages: number } | null;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  } | null;
 }) {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -203,8 +203,8 @@ export function AuditLogsTable({
       {pagination && (
         <div className="flex items-center justify-between border-t px-4 py-2">
           <p className="text-xs text-muted-foreground">
-            Page {pagination.page} of {pagination.totalPages} ({pagination.total}{" "}
-            logs)
+            Page {pagination.page} of {pagination.totalPages} (
+            {pagination.total} logs)
           </p>
         </div>
       )}

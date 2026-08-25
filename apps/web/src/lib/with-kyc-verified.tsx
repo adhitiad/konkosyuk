@@ -30,12 +30,7 @@ export function withKycVerified<P extends object>(
     const isLoadingKyc = kycLoading || isPending;
 
     useEffect(() => {
-      if (
-        !isLoadingKyc &&
-        session &&
-        userRole === "owner" &&
-        !isVerified
-      ) {
+      if (!isLoadingKyc && session && userRole === "owner" && !isVerified) {
         router.push(`/${locale}${redirectTo}`);
       }
     }, [session, isLoadingKyc, router, isVerified, userRole, locale]);

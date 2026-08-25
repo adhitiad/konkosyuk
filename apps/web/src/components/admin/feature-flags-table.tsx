@@ -159,7 +159,11 @@ export function FeatureFlagsTable({ onEdit }: FeatureFlagsTableProps) {
                     size="icon"
                     onClick={() => onEdit(flag)}
                   >
-                    <HugeiconsIcon icon={Edit01Icon} strokeWidth={2} className="size-4" />
+                    <HugeiconsIcon
+                      icon={Edit01Icon}
+                      strokeWidth={2}
+                      className="size-4"
+                    />
                   </Button>
                   <Button
                     variant="ghost"
@@ -167,7 +171,11 @@ export function FeatureFlagsTable({ onEdit }: FeatureFlagsTableProps) {
                     onClick={() => handleDelete(flag)}
                     disabled={deletingId === flag.id}
                   >
-                    <HugeiconsIcon icon={Delete01Icon} strokeWidth={2} className="size-4" />
+                    <HugeiconsIcon
+                      icon={Delete01Icon}
+                      strokeWidth={2}
+                      className="size-4"
+                    />
                   </Button>
                 </div>
               </TableCell>

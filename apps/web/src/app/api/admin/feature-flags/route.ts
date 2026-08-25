@@ -20,7 +20,10 @@ export async function GET(req: NextRequest) {
   try {
     await validateAdminRequest(req);
 
-    const flags = await db.select().from(featureFlags).orderBy(featureFlags.createdAt);
+    const flags = await db
+      .select()
+      .from(featureFlags)
+      .orderBy(featureFlags.createdAt);
 
     return ok(flags);
   } catch (error) {
@@ -35,7 +38,11 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const parsed = createFeatureFlagSchema.parse(body);
 
-    const existing = await db.select().from(featureFlags).where(eq(featureFlags.key, parsed.key)).limit(1);
+    const existing = await db
+      .select()
+      .from(featureFlags)
+      .where(eq(featureFlags.key, parsed.key))
+      .limit(1);
     if (existing.length > 0) {
       return fail("Feature flag key already exists", 409);
     }

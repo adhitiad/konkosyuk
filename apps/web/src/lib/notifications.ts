@@ -8,10 +8,7 @@ import { eq, and, sql } from "drizzle-orm";
 import webpush from "web-push";
 import { logError } from "@/lib/logger";
 
-if (
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY &&
-  process.env.VAPID_PRIVATE_KEY
-) {
+if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
     process.env.VAPID_SUBJECT || "mailto:admin@konkosyuk.app",
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
@@ -99,6 +96,10 @@ export async function sendWebPushNotification(
 
   const failed = results.filter((r) => r.status === "rejected").length;
   if (failed > 0) {
-    logError(new Error("push notification failure"), "[push] Failed to send notifications", { failed, total: subscriptions.length });
+    logError(
+      new Error("push notification failure"),
+      "[push] Failed to send notifications",
+      { failed, total: subscriptions.length },
+    );
   }
 }

@@ -24,8 +24,7 @@ export async function generateMetadata({
       languages: Object.fromEntries(
         locales.map((l) => [l, `/${l}/refund-policy`]),
       ) as Record<string, string>,
-      "x-default": "/id/refund-policy",
-    },
+    } as Metadata["alternates"] & { "x-default": string },
   };
 }
 

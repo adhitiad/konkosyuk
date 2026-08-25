@@ -64,9 +64,8 @@ describe("Job Processors", () => {
 
   describe("cleanup processor", () => {
     it("should call cleanupExpiredBookings and return result", async () => {
-      const { processCleanupExpiredBookings } = await import(
-        "@/workers/processors/cleanup.processor"
-      );
+      const { processCleanupExpiredBookings } =
+        await import("@/workers/processors/cleanup.processor");
       const job = createMockJob("cleanup-expired-bookings");
       const result = await processCleanupExpiredBookings(job);
       expect(result.cancelledCount).toBe(1);
@@ -76,9 +75,8 @@ describe("Job Processors", () => {
 
   describe("complete processor", () => {
     it("should call completeExpiredBookings and return result", async () => {
-      const { processCompleteExpiredBookings } = await import(
-        "@/workers/processors/complete.processor"
-      );
+      const { processCompleteExpiredBookings } =
+        await import("@/workers/processors/complete.processor");
       const job = createMockJob("complete-expired-bookings");
       const result = await processCompleteExpiredBookings(job);
       expect(result.completedCount).toBe(1);
@@ -89,9 +87,8 @@ describe("Job Processors", () => {
 
   describe("saved search processor", () => {
     it("should call matchAndNotifySavedSearches and return result", async () => {
-      const { processSavedSearchMatcher } = await import(
-        "@/workers/processors/saved-search.processor"
-      );
+      const { processSavedSearchMatcher } =
+        await import("@/workers/processors/saved-search.processor");
       const job = createMockJob("saved-search-matcher");
       const result = await processSavedSearchMatcher(job);
       expect(result.matched).toBe(2);
@@ -102,9 +99,8 @@ describe("Job Processors", () => {
 
   describe("update area counts processor", () => {
     it("should call updateAreaCounts and return undefined", async () => {
-      const { processUpdateAreaCounts } = await import(
-        "@/workers/processors/update-area-counts.processor"
-      );
+      const { processUpdateAreaCounts } =
+        await import("@/workers/processors/update-area-counts.processor");
       const job = createMockJob("update-area-counts");
       const result = await processUpdateAreaCounts(job);
       expect(result).toBeUndefined();

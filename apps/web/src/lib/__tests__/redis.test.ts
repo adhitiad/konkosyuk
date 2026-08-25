@@ -33,7 +33,7 @@ describe("redis.ts", () => {
     delete process.env.REDIS_URL;
     const { createRedisConnection } = await import("@/lib/redis");
     expect(() => createRedisConnection()).toThrow(
-      "REDIS_URL harus diisi di environment variables"
+      "REDIS_URL harus diisi di environment variables",
     );
   });
 

@@ -25,7 +25,10 @@ import { createAuditLog } from "@/lib/audit-log";
 import type { PropertyPackages } from "@/lib/types/property-packages";
 import type { NewProperty, NewPayment } from "@/db/schema";
 import { validateActionCsrf } from "@/lib/api-auth";
-import { validateAndApplyVoucher, redeemVoucherAtomically } from "@/lib/referrals/voucher";
+import {
+  validateAndApplyVoucher,
+  redeemVoucherAtomically,
+} from "@/lib/referrals/voucher";
 import { sanitizeString } from "@/lib/sanitize";
 
 export type CreatePropertyState = {
@@ -129,11 +132,14 @@ export async function createPropertyAction(
       .insert(properties)
       .values({
         name: sanitizeString(validated.title) || validated.title,
-        description: validated.description ? sanitizeString(validated.description) : null,
+        description: validated.description
+          ? sanitizeString(validated.description)
+          : null,
         address: validated.address ?? "",
         province: validated.province,
         city: validated.city,
-        type: validated.type as "kost" | "kontrakan" | "apartemen" | "rumah" | "ruko",
+        type: validated.type as
+          "kost" | "kontrakan" | "apartemen" | "rumah" | "ruko",
         basePrice: validated.basePrice,
         packages: validated.packages ?? {
           predefined: [],
@@ -290,10 +296,11 @@ export async function updatePropertyAction(
         address: validated.address,
         province: validated.province,
         city: validated.city,
-        type: validated.type as "kost" | "kontrakan" | "apartemen" | "rumah" | "ruko",
+        type: validated.type as
+          "kost" | "kontrakan" | "apartemen" | "rumah" | "ruko",
         basePrice: validated.basePrice,
         packages: validated.packages,
-        status: validated.status ?? "aktif" as "aktif" | "nonaktif",
+        status: validated.status ?? ("aktif" as "aktif" | "nonaktif"),
         amenities: validated.amenities,
         images: validated.images,
         metadata: validated.metadata,
@@ -667,7 +674,9 @@ export async function checkoutFeaturedAction(
       .where(eq(platformSettings.id, "default"))
       .limit(1);
 
-    const amount = parseFloat(settings?.featuredListingPrice || String(DEFAULT_FEATURED_LISTING_PRICE));
+    const amount = parseFloat(
+      settings?.featuredListingPrice || String(DEFAULT_FEATURED_LISTING_PRICE),
+    );
     if (amount <= 0) {
       return {
         error: "Harga featured listing belum dikonfigurasi",
@@ -678,7 +687,11 @@ export async function checkoutFeaturedAction(
     let finalAmount = amount;
     let appliedReferralId: string | undefined;
     if (validated.voucherCode) {
-      const result = await validateAndApplyVoucher(validated.voucherCode, property.ownerId, amount);
+      const result = await validateAndApplyVoucher(
+        validated.voucherCode,
+        property.ownerId,
+        amount,
+      );
       if (!result.valid) {
         return { error: result.error, success: false };
       }

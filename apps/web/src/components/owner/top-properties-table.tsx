@@ -40,7 +40,13 @@ function formatRupiah(value: number): string {
 type SortKey = "revenue" | "occupancyRate" | "transactions";
 type SortDir = "asc" | "desc";
 
-export function TopPropertiesTable({ data, loading }: { data: TopProperty[]; loading: boolean }) {
+export function TopPropertiesTable({
+  data,
+  loading,
+}: {
+  data: TopProperty[];
+  loading: boolean;
+}) {
   const [sortKey, setSortKey] = useState<SortKey>("revenue");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 

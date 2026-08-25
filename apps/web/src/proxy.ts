@@ -12,7 +12,9 @@ export const routing = defineRouting({
 // Keep the proxy limited to locale-aware UI requests. API handlers, metadata,
 // service workers, and static assets must execute in their native runtimes.
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|logo.png|manifest.webmanifest|sw.js|.*\\..*).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|logo.png|manifest.webmanifest|sw.js|.*\\..*).*)",
+  ],
 };
 
 function generateNonce(): string {
@@ -55,8 +57,7 @@ export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isProd = process.env.NODE_ENV === "production";
 
-  const requestId =
-    request.headers.get("x-request-id") || crypto.randomUUID();
+  const requestId = request.headers.get("x-request-id") || crypto.randomUUID();
 
   // Skip Next.js internals and static assets
   if (path.startsWith("/_next") || path.startsWith("/favicon")) {

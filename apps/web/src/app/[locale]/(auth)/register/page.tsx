@@ -98,7 +98,7 @@ export default function RegisterPage() {
       }
 
       if (refCodeRef.current && data?.user?.id) {
-        const result = await linkReferralCode(data.user.id, refCodeRef.current);
+        const result = await linkReferralCode(refCodeRef.current);
         if (!result.success) {
           toast.error(result.error ?? "Gagal menghubungkan kode referral");
         }

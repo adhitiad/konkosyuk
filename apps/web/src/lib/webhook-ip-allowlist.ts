@@ -65,8 +65,10 @@ function getTrustedClientIp(req: NextRequest): string {
   }
 
   const forwarded = req.headers.get("x-forwarded-for");
-  const isVercel = req.headers.get("x-vercel-forwarded-for") !== null || req.headers.get("x-vercel-ip") !== null;
-  
+  const isVercel =
+    req.headers.get("x-vercel-forwarded-for") !== null ||
+    req.headers.get("x-vercel-ip") !== null;
+
   if (isVercel && forwarded) {
     return forwarded.split(",")[0].trim();
   }

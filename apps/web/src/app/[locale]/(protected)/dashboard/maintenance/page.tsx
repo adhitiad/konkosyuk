@@ -251,17 +251,17 @@ export default function TenantMaintenancePage() {
                 <div>
                   <p className="text-xs text-muted-foreground mb-2">Gambar</p>
                   <div className="flex flex-wrap gap-2">
-                      {selectedTicket.images.map((url, idx) => (
-                        <div key={idx} className="relative h-20 w-20">
-                          <Image
-                            src={url}
-                            alt={`Attachment ${idx + 1}`}
-                            fill
-                            className="object-cover rounded-lg border"
-                            sizes="80px"
-                          />
-                        </div>
-                      ))}
+                    {selectedTicket.images.map((url, idx) => (
+                      <div key={idx} className="relative h-20 w-20">
+                        <Image
+                          src={url}
+                          alt={`Attachment ${idx + 1}`}
+                          fill
+                          className="object-cover rounded-lg border"
+                          sizes="80px"
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

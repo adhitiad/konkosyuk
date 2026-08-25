@@ -3,24 +3,28 @@
 ## 1. Webhook Validation
 
 ### Doku
+
 - File: `src/lib/payments/doku.ts:118`
 - Signature validasi: **ADA**
 - Detail: HMAC-SHA256 via `verifyWebhookSignature()`, header `x-doku-signature`, divalidasi SEBELUM proses DB
 - Error logging: `console.error` di `src/lib/payments/webhook.ts:62,70` — tidak menggunakan winston/Sentry
 
 ### iPaymu
+
 - File: `src/lib/payments/ipaymu.ts:150`
 - Signature validasi: **ADA**
 - Detail: SHA256 via `verifyWebhookSignature()`, header `x-ipaymu-signature` atau `signature`, divalidasi SEBELUM proses DB
 - Error logging: `console.error` — tidak menggunakan winston/Sentry
 
 ### Nicepay
+
 - File: `src/lib/payments/nicepay.ts:117`
 - Signature validasi: **ADA**
 - Detail: HMAC-SHA256 via `verifyWebhookSignature()`, header `x-nicepay-signature`, divalidasi SEBELUM proses DB
 - Error logging: `console.error` — tidak menggunakan winston/Sentry
 
 ### Didit
+
 - File: `src/app/api/kyc/webhook/route.ts:52`
 - Signature validasi: **ADA**
 - Detail: HMAC-SHA256 dengan `crypto.timingSafeEqual`, header `x-signature-v2`, timestamp check (5 menit), divalidasi SEBELUM proses DB
@@ -77,9 +81,9 @@
 
 ## RINGKASAN
 
-| # | Issue | Severity | File |
-|---|-------|----------|------|
-| 1 | Webhook error logging menggunakan `console.error` bukan winston/Sentry | MEDIUM | `src/lib/payments/webhook.ts`, `src/app/api/kyc/webhook/route.ts` |
-| 2 | `poweredByHeader: false` tidak di-set | RENDAH | `next.config.ts` |
-| 3 | DB connection tidak ada `ssl: true` untuk production | HIGH | `src/db/index.ts` |
-| 4 | Beberapa public API routes tidak ada input validation (proxy, properties units) | MEDIUM | `src/app/api/proxy/wilayah/[...path]/route.ts`, `src/app/api/properties/[id]/units/route.ts` |
+| #   | Issue                                                                           | Severity | File                                                                                         |
+| --- | ------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------- |
+| 1   | Webhook error logging menggunakan `console.error` bukan winston/Sentry          | MEDIUM   | `src/lib/payments/webhook.ts`, `src/app/api/kyc/webhook/route.ts`                            |
+| 2   | `poweredByHeader: false` tidak di-set                                           | RENDAH   | `next.config.ts`                                                                             |
+| 3   | DB connection tidak ada `ssl: true` untuk production                            | HIGH     | `src/db/index.ts`                                                                            |
+| 4   | Beberapa public API routes tidak ada input validation (proxy, properties units) | MEDIUM   | `src/app/api/proxy/wilayah/[...path]/route.ts`, `src/app/api/properties/[id]/units/route.ts` |

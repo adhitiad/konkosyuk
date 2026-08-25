@@ -55,7 +55,11 @@ async function uploadHandler(req: NextRequest): Promise<Response> {
       return fail("Hanya owner yang dapat mengunggah KTP", 403, "FORBIDDEN");
     }
     if (type === "property" && session.user.role !== "owner") {
-      return fail("Hanya owner yang dapat mengunggah properti", 403, "FORBIDDEN");
+      return fail(
+        "Hanya owner yang dapat mengunggah properti",
+        403,
+        "FORBIDDEN",
+      );
     }
 
     const bytes = await file.arrayBuffer();

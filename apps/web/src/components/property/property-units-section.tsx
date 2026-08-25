@@ -50,7 +50,9 @@ export function PropertyUnitsSection({ units }: PropertyUnitsSectionProps) {
             furnitureIncluded={selectedUnit.furnitureIncluded}
           />
           <div className="rounded-xl border border-border bg-card p-4">
-            <h3 className="font-semibold text-sm text-foreground mb-2">Harga Unit</h3>
+            <h3 className="font-semibold text-sm text-foreground mb-2">
+              Harga Unit
+            </h3>
             <p className="text-2xl font-bold text-primary">
               {new Intl.NumberFormat("id-ID", {
                 style: "currency",

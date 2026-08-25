@@ -1,7 +1,10 @@
 import { db } from "@/db";
 import { savedSearches, properties } from "@/db/schema";
 import { eq, and, gte, desc, sql, SQLWrapper } from "drizzle-orm";
-import { createNotification, sendWebPushNotification } from "@/lib/notifications";
+import {
+  createNotification,
+  sendWebPushNotification,
+} from "@/lib/notifications";
 import { getRedis } from "@/lib/redis";
 
 const NOTIFICATION_INTERVAL_HOURS = 24;
@@ -16,12 +19,16 @@ function buildPropertyQuery(filters: Record<string, unknown>): SQLWrapper[] {
   const conditions: SQLWrapper[] = [];
 
   if (filters.type) {
-    conditions.push(eq(properties.type, filters.type as "kost" | "kontrakan" | "ruko"));
+    conditions.push(
+      eq(properties.type, filters.type as "kost" | "kontrakan" | "ruko"),
+    );
   }
 
   if (filters.minPrice || filters.maxPrice) {
     const min = filters.minPrice ? Number(filters.minPrice) : 0;
-    const max = filters.maxPrice ? Number(filters.maxPrice) : Number.MAX_SAFE_INTEGER;
+    const max = filters.maxPrice
+      ? Number(filters.maxPrice)
+      : Number.MAX_SAFE_INTEGER;
     conditions.push(
       sql`CAST(${properties.basePrice} AS NUMERIC) BETWEEN ${min} AND ${max}`,
     );
@@ -37,7 +44,11 @@ function buildPropertyQuery(filters: Record<string, unknown>): SQLWrapper[] {
     conditions.push(sql`${properties.city} ILIKE ${`%${filters.city}%`}`);
   }
 
-  if (filters.amenities && Array.isArray(filters.amenities) && filters.amenities.length > 0) {
+  if (
+    filters.amenities &&
+    Array.isArray(filters.amenities) &&
+    filters.amenities.length > 0
+  ) {
     conditions.push(
       sql`${properties.amenities} @> ${JSON.stringify(filters.amenities)}::jsonb`,
     );

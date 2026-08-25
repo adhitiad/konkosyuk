@@ -100,7 +100,13 @@ function AdminPackagesPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<typeof form> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<typeof form>;
+    }) => {
       const res = await fetch(`/api/admin/ad-packages/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -121,7 +127,9 @@ function AdminPackagesPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/admin/ad-packages/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/ad-packages/${id}`, {
+        method: "DELETE",
+      });
       if (!res.ok) throw new Error("Failed to delete package");
       return res.json();
     },
@@ -189,18 +197,26 @@ function AdminPackagesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Paket Iklan</h1>
-          <p className="mt-2 text-muted-foreground">Kelola paket harga iklan yang tersedia.</p>
+          <p className="mt-2 text-muted-foreground">
+            Kelola paket harga iklan yang tersedia.
+          </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger>
             <Button>
-              <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} className="mr-2 size-4" />
+              <HugeiconsIcon
+                icon={PlusSignIcon}
+                strokeWidth={2}
+                className="mr-2 size-4"
+              />
               Tambah Paket
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{editingPkg ? "Edit Paket" : "Tambah Paket"}</DialogTitle>
+              <DialogTitle>
+                {editingPkg ? "Edit Paket" : "Tambah Paket"}
+              </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="mt-4 space-y-4">
               <div className="space-y-2">
@@ -226,7 +242,9 @@ function AdminPackagesPage() {
                 <Label htmlFor="tier">Tier</Label>
                 <Select
                   value={form.tier}
-                  onValueChange={(v) => setForm({ ...form, tier: v as typeof form.tier })}
+                  onValueChange={(v) =>
+                    setForm({ ...form, tier: v as typeof form.tier })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -245,7 +263,9 @@ function AdminPackagesPage() {
                     id="duration"
                     type="number"
                     value={form.duration}
-                    onChange={(e) => setForm({ ...form, duration: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setForm({ ...form, duration: Number(e.target.value) })
+                    }
                     required
                   />
                 </div>
@@ -255,7 +275,9 @@ function AdminPackagesPage() {
                     id="price"
                     type="number"
                     value={form.price}
-                    onChange={(e) => setForm({ ...form, price: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, price: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -264,14 +286,21 @@ function AdminPackagesPage() {
                 <Label htmlFor="positionType">Posisi</Label>
                 <Select
                   value={form.positionType}
-                  onValueChange={(v) => setForm({ ...form, positionType: v as typeof form.positionType })}
+                  onValueChange={(v) =>
+                    setForm({
+                      ...form,
+                      positionType: v as typeof form.positionType,
+                    })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="rotation">Rotasi</SelectItem>
-                    <SelectItem value="fixed_1">Fixed 1 (Paling Depan)</SelectItem>
+                    <SelectItem value="fixed_1">
+                      Fixed 1 (Paling Depan)
+                    </SelectItem>
                     <SelectItem value="fixed_2">Fixed 2 (Tengah)</SelectItem>
                   </SelectContent>
                 </Select>
@@ -285,7 +314,10 @@ function AdminPackagesPage() {
       </div>
 
       {["reguler", "utama", "premium"].map((tier) => (
-        <div key={tier} className={`mt-6 rounded-lg border p-4 ${TIER_COLORS[tier]}`}>
+        <div
+          key={tier}
+          className={`mt-6 rounded-lg border p-4 ${TIER_COLORS[tier]}`}
+        >
           <h3 className="mb-4 text-lg font-semibold capitalize">{tier}</h3>
           <div className="rounded-md border bg-background">
             <Table>
@@ -312,7 +344,9 @@ function AdminPackagesPage() {
                     <TableRow key={pkg.id}>
                       <TableCell className="font-medium">{pkg.label}</TableCell>
                       <TableCell>{pkg.duration} hari</TableCell>
-                      <TableCell>Rp {Number(pkg.price).toLocaleString("id-ID")}</TableCell>
+                      <TableCell>
+                        Rp {Number(pkg.price).toLocaleString("id-ID")}
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="capitalize">
                           {pkg.positionType.replace("_", " ")}
@@ -349,7 +383,10 @@ function AdminPackagesPage() {
                               }
                             }}
                           >
-                            <HugeiconsIcon icon={Delete01Icon} strokeWidth={2} />
+                            <HugeiconsIcon
+                              icon={Delete01Icon}
+                              strokeWidth={2}
+                            />
                           </Button>
                         </div>
                       </TableCell>
@@ -357,7 +394,10 @@ function AdminPackagesPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground">
+                    <TableCell
+                      colSpan={7}
+                      className="text-center text-muted-foreground"
+                    >
                       Belum ada paket.
                     </TableCell>
                   </TableRow>

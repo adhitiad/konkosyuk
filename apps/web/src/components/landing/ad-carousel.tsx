@@ -88,7 +88,9 @@ function AdCard({ ad }: { ad: Ad }) {
       </div>
 
       <div className="mt-auto border-t p-4">
-        <p className="text-xs text-muted-foreground">oleh {ad.advertiserName}</p>
+        <p className="text-xs text-muted-foreground">
+          oleh {ad.advertiserName}
+        </p>
       </div>
     </div>
   );
@@ -105,11 +107,17 @@ function CtaCard() {
       />
       <h3 className="text-lg font-semibold">Punya Kosan atau Kontrakan?</h3>
       <p className="mt-2 text-sm text-muted-foreground max-w-xs">
-        Tampilkan properti Anda di sini dan jangkau ribuan pencari hunian setiap hari.
+        Tampilkan properti Anda di sini dan jangkau ribuan pencari hunian setiap
+        hari.
       </p>
-        <Button render={<Link href={`/${locale}/ads/submit`} />} nativeButton={false} className="mt-4" size="sm">
-          Iklankan Sekarang
-        </Button>
+      <Button
+        render={<Link href={`/${locale}/ads/submit`} />}
+        nativeButton={false}
+        className="mt-4"
+        size="sm"
+      >
+        Iklankan Sekarang
+      </Button>
     </div>
   );
 }

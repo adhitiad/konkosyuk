@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { GET, POST } from "@/app/api/group-bookings/route";
 
 const mockRequireSession = vi.hoisted(() =>
-  vi.fn().mockResolvedValue({ user: { id: "user-1", role: "cust", name: "User" } }),
+  vi
+    .fn()
+    .mockResolvedValue({ user: { id: "user-1", role: "cust", name: "User" } }),
 );
 
 vi.mock("@/lib/auth", () => ({
@@ -31,7 +33,9 @@ const mockDb = vi.hoisted(() => {
     insert: vi.fn().mockReturnThis(),
     values: vi.fn().mockReturnThis(),
     returning: vi.fn().mockReturnThis(),
-    transaction: vi.fn().mockImplementation(async (fn: (tx: unknown) => unknown) => fn(db)),
+    transaction: vi
+      .fn()
+      .mockImplementation(async (fn: (tx: unknown) => unknown) => fn(db)),
     then(resolve: (value: unknown) => unknown) {
       const result = mockResults[resultIndex] ?? [];
       resultIndex++;
@@ -60,7 +64,9 @@ function setupMocks(results: unknown[][]) {
 describe("GET /api/group-bookings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRequireSession.mockResolvedValue({ user: { id: "user-1", role: "cust" } });
+    mockRequireSession.mockResolvedValue({
+      user: { id: "user-1", role: "cust" },
+    });
   });
 
   it("returns user group bookings", async () => {
@@ -83,7 +89,9 @@ describe("GET /api/group-bookings", () => {
   });
 
   it("returns empty for owner with no properties", async () => {
-    mockRequireSession.mockResolvedValue({ user: { id: "user-1", role: "owner" } });
+    mockRequireSession.mockResolvedValue({
+      user: { id: "user-1", role: "owner" },
+    });
     setupMocks([[]]);
 
     const req = {
@@ -103,13 +111,26 @@ describe("GET /api/group-bookings", () => {
 describe("POST /api/group-bookings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRequireSession.mockResolvedValue({ user: { id: "user-1", role: "cust", name: "User" } });
+    mockRequireSession.mockResolvedValue({
+      user: { id: "user-1", role: "cust", name: "User" },
+    });
   });
 
   it("creates group booking with member deduplication", async () => {
     setupMocks([
-      [{ id: "123e4567-e89b-12d3-a456-426614174000", ownerId: "owner-1", name: "Test Property" }],
-      [{ id: "123e4567-e89b-12d3-a456-426614174001", propertyId: "123e4567-e89b-12d3-a456-426614174000" }],
+      [
+        {
+          id: "123e4567-e89b-12d3-a456-426614174000",
+          ownerId: "owner-1",
+          name: "Test Property",
+        },
+      ],
+      [
+        {
+          id: "123e4567-e89b-12d3-a456-426614174001",
+          propertyId: "123e4567-e89b-12d3-a456-426614174000",
+        },
+      ],
       [{ id: "gb-1" }],
       [{ id: "gb-1" }],
     ]);
@@ -158,7 +179,12 @@ describe("POST /api/group-bookings", () => {
   it("rejects when unit does not belong to property", async () => {
     setupMocks([
       [{ id: "123e4567-e89b-12d3-a456-426614174000", ownerId: "owner-1" }],
-      [{ id: "123e4567-e89b-12d3-a456-426614174001", propertyId: "other-prop" }],
+      [
+        {
+          id: "123e4567-e89b-12d3-a456-426614174001",
+          propertyId: "other-prop",
+        },
+      ],
     ]);
 
     const req = {

@@ -152,16 +152,23 @@ export async function POST(req: NextRequest) {
     }
 
     if (body.category === "tenant" && existingUser) {
-      const [priorCompleted] = await db.select().from(referrals).where(
-        and(
-          eq(referrals.referrerId, session.user.id),
-          eq(referrals.refereeId, existingUser.id),
-          eq(referrals.category, "tenant"),
-          eq(referrals.status, "completed"),
+      const [priorCompleted] = await db
+        .select()
+        .from(referrals)
+        .where(
+          and(
+            eq(referrals.referrerId, session.user.id),
+            eq(referrals.refereeId, existingUser.id),
+            eq(referrals.category, "tenant"),
+            eq(referrals.status, "completed"),
+          ),
         )
-      ).limit(1);
+        .limit(1);
       if (priorCompleted) {
-        return fail("Sudah pernah mendapat komisi tenant dari referee ini", 400);
+        return fail(
+          "Sudah pernah mendapat komisi tenant dari referee ini",
+          400,
+        );
       }
     }
 

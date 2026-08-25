@@ -40,7 +40,11 @@ export async function GET(
 
     const { id: userId } = await params;
 
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
 
     if (!user) {
       return fail("User not found", 404);
@@ -51,7 +55,8 @@ export async function GET(
     if (isStaff) {
       const safeUser = staffVisibleFields.reduce<Record<string, unknown>>(
         (acc, field) => {
-          if (field in user) acc[field] = (user as Record<string, unknown>)[field];
+          if (field in user)
+            acc[field] = (user as Record<string, unknown>)[field];
           return acc;
         },
         {},

@@ -34,7 +34,7 @@ export async function POST(
       logSecurityEvent("webhook_invalid_signature", {
         provider,
         ip: getClientIp(req),
-        userAgent: req.headers.get("user-agent"),
+        userAgent: req.headers.get("user-agent") ?? undefined,
       });
       return fail("Invalid signature", 401, "UNAUTHORIZED");
     }
@@ -47,7 +47,7 @@ export async function POST(
       logSecurityEvent("webhook_ip_blocked", {
         provider,
         ip: clientIp,
-        userAgent: req.headers.get("user-agent"),
+        userAgent: req.headers.get("user-agent") ?? undefined,
       });
       return fail("Unauthorized IP", 403, "FORBIDDEN");
     }

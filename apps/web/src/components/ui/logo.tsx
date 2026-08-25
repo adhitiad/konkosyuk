@@ -25,7 +25,10 @@ interface LogoProps {
 export function Logo({ className, withText = true, href = "/" }: LogoProps) {
   const locale = useLocale();
   return (
-    <Link href={`/${locale}${href}`} className={cn("flex items-center gap-2", className)}>
+    <Link
+      href={`/${locale}${href}`}
+      className={cn("flex items-center gap-2", className)}
+    >
       <Image
         src="/logo-icon.svg"
         alt="KonkosYuk"

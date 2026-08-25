@@ -44,9 +44,7 @@ export function KycGuard({ children }: KycGuardProps) {
     return () => clearInterval(interval);
   }, [shouldPoll, refetch]);
 
-  const handleKycComplete = (
-    status: "approved" | "rejected" | "pending",
-  ) => {
+  const handleKycComplete = (status: "approved" | "rejected" | "pending") => {
     queryClient.invalidateQueries({ queryKey: ["owner-kyc-status"] });
     if (status === "approved") {
       setDialogRequested(false);

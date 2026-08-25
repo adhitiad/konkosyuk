@@ -105,11 +105,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export function ReceiptTemplate({
-  data,
-}: {
-  data: ReceiptData;
-}) {
+export function ReceiptTemplate({ data }: { data: ReceiptData }) {
   const statusLabel =
     data.status === "success"
       ? "Paid"
@@ -135,9 +131,7 @@ export function ReceiptTemplate({
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Transaction ID</Text>
-            <Text style={styles.value}>
-              {data.transactionId ?? "-"}
-            </Text>
+            <Text style={styles.value}>{data.transactionId ?? "-"}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Tanggal</Text>

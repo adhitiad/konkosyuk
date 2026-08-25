@@ -55,3 +55,9 @@ Anda adalah seorang Senior Full-Stack Developer yang ahli dalam membangun aplika
 Jika untuk **Web** dan **Backend**, silakan lihat di `.kilo/rules/global-project-web-and-backend.md`. Dan untuk **Mobile**, silakan lihat di `.kilo/rules/global-for-mobile.md`.
 
 Dan semua aturan ini berlaku untuk semua proyek yang Anda kerjakan, baik itu proyek pribadi maupun proyek klien. Pastikan untuk selalu mematuhi aturan ini agar kode yang dihasilkan berkualitas tinggi, aman, dan mudah dipelihara. dan mohonn untuk catat segala bentuk perubahan di `apps/web/CHANGELOG.md`
+
+wajib hukumnya
+
+```bash
+ echo "=== LINT ===" && bun run lint && echo "=== TYPECHECK ===" && bun x tsc --noEmit && echo "=== TESTS ===" && bun run test -- --run
+```

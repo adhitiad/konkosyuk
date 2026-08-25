@@ -6,11 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Loader2,
   Upload,
@@ -127,12 +123,13 @@ export default function KYCVerificationFlow({
     });
 
     if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const err = typeof errorData.error === "string"
+      const errorData = await response.json().catch(() => ({}));
+      const err =
+        typeof errorData.error === "string"
           ? errorData.error
           : errorData.error?.message;
-        throw new Error(err || "Gagal mengupload file");
-      }
+      throw new Error(err || "Gagal mengupload file");
+    }
 
     const data = await response.json();
     return data.url;
@@ -191,9 +188,10 @@ export default function KYCVerificationFlow({
 
       if (!response.ok) {
         const data = await response.json();
-        const errMsg = typeof data.error === "string"
-          ? data.error
-          : data.error?.message || "Gagal memulai verifikasi KYC";
+        const errMsg =
+          typeof data.error === "string"
+            ? data.error
+            : data.error?.message || "Gagal memulai verifikasi KYC";
         throw new Error(errMsg);
       }
 
@@ -211,7 +209,7 @@ export default function KYCVerificationFlow({
         queryClient.invalidateQueries({ queryKey: ["owner-kyc-status"] });
         await authClient.getSession();
       }
-     } catch (err) {
+    } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");
       setCurrentStep("selfie");
     } finally {

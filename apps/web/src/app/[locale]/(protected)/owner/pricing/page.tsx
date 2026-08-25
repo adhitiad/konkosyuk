@@ -123,7 +123,9 @@ export default function OwnerPricingPage() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedPropertyId) params.set("propertyId", selectedPropertyId);
-      const res = await apiClient.get(`/api/owner/pricing/suggestions?${params}`);
+      const res = await apiClient.get(
+        `/api/owner/pricing/suggestions?${params}`,
+      );
       return res.data.data.data as PricingSuggestion[];
     },
     enabled: activeTab === "suggestions",

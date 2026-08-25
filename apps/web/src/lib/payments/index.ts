@@ -8,7 +8,9 @@ import { env } from "@/lib/env";
 const isMockMode = env.PAYMENT_MODE === "mock";
 
 if (isMockMode && process.env.NODE_ENV === "production") {
-  throw new Error("PAYMENT_MODE tidak boleh 'mock' di production. Set PAYMENT_MODE=live.");
+  throw new Error(
+    "PAYMENT_MODE tidak boleh 'mock' di production. Set PAYMENT_MODE=live.",
+  );
 }
 
 const providers: Record<PaymentProviderName, PaymentProviderAdapter> = {

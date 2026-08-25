@@ -59,11 +59,12 @@ export async function generateMetadata({
 
   if (!property) return {};
 
-  const images = property.images && property.images.length > 0
-    ? property.images
-    : [
-        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80",
-      ];
+  const images =
+    property.images && property.images.length > 0
+      ? property.images
+      : [
+          "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80",
+        ];
 
   const title = `${property.name} — ${property.city} | KonkosYuk`;
   const description =
@@ -85,8 +86,7 @@ export async function generateMetadata({
         zh: `/zh/properties/${id}`,
         ru: `/ru/properties/${id}`,
       },
-      "x-default": `/id/properties/${id}`,
-    },
+    } as Metadata["alternates"] & { "x-default": string },
     openGraph: {
       title: property.name,
       description,
@@ -149,26 +149,30 @@ export default async function PropertyDetailPage({
     .where(eq(units.propertyId, property.id))
     .orderBy(units.createdAt, units.name);
 
-  const facilitiesRows = propertyUnits.length > 0
-    ? await db
-        .select({
-          unitId: roomFacilities.unitId,
-          category: roomFacilities.category,
-          name: roomFacilities.name,
-          icon: roomFacilities.icon,
-        })
-        .from(roomFacilities)
-        .where(
-          sql`${roomFacilities.unitId} IN (${propertyUnits.map((u) => u.id).join(",")})`,
-        )
-        .orderBy(roomFacilities.sortOrder, roomFacilities.name)
-    : [];
+  const facilitiesRows =
+    propertyUnits.length > 0
+      ? await db
+          .select({
+            unitId: roomFacilities.unitId,
+            category: roomFacilities.category,
+            name: roomFacilities.name,
+            icon: roomFacilities.icon,
+          })
+          .from(roomFacilities)
+          .where(
+            sql`${roomFacilities.unitId} IN (${propertyUnits.map((u) => u.id).join(",")})`,
+          )
+          .orderBy(roomFacilities.sortOrder, roomFacilities.name)
+      : [];
 
-  const facilitiesMap = new Map<string, {
-    kamar: { name: string; icon: string }[];
-    kamar_mandi: { name: string; icon: string }[];
-    umum: { name: string; icon: string }[];
-  }>();
+  const facilitiesMap = new Map<
+    string,
+    {
+      kamar: { name: string; icon: string }[];
+      kamar_mandi: { name: string; icon: string }[];
+      umum: { name: string; icon: string }[];
+    }
+  >();
 
   for (const unit of propertyUnits) {
     facilitiesMap.set(unit.id, {
@@ -184,7 +188,9 @@ export default async function PropertyDetailPage({
 
     const category = f.category as keyof typeof unitFacilities;
     if (category in unitFacilities) {
-      (unitFacilities as Record<string, { name: string; icon: string }[]>)[category].push({
+      (unitFacilities as Record<string, { name: string; icon: string }[]>)[
+        category
+      ].push({
         name: f.name,
         icon: f.icon,
       });
@@ -258,12 +264,13 @@ export default async function PropertyDetailPage({
     .from(reviews)
     .where(eq(reviews.propertyId, property.id));
 
-  const reviewsSummary = ratingResult && Number(ratingResult.count) > 0
-    ? {
-        averageRating: Number(ratingResult.averageRating),
-        count: Number(ratingResult.count),
-      }
-    : null;
+  const reviewsSummary =
+    ratingResult && Number(ratingResult.count) > 0
+      ? {
+          averageRating: Number(ratingResult.averageRating),
+          count: Number(ratingResult.count),
+        }
+      : null;
 
   return (
     <main className="container py-8 max-w-7xl mx-auto px-4 lg:px-8">
@@ -293,10 +300,9 @@ export default async function PropertyDetailPage({
               ? `https://www.google.com/maps/search/?api=1&query=${property.latitude},${property.longitude}`
               : undefined,
           image: images[0],
-          priceRange:
-            property.basePrice
-              ? `Rp${Number(property.basePrice).toLocaleString("id-ID")}/bulan`
-              : undefined,
+          priceRange: property.basePrice
+            ? `Rp${Number(property.basePrice).toLocaleString("id-ID")}/bulan`
+            : undefined,
           aggregateRating: reviewsSummary
             ? {
                 "@type": "AggregateRating",

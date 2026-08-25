@@ -37,4 +37,5 @@ export const ROOM_FACILITIES_PRESET = {
 } as const;
 
 export type RoomFacilityCategory = keyof typeof ROOM_FACILITIES_PRESET;
-export type RoomFacilityPreset = typeof ROOM_FACILITIES_PRESET[RoomFacilityCategory][number];
+export type RoomFacilityPreset =
+  (typeof ROOM_FACILITIES_PRESET)[RoomFacilityCategory][number];

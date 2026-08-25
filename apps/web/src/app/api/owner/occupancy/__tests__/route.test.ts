@@ -72,7 +72,15 @@ describe("GET /api/owner/occupancy", () => {
       [{ id: "prop-1" }],
       [{ count: 5 }],
       [{ count: 3 }],
-      [{ propertyId: "prop-1", propertyName: "Test", totalUnits: 5, occupiedUnits: 3, avgDailyRate: 0 }],
+      [
+        {
+          propertyId: "prop-1",
+          propertyName: "Test",
+          totalUnits: 5,
+          occupiedUnits: 3,
+          avgDailyRate: 0,
+        },
+      ],
       [{ count: 3 }],
       [{ date: "2026-01-01", count: 3 }],
     ]);
@@ -94,7 +102,15 @@ describe("GET /api/owner/occupancy", () => {
       [{ id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890" }],
       [{ count: 5 }],
       [{ count: 3 }],
-      [{ propertyId: "a1b2c3d4", propertyName: "Test", totalUnits: 5, occupiedUnits: 3, avgDailyRate: 0 }],
+      [
+        {
+          propertyId: "a1b2c3d4",
+          propertyName: "Test",
+          totalUnits: 5,
+          occupiedUnits: 3,
+          avgDailyRate: 0,
+        },
+      ],
       [{ count: 3 }],
       [{ date: "2026-01-01", count: 3 }],
     ]);
@@ -119,7 +135,15 @@ describe("GET /api/owner/occupancy", () => {
       [{ id: "prop-1" }],
       [{ count: 5 }],
       [{ count: 3 }],
-      [{ propertyId: "prop-1", propertyName: "Test Property", totalUnits: 5, occupiedUnits: 3, avgDailyRate: 500000 }],
+      [
+        {
+          propertyId: "prop-1",
+          propertyName: "Test Property",
+          totalUnits: 5,
+          occupiedUnits: 3,
+          avgDailyRate: 500000,
+        },
+      ],
       [{ count: 3 }],
       dailyRows,
     ]);
@@ -145,7 +169,15 @@ describe("GET /api/owner/occupancy", () => {
       [{ id: "prop-1" }],
       [{ count: 0 }],
       [{ count: 0 }],
-      [{ propertyId: "prop-1", propertyName: "Test Property", totalUnits: 0, occupiedUnits: 0, avgDailyRate: 0 }],
+      [
+        {
+          propertyId: "prop-1",
+          propertyName: "Test Property",
+          totalUnits: 0,
+          occupiedUnits: 0,
+          avgDailyRate: 0,
+        },
+      ],
       [{ count: 0 }],
       [],
     ]);

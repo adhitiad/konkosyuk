@@ -10,7 +10,9 @@ describe("UnitTabs", () => {
   ];
 
   it("displays a button for each unit", () => {
-    render(<UnitTabs units={units} selectedUnitId={null} onSelect={() => {}} />);
+    render(
+      <UnitTabs units={units} selectedUnitId={null} onSelect={() => {}} />,
+    );
 
     expect(screen.getByText("Type A")).toBeInTheDocument();
     expect(screen.getByText("Type B")).toBeInTheDocument();
@@ -32,7 +34,9 @@ describe("UnitTabs", () => {
   });
 
   it("displays name, short price, type, and roomSize", () => {
-    render(<UnitTabs units={units} selectedUnitId={null} onSelect={() => {}} />);
+    render(
+      <UnitTabs units={units} selectedUnitId={null} onSelect={() => {}} />,
+    );
 
     const typeAButton = screen.getByRole("button", { name: /Type A/ });
     expect(typeAButton).toBeInTheDocument();
@@ -49,14 +53,18 @@ describe("UnitTabs", () => {
 
   it("calls onSelect with correct id when clicked", () => {
     const onSelect = vi.fn();
-    render(<UnitTabs units={units} selectedUnitId={null} onSelect={onSelect} />);
+    render(
+      <UnitTabs units={units} selectedUnitId={null} onSelect={onSelect} />,
+    );
 
     fireEvent.click(screen.getByText("Type B"));
     expect(onSelect).toHaveBeenCalledWith("2");
   });
 
   it("renders horizontally scrollable container", () => {
-    const { container } = render(<UnitTabs units={units} selectedUnitId={null} onSelect={() => {}} />);
+    const { container } = render(
+      <UnitTabs units={units} selectedUnitId={null} onSelect={() => {}} />,
+    );
 
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper).toHaveClass("overflow-x-auto");

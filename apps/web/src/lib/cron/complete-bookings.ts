@@ -79,11 +79,12 @@ export async function completeExpiredBookings(): Promise<CompleteBookingsResult>
     }
 
     const existingInspections = new Set(
-      (await tx
-        .select({ bookingId: inspections.bookingId })
-        .from(inspections)
-        .where(inArray(inspections.bookingId, bookingIds)))
-        .map((i) => i.bookingId),
+      (
+        await tx
+          .select({ bookingId: inspections.bookingId })
+          .from(inspections)
+          .where(inArray(inspections.bookingId, bookingIds))
+      ).map((i) => i.bookingId),
     );
 
     for (const booking of expiredBookings) {
@@ -113,7 +114,10 @@ export async function completeExpiredBookings(): Promise<CompleteBookingsResult>
         });
         inspectionCreatedCount++;
       } catch (error) {
-        logError(error, `Failed to create move-out inspection for booking ${booking.id}`);
+        logError(
+          error,
+          `Failed to create move-out inspection for booking ${booking.id}`,
+        );
       }
     }
   });

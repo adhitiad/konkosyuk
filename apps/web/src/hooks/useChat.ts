@@ -180,9 +180,12 @@ export function useChat({
             ];
           });
         } else {
-          captureException(new Error(result.error || "[useChat] Error sending message"), {
-            context: "sendMessage",
-          });
+          captureException(
+            new Error(result.error || "[useChat] Error sending message"),
+            {
+              context: "sendMessage",
+            },
+          );
         }
       } catch (error) {
         captureException(error as Error, {

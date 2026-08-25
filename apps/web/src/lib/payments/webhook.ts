@@ -183,7 +183,8 @@ export async function handleWebhookRequest(
             paymentAmount: Number(payment.amount),
           });
 
-          const appliedOffsetReferralIds = payment.metadata?.appliedOffsetReferralIds as string[] | undefined;
+          const appliedOffsetReferralIds = payment.metadata
+            ?.appliedOffsetReferralIds as string[] | undefined;
           if (appliedOffsetReferralIds?.length) {
             await markOffsetConsumed(tx, appliedOffsetReferralIds);
           }
@@ -256,7 +257,9 @@ export async function handleWebhookRequest(
               property.name,
               Number(payment.amount),
               `${process.env.NEXT_PUBLIC_APP_URL}/owner/payments`,
-            ).catch((err) => logError(err, "Failed to send payment received email"));
+            ).catch((err) =>
+              logError(err, "Failed to send payment received email"),
+            );
           }
 
           if (payment.purpose === "full_payment" && booking) {
@@ -278,7 +281,9 @@ export async function handleWebhookRequest(
                 amount: Number(payment.amount),
                 paymentUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/bookings`,
               },
-            }).catch((err) => logError(err, "Failed to dispatch payment notification"));
+            }).catch((err) =>
+              logError(err, "Failed to dispatch payment notification"),
+            );
           } else if (payment.purpose === "dp" && booking) {
             dispatchNotification({
               userId: booking.userId,
@@ -290,7 +295,9 @@ export async function handleWebhookRequest(
               actionUrl: "/dashboard/bookings",
               referenceId: booking.id,
               referenceType: "booking",
-            }).catch((err) => logError(err, "Failed to dispatch dp notification"));
+            }).catch((err) =>
+              logError(err, "Failed to dispatch dp notification"),
+            );
           }
         }
       }
@@ -325,7 +332,7 @@ export async function handleWebhookRequest(
             referenceId: foundBooking.id,
             referenceType: "booking",
           }).catch((err) =>
-            logError(err, "Failed to dispatch payment failed notification")
+            logError(err, "Failed to dispatch payment failed notification"),
           );
 
           const [bookingRequest] = await tx

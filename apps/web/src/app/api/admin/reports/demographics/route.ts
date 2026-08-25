@@ -26,7 +26,8 @@ export async function GET(req: NextRequest) {
 
     const conditions = [];
     if (provinceFilter) {
-      const field = filterType === "user" ? users.province : properties.province;
+      const field =
+        filterType === "user" ? users.province : properties.province;
       conditions.push(like(field, `%${provinceFilter}%`));
     }
     if (cityFilter) {

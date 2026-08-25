@@ -66,7 +66,9 @@ function AdminAdsPage() {
 
   const approveMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/admin/ads/${id}/approve`, { method: "POST" });
+      const res = await fetch(`/api/admin/ads/${id}/approve`, {
+        method: "POST",
+      });
       if (!res.ok) throw new Error("Failed to approve ad");
       return res.json();
     },
@@ -96,7 +98,9 @@ function AdminAdsPage() {
 
   const cancelMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/admin/ads/${id}/cancel`, { method: "POST" });
+      const res = await fetch(`/api/admin/ads/${id}/cancel`, {
+        method: "POST",
+      });
       if (!res.ok) throw new Error("Failed to cancel ad");
       return res.json();
     },
@@ -108,7 +112,10 @@ function AdminAdsPage() {
   });
 
   const ads = data || [];
-  const filteredAds = filter === "all" ? ads : ads.filter((ad) => ad.isActive === (filter === "active"));
+  const filteredAds =
+    filter === "all"
+      ? ads
+      : ads.filter((ad) => ad.isActive === (filter === "active"));
 
   const getCtr = (clicks: number, impressions: number) => {
     if (impressions === 0) return "0%";
@@ -137,16 +144,25 @@ function AdminAdsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Kelola Iklan</h1>
-          <p className="mt-2 text-muted-foreground">Tambah, edit, atau kelola iklan properti di landing page.</p>
+          <p className="mt-2 text-muted-foreground">
+            Tambah, edit, atau kelola iklan properti di landing page.
+          </p>
         </div>
         <Button>
-          <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} className="mr-2 size-4" />
+          <HugeiconsIcon
+            icon={PlusSignIcon}
+            strokeWidth={2}
+            className="mr-2 size-4"
+          />
           Tambah Iklan
         </Button>
       </div>
 
       <div className="mt-6">
-        <Select value={filter} onValueChange={(value) => value && setFilter(value)}>
+        <Select
+          value={filter}
+          onValueChange={(value) => value && setFilter(value)}
+        >
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Filter status" />
           </SelectTrigger>
@@ -183,7 +199,10 @@ function AdminAdsPage() {
               </TableRow>
             ) : filteredAds.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="text-center text-muted-foreground">
+                <TableCell
+                  colSpan={10}
+                  className="text-center text-muted-foreground"
+                >
                   Belum ada iklan.
                 </TableCell>
               </TableRow>
@@ -198,10 +217,16 @@ function AdminAdsPage() {
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="text-sm">{ad.packageLabel || "-"}</span>
-                      <span className="text-xs text-muted-foreground capitalize">{ad.packageTier || "-"}</span>
+                      <span className="text-xs text-muted-foreground capitalize">
+                        {ad.packageTier || "-"}
+                      </span>
                     </div>
                   </TableCell>
-                  <TableCell>{ad.price ? `Rp ${Number(ad.price).toLocaleString("id-ID")}` : "-"}</TableCell>
+                  <TableCell>
+                    {ad.price
+                      ? `Rp ${Number(ad.price).toLocaleString("id-ID")}`
+                      : "-"}
+                  </TableCell>
                   <TableCell>{getPaymentBadge(ad.paymentStatus)}</TableCell>
                   <TableCell>{ad.impressions}</TableCell>
                   <TableCell>{ad.clicks}</TableCell>
@@ -216,35 +241,50 @@ function AdminAdsPage() {
                             onClick={() => approveMutation.mutate(ad.id)}
                             title="Setujui"
                           >
-                            <HugeiconsIcon icon={CheckmarkCircle01Icon} strokeWidth={2} />
+                            <HugeiconsIcon
+                              icon={CheckmarkCircle01Icon}
+                              strokeWidth={2}
+                            />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon-sm"
                             onClick={() => {
-                              const note = prompt("Alasan penolakan (opsional):");
-                              rejectMutation.mutate({ id: ad.id, note: note || undefined });
+                              const note = prompt(
+                                "Alasan penolakan (opsional):",
+                              );
+                              rejectMutation.mutate({
+                                id: ad.id,
+                                note: note || undefined,
+                              });
                             }}
                             title="Tolak"
                           >
-                            <HugeiconsIcon icon={CancelSquareIcon} strokeWidth={2} />
+                            <HugeiconsIcon
+                              icon={CancelSquareIcon}
+                              strokeWidth={2}
+                            />
                           </Button>
                         </>
                       )}
-                      {ad.paymentStatus !== "cancelled" && ad.paymentStatus !== "expired" && (
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => {
-                            if (confirm("Batalkan iklan ini?")) {
-                              cancelMutation.mutate(ad.id);
-                            }
-                          }}
-                          title="Batalkan"
-                        >
-                          <HugeiconsIcon icon={CancelSquareIcon} strokeWidth={2} />
-                        </Button>
-                      )}
+                      {ad.paymentStatus !== "cancelled" &&
+                        ad.paymentStatus !== "expired" && (
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => {
+                              if (confirm("Batalkan iklan ini?")) {
+                                cancelMutation.mutate(ad.id);
+                              }
+                            }}
+                            title="Batalkan"
+                          >
+                            <HugeiconsIcon
+                              icon={CancelSquareIcon}
+                              strokeWidth={2}
+                            />
+                          </Button>
+                        )}
                     </div>
                   </TableCell>
                 </TableRow>

@@ -7,7 +7,9 @@ export function useFeatureFlag(key: string) {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["feature-flag", key],
     queryFn: async () => {
-      const response = await apiClient.get(`/api/feature-flags/${encodeURIComponent(key)}`);
+      const response = await apiClient.get(
+        `/api/feature-flags/${encodeURIComponent(key)}`,
+      );
       return response.data.data.enabled as boolean;
     },
     staleTime: 30000,

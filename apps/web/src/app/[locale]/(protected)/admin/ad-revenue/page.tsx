@@ -84,7 +84,9 @@ function AdRevenuePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Pendapatan Iklan</h1>
-          <p className="mt-2 text-muted-foreground">Statistik pendapatan dari iklan berbayar.</p>
+          <p className="mt-2 text-muted-foreground">
+            Statistik pendapatan dari iklan berbayar.
+          </p>
         </div>
         <Select value={period} onValueChange={(v) => v && setPeriod(v)}>
           <SelectTrigger className="w-40">
@@ -104,7 +106,9 @@ function AdRevenuePage() {
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Pendapatan</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Pendapatan
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -114,7 +118,9 @@ function AdRevenuePage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Iklan Lunas</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Iklan Lunas
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data?.totalPaid || 0}</div>
@@ -122,7 +128,9 @@ function AdRevenuePage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Menunggu Pembayaran</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Menunggu Pembayaran
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data?.totalPending || 0}</div>
@@ -130,10 +138,14 @@ function AdRevenuePage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Konversi</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Konversi
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data?.conversionRate || "0"}%</div>
+            <div className="text-2xl font-bold">
+              {data?.conversionRate || "0"}%
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -172,14 +184,23 @@ function AdRevenuePage() {
             ) : data?.byPackage && data.byPackage.length > 0 ? (
               <div className="space-y-3">
                 {data.byPackage.map((pkg) => (
-                  <div key={pkg.packageId} className="flex items-center justify-between rounded-md border p-3">
+                  <div
+                    key={pkg.packageId}
+                    className="flex items-center justify-between rounded-md border p-3"
+                  >
                     <div>
                       <p className="font-medium">{pkg.label}</p>
-                      <p className="text-xs text-muted-foreground capitalize">{pkg.tier}</p>
+                      <p className="text-xs text-muted-foreground capitalize">
+                        {pkg.tier}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">{formatRupiah(pkg.revenue)}</p>
-                      <p className="text-xs text-muted-foreground">{pkg.count} iklan</p>
+                      <p className="font-semibold">
+                        {formatRupiah(pkg.revenue)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {pkg.count} iklan
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -215,11 +236,19 @@ function AdRevenuePage() {
                   <TableCell>{tx.advertiserName}</TableCell>
                   <TableCell>{formatRupiah(Number(tx.price))}</TableCell>
                   <TableCell>
-                    <Badge variant={tx.paymentStatus === "paid" ? "default" : "secondary"}>
+                    <Badge
+                      variant={
+                        tx.paymentStatus === "paid" ? "default" : "secondary"
+                      }
+                    >
                       {tx.paymentStatus}
                     </Badge>
                   </TableCell>
-                  <TableCell>{tx.paidAt ? new Date(tx.paidAt).toLocaleDateString("id-ID") : "-"}</TableCell>
+                  <TableCell>
+                    {tx.paidAt
+                      ? new Date(tx.paidAt).toLocaleDateString("id-ID")
+                      : "-"}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

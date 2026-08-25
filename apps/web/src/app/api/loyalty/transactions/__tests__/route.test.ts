@@ -33,7 +33,12 @@ const mockDb = vi.hoisted(() => {
 
 vi.mock("@/db", () => ({
   db: mockDb,
-  loyaltyTransactions: { userId: "userId", createdAt: "createdAt", type: "type", amount: "amount" },
+  loyaltyTransactions: {
+    userId: "userId",
+    createdAt: "createdAt",
+    type: "type",
+    amount: "amount",
+  },
 }));
 
 function setupMocks(results: unknown[][]) {
@@ -50,8 +55,18 @@ describe("GET /api/loyalty/transactions", () => {
   it("returns transactions with balance", async () => {
     setupMocks([
       [
-        { id: "tx-1", type: "earn", amount: 100, createdAt: new Date("2024-01-01") },
-        { id: "tx-2", type: "redeem", amount: -50, createdAt: new Date("2024-01-02") },
+        {
+          id: "tx-1",
+          type: "earn",
+          amount: 100,
+          createdAt: new Date("2024-01-01"),
+        },
+        {
+          id: "tx-2",
+          type: "redeem",
+          amount: -50,
+          createdAt: new Date("2024-01-02"),
+        },
       ],
       [{ count: 2 }],
       [{ balance: 50 }],
@@ -73,7 +88,14 @@ describe("GET /api/loyalty/transactions", () => {
 
   it("filters by type", async () => {
     setupMocks([
-      [{ id: "tx-1", type: "earn", amount: 100, createdAt: new Date("2024-01-01") }],
+      [
+        {
+          id: "tx-1",
+          type: "earn",
+          amount: 100,
+          createdAt: new Date("2024-01-01"),
+        },
+      ],
       [{ count: 1 }],
       [{ balance: 100 }],
     ]);
@@ -92,11 +114,7 @@ describe("GET /api/loyalty/transactions", () => {
   });
 
   it("returns empty balance when no transactions", async () => {
-    setupMocks([
-      [],
-      [{ count: 0 }],
-      [{ balance: null }],
-    ]);
+    setupMocks([[], [{ count: 0 }], [{ balance: null }]]);
 
     const req = {
       url: "http://localhost/api/loyalty/transactions",

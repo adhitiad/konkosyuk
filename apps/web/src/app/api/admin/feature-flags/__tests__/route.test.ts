@@ -29,7 +29,9 @@ const mockDb = vi.hoisted(() => {
     limit: vi.fn().mockImplementation(() => Promise.resolve(limitResult)),
     insert: vi.fn().mockReturnThis(),
     values: vi.fn().mockReturnThis(),
-    returning: vi.fn().mockImplementation(() => Promise.resolve(returningResult)),
+    returning: vi
+      .fn()
+      .mockImplementation(() => Promise.resolve(returningResult)),
     update: vi.fn().mockReturnThis(),
     set: vi.fn().mockReturnThis(),
     delete: vi.fn().mockResolvedValue(undefined),

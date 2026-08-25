@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useLayoutEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -19,16 +19,9 @@ export default withOwnerAuth(OwnerDashboardPage);
 
 function OwnerDashboardPage() {
   const [period, setPeriod] = useState<"month" | "quarter" | "year">("month");
-  const [year, setYear] = useState<number | undefined>(undefined);
-  const [month, setMonth] = useState<number | undefined>(undefined);
+  const [year, setYear] = useState<number>(new Date().getFullYear());
+  const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
   const [propertyId, setPropertyId] = useState<string | undefined>(undefined);
-
-  useLayoutEffect(() => {
-    queueMicrotask(() => {
-      setYear(new Date().getFullYear());
-      setMonth(new Date().getMonth() + 1);
-    });
-  }, []);
 
   const {
     data: revenueData,
@@ -62,7 +55,11 @@ function OwnerDashboardPage() {
 
       {error && (
         <Alert variant="destructive">
-          <HugeiconsIcon icon={AlertCircleIcon} strokeWidth={2} className="size-4" />
+          <HugeiconsIcon
+            icon={AlertCircleIcon}
+            strokeWidth={2}
+            className="size-4"
+          />
           <AlertDescription>
             {error instanceof Error ? error.message : "Gagal memuat data"}
           </AlertDescription>
@@ -85,11 +82,10 @@ function OwnerDashboardPage() {
           totalRevenue: revenueData?.totalRevenue ?? 0,
           totalTransactions: revenueData?.totalTransactions ?? 0,
           averageTransactionValue: revenueData?.averageTransactionValue ?? 0,
-          comparedToPreviousPeriod:
-            revenueData?.comparedToPreviousPeriod ?? {
-              revenueChange: 0,
-              transactionChange: 0,
-            },
+          comparedToPreviousPeriod: revenueData?.comparedToPreviousPeriod ?? {
+            revenueChange: 0,
+            transactionChange: 0,
+          },
           overallOccupancy: occupancyData?.overallOccupancy ?? 0,
         }}
         loading={loading}

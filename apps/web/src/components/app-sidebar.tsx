@@ -178,12 +178,12 @@ export function AppSidebar() {
             {items?.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
-                   render={
-                      <Link href={localeHref(locale, prefixLocale(item.href))}>
-                       <item.icon />
-                       <span>{t(item.title)}</span>
-                     </Link>
-                   }
+                  render={
+                    <Link href={localeHref(locale, prefixLocale(item.href))}>
+                      <item.icon />
+                      <span>{t(item.title)}</span>
+                    </Link>
+                  }
                   tooltip={t(item.title)}
                 />
               </SidebarMenuItem>

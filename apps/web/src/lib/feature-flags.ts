@@ -25,14 +25,26 @@ export async function isFeatureEnabled(
     // Cache miss or error, continue to DB lookup
   }
 
-  const [flag] = await db.select().from(featureFlags).where(eq(featureFlags.key, key)).limit(1);
+  const [flag] = await db
+    .select()
+    .from(featureFlags)
+    .where(eq(featureFlags.key, key))
+    .limit(1);
 
   if (!flag) {
     await client.set(cacheKey, { enabled: false }, CACHE_TTL);
     return false;
   }
 
-  const result = evaluateFlag(flag.enabled, userId, userRole, key, flag.rolloutPercentage, flag.allowedUsers, flag.allowedRoles);
+  const result = evaluateFlag(
+    flag.enabled,
+    userId,
+    userRole,
+    key,
+    flag.rolloutPercentage,
+    flag.allowedUsers,
+    flag.allowedRoles,
+  );
 
   try {
     await client.set(cacheKey, { enabled: result }, CACHE_TTL);
@@ -43,11 +55,17 @@ export async function isFeatureEnabled(
   return result;
 }
 
-export async function setFeatureFlag(key: string, enabled: boolean): Promise<void> {
+export async function setFeatureFlag(
+  key: string,
+  enabled: boolean,
+): Promise<void> {
   const client = await getRedis();
   const cacheKey = `${CACHE_KEY}${key}`;
 
-  await db.update(featureFlags).set({ enabled, updatedAt: new Date() }).where(eq(featureFlags.key, key));
+  await db
+    .update(featureFlags)
+    .set({ enabled, updatedAt: new Date() })
+    .where(eq(featureFlags.key, key));
 
   try {
     await client.del(cacheKey);
@@ -60,13 +78,22 @@ export async function getAllFeatureFlags(): Promise<FeatureFlag[]> {
   return db.select().from(featureFlags).orderBy(featureFlags.createdAt);
 }
 
-export async function createFeatureFlag(input: NewFeatureFlag): Promise<FeatureFlag> {
+export async function createFeatureFlag(
+  input: NewFeatureFlag,
+): Promise<FeatureFlag> {
   const [flag] = await db.insert(featureFlags).values(input).returning();
   return flag;
 }
 
-export async function updateFeatureFlag(id: string, input: Partial<NewFeatureFlag>): Promise<FeatureFlag | undefined> {
-  const [flag] = await db.update(featureFlags).set({ ...input, updatedAt: new Date() }).where(eq(featureFlags.id, id)).returning();
+export async function updateFeatureFlag(
+  id: string,
+  input: Partial<NewFeatureFlag>,
+): Promise<FeatureFlag | undefined> {
+  const [flag] = await db
+    .update(featureFlags)
+    .set({ ...input, updatedAt: new Date() })
+    .where(eq(featureFlags.id, id))
+    .returning();
   return flag;
 }
 
@@ -103,7 +130,10 @@ function evaluateFlag(
     return false;
   }
 
-  const hash = crypto.createHash("md5").update(`${userId}:${key}`).digest("hex");
+  const hash = crypto
+    .createHash("md5")
+    .update(`${userId}:${key}`)
+    .digest("hex");
   const bucket = parseInt(hash.slice(0, 8), 16) % 100;
   return bucket < rolloutPercentage;
 }

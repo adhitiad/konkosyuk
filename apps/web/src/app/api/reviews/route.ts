@@ -34,7 +34,9 @@ const reviewsRateLimitConfig = {
 export async function GET(req: NextRequest) {
   try {
     await requireSession();
-    const query = reviewsQuerySchema.parse(Object.fromEntries(req.nextUrl.searchParams));
+    const query = reviewsQuerySchema.parse(
+      Object.fromEntries(req.nextUrl.searchParams),
+    );
     const { propertyId, userId, page, limit } = query;
 
     let whereClause;

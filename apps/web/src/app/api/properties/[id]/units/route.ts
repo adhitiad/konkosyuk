@@ -46,11 +46,14 @@ export async function GET(
             .orderBy(roomFacilities.sortOrder, roomFacilities.name)
         : [];
 
-    const facilitiesMap = new Map<string, {
-      kamar: { name: string; icon: string }[];
-      kamar_mandi: { name: string; icon: string }[];
-      umum: { name: string; icon: string }[];
-    }>();
+    const facilitiesMap = new Map<
+      string,
+      {
+        kamar: { name: string; icon: string }[];
+        kamar_mandi: { name: string; icon: string }[];
+        umum: { name: string; icon: string }[];
+      }
+    >();
 
     for (const unit of unitsRows) {
       facilitiesMap.set(unit.id, {
@@ -66,7 +69,9 @@ export async function GET(
 
       const category = f.category as keyof typeof unitFacilities;
       if (category in unitFacilities) {
-        (unitFacilities as Record<string, { name: string; icon: string }[]>)[category].push({
+        (unitFacilities as Record<string, { name: string; icon: string }[]>)[
+          category
+        ].push({
           name: f.name,
           icon: f.icon,
         });

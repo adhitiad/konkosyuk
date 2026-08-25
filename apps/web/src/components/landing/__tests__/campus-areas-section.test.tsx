@@ -27,7 +27,7 @@ vi.mock("@/lib/cloudinary", () => ({
       if (options.width) params.push(`w_${options.width}`);
       if (options.height) params.push(`h_${options.height}`);
       if (options.quality) params.push(`q_${options.quality}`);
-      if (params.length > 0) url += `?${params.join(',')}`;
+      if (params.length > 0) url += `?${params.join(",")}`;
     }
     return url;
   },
@@ -39,7 +39,9 @@ describe("CampusAreasSection", () => {
   });
 
   it("displays loading skeleton while fetching", () => {
-    const mockFetch = vi.fn(() => new Promise(() => {})) as unknown as typeof fetch;
+    const mockFetch = vi.fn(
+      () => new Promise(() => {}),
+    ) as unknown as typeof fetch;
     global.fetch = mockFetch;
 
     render(<CampusAreasSection />);

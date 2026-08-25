@@ -112,9 +112,13 @@ export async function createGroupBookingAction(
         status: "accepted",
       } as GroupBookingMemberInsert);
 
-      const memberUsers = validated.memberEmails.length > 0
-        ? await tx.select().from(users).where(inArray(users.email, validated.memberEmails))
-        : [];
+      const memberUsers =
+        validated.memberEmails.length > 0
+          ? await tx
+              .select()
+              .from(users)
+              .where(inArray(users.email, validated.memberEmails))
+          : [];
 
       for (const user of memberUsers) {
         await tx.insert(groupBookingMembers).values({

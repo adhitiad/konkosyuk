@@ -148,7 +148,8 @@ export default function MapView({
         const center = [userLocation.longitude, userLocation.latitude];
         const points: [number, number][] = [];
         const kmToDegLat = 1 / 111.32;
-        const kmToDegLng = 1 / (111.32 * Math.cos((userLocation.latitude * Math.PI) / 180));
+        const kmToDegLng =
+          1 / (111.32 * Math.cos((userLocation.latitude * Math.PI) / 180));
         const numPoints = 64;
 
         for (let i = 0; i < numPoints; i++) {
@@ -170,9 +171,7 @@ export default function MapView({
       })()
     : null;
 
-  const propertyById = new globalThis.Map(
-    properties.map((p) => [p.id, p]),
-  );
+  const propertyById = new globalThis.Map(properties.map((p) => [p.id, p]));
 
   return (
     <div
@@ -224,11 +223,7 @@ export default function MapView({
           </Marker>
         )}
         {radiusCircle && (
-          <Source
-            id="radius-circle"
-            type="geojson"
-            data={radiusCircle}
-          >
+          <Source id="radius-circle" type="geojson" data={radiusCircle}>
             <Layer
               id="radius-fill"
               type="fill"

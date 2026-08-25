@@ -11,9 +11,10 @@ export async function generateMetadata({
 
   const alternates = {
     canonical: `/${locale}`,
-    languages: Object.fromEntries(
-      locales.map((l) => [l, `/${l}`]),
-    ) as Record<string, string>,
+    languages: Object.fromEntries(locales.map((l) => [l, `/${l}`])) as Record<
+      string,
+      string
+    >,
     "x-default": "/id",
   };
 

@@ -70,10 +70,13 @@ export const auth = betterAuth({
       process.env.NODE_ENV === "production" &&
       Boolean(process.env.RESEND_API_KEY || process.env.SMTP_HOST),
     minPasswordLength: 8,
-      sendResetPasswordToken: async (data: { token: string; user: { email: string } }) => {
-        const { user } = data;
-        logInfo("Password reset email sent", { email: user.email });
-      },
+    sendResetPasswordToken: async (data: {
+      token: string;
+      user: { email: string };
+    }) => {
+      const { user } = data;
+      logInfo("Password reset email sent", { email: user.email });
+    },
   },
   socialProviders: {
     // Daftarkan provider Google hanya jika credential tersedia,

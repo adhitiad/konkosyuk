@@ -76,7 +76,9 @@ describe("POST /api/ads/[id]/click", () => {
       headers: new Headers(),
     } as unknown as Parameters<typeof POST>[0];
 
-    const response = await POST(req, { params: Promise.resolve({ id: "nonexistent" }) });
+    const response = await POST(req, {
+      params: Promise.resolve({ id: "nonexistent" }),
+    });
     const data = await response.json();
 
     expect(response.status).toBe(404);
@@ -105,7 +107,9 @@ describe("POST /api/ads/[id]/click", () => {
       headers: new Headers(),
     } as unknown as Parameters<typeof POST>[0];
 
-    const response = await POST(req, { params: Promise.resolve({ id: "ad-1" }) });
+    const response = await POST(req, {
+      params: Promise.resolve({ id: "ad-1" }),
+    });
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -135,7 +139,9 @@ describe("POST /api/ads/[id]/click", () => {
       headers: new Headers(),
     } as unknown as Parameters<typeof POST>[0];
 
-    const response = await POST(req, { params: Promise.resolve({ id: "ad-1" }) });
+    const response = await POST(req, {
+      params: Promise.resolve({ id: "ad-1" }),
+    });
     const data = await response.json();
 
     expect(response.status).toBe(200);

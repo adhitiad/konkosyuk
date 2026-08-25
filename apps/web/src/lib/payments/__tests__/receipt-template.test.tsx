@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { act } from "react";
 import { renderToBuffer } from "@react-pdf/renderer";
-import { ReceiptTemplate, type ReceiptData } from "@/lib/payments/receipt-template";
+import {
+  ReceiptTemplate,
+  type ReceiptData,
+} from "@/lib/payments/receipt-template";
 
 const baseData: ReceiptData = {
   paymentId: "payment-123",

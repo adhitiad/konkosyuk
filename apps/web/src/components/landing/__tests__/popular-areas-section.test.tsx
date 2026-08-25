@@ -23,7 +23,11 @@ vi.mock("next-intl", () => ({
 vi.mock("@/config", () => ({
   Link: (props: Record<string, unknown>) => {
     const { href, children, ...rest } = props;
-    return <a href={href as string} {...rest}>{children}</a>;
+    return (
+      <a href={href as string} {...rest}>
+        {children as React.ReactNode}
+      </a>
+    );
   },
 }));
 
@@ -35,7 +39,7 @@ vi.mock("@/lib/cloudinary", () => ({
       if (options.width) params.push(`w_${options.width}`);
       if (options.height) params.push(`h_${options.height}`);
       if (options.quality) params.push(`q_${options.quality}`);
-      if (params.length > 0) url += `?${params.join(',')}`;
+      if (params.length > 0) url += `?${params.join(",")}`;
     }
     return url;
   },
@@ -126,7 +130,10 @@ describe("PopularAreasSection", () => {
     const links = document.querySelectorAll('a[href*="/properties?area="]');
     expect(links.length).toBe(2);
     expect(links[0]).toHaveAttribute("href", "/properties?area=yogyakarta");
-    expect(links[1]).toHaveAttribute("href", "/properties?area=jakarta-selatan");
+    expect(links[1]).toHaveAttribute(
+      "href",
+      "/properties?area=jakarta-selatan",
+    );
   });
 
   it("displays area name and propertyCount", async () => {
@@ -149,7 +156,9 @@ describe("PopularAreasSection", () => {
       data: { success: true, data: { areas: [] } },
     });
 
-    const { container } = render(<PopularAreasSection />, { wrapper: createWrapper() });
+    const { container } = render(<PopularAreasSection />, {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(container.innerHTML).toBe("");

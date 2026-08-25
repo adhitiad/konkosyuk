@@ -51,7 +51,9 @@ describe("OwnerProfileCard", () => {
   });
 
   it("does not render when owner is null", () => {
-    const { container } = render(<OwnerProfileCard owner={null} propertyId="prop-1" />);
+    const { container } = render(
+      <OwnerProfileCard owner={null} propertyId="prop-1" />,
+    );
 
     expect(container.firstChild).toBeNull();
   });

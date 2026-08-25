@@ -10,10 +10,7 @@ import { logError } from "@/lib/logger";
 
 const DIDIT_WORKFLOW_ID = "584faed8-a928-4f49-8d9e-d1f2b106035a";
 
-const DIDIT_ALLOWED_HOSTS = [
-  "verification.didit.me",
-  "didit-api.example.com",
-];
+const DIDIT_ALLOWED_HOSTS = ["verification.didit.me", "didit-api.example.com"];
 
 const createKycSessionSchema = z.object({
   documentType: z.enum(["ktp", "driving_license", "passport"]).default("ktp"),
@@ -94,7 +91,7 @@ export async function POST(req: Request) {
     if (!diditResponse.ok) {
       const errorText = await diditResponse.text();
       logError(new Error(`Didit API error: ${errorText}`), "KYC_API_ERROR", {
-        status: diditResponse.status,
+        status: String(diditResponse.status),
       });
       return fail("KYC service unavailable", 502);
     }

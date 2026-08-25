@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { validateAndApplyVoucher, redeemVoucherAtomically } from "@/lib/referrals/voucher";
+import {
+  validateAndApplyVoucher,
+  redeemVoucherAtomically,
+} from "@/lib/referrals/voucher";
 
 vi.mock("@/db", () => ({
   db: {
@@ -26,7 +29,8 @@ describe("validateAndApplyVoucher", () => {
   });
 
   it("returns error for non-existent voucher", async () => {
-    const { validateAndApplyVoucher: validate } = await import("@/lib/referrals/voucher");
+    const { validateAndApplyVoucher: validate } =
+      await import("@/lib/referrals/voucher");
     const result = await validate("NONEXISTENT", "owner-1", 100000);
     expect(result.valid).toBe(false);
     expect(result.error).toBe("Kode voucher tidak ditemukan");

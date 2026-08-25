@@ -78,7 +78,9 @@ export async function POST(
         actionUrl: "/dashboard/inspections",
         referenceId: inspection.id,
         referenceType: "inspection",
-      }).catch((err) => logError(err, "Failed to dispatch inspection completed notification"));
+      }).catch((err) =>
+        logError(err, "Failed to dispatch inspection completed notification"),
+      );
     }
 
     return ok(updated);

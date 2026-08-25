@@ -8,7 +8,9 @@ import { headers } from "next/headers";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { ReceiptTemplate, ReceiptData } from "@/lib/payments/receipt-template";
 
-export async function generateReceiptPdf(paymentId: string): Promise<Blob | null> {
+export async function generateReceiptPdf(
+  paymentId: string,
+): Promise<Blob | null> {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -72,13 +74,13 @@ export async function generateReceiptPdf(paymentId: string): Promise<Blob | null
       propertyName: propertyRow?.name ?? "Properti",
       propertyAddress: propertyRow?.address ?? null,
       unitName: unitRow?.name ?? null,
-      startDate: booking.startDate ? new Date(booking.startDate).toISOString() : null,
+      startDate: booking.startDate
+        ? new Date(booking.startDate).toISOString()
+        : null,
       endDate: booking.endDate ? new Date(booking.endDate).toISOString() : null,
     };
 
-    const buffer = await renderToBuffer(
-      <ReceiptTemplate data={data} />,
-    );
+    const buffer = await renderToBuffer(<ReceiptTemplate data={data} />);
 
     return new Blob([new Uint8Array(buffer)], { type: "application/pdf" });
   } catch {

@@ -466,28 +466,27 @@ export default function DashboardPage() {
                                 </DialogContent>
                               </Dialog>
                             )}
-                          {booking.status === "confirmed" &&
-                            isActive && (
-                              <Button
-                                render={
-                                  <Link
-                                    href={`/${locale}/dashboard/bookings/${booking.id}`}
-                                  />
-                                }
-                                size="sm"
-                                variant="outline"
-                                nativeButton={false}
-                              >
-                                Lihat Detail
-                              </Button>
-                            )}
+                          {booking.status === "confirmed" && isActive && (
+                            <Button
+                              render={
+                                <Link
+                                  href={`/${locale}/dashboard/bookings/${booking.id}`}
+                                />
+                              }
+                              size="sm"
+                              variant="outline"
+                              nativeButton={false}
+                            >
+                              Lihat Detail
+                            </Button>
+                          )}
                           {(booking.status === "rejected" ||
                             booking.status === "cancelled") && (
-                             <span className="text-xs text-muted-foreground">
-                               -
-                             </span>
-                           )}
-                         </TableCell>
+                            <span className="text-xs text-muted-foreground">
+                              -
+                            </span>
+                          )}
+                        </TableCell>
                       </TableRow>
                     );
                   })}

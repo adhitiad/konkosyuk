@@ -15,9 +15,16 @@ const submitAdSchema = z.object({
   advertiserPhone: z.string().min(1, "No. HP/WA wajib diisi"),
   advertiserWhatsApp: z.string().optional(),
   title: z.string().min(1, "Judul iklan wajib diisi"),
-  description: z.string().min(1, "Deskripsi wajib diisi").max(200, "Deskripsi maksimal 200 karakter"),
+  description: z
+    .string()
+    .min(1, "Deskripsi wajib diisi")
+    .max(200, "Deskripsi maksimal 200 karakter"),
   imageUrl: z.string().url("URL gambar tidak valid"),
-  targetUrl: z.string().url("URL tujuan tidak valid").optional().or(z.literal("")),
+  targetUrl: z
+    .string()
+    .url("URL tujuan tidak valid")
+    .optional()
+    .or(z.literal("")),
   location: z.string().min(1, "Lokasi wajib diisi"),
   type: z.enum(["kos", "kontrakan", "apartemen", "rumah"]),
   packageId: z.string().uuid("Paket iklan tidak valid"),
@@ -39,7 +46,12 @@ export async function POST(req: NextRequest) {
     const [pkg] = await db
       .select()
       .from(adPackages)
-      .where(and(eq(adPackages.id, validated.packageId), eq(adPackages.isActive, true)))
+      .where(
+        and(
+          eq(adPackages.id, validated.packageId),
+          eq(adPackages.isActive, true),
+        ),
+      )
       .limit(1);
 
     if (!pkg) {
@@ -47,7 +59,9 @@ export async function POST(req: NextRequest) {
     }
 
     const now = new Date();
-    const endDate = new Date(now.getTime() + pkg.duration * 24 * 60 * 60 * 1000);
+    const endDate = new Date(
+      now.getTime() + pkg.duration * 24 * 60 * 60 * 1000,
+    );
 
     const [ad] = await db
       .insert(propertyAds)

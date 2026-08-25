@@ -5,11 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ShieldCheck,
@@ -118,14 +114,8 @@ function OwnerKYCPage() {
           <XCircle className="size-4" />
           <AlertTitle>Gagal Memuat Status KYC</AlertTitle>
           <AlertDescription>
-            <p className="mb-3">
-              Gagal memuat status KYC. Silakan coba lagi.
-            </p>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => refetch()}
-            >
+            <p className="mb-3">Gagal memuat status KYC. Silakan coba lagi.</p>
+            <Button variant="secondary" size="sm" onClick={() => refetch()}>
               Coba Lagi
             </Button>
           </AlertDescription>
@@ -158,7 +148,9 @@ function OwnerKYCPage() {
             onClick={() => refetch()}
             disabled={isFetching}
           >
-            <RefreshCw className={`size-4 ${isFetching ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`size-4 ${isFetching ? "animate-spin" : ""}`}
+            />
             <span className="ml-1 hidden sm:inline">Refresh</span>
           </Button>
           {getStatusBadge()}
@@ -215,9 +207,9 @@ function OwnerKYCPage() {
               <Clock className="size-4" />
               <AlertTitle>Proses Verifikasi Sedang Berjalan</AlertTitle>
               <AlertDescription>
-                Verifikasi KYC Anda sedang diproses. Perkiraan waktu penyelesaian:
-                1-2 menit. Anda akan menerima notifikasi melalui email setelah
-                verifikasi selesai.
+                Verifikasi KYC Anda sedang diproses. Perkiraan waktu
+                penyelesaian: 1-2 menit. Anda akan menerima notifikasi melalui
+                email setelah verifikasi selesai.
               </AlertDescription>
             </Alert>
             {verification && (

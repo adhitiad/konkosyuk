@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("winston", () => {
   const fn = vi.fn();
-  const mockFormat = ((cb: (info: unknown) => unknown) => cb) as unknown as Record<string, unknown>;
+  const mockFormat = ((cb: (info: unknown) => unknown) =>
+    cb) as unknown as Record<string, unknown>;
   mockFormat.combine = () => mockFormat;
   mockFormat.timestamp = () => mockFormat;
   mockFormat.printf = () => mockFormat;
@@ -50,39 +51,54 @@ describe("Idempotency Guards (F-2)", () => {
   describe("cleanup-bookings", () => {
     it("should only process bookings with pending_dp status", async () => {
       const mockBookings = [
-        { id: "b1", status: "pending_dp", unitId: "u1", propertyId: "p1", userId: "user1", createdAt: new Date(Date.now() - 7 * 60 * 60 * 1000) },
-        { id: "b2", status: "cancelled", unitId: "u2", propertyId: "p2", userId: "user2", createdAt: new Date(Date.now() - 7 * 60 * 60 * 1000) },
+        {
+          id: "b1",
+          status: "pending_dp",
+          unitId: "u1",
+          propertyId: "p1",
+          userId: "user1",
+          createdAt: new Date(Date.now() - 7 * 60 * 60 * 1000),
+        },
+        {
+          id: "b2",
+          status: "cancelled",
+          unitId: "u2",
+          propertyId: "p2",
+          userId: "user2",
+          createdAt: new Date(Date.now() - 7 * 60 * 60 * 1000),
+        },
       ];
 
       vi.doMock("@/db", () => ({
         db: {
-          select: vi.fn().mockReturnValue(
-            createAsyncArray(mockBookings)
-          ),
+          select: vi.fn().mockReturnValue(createAsyncArray(mockBookings)),
           update: vi.fn().mockReturnValue({
             set: vi.fn().mockReturnValue({
               where: vi.fn().mockResolvedValue(undefined),
             }),
           }),
-          transaction: vi.fn().mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
-            const tx = {
-              select: vi.fn().mockReturnValue(
-                createAsyncArray(mockBookings)
-              ),
-              update: vi.fn().mockReturnValue({
-                set: vi.fn().mockReturnValue({
-                  where: vi.fn().mockResolvedValue(undefined),
-                }),
-              }),
-            };
-            return callback(tx);
-          }),
+          transaction: vi
+            .fn()
+            .mockImplementation(
+              async (callback: (tx: unknown) => Promise<unknown>) => {
+                const tx = {
+                  select: vi
+                    .fn()
+                    .mockReturnValue(createAsyncArray(mockBookings)),
+                  update: vi.fn().mockReturnValue({
+                    set: vi.fn().mockReturnValue({
+                      where: vi.fn().mockResolvedValue(undefined),
+                    }),
+                  }),
+                };
+                return callback(tx);
+              },
+            ),
         },
       }));
 
-      const { cleanupExpiredBookings } = await import(
-        "@/lib/cron/cleanup-bookings"
-      );
+      const { cleanupExpiredBookings } =
+        await import("@/lib/cron/cleanup-bookings");
       const result = await cleanupExpiredBookings();
 
       expect(result.cancelledCount).toBeGreaterThan(0);
@@ -92,33 +108,32 @@ describe("Idempotency Guards (F-2)", () => {
     it("should return zero results when no pending_dp bookings exist", async () => {
       vi.doMock("@/db", () => ({
         db: {
-          select: vi.fn().mockReturnValue(
-            createAsyncArray([])
-          ),
+          select: vi.fn().mockReturnValue(createAsyncArray([])),
           update: vi.fn().mockReturnValue({
             set: vi.fn().mockReturnValue({
               where: vi.fn().mockResolvedValue(undefined),
             }),
           }),
-          transaction: vi.fn().mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
-            const tx = {
-              select: vi.fn().mockReturnValue(
-                createAsyncArray([])
-              ),
-              update: vi.fn().mockReturnValue({
-                set: vi.fn().mockReturnValue({
-                  where: vi.fn().mockResolvedValue(undefined),
-                }),
-              }),
-            };
-            return callback(tx);
-          }),
+          transaction: vi
+            .fn()
+            .mockImplementation(
+              async (callback: (tx: unknown) => Promise<unknown>) => {
+                const tx = {
+                  select: vi.fn().mockReturnValue(createAsyncArray([])),
+                  update: vi.fn().mockReturnValue({
+                    set: vi.fn().mockReturnValue({
+                      where: vi.fn().mockResolvedValue(undefined),
+                    }),
+                  }),
+                };
+                return callback(tx);
+              },
+            ),
         },
       }));
 
-      const { cleanupExpiredBookings } = await import(
-        "@/lib/cron/cleanup-bookings"
-      );
+      const { cleanupExpiredBookings } =
+        await import("@/lib/cron/cleanup-bookings");
       const result = await cleanupExpiredBookings();
 
       expect(result.cancelledCount).toBe(0);
@@ -131,40 +146,59 @@ describe("Idempotency Guards (F-2)", () => {
     it("should create inspection when none exists", async () => {
       vi.doMock("@/db", () => ({
         db: {
-          select: vi.fn().mockReturnValue(
-            createAsyncArray([
-              { id: "b1", status: "confirmed", unitId: "u1", propertyId: "p1", userId: "user1", endDate: new Date(Date.now() - 1000) },
-            ])
-          ),
+          select: vi
+            .fn()
+            .mockReturnValue(
+              createAsyncArray([
+                {
+                  id: "b1",
+                  status: "confirmed",
+                  unitId: "u1",
+                  propertyId: "p1",
+                  userId: "user1",
+                  endDate: new Date(Date.now() - 1000),
+                },
+              ]),
+            ),
           update: vi.fn().mockReturnValue({
             set: vi.fn().mockReturnValue({
               where: vi.fn().mockResolvedValue(undefined),
             }),
           }),
-          transaction: vi.fn().mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
-            const tx = {
-              select: vi.fn().mockImplementation(() => {
-                return createAsyncArray([
-                  { id: "b1", status: "confirmed", unitId: "u1", propertyId: "p1", userId: "user1", endDate: new Date(Date.now() - 1000) },
-                ]);
-              }),
-              update: vi.fn().mockReturnValue({
-                set: vi.fn().mockReturnValue({
-                  where: vi.fn().mockResolvedValue(undefined),
-                }),
-              }),
-              insert: vi.fn().mockReturnValue({
-                values: vi.fn().mockResolvedValue({ id: "insp1" }),
-              }),
-            };
-            return callback(tx);
-          }),
+          transaction: vi
+            .fn()
+            .mockImplementation(
+              async (callback: (tx: unknown) => Promise<unknown>) => {
+                const tx = {
+                  select: vi.fn().mockImplementation(() => {
+                    return createAsyncArray([
+                      {
+                        id: "b1",
+                        status: "confirmed",
+                        unitId: "u1",
+                        propertyId: "p1",
+                        userId: "user1",
+                        endDate: new Date(Date.now() - 1000),
+                      },
+                    ]);
+                  }),
+                  update: vi.fn().mockReturnValue({
+                    set: vi.fn().mockReturnValue({
+                      where: vi.fn().mockResolvedValue(undefined),
+                    }),
+                  }),
+                  insert: vi.fn().mockReturnValue({
+                    values: vi.fn().mockResolvedValue({ id: "insp1" }),
+                  }),
+                };
+                return callback(tx);
+              },
+            ),
         },
       }));
 
-      const { completeExpiredBookings } = await import(
-        "@/lib/cron/complete-bookings"
-      );
+      const { completeExpiredBookings } =
+        await import("@/lib/cron/complete-bookings");
       const result = await completeExpiredBookings();
 
       expect(result.completedCount).toBe(1);
@@ -173,42 +207,55 @@ describe("Idempotency Guards (F-2)", () => {
     it("should not create duplicate inspection when one already exists", async () => {
       vi.doMock("@/db", () => ({
         db: {
-          select: vi.fn().mockReturnValue(
-            createAsyncArray([
-              { id: "b1", status: "confirmed", unitId: "u1", propertyId: "p1", userId: "user1", endDate: new Date(Date.now() - 1000) },
-            ])
-          ),
+          select: vi
+            .fn()
+            .mockReturnValue(
+              createAsyncArray([
+                {
+                  id: "b1",
+                  status: "confirmed",
+                  unitId: "u1",
+                  propertyId: "p1",
+                  userId: "user1",
+                  endDate: new Date(Date.now() - 1000),
+                },
+              ]),
+            ),
           update: vi.fn().mockReturnValue({
             set: vi.fn().mockReturnValue({
               where: vi.fn().mockResolvedValue(undefined),
             }),
           }),
-          transaction: vi.fn().mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
-            const tx = {
-              select: vi.fn().mockImplementation((args?: unknown) => {
-                const selectArgs = args as { bookingId?: unknown } | undefined;
-                if (selectArgs?.bookingId) {
-                  return createAsyncArray([{ bookingId: "b1" }]);
-                }
-                return createAsyncArray([{ id: "insp1" }]);
-              }),
-              update: vi.fn().mockReturnValue({
-                set: vi.fn().mockReturnValue({
-                  where: vi.fn().mockResolvedValue(undefined),
-                }),
-              }),
-              insert: vi.fn().mockReturnValue({
-                values: vi.fn().mockResolvedValue({ id: "insp1" }),
-              }),
-            };
-            return callback(tx);
-          }),
+          transaction: vi
+            .fn()
+            .mockImplementation(
+              async (callback: (tx: unknown) => Promise<unknown>) => {
+                const tx = {
+                  select: vi.fn().mockImplementation((args?: unknown) => {
+                    const selectArgs = args as
+                      { bookingId?: unknown } | undefined;
+                    if (selectArgs?.bookingId) {
+                      return createAsyncArray([{ bookingId: "b1" }]);
+                    }
+                    return createAsyncArray([{ id: "insp1" }]);
+                  }),
+                  update: vi.fn().mockReturnValue({
+                    set: vi.fn().mockReturnValue({
+                      where: vi.fn().mockResolvedValue(undefined),
+                    }),
+                  }),
+                  insert: vi.fn().mockReturnValue({
+                    values: vi.fn().mockResolvedValue({ id: "insp1" }),
+                  }),
+                };
+                return callback(tx);
+              },
+            ),
         },
       }));
 
-      const { completeExpiredBookings } = await import(
-        "@/lib/cron/complete-bookings"
-      );
+      const { completeExpiredBookings } =
+        await import("@/lib/cron/complete-bookings");
       const result = await completeExpiredBookings();
 
       expect(result.completedCount).toBe(1);

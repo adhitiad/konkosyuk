@@ -8,7 +8,11 @@ import {
   YAxis,
   ReferenceLine,
 } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 type OccupancyData = {
   date: string;
@@ -21,11 +25,15 @@ function getRateColor(rate: number): string {
   return "hsl(var(--chart-1))";
 }
 
-export function OccupancyChart({ data, loading }: { data: OccupancyData[]; loading: boolean }) {
+export function OccupancyChart({
+  data,
+  loading,
+}: {
+  data: OccupancyData[];
+  loading: boolean;
+}) {
   if (loading) {
-    return (
-      <div className="h-80 w-full animate-pulse rounded-lg bg-muted" />
-    );
+    return <div className="h-80 w-full animate-pulse rounded-lg bg-muted" />;
   }
 
   if (!data.length) {
@@ -72,7 +80,11 @@ export function OccupancyChart({ data, loading }: { data: OccupancyData[]; loadi
             />
           }
         />
-        <ReferenceLine y={80} stroke="hsl(var(--chart-3))" strokeDasharray="4 4" />
+        <ReferenceLine
+          y={80}
+          stroke="hsl(var(--chart-3))"
+          strokeDasharray="4 4"
+        />
         <Line
           type="monotone"
           dataKey="rate"

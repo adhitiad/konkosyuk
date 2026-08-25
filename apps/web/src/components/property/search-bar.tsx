@@ -12,10 +12,7 @@ interface SearchBarProps {
   placeholder?: string;
 }
 
-export function SearchBar({
-  onSearch,
-  placeholder,
-}: SearchBarProps) {
+export function SearchBar({ onSearch, placeholder }: SearchBarProps) {
   const t = useTranslations("searchBar");
   const [query, setQuery] = useState("");
 

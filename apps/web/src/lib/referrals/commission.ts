@@ -35,6 +35,8 @@ export function calculateCommissionAmount(
 }
 
 export function calculateEligibleAt(fromDate: Date = new Date()): Date {
-  const eligibleAt = new Date(fromDate.getTime() + REFERRAL_ELIGIBILITY_DAYS * MS_PER_DAY);
+  const eligibleAt = new Date(
+    fromDate.getTime() + REFERRAL_ELIGIBILITY_DAYS * MS_PER_DAY,
+  );
   return eligibleAt;
 }

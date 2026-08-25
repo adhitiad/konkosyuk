@@ -211,7 +211,9 @@ export default function TenantBookingsPage() {
                       <Button
                         size="sm"
                         render={
-                          <Link href={`/${locale}/dashboard/bookings/${booking.id}`} />
+                          <Link
+                            href={`/${locale}/dashboard/bookings/${booking.id}`}
+                          />
                         }
                         nativeButton={false}
                       >

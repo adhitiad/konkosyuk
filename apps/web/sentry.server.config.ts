@@ -57,22 +57,22 @@ function scrubEvent(event: Record<string, unknown>) {
   if (event.extra) {
     event.extra = sanitizeObject(event.extra as Record<string, unknown>);
   }
-  const request = (event as Record<string, unknown>).request as Record<string, unknown> | undefined;
+  const request = event.request as Record<string, unknown> | undefined;
   if (request) {
     if (request.data) {
       const requestData = request.data;
-      event.request = {
-        ...request,
-        data: sanitizeObject(
-          typeof requestData === "string" ? JSON.parse(requestData) : requestData,
-        ),
-      };
+      const sanitizedRequest: Record<string, unknown> = { ...request };
+      sanitizedRequest.data = sanitizeObject(
+        typeof requestData === "string" ? JSON.parse(requestData) : requestData,
+      );
+      event.request = sanitizedRequest;
     }
     if (request.headers) {
-      event.request = {
-        ...(event as Record<string, unknown>).request,
-        headers: sanitizeObject(request.headers as Record<string, unknown>),
-      };
+      const sanitizedRequest: Record<string, unknown> = { ...request };
+      sanitizedRequest.headers = sanitizeObject(
+        request.headers as Record<string, unknown>,
+      );
+      event.request = sanitizedRequest;
     }
   }
   return event;
@@ -83,7 +83,9 @@ export async function register() {
     dsn: process.env.SENTRY_DSN,
     tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
     environment: process.env.NODE_ENV,
+    // @ts-ignore - Sentry type mismatch
     beforeSend: scrubEvent,
+    // @ts-ignore - Sentry type mismatch
     beforeSendTransaction: scrubEvent,
   });
 }

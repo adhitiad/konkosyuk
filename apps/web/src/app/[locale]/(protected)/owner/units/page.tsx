@@ -126,7 +126,11 @@ function OwnerUnitsPage() {
               Mulai tambahkan kamar/unit untuk properti Anda
             </p>
             <Button
-              render={<Link href={`/${locale}/owner/units/add`}>Tambah Unit Pertama</Link>}
+              render={
+                <Link href={`/${locale}/owner/units/add`}>
+                  Tambah Unit Pertama
+                </Link>
+              }
               nativeButton={false}
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -178,7 +182,9 @@ function OwnerUnitsPage() {
                 <div className="flex gap-2 pt-2">
                   <Button
                     render={
-                      <Link href={`/${locale}/owner/properties/${unit.propertyId}`}>
+                      <Link
+                        href={`/${locale}/owner/properties/${unit.propertyId}`}
+                      >
                         Detail
                       </Link>
                     }
@@ -190,9 +196,7 @@ function OwnerUnitsPage() {
                     Detail
                   </Button>
                   <Button
-                    render={
-                      <Link href={`/${locale}/owner/units`}>Edit</Link>
-                    }
+                    render={<Link href={`/${locale}/owner/units`}>Edit</Link>}
                     variant="ghost"
                     size="sm"
                     className="flex-1"

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const queues: Record<string, { name: string; opts: Record<string, unknown> }> = {};
+const queues: Record<string, { name: string; opts: Record<string, unknown> }> =
+  {};
 
 vi.mock("bullmq", () => {
   class MockQueue {

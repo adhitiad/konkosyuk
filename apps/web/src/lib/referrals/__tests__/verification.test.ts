@@ -28,7 +28,17 @@ const mockDb = vi.hoisted(() => ({
 
 vi.mock("@/db", () => ({
   db: mockDb,
-  referrals: { id: "id", refereeId: "refereeId", status: "status", category: "category", tier: "tier", referrerId: "referrerId", code: "code", refereeTransactionId: "refereeTransactionId", eligibleAt: "eligibleAt" },
+  referrals: {
+    id: "id",
+    refereeId: "refereeId",
+    status: "status",
+    category: "category",
+    tier: "tier",
+    referrerId: "referrerId",
+    code: "code",
+    refereeTransactionId: "refereeTransactionId",
+    eligibleAt: "eligibleAt",
+  },
 }));
 
 describe("startReferralVerification", () => {
@@ -81,9 +91,14 @@ describe("startReferralVerification", () => {
     });
 
     expect(mockDb.update).toHaveBeenCalled();
-    expect(mockDispatch).toHaveBeenCalledWith("owner-1", "ABC123", "verifying", {
-      eligibleAt: expect.any(String),
-    });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      "owner-1",
+      "ABC123",
+      "verifying",
+      {
+        eligibleAt: expect.any(String),
+      },
+    );
   });
 
   it("defaults category to tenant when undefined", async () => {

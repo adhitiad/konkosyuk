@@ -1,6 +1,12 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { properties, bookings, users, propertyRules, nearbyPlaces } from "@/db/schema";
+import {
+  properties,
+  bookings,
+  users,
+  propertyRules,
+  nearbyPlaces,
+} from "@/db/schema";
 import { eq, and, or, sql } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";

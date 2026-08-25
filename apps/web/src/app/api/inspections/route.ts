@@ -179,7 +179,9 @@ export async function POST(req: NextRequest) {
         actionUrl: `/owner/inspections`,
         referenceId: inspection.id,
         referenceType: "inspection",
-      }).catch((err) => logError(err, "Failed to dispatch inspection created notification"));
+      }).catch((err) =>
+        logError(err, "Failed to dispatch inspection created notification"),
+      );
     }
 
     return ok(inspection, 201);

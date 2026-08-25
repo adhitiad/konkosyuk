@@ -55,7 +55,15 @@ type AuditLogsApiResponse = {
 export function AuditLogsFilters({
   onLogsChange,
 }: {
-  onLogsChange: (logs: AuditLog[], pagination?: { page: number; limit: number; total: number; totalPages: number } | null) => void;
+  onLogsChange: (
+    logs: AuditLog[],
+    pagination?: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    } | null,
+  ) => void;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();

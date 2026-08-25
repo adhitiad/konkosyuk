@@ -60,7 +60,11 @@ export async function validateAndApplyVoucher(
 }
 
 export async function redeemVoucherAtomically(
-  tx: PgTransaction<NodePgQueryResultHKT, typeof schemaModule, ExtractTablesWithRelations<typeof schemaModule>>,
+  tx: PgTransaction<
+    NodePgQueryResultHKT,
+    typeof schemaModule,
+    ExtractTablesWithRelations<typeof schemaModule>
+  >,
   referralId: string,
 ): Promise<boolean> {
   const result = await tx

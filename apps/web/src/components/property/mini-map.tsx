@@ -17,7 +17,12 @@ interface MiniMapProps {
   onPlaceClick?: (place: NearbyPlace) => void;
 }
 
-export function MiniMap({ latitude, longitude, nearbyPlaces, onPlaceClick }: MiniMapProps) {
+export function MiniMap({
+  latitude,
+  longitude,
+  nearbyPlaces,
+  onPlaceClick,
+}: MiniMapProps) {
   return (
     <div className="w-full h-full">
       <Map

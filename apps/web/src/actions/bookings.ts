@@ -17,14 +17,14 @@ import type { NewPayment } from "@/db/schema";
 
 type BookingStatus = (typeof bookingStatus)[number];
 import { eq, and, or, gte, lte, sql, desc, inArray } from "drizzle-orm";
-import { previewAvailableOffset, computeOffsetDiscount } from "@/lib/referrals/offset";
+import {
+  previewAvailableOffset,
+  computeOffsetDiscount,
+} from "@/lib/referrals/offset";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
-import {
-  bookingQuerySchema,
-  checkoutBookingSchema,
-} from "@konkosyuk/shared";
+import { bookingQuerySchema, checkoutBookingSchema } from "@konkosyuk/shared";
 import {
   getPackageById,
   calculatePackageEndDate,
@@ -141,7 +141,10 @@ export async function createBookingAction(
       }
 
       if (unit.propertyId !== property.id) {
-        return { error: "Unit tidak milik properti ini", success: false } as const;
+        return {
+          error: "Unit tidak milik properti ini",
+          success: false,
+        } as const;
       }
 
       if (unit.status !== "available") {
@@ -188,7 +191,10 @@ export async function createBookingAction(
           desc(seasonalPricingRules.createdAt),
         );
 
-      if (validated.packageId === "custom" && property.packages.custom.enabled) {
+      if (
+        validated.packageId === "custom" &&
+        property.packages.custom.enabled
+      ) {
         const customResult = calculateCustomPrice(
           property.packages,
           validated.customDuration!,
@@ -228,7 +234,9 @@ export async function createBookingAction(
         ? "awaiting_full_payment"
         : "pending_dp";
       const bookingDpAmount = isFullPayment ? 0 : dpAmount;
-      const bookingRemainingAmount = isFullPayment ? totalPrice : remainingAmount;
+      const bookingRemainingAmount = isFullPayment
+        ? totalPrice
+        : remainingAmount;
 
       const bookingType = "instant";
 
@@ -289,14 +297,30 @@ export async function createBookingAction(
         })
         .returning();
 
-      return { success: true, booking, unit, property, totalPrice, dpAmount: bookingDpAmount, remainingAmount: bookingRemainingAmount, appliedSeasonalRuleId } as const;
+      return {
+        success: true,
+        booking,
+        unit,
+        property,
+        totalPrice,
+        dpAmount: bookingDpAmount,
+        remainingAmount: bookingRemainingAmount,
+        appliedSeasonalRuleId,
+      } as const;
     });
 
     if (!result.success) {
       return result;
     }
 
-    const { booking, unit, property: txProperty, totalPrice, dpAmount: bookingDpAmount, remainingAmount: bookingRemainingAmount } = result;
+    const {
+      booking,
+      unit,
+      property: txProperty,
+      totalPrice,
+      dpAmount: bookingDpAmount,
+      remainingAmount: bookingRemainingAmount,
+    } = result;
 
     await invalidateCacheByTag("bookings");
 
@@ -334,7 +358,9 @@ export async function createBookingAction(
         unitName: unit.name,
         bookingUrl: `${process.env.NEXT_PUBLIC_APP_URL}/owner/booking-requests`,
       },
-    }).catch((err) => logError(err, "Failed to dispatch booking created notification"));
+    }).catch((err) =>
+      logError(err, "Failed to dispatch booking created notification"),
+    );
 
     return {
       success: true,
@@ -499,7 +525,9 @@ export async function reviewBookingAction(
             property.name,
             unit.name,
             validated.note ?? undefined,
-          ).catch((err) => logError(err, "Failed to send booking rejection email"));
+          ).catch((err) =>
+            logError(err, "Failed to send booking rejection email"),
+          );
         }
 
         dispatchNotification({
@@ -567,7 +595,9 @@ export async function reviewBookingAction(
           dpAmount: Number(booking.metadata?.dpAmount ?? 0),
           invoiceUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/bookings`,
         },
-      }).catch((err) => logError(err, "Failed to dispatch booking approved notification"));
+      }).catch((err) =>
+        logError(err, "Failed to dispatch booking approved notification"),
+      );
 
       await db
         .insert(inspections)
@@ -669,7 +699,11 @@ export async function getBookingsAction(params?: {
 
       const propertyIds = ownerProperties.map((p) => p.id);
       if (propertyIds.length === 0) {
-        return { success: true, data: [], meta: { total: 0, page, limit, totalPages: 0 } };
+        return {
+          success: true,
+          data: [],
+          meta: { total: 0, page, limit, totalPages: 0 },
+        };
       }
 
       const baseWhere = inArray(bookings.propertyId, propertyIds);
@@ -736,7 +770,10 @@ export async function getBookingsAction(params?: {
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.issues[0]?.message || "Input tidak valid" };
+      return {
+        success: false,
+        error: error.issues[0]?.message || "Input tidak valid",
+      };
     }
     return { success: false, error: "Gagal memuat booking" };
   }
@@ -780,7 +817,11 @@ export async function getBookingByIdAction(bookingId: string) {
       return { success: false, error: "Booking tidak ditemukan", status: 404 };
     }
 
-    if (booking.userId !== session.user.id && session.user.role !== "admin" && session.user.role !== "staff") {
+    if (
+      booking.userId !== session.user.id &&
+      session.user.role !== "admin" &&
+      session.user.role !== "staff"
+    ) {
       return { success: false, error: "Dilarang", status: 403 };
     }
 
@@ -809,7 +850,10 @@ export async function getBookingByIdAction(bookingId: string) {
   }
 }
 
-export async function checkoutBookingAction(bookingId: string, formData: FormData) {
+export async function checkoutBookingAction(
+  bookingId: string,
+  formData: FormData,
+) {
   const csrfError = await validateActionCsrf(formData);
   if (csrfError) {
     return { success: false, error: csrfError, status: 400 };
@@ -845,16 +889,28 @@ export async function checkoutBookingAction(bookingId: string, formData: FormDat
 
     if (booking.status === "pending_dp") {
       purpose = "dp";
-      amount = booking.metadata?.dpAmount ? Number(booking.metadata.dpAmount) : 0;
+      amount = booking.metadata?.dpAmount
+        ? Number(booking.metadata.dpAmount)
+        : 0;
     } else if (booking.status === "awaiting_full_payment") {
       purpose = "full_payment";
-      amount = booking.metadata?.remainingAmount ? Number(booking.metadata.remainingAmount) : 0;
+      amount = booking.metadata?.remainingAmount
+        ? Number(booking.metadata.remainingAmount)
+        : 0;
     } else {
-      return { success: false, error: "Booking belum siap dibayar", status: 400 };
+      return {
+        success: false,
+        error: "Booking belum siap dibayar",
+        status: 400,
+      };
     }
 
     if (amount <= 0) {
-      return { success: false, error: "Jumlah pembayaran tidak valid", status: 400 };
+      return {
+        success: false,
+        error: "Jumlah pembayaran tidak valid",
+        status: 400,
+      };
     }
 
     let finalAmount = amount;
@@ -875,10 +931,15 @@ export async function checkoutBookingAction(bookingId: string, formData: FormDat
 
     const adapter = getPaymentProvider(body.paymentProvider);
     if (!adapter) {
-      return { success: false, error: "Provider pembayaran tidak didukung", status: 400 };
+      return {
+        success: false,
+        error: "Provider pembayaran tidak didukung",
+        status: 400,
+      };
     }
 
-    const validatedProvider = body.paymentProvider as "doku" | "ipaymu" | "nicepay" | "mock";
+    const validatedProvider = body.paymentProvider as
+      "doku" | "ipaymu" | "nicepay" | "mock";
 
     const [user] = await db
       .select({ name: users.name, email: users.email })
@@ -887,12 +948,21 @@ export async function checkoutBookingAction(bookingId: string, formData: FormDat
       .limit(1);
 
     if (!user?.name || !user?.email) {
-      return { success: false, error: "Nama di profil harus sesuai dengan rekening untuk keamanan", status: 403 };
+      return {
+        success: false,
+        error: "Nama di profil harus sesuai dengan rekening untuk keamanan",
+        status: 403,
+      };
     }
 
     const fraudResult = await checkFraudFlags(booking.userId, amount);
     if (fraudResult.isBlocked) {
-      return { success: false, error: fraudResult.reason ?? "Akses diblokir karena aktivitas mencurigakan", status: 403 };
+      return {
+        success: false,
+        error:
+          fraudResult.reason ?? "Akses diblokir karena aktivitas mencurigakan",
+        status: 403,
+      };
     }
 
     const invoiceNumber = generateInvoiceNumber(
@@ -978,7 +1048,11 @@ export async function checkoutBookingAction(bookingId: string, formData: FormDat
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.issues[0]?.message || "Input tidak valid", status: 400 };
+      return {
+        success: false,
+        error: error.issues[0]?.message || "Input tidak valid",
+        status: 400,
+      };
     }
     return { success: false, error: "Gagal memproses pembayaran" };
   }

@@ -21,15 +21,20 @@ const categoryLabels: Record<string, string> = {
   umum: "Fasilitas Umum",
 };
 
-function getIcon(iconName: string): React.ComponentType<{ className?: string }> | null {
+function getIcon(
+  iconName: string,
+): React.ComponentType<{ className?: string }> | null {
   const icons = LucideIcons as Record<string, unknown>;
   const Icon = icons[iconName];
-  if (typeof Icon === "function") return Icon as React.ComponentType<{ className?: string }>;
+  if (typeof Icon === "function")
+    return Icon as React.ComponentType<{ className?: string }>;
   return null;
 }
 
 export function RoomFacilitiesGrid({ facilities }: RoomFacilitiesGridProps) {
-  const entries = Object.entries(facilities).filter(([, items]) => items && items.length > 0);
+  const entries = Object.entries(facilities).filter(
+    ([, items]) => items && items.length > 0,
+  );
 
   if (entries.length === 0) return null;
 
@@ -52,7 +57,9 @@ export function RoomFacilitiesGrid({ facilities }: RoomFacilitiesGridProps) {
                     className="flex flex-col items-center gap-1.5 p-2 rounded-lg bg-muted/50 text-center text-xs text-muted-foreground"
                   >
                     {Icon && <Icon className="w-4 h-4" />}
-                    <span className="truncate w-full text-center">{item.name}</span>
+                    <span className="truncate w-full text-center">
+                      {item.name}
+                    </span>
                   </div>
                 );
               })}

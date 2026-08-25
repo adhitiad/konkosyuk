@@ -214,7 +214,9 @@ export async function reviewRefundAction(
           tenant.name,
           userRefundAmount,
           refundRequest.bookingId.slice(0, 8),
-        ).catch((err) => logError(err, "Failed to send refund approval WhatsApp"));
+        ).catch((err) =>
+          logError(err, "Failed to send refund approval WhatsApp"),
+        );
       }
 
       await createNotification(
@@ -283,7 +285,9 @@ export async function reviewRefundAction(
           tenant.name,
           booking?.propertyId ?? "",
           validated.note ?? "Permintaan refund Anda ditolak",
-        ).catch((err) => logError(err, "Failed to send refund rejection email"));
+        ).catch((err) =>
+          logError(err, "Failed to send refund rejection email"),
+        );
       }
 
       if (tenant?.phone) {
@@ -292,7 +296,9 @@ export async function reviewRefundAction(
           tenant.name,
           0,
           refundRequest.bookingId.slice(0, 8),
-        ).catch((err) => logError(err, "Failed to send refund rejection WhatsApp"));
+        ).catch((err) =>
+          logError(err, "Failed to send refund rejection WhatsApp"),
+        );
       }
 
       await createNotification(

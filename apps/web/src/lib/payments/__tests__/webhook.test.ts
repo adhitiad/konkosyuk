@@ -14,10 +14,35 @@ vi.mock("@/db", () => ({
   db: {
     transaction: vi.fn(async (fn: (tx: unknown) => unknown) => fn({})),
   },
-  payments: { id: "id", transactionId: "transactionId", status: "status", amount: "amount", purpose: "purpose", propertyId: "propertyId" },
-  webhookEvents: { id: "id", provider: "provider", eventId: "eventId", payloadHash: "payloadHash", processedAt: "processedAt", details: "details" },
-  properties: { id: "id", isFeatured: "isFeatured", featuredUntil: "featuredUntil" },
-  bookings: { id: "id", userId: "userId", propertyId: "propertyId", bookingType: "bookingType", unitId: "unitId", status: "status" },
+  payments: {
+    id: "id",
+    transactionId: "transactionId",
+    status: "status",
+    amount: "amount",
+    purpose: "purpose",
+    propertyId: "propertyId",
+  },
+  webhookEvents: {
+    id: "id",
+    provider: "provider",
+    eventId: "eventId",
+    payloadHash: "payloadHash",
+    processedAt: "processedAt",
+    details: "details",
+  },
+  properties: {
+    id: "id",
+    isFeatured: "isFeatured",
+    featuredUntil: "featuredUntil",
+  },
+  bookings: {
+    id: "id",
+    userId: "userId",
+    propertyId: "propertyId",
+    bookingType: "bookingType",
+    unitId: "unitId",
+    status: "status",
+  },
   users: { id: "id", role: "role" },
   units: { id: "id", propertyId: "propertyId" },
 }));
@@ -36,11 +61,14 @@ describe("handleWebhookRequest", () => {
   it("returns 400 for unknown provider", async () => {
     mockGetPaymentProvider.mockReturnValue(null as never);
 
-    const response = await handleWebhookRequest("invalid" as PaymentProviderName, {
-      provider: "invalid" as PaymentProviderName,
-      headers: new Headers(),
-      rawBody: "",
-    });
+    const response = await handleWebhookRequest(
+      "invalid" as PaymentProviderName,
+      {
+        provider: "invalid" as PaymentProviderName,
+        headers: new Headers(),
+        rawBody: "",
+      },
+    );
 
     expect(response.status).toBe(400);
   });

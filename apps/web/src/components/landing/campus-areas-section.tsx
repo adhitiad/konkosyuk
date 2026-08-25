@@ -98,7 +98,11 @@ export function CampusAreasSection() {
             >
               <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                 <Image
-                  src={getCloudinaryUrl(area.imageKey, { width: 96, height: 96, quality: 80 })}
+                  src={getCloudinaryUrl(area.imageKey, {
+                    width: 96,
+                    height: 96,
+                    quality: 80,
+                  })}
                   alt={area.name}
                   fill
                   className="object-cover"
@@ -119,7 +123,10 @@ export function CampusAreasSection() {
         </div>
 
         <div className="mt-4 text-center md:hidden">
-          <Link href="/properties?type=kampus" className="text-sm text-primary hover:underline">
+          <Link
+            href="/properties?type=kampus"
+            className="text-sm text-primary hover:underline"
+          >
             Lihat Semua Kampus →
           </Link>
         </div>

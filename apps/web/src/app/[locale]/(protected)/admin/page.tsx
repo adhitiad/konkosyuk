@@ -150,7 +150,7 @@ function AdminDashboardPage() {
       if (!result.success) {
         throw new Error("Gagal memuat booking bermasalah");
       }
-      const bookingsList = ((result.data ?? []) as unknown as AdminBooking[]);
+      const bookingsList = (result.data ?? []) as unknown as AdminBooking[];
       return bookingsList.filter((b) =>
         ["rejected", "cancelled"].includes(b.status),
       );

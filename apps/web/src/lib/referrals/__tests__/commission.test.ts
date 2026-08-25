@@ -51,7 +51,8 @@ describe("calculateEligibleAt", () => {
   it("returns date 5 days from now", () => {
     const now = new Date();
     const eligibleAt = calculateEligibleAt(now);
-    const diffDays = (eligibleAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+    const diffDays =
+      (eligibleAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
     expect(diffDays).toBeCloseTo(5, 0);
   });
 

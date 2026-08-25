@@ -164,7 +164,9 @@ export function Navbar() {
                   </div>
                   <SheetClose>
                     <Button
-                      render={<Link href={`/${locale}/dashboard`}>Dashboard</Link>}
+                      render={
+                        <Link href={`/${locale}/dashboard`}>Dashboard</Link>
+                      }
                       variant="default"
                       nativeButton={false}
                       className="w-full"

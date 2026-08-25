@@ -168,13 +168,26 @@ export async function GET(req: NextRequest) {
           ? 100
           : 0;
 
-    const monthlyData: { label: string; revenue: number; transactions: number }[] =
-      [];
+    const monthlyData: {
+      label: string;
+      revenue: number;
+      transactions: number;
+    }[] = [];
 
     if (query.period === "month") {
       const months = [
-        "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
-        "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "Mei",
+        "Jun",
+        "Jul",
+        "Agu",
+        "Sep",
+        "Okt",
+        "Nov",
+        "Des",
       ];
 
       for (let m = 1; m <= 12; m++) {
@@ -190,7 +203,9 @@ export async function GET(req: NextRequest) {
 
         const [revenueRow, countRow] = await Promise.all([
           db
-            .select({ sum: sql<number>`sum(CAST(${payments.amount} AS NUMERIC))` })
+            .select({
+              sum: sql<number>`sum(CAST(${payments.amount} AS NUMERIC))`,
+            })
             .from(payments)
             .where(and(...monthConditions)),
           db
@@ -219,7 +234,9 @@ export async function GET(req: NextRequest) {
 
         const [revenueRow, countRow] = await Promise.all([
           db
-            .select({ sum: sql<number>`sum(CAST(${payments.amount} AS NUMERIC))` })
+            .select({
+              sum: sql<number>`sum(CAST(${payments.amount} AS NUMERIC))`,
+            })
             .from(payments)
             .where(and(...quarterConditions)),
           db
@@ -248,7 +265,9 @@ export async function GET(req: NextRequest) {
 
         const [revenueRow, countRow] = await Promise.all([
           db
-            .select({ sum: sql<number>`sum(CAST(${payments.amount} AS NUMERIC))` })
+            .select({
+              sum: sql<number>`sum(CAST(${payments.amount} AS NUMERIC))`,
+            })
             .from(payments)
             .where(and(...yearConditions)),
           db
@@ -280,7 +299,10 @@ export async function GET(req: NextRequest) {
       })
       .from(payments)
       .innerJoin(properties, eq(payments.propertyId, properties.id))
-      .leftJoin(units, and(eq(units.propertyId, properties.id), eq(units.status, "booked")))
+      .leftJoin(
+        units,
+        and(eq(units.propertyId, properties.id), eq(units.status, "booked")),
+      )
       .leftJoin(
         bookings,
         and(

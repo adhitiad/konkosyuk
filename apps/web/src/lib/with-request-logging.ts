@@ -22,7 +22,14 @@ export async function withRequestLogging(
     const duration = Date.now() - startTime;
     const userId = (req as AuthenticatedRequest).user?.id;
 
-    logApiRequest(req.method, req.nextUrl.pathname, response.status, duration, userId, requestId);
+    logApiRequest(
+      req.method,
+      req.nextUrl.pathname,
+      response.status,
+      duration,
+      userId,
+      requestId,
+    );
 
     response.headers.set("x-request-id", requestId);
     return response;
@@ -30,7 +37,14 @@ export async function withRequestLogging(
     const duration = Date.now() - startTime;
     const userId = (req as AuthenticatedRequest).user?.id;
 
-    logApiRequest(req.method, req.nextUrl.pathname, 500, duration, userId, requestId);
+    logApiRequest(
+      req.method,
+      req.nextUrl.pathname,
+      500,
+      duration,
+      userId,
+      requestId,
+    );
     logError(error, `${req.method} ${req.nextUrl.pathname}`, {
       requestId,
       ip,

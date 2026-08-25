@@ -34,10 +34,7 @@ export async function POST(
         .select()
         .from(propertyAds)
         .where(
-          and(
-            eq(propertyAds.id, id),
-            eq(propertyAds.paymentStatus, "pending"),
-          ),
+          and(eq(propertyAds.id, id), eq(propertyAds.paymentStatus, "pending")),
         )
         .for("update")
         .limit(1);
@@ -55,10 +52,7 @@ export async function POST(
           updatedAt: new Date(),
         })
         .where(
-          and(
-            eq(propertyAds.id, id),
-            eq(propertyAds.paymentStatus, "pending"),
-          ),
+          and(eq(propertyAds.id, id), eq(propertyAds.paymentStatus, "pending")),
         )
         .returning();
 

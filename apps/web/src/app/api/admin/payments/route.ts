@@ -1,12 +1,6 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
-import {
-  payments,
-  bookings,
-  units,
-  properties,
-  users,
-} from "@/db/schema";
+import { payments, bookings, units, properties, users } from "@/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { validateAdminRequest } from "@/lib/api-auth";
@@ -41,7 +35,9 @@ const createManualPaymentSchema = z.object({
 const paymentQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
-  status: z.enum(["pending", "success", "failed", "expired", "refunded"]).optional(),
+  status: z
+    .enum(["pending", "success", "failed", "expired", "refunded"])
+    .optional(),
 });
 
 export async function GET(req: NextRequest) {
@@ -85,7 +81,10 @@ export async function GET(req: NextRequest) {
       db.select({ count: sql<number>`count(*)` }).from(payments),
     ]);
 
-    return ok({ data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } });
+    return ok({
+      data,
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
   } catch (error) {
     return handleApiError(error, "GET /api/admin/payments");
   }

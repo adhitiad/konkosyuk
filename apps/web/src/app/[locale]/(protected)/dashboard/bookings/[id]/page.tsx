@@ -614,7 +614,12 @@ export default function BookingDetailPage() {
               {booking.status === "pending_dp" && (
                 <Button
                   render={
-                    <Link href={localeHref(locale, `/dashboard/bookings/${booking.id}/checkout?purpose=dp`)} />
+                    <Link
+                      href={localeHref(
+                        locale,
+                        `/dashboard/bookings/${booking.id}/checkout?purpose=dp`,
+                      )}
+                    />
                   }
                   className="w-full"
                   nativeButton={false}
@@ -625,7 +630,12 @@ export default function BookingDetailPage() {
               {booking.status === "awaiting_full_payment" && (
                 <Button
                   render={
-                    <Link href={localeHref(locale, `/dashboard/bookings/${booking.id}/checkout?purpose=full_payment`)} />
+                    <Link
+                      href={localeHref(
+                        locale,
+                        `/dashboard/bookings/${booking.id}/checkout?purpose=full_payment`,
+                      )}
+                    />
                   }
                   className="w-full"
                   nativeButton={false}
@@ -635,7 +645,11 @@ export default function BookingDetailPage() {
               )}
               {booking.status === "confirmed" && (
                 <Button
-                  render={<Link href={`/${locale}/properties/${booking.propertyId}`} />}
+                  render={
+                    <Link
+                      href={`/${locale}/properties/${booking.propertyId}`}
+                    />
+                  }
                   variant="outline"
                   className="w-full"
                   nativeButton={false}

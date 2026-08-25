@@ -29,12 +29,13 @@ describe("sync-worker-env.ts", () => {
         "NEXT_PUBLIC_APP_URL=https://test.com",
         "REDIS_URL=rediss://default:token@upstash.io:6379",
         "NEXT_PUBLIC_SENTRY_DSN=https://sentry.io/123",
-      ].join("\n")
+      ].join("\n"),
     );
 
     await import("../sync-worker-env");
 
-    const writtenContent = vi.mocked(fs.writeFileSync).mock.calls[0]?.[1] as string;
+    const writtenContent = vi.mocked(fs.writeFileSync).mock
+      .calls[0]?.[1] as string;
     expect(writtenContent).toContain("DATABASE_URL");
     expect(writtenContent).toContain("REDIS_URL");
     expect(writtenContent).not.toContain("NEXT_PUBLIC_");
@@ -49,12 +50,13 @@ describe("sync-worker-env.ts", () => {
         "VERCEL_URL=https://test.vercel.app",
         "VERCEL_GIT_COMMIT_SHA=abc123",
         "REDIS_URL=rediss://default:token@upstash.io:6379",
-      ].join("\n")
+      ].join("\n"),
     );
 
     await import("../sync-worker-env");
 
-    const writtenContent = vi.mocked(fs.writeFileSync).mock.calls[0]?.[1] as string;
+    const writtenContent = vi.mocked(fs.writeFileSync).mock
+      .calls[0]?.[1] as string;
     expect(writtenContent).not.toContain("VERCEL_");
     expect(writtenContent).toContain("DATABASE_URL");
   });
@@ -68,12 +70,13 @@ describe("sync-worker-env.ts", () => {
         "SENTRY_DSN=https://sentry.io/123",
         "SENTRY_AUTH_TOKEN=xyz",
         "REDIS_URL=rediss://default:token@upstash.io:6379",
-      ].join("\n")
+      ].join("\n"),
     );
 
     await import("../sync-worker-env");
 
-    const writtenContent = vi.mocked(fs.writeFileSync).mock.calls[0]?.[1] as string;
+    const writtenContent = vi.mocked(fs.writeFileSync).mock
+      .calls[0]?.[1] as string;
     expect(writtenContent).not.toContain("SENTRY_");
     expect(writtenContent).toContain("REDIS_URL");
   });
@@ -87,12 +90,13 @@ describe("sync-worker-env.ts", () => {
         "EMPTY_VALUE=",
         "REDIS_URL=",
         "ANOTHER_KEY=value",
-      ].join("\n")
+      ].join("\n"),
     );
 
     await import("../sync-worker-env");
 
-    const writtenContent = vi.mocked(fs.writeFileSync).mock.calls[0]?.[1] as string;
+    const writtenContent = vi.mocked(fs.writeFileSync).mock
+      .calls[0]?.[1] as string;
     expect(writtenContent).not.toContain("EMPTY_VALUE=");
     expect(writtenContent).not.toContain("REDIS_URL=");
     expect(writtenContent).toContain("ANOTHER_KEY=value");
@@ -107,12 +111,13 @@ describe("sync-worker-env.ts", () => {
         "DATABASE_URL=postgres://localhost/test",
         "# Another comment",
         "REDIS_URL=rediss://default:token@upstash.io:6379",
-      ].join("\n")
+      ].join("\n"),
     );
 
     await import("../sync-worker-env");
 
-    const writtenContent = vi.mocked(fs.writeFileSync).mock.calls[0]?.[1] as string;
+    const writtenContent = vi.mocked(fs.writeFileSync).mock
+      .calls[0]?.[1] as string;
     expect(writtenContent).not.toContain("# This is a comment");
     expect(writtenContent).toContain("DATABASE_URL");
   });
@@ -124,27 +129,29 @@ describe("sync-worker-env.ts", () => {
       .mockReturnValueOnce(true);
 
     vi.mocked(fs.readFileSync).mockReturnValue(
-      "DATABASE_URL=postgres://localhost/test\nREDIS_URL=rediss://default:token@upstash.io:6379"
+      "DATABASE_URL=postgres://localhost/test\nREDIS_URL=rediss://default:token@upstash.io:6379",
     );
 
     await import("../sync-worker-env");
 
     expect(fs.writeFileSync).toHaveBeenCalledWith(
       expect.stringContaining(".env.worker"),
-      expect.stringContaining("DATABASE_URL")
+      expect.stringContaining("DATABASE_URL"),
     );
   });
 
   it("should write to .env.worker", async () => {
     const fs = await import("node:fs");
     vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(fs.readFileSync).mockReturnValue("DATABASE_URL=postgres://localhost/test");
+    vi.mocked(fs.readFileSync).mockReturnValue(
+      "DATABASE_URL=postgres://localhost/test",
+    );
 
     await import("../sync-worker-env");
 
     expect(fs.writeFileSync).toHaveBeenCalledWith(
       ".env.worker",
-      expect.any(String)
+      expect.any(String),
     );
   });
 });

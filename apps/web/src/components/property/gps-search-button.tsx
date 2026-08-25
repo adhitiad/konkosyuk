@@ -23,8 +23,16 @@ export function GpsSearchButton({
   onLocationChange,
   onClear,
 }: GpsSearchButtonProps) {
-  const { enabled, loading, error, latitude, longitude, setEnabled, requestLocation, clearLocation } =
-    useGeolocation();
+  const {
+    enabled,
+    loading,
+    error,
+    latitude,
+    longitude,
+    setEnabled,
+    requestLocation,
+    clearLocation,
+  } = useGeolocation();
 
   const handleClick = useCallback(() => {
     if (enabled) {

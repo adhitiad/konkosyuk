@@ -78,7 +78,9 @@ describe("GET /api/properties", () => {
   it("returns error for invalid latitude", async () => {
     const req = {
       url: "http://localhost/api/properties?lat=invalid&lng=106.8456&radius=30",
-      nextUrl: new URL("http://localhost/api/properties?lat=invalid&lng=106.8456&radius=30"),
+      nextUrl: new URL(
+        "http://localhost/api/properties?lat=invalid&lng=106.8456&radius=30",
+      ),
       headers: new Headers(),
     } as unknown as Parameters<typeof GET>[0];
 
@@ -92,7 +94,9 @@ describe("GET /api/properties", () => {
   it("returns error for invalid longitude", async () => {
     const req = {
       url: "http://localhost/api/properties?lat=-6.2088&lng=invalid&radius=30",
-      nextUrl: new URL("http://localhost/api/properties?lat=-6.2088&lng=invalid&radius=30"),
+      nextUrl: new URL(
+        "http://localhost/api/properties?lat=-6.2088&lng=invalid&radius=30",
+      ),
       headers: new Headers(),
     } as unknown as Parameters<typeof GET>[0];
 
@@ -109,7 +113,9 @@ describe("GET /api/properties", () => {
       [{ count: 1 }],
     ]);
 
-    mockGetCachedData.mockImplementation((_key: string, fn: () => Promise<unknown>) => fn());
+    mockGetCachedData.mockImplementation(
+      (_key: string, fn: () => Promise<unknown>) => fn(),
+    );
 
     const req = {
       url: "http://localhost/api/properties",
@@ -134,16 +140,17 @@ describe("GET /api/properties", () => {
       distance: 4.2,
     };
 
-    setupMocks([
-      [propertyRow],
-      [{ count: 1 }],
-    ]);
+    setupMocks([[propertyRow], [{ count: 1 }]]);
 
-    mockGetCachedData.mockImplementation((_key: string, fn: () => Promise<unknown>) => fn());
+    mockGetCachedData.mockImplementation(
+      (_key: string, fn: () => Promise<unknown>) => fn(),
+    );
 
     const req = {
       url: "http://localhost/api/properties?lat=-6.2088&lng=106.8456&radius=30",
-      nextUrl: new URL("http://localhost/api/properties?lat=-6.2088&lng=106.8456&radius=30"),
+      nextUrl: new URL(
+        "http://localhost/api/properties?lat=-6.2088&lng=106.8456&radius=30",
+      ),
       headers: new Headers(),
     } as unknown as Parameters<typeof GET>[0];
 
@@ -170,11 +177,15 @@ describe("GET /api/properties", () => {
       [{ count: 1 }],
     ]);
 
-    mockGetCachedData.mockImplementation((_key: string, fn: () => Promise<unknown>) => fn());
+    mockGetCachedData.mockImplementation(
+      (_key: string, fn: () => Promise<unknown>) => fn(),
+    );
 
     const req = {
       url: "http://localhost/api/properties?lat=-6.2088&lng=106.8456&radius=30",
-      nextUrl: new URL("http://localhost/api/properties?lat=-6.2088&lng=106.8456&radius=30"),
+      nextUrl: new URL(
+        "http://localhost/api/properties?lat=-6.2088&lng=106.8456&radius=30",
+      ),
       headers: new Headers(),
     } as unknown as Parameters<typeof GET>[0];
 

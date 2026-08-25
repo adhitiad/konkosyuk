@@ -2,7 +2,10 @@
 import { Worker } from "bullmq";
 import { QueueEvents } from "bullmq";
 
-import { getSharedRedisConnection, closeSharedRedisConnection } from "@/lib/redis";
+import {
+  getSharedRedisConnection,
+  closeSharedRedisConnection,
+} from "@/lib/redis";
 import { logInfo, logWarn } from "@/lib/logger";
 
 import { processCleanupExpiredBookings } from "@/workers/processors/cleanup.processor";
@@ -92,7 +95,14 @@ export function startWorkers() {
     },
   );
 
-  workers.push(cleanupWorker, completeWorker, savedSearchWorker, updateAreaCountsWorker, processExpiredRefundsWorker, referralEligibilitySweepWorker);
+  workers.push(
+    cleanupWorker,
+    completeWorker,
+    savedSearchWorker,
+    updateAreaCountsWorker,
+    processExpiredRefundsWorker,
+    referralEligibilitySweepWorker,
+  );
 
   const queueNames = [
     CLEANUP_QUEUE_NAME,

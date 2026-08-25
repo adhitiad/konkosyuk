@@ -55,10 +55,7 @@ export async function GET(req: NextRequest) {
       })
       .from(properties)
       .where(
-        and(
-          ilike(properties.city, `%${q}%`),
-          eq(properties.isActive, true),
-        ),
+        and(ilike(properties.city, `%${q}%`), eq(properties.isActive, true)),
       )
       .groupBy(properties.city, properties.province)
       .orderBy(sql`count(*) desc`)

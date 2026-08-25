@@ -36,7 +36,11 @@ export async function GET(req: NextRequest) {
           start = new Date(now.getFullYear(), now.getMonth(), 1);
           break;
         case "quarter":
-          start = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+          start = new Date(
+            now.getFullYear(),
+            Math.floor(now.getMonth() / 3) * 3,
+            1,
+          );
           break;
         case "year":
           start = new Date(now.getFullYear(), 0, 1);
@@ -130,19 +134,28 @@ export async function GET(req: NextRequest) {
       )
       .groupBy(propertyAds.packageId, adPackages.label, adPackages.tier);
 
-    const conversionRate = totalPaid + totalPending > 0 ? (totalPaid / (totalPaid + totalPending)) * 100 : 0;
+    const conversionRate =
+      totalPaid + totalPending > 0
+        ? (totalPaid / (totalPaid + totalPending)) * 100
+        : 0;
 
     return ok({
       totalRevenue: Number(totalRevenue) || 0,
       totalPaid: Number(totalPaid) || 0,
       totalPending: Number(totalPending) || 0,
       conversionRate: conversionRate.toFixed(1),
-      byTier: byTier.reduce<Record<string, { revenue: number; count: number }>>((acc, row) => {
-        if (row.tier) {
-          acc[row.tier] = { revenue: Number(row.revenue), count: Number(row.count) };
-        }
-        return acc;
-      }, {}),
+      byTier: byTier.reduce<Record<string, { revenue: number; count: number }>>(
+        (acc, row) => {
+          if (row.tier) {
+            acc[row.tier] = {
+              revenue: Number(row.revenue),
+              count: Number(row.count),
+            };
+          }
+          return acc;
+        },
+        {},
+      ),
       byPackage: byPackage.map((row) => ({
         packageId: row.packageId,
         label: row.label,

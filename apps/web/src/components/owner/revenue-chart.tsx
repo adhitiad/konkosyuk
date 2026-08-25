@@ -1,13 +1,11 @@
 "use client";
 
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 type RevenueData = {
   label: string;
@@ -28,11 +26,15 @@ function formatRupiah(value: number): string {
   return `Rp ${value}`;
 }
 
-export function RevenueChart({ data, loading }: { data: RevenueData[]; loading: boolean }) {
+export function RevenueChart({
+  data,
+  loading,
+}: {
+  data: RevenueData[];
+  loading: boolean;
+}) {
   if (loading) {
-    return (
-      <div className="h-80 w-full animate-pulse rounded-lg bg-muted" />
-    );
+    return <div className="h-80 w-full animate-pulse rounded-lg bg-muted" />;
   }
 
   if (!data.length) {
@@ -54,9 +56,7 @@ export function RevenueChart({ data, loading }: { data: RevenueData[]; loading: 
       <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="label" />
-        <YAxis
-          tickFormatter={(value: number) => formatRupiah(value)}
-        />
+        <YAxis tickFormatter={(value: number) => formatRupiah(value)} />
         <ChartTooltip
           content={
             <ChartTooltipContent

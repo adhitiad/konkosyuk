@@ -20,12 +20,17 @@ describe("DetailSidebar", () => {
   };
 
   const nearbyPlaces = [
-    { id: "1", name: "Warung", type: "makanan", distance: 100, latitude: 0, longitude: 0 },
+    {
+      id: "1",
+      name: "Warung",
+      type: "makanan",
+      distance: 100,
+      latitude: 0,
+      longitude: 0,
+    },
   ];
 
-  const rules = [
-    { id: "1", rule: "Tidak merokok", sortOrder: 1 },
-  ];
+  const rules = [{ id: "1", rule: "Tidak merokok", sortOrder: 1 }];
 
   const reviews = {
     averageRating: 4.5,

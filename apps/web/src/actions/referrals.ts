@@ -32,12 +32,17 @@ export async function linkReferralCode(
       const [referral] = await tx
         .select()
         .from(referrals)
-        .where(and(eq(referrals.code, refCode), eq(referrals.status, "pending")))
+        .where(
+          and(eq(referrals.code, refCode), eq(referrals.status, "pending")),
+        )
         .for("update")
         .limit(1);
 
       if (!referral) {
-        return { success: false, error: "Kode referral tidak valid atau sudah digunakan" } as const;
+        return {
+          success: false,
+          error: "Kode referral tidak valid atau sudah digunakan",
+        } as const;
       }
 
       await tx

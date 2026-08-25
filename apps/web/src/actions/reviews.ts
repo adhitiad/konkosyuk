@@ -18,7 +18,10 @@ import { MAX_REVIEW_LENGTH } from "@/lib/constants/actions";
 const createReviewSchema = z.object({
   type: z.enum(["tenant", "property"]),
   rating: z.coerce.number().int().min(1).max(5),
-  comment: z.string().max(MAX_REVIEW_LENGTH).min(1, "Komentar tidak boleh kosong"),
+  comment: z
+    .string()
+    .max(MAX_REVIEW_LENGTH)
+    .min(1, "Komentar tidak boleh kosong"),
   bookingId: z.string().uuid(),
   reviewedUserId: z.string().uuid().optional(),
   propertyId: z.string().uuid().optional(),
@@ -251,7 +254,11 @@ export async function replyReviewAction(
 
     await invalidateCacheByTag("reviews");
 
-    if (review.reviewedUserId && review.reviewedUserId !== session.user.id && review.propertyId) {
+    if (
+      review.reviewedUserId &&
+      review.reviewedUserId !== session.user.id &&
+      review.propertyId
+    ) {
       const [property] = await db
         .select({ name: properties.name })
         .from(properties)

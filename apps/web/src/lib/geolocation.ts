@@ -74,16 +74,10 @@ export function getUserLocation(): Promise<{
             reject(new Error("Tidak dapat menemukan lokasi Anda."));
             break;
           case error.TIMEOUT:
-            reject(
-              new Error(
-                "Permintaan lokasi timeout. Silakan coba lagi.",
-              ),
-            );
+            reject(new Error("Permintaan lokasi timeout. Silakan coba lagi."));
             break;
           default:
-            reject(
-              new Error("Gagal mendapatkan lokasi."),
-            );
+            reject(new Error("Gagal mendapatkan lokasi."));
         }
       },
       {

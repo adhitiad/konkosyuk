@@ -45,7 +45,10 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const sessionId = url.searchParams.get("verificationSessionId");
   if (sessionId) {
-    return ok({ sessionId, message: "Redirect to KYC page for status polling" });
+    return ok({
+      sessionId,
+      message: "Redirect to KYC page for status polling",
+    });
   }
   return ok({ received: true });
 }
@@ -94,14 +97,13 @@ export async function POST(req: NextRequest) {
       return fail("Invalid signature", 401);
     }
 
-    const { status, vendor_data, session_id, decision } =
-      parsed as {
-        event_id?: string;
-        status?: string;
-        vendor_data?: string;
-        session_id?: string;
-        decision?: unknown;
-      };
+    const { status, vendor_data, session_id, decision } = parsed as {
+      event_id?: string;
+      status?: string;
+      vendor_data?: string;
+      session_id?: string;
+      decision?: unknown;
+    };
 
     const lookupKey = (vendor_data || session_id) as string | undefined;
     if (!lookupKey) {
@@ -121,7 +123,9 @@ export async function POST(req: NextRequest) {
       .limit(1);
 
     if (!verification) {
-      logSecurityEvent("kyc_webhook_verification_not_found", { lookupKey: lookupKey || "" });
+      logSecurityEvent("kyc_webhook_verification_not_found", {
+        lookupKey: lookupKey || "",
+      });
       return fail("Session not found", 404);
     }
 
@@ -148,11 +152,10 @@ export async function POST(req: NextRequest) {
       .update(kycVerifications)
       .set({
         status: newKycVerificationStatus,
-        rejectionReason: (
-          (decision as Record<string, unknown> | undefined)?.rejection_reason ??
+        rejectionReason: ((decision as Record<string, unknown> | undefined)
+          ?.rejection_reason ??
           (decision as Record<string, unknown> | undefined)?.rejectionReason ??
-          null
-        ) as string | null,
+          null) as string | null,
         updatedAt: new Date(),
       })
       .where(eq(kycVerifications.id, verification.id));
