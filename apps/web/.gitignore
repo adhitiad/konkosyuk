@@ -65,3 +65,6 @@ SECURITY_**_**.md
 /drizzle-backup-**
 /src/db/schema.ts.backup
 
+
+# Sentry Config File
+.env.sentry-build-plugin
