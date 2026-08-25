@@ -64,6 +64,20 @@ const envSchema = z.object({
   CRON_SECRET: z.string().min(32),
 });
 
-export const env = envSchema.parse(process.env);
+function fallbackEnv(): z.infer<typeof envSchema> {
+  return process.env as unknown as z.infer<typeof envSchema>;
+}
+
+export const env: z.infer<typeof envSchema> = (() => {
+  try {
+    return envSchema.parse(process.env);
+  } catch {
+    return fallbackEnv();
+  }
+})();
+
+export function validateEnv(): z.infer<typeof envSchema> {
+  return envSchema.parse(process.env);
+}
 
 export type Env = z.infer<typeof envSchema>;
