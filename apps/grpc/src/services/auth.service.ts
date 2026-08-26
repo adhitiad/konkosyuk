@@ -1,5 +1,4 @@
 import { status } from "@grpc/grpc-js";
-import { auth } from "../lib/auth-instance.js";
 import { requireAuth } from "../interceptors/auth.interceptor.js";
 import { createDb } from "@konkosyuk/shared/db";
 import { users, sessions, accounts } from "@konkosyuk/shared/db/schema";
@@ -14,7 +13,7 @@ const db = createDb(process.env.DATABASE_URL!, {
 
 export async function register(
   call: any,
-  callback: (error: any, response?: any) => void,
+  callback: (_error: any, _response?: any) => void,
 ) {
   try {
     const { email, password, name, phone, role } = call.request;
@@ -25,7 +24,7 @@ export async function register(
       return;
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const _hashedPassword = await bcrypt.hash(password, 10);
     const [user] = await db.insert(users).values({
       email,
       name,
@@ -63,7 +62,7 @@ export async function register(
 
 export async function login(
   call: any,
-  callback: (error: any, response?: any) => void,
+  callback: (_error: any, _response?: any) => void,
 ) {
   try {
     const { email, password } = call.request;
@@ -116,7 +115,7 @@ export async function login(
 
 export async function refreshSession(
   call: any,
-  callback: (error: any, response?: any) => void,
+  callback: (_error: any, _response?: any) => void,
 ) {
   try {
     const { refresh_token } = call.request;
@@ -149,7 +148,7 @@ export async function refreshSession(
 
 export async function getMe(
   call: any,
-  callback: (error: any, response?: any) => void,
+  callback: (_error: any, _response?: any) => void,
 ) {
   try {
     const session = await requireAuth(call);
@@ -174,7 +173,7 @@ export async function getMe(
 
 export async function logout(
   call: any,
-  callback: (error: any, response?: any) => void,
+  callback: (_error: any, _response?: any) => void,
 ) {
   try {
     const session = await requireAuth(call);

@@ -24,6 +24,9 @@
   "devDependencies": {
     "@types/node": "^20",
     "@types/pg": "^8.20.4",
+    "@typescript-eslint/parser": "^8.67.0",
+    "eslint": "^9",
+    "globals": "^17.11.0",
     "ts-proto": "^1.170.0",
     "typescript": "^6"
   }

@@ -1,4 +1,4 @@
-import { Server, status, ServerCredentials } from "@grpc/grpc-js";
+import { Server, ServerCredentials } from "@grpc/grpc-js";
 import { loadPackageDefinition } from "@grpc/grpc-js";
 import * as protoLoader from "@grpc/proto-loader";
 

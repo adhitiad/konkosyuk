@@ -1,4 +1,4 @@
-import { ServerUnaryCall, status } from "@grpc/grpc-js";
+import { ServerUnaryCall } from "@grpc/grpc-js";
 import { auth } from "../lib/auth-instance.js";
 
 type GrpcMetadata = { [key: string]: string | string[] | Buffer | Buffer[] };
@@ -12,7 +12,7 @@ function getBearerToken(meta: GrpcMetadata): string | undefined {
 }
 
 export async function requireAuth(call: ServerUnaryCall<any, any>) {
-  const token = getBearerToken(call.metadata as GrpcMetadata);
+  const token = getBearerToken(call.metadata as unknown as GrpcMetadata);
   if (!token) {
     throw new Error("Missing authorization token");
   }

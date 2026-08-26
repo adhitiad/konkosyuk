@@ -1,18 +1,11 @@
 import { status } from "@grpc/grpc-js";
-import { requireAuth } from "../interceptors/auth.interceptor.js";
-import type {
-  ListPropertiesRequest,
-  ListPropertiesResponse,
-  GetPropertyRequest,
-  GetPropertyResponse,
-} from "../gen/konkosyuk/v1/properties_pb.js";
 
 export async function listProperties(
   call: any,
-  callback: (error: any, response?: any) => void,
+  callback: (_error: any, _response?: any) => void,
 ) {
   try {
-    const { pagination, type, city, search, is_featured, amenities, min_price, max_price } = call.request;
+    const { pagination, _type, _city, _search, _is_featured, _amenities, _min_price, _max_price } = call.request;
 
     callback(null, {
       properties: [],
@@ -22,7 +15,7 @@ export async function listProperties(
         limit: pagination?.limit ?? 10,
         total_pages: 0,
       },
-    } satisfies ListPropertiesResponse);
+    });
   } catch (error) {
     callback({ code: status.INTERNAL, message: (error as Error).message });
   }
@@ -30,15 +23,15 @@ export async function listProperties(
 
 export async function getProperty(
   call: any,
-  callback: (error: any, response?: any) => void,
+  callback: (_error: any, _response?: any) => void,
 ) {
   try {
-    const { id } = call.request;
+    const { _id } = call.request;
 
     callback(null, {
       property: undefined,
       units: [],
-    } satisfies GetPropertyResponse);
+    });
   } catch (error) {
     callback({ code: status.INTERNAL, message: (error as Error).message });
   }
