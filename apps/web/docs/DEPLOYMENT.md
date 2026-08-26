@@ -93,11 +93,14 @@ Pipeline GitHub Actions akan berjalan otomatis pada:
 | ------------ | -------------------------------------------- |
 | `lint`       | ESLint check                                 |
 | `typecheck`  | TypeScript type checking                     |
-| `unit-tests` | Vitest unit tests dengan coverage            |
-| `e2e-tests`  | Playwright E2E tests                         |
+| `unit-tests` | Vitest unit tests (watch mode di lokal)      |
+| `e2e`        | Playwright E2E tests                         |
 | `security`   | `bun audit` untuk dependency vulnerabilities |
+| `coverage`   | Vitest coverage report → Codecov             |
 | `build`      | Next.js production build                     |
-| `deploy`     | Deploy ke Netlify (hanya untuk branch main)  |
+
+> **Package Manager:** Semua CI workflow memakai **Bun 1.4.0**. Jika versi lokal berbeda, jalankan `bun install` untuk me-resync `bun.lock`.  
+> **Dependency Caching:** `actions/cache@v4` mereferensi `hashFiles('**/bun.lock')` (format teks). Cache key akan invalid otomatis ketika lockfile berubah, sehingga tidak pernah merestore `node_modules`/`.bun/install/cache` dari run dengan versi bun tak kompatibel.
 
 ### Secrets yang Diperlukan
 

@@ -216,7 +216,7 @@ Tambahkan screenshot jika applicable.
 - OS: [e.g. Windows 11, macOS Sonoma]
 - Browser: [e.g. Chrome 120, Firefox 121]
 - Node.js: [e.g. 20.10.0]
-- Bun: [e.g. 1.3.14]
+- Bun: [e.g. 1.4.0]
 
 ## Additional Context
 

@@ -69,7 +69,7 @@ Platform booking kost & kontrakan modern dengan pembayaran aman, verifikasi KYC,
 Sebelum memulai, pastikan Anda telah menginstal:
 
 - [Node.js](https://nodejs.org/) >= 18.18.0
-- [Bun](https://bun.sh/) >= 1.3.14
+- [Bun](https://bun.sh/) >= 1.4.0
 - [PostgreSQL](https://www.postgresql.org/) >= 14
 - [Redis](https://redis.io/) (untuk rate limiting & notifications)
 - [Git](https://git-scm.com/)

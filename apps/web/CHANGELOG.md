@@ -33,6 +33,8 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/lang/id/).
 ### Fixed
 
 - Vercel build `ENOENT` error pada `next-server.js.nft.json` dengan menghapus `outputDirectory` eksplisit dari `vercel.json`
+- Fix CI cache poisoning: `hashFiles('**/bun.lockb')` → `hashFiles('**/bun.lock')` karena repo memakai format teks `bun.lock` (bukan binari `bun.lockb`), sehingga hash selalu string kosong dan cache key statis (`${{ runner.os }}-bun-`) menyebabkan restore cache lama (bun 1.3.14) di bawah bun 1.4.0
+- Dokumentasi CI/CD di `docs/DEPLOYMENT.md`: koreksi jobs table (ganti `unit-tests`/`e2e-tests`/`deploy` → `e2e`/`coverage`) dan tambahkan catatan standardisasi Bun 1.4.0 serta dependency caching dengan `hashFiles('**/bun.lock')`
 
 ### Changed
 
@@ -48,6 +50,7 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/lang/id/).
 - Rate limiter kini fail-closed (mengembalikan 503 saat Redis tidak tersedia, bukan unlimited access)
 - Payment gateway URLs menggunakan `NEXT_PUBLIC_APP_URL_SECONDARY` fallback (menggantikan `NEXT_PUBLIC_APP_URL1`)
 - Docker healthcheck menggunakan `curl -f` ke `/api/health/live`
+- Standardisasi semua CI workflow ke `bun-version: 1.4.0` (job `lint`/`coverage`/`audit` sudah 1.4.0; `typecheck`, `unit-tests`, `build`, `e2e` sebelumnya masih 1.3.14)
 
 ### Security
 
@@ -216,8 +219,8 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/lang/id/).
 - Phase 28: GitHub Actions CI/CD pipeline with 3 workflows:
   - `.github/workflows/ci-fast.yml`: Lint, typecheck, unit tests (parallel, on every PR/push)
   - `.github/workflows/ci-slow.yml`: Coverage report, build verification, E2E tests (on main/develop)
-  - `.github/workflows/security.yml`: Dependency audit (bun audit), secrets scanning (TruffleHog), SAST (Semgrep)
-- Phase 28: Proper dependency caching with `actions/cache@v4` using `bun.lockb` hash
+  - `.github/workflows/security.yml`: Dependency audit (`bun audit`), secrets scanning (TruffleHog), SAST (Semgrep)
+- Phase 28: Proper dependency caching with `actions/cache@v4` using `bun.lock` hash
 - Phase 28: Separate fast/slow checks to optimize CI feedback time
 - Phase 28: Codecov integration for coverage tracking
 - Phase 28: Playwright E2E tests with artifact upload on failure

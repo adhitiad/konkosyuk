@@ -3,7 +3,7 @@
 **Project:** KonkosYuk Booking System  
 **App Path:** `apps/web`  
 **Framework:** Next.js 16.3.1 + React 19.2.8 + TypeScript 6.0.3  
-**Package Manager:** Bun 1.3.14  
+**Package Manager:** Bun 1.4.0  
 **Database:** PostgreSQL (Drizzle ORM)  
 **Cache/Queue:** Redis (ioredis) + BullMQ  
 **Last Updated:** 2026-08-25
@@ -42,7 +42,7 @@
 | ---- | ----------------------------------------------------- | ------ | -------- |
 | 1.1  | `bun run build` succeeds on clean clone               | ☐      |          |
 | 1.2  | Build output deterministic (same input → same output) | ☐      |          |
-| 1.3  | `bun.lockb` committed to repo                         | ☐      |          |
+| 1.3  | `bun.lock` committed to repo                         | ☐      |          |
 | 1.4  | No `NODE_ENV=development` in production build         | ☐      |          |
 | 1.5  | Environment variables validated at build time         | ☐      |          |
 | 1.6  | Next.js output mode configured (`standalone`)         | ☐      |          |
@@ -51,7 +51,7 @@
 
 ```
 [Document build command output]
-[Document bun.lockb status]
+[Document bun.lock status]
 ```
 
 ---
