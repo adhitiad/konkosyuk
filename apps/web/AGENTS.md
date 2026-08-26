@@ -32,7 +32,7 @@ Shared package: `../../packages/shared`
 - Auth: Better Auth (`src/lib/auth.ts` server, `src/lib/auth-client.ts` client) with drizzle adapter, twoFactor, nextCookies plugins
 - State: TanStack Query v5 for server data, Zustand for client state
 - Charts: Recharts wrapped in `src/components/ui/chart.tsx` (`ChartContainer`, `ChartTooltipContent`)
-- Package manager: Bun 1.3.14
+- Package manager: Bun 1.4.0
 
 ## API Response Shape
 

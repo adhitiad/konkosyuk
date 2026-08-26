@@ -11,7 +11,11 @@
 
 | File | Perubahan | Alasan |
 |------|-----------|--------|
-| `packages/shared/src/db/schema.ts` | Pindahkan schema Drizzle dari `apps/web/src/db/schema.ts` ke shared package | PR-1: schema harus di-shared agar `apps/grpc` bisa akses tanpa app-to-app dependency |
+| `.github/workflows/ci-fast.yml` | Ganti `hashFiles('**/bun.lockb')` → `hashFiles('**/bun.lock')` (3 job) | Repo memakai `bun.lock` format teks; `bun.lockb` tidak ada sehingga hash selalu kosong → cache key statis `${{ runner.os }}-bun-` → cache poisoning (restore cache lama bun 1.3.14 di bawah bun 1.4.0) |
+| `.github/workflows/ci-fast.yml` | Bump `bun-version` 1.3.14 → 1.4.0 pada job `typecheck` & `unit-tests` | Standardisasi semua job ke bun 1.4.0 agar konsisten dengan `vercel.json` env `BUN_VERSION` |
+| `.github/workflows/ci-slow.yml` | Ganti `hashFiles('**/bun.lockb')` → `hashFiles('**/bun.lock')` (3 job) + bump `bun-version` 1.3.14 → 1.4.0 pada job `build` & `e2e` | Sama seperti ci-fast.yml — perbaiki cache key & standardisasi versi bun |
+| `.github/workflows/security.yml` | Ganti `hashFiles('**/bun.lockb')` → `hashFiles('**/bun.lock')` (job `audit`) | Perbaiki cache key agar invalid saat lockfile berubah |
+| `apps/web/AGENTS.md` | Update "Package manager: Bun 1.3.14" → "Bun 1.4.0" | Dokumentasi versi bun terkini |
 | `packages/shared/src/db/index.ts` | Buat `createDb()` factory yang export schema dan tipe `Db` | Shared DB helper untuk web dan gRPC server |
 | `apps/web/src/db/schema.ts` | Ganti menjadi re-export dari `@konkosyuk/shared/db/schema` | Jangan duplikat schema, tetap backward-compatible via path alias `@/db/schema` |
 | `apps/web/src/db/index.ts` | Ganti menjadi panggil `createDb()` dari shared package | Gunakan shared DB factory |
