@@ -1,6 +1,8 @@
 import { StaticPageLayout } from "@/components/static-page-layout";
 import { Metadata } from "next";
 import { locales } from "@/config";
+import { JsonLd } from "@/components/seo/json-ld";
+import { SITE_URL, breadcrumbSchema } from "@/components/seo/schema";
 
 export async function generateMetadata({
   params,
@@ -23,12 +25,42 @@ export async function generateMetadata({
         locales.map((l) => [l, `/${l}/privacy`]),
       ) as Record<string, string>,
     } as Metadata["alternates"] & { "x-default": string },
+    openGraph: {
+      title: "Kebijakan Privasi - KonkosYuk",
+      description:
+        "Pelajari bagaimana KonkosYuk mengumpulkan, menggunakan, dan melindungi data pribadi Anda.",
+      url: `${SITE_URL}/${locale}/privacy`,
+      siteName: "KonkosYuk",
+      images: [
+        {
+          url: `${SITE_URL}/og-image.jpg`,
+          width: 1200,
+          height: 630,
+          alt: "Kebijakan Privasi KonkosYuk",
+        },
+      ],
+      locale,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Kebijakan Privasi - KonkosYuk",
+      description:
+        "Pelajari bagaimana KonkosYuk mengumpulkan, menggunakan, dan melindungi data pribadi Anda.",
+      images: [`${SITE_URL}/og-image.jpg`],
+    },
   };
 }
 
 export default function PrivacyPage() {
   return (
     <StaticPageLayout title="Kebijakan Privasi" lastUpdated="7 Agustus 2026">
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", url: `${SITE_URL}/id` },
+          { name: "Kebijakan Privasi", url: `${SITE_URL}/id/privacy` },
+        ])}
+      />
       <h2>1. Informasi yang Kami Kumpulkan</h2>
       <p>
         Kami mengumpulkan informasi yang Anda berikan saat mendaftar, melakukan

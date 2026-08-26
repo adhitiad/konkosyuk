@@ -13,6 +13,9 @@ import { jitterCoordinates } from "@/lib/utils/location";
 import { logError, logApiRequest } from "@/lib/logger";
 import { enforceRateLimit, publicRateLimit } from "@/lib/rate-limit";
 import { getCachedData, buildCacheKey } from "@/lib/cache";
+import { calculateListingRankScore } from "@/lib/ranking/listing-rank";
+import { getUserInterestVector } from "@/lib/recommendation/user-interest-vector";
+import { calculateRecommendationScore } from "@/lib/recommendation/recommendation-score";
 
 export const dynamic = "force-dynamic";
 
@@ -84,12 +87,17 @@ export async function GET(req: NextRequest) {
         .where(inArray(properties.id, limitedIds))
         .limit(100);
 
+      const rankedRows = rows.map((property) => ({
+        ...property,
+        rankingScore: calculateListingRankScore(property as Parameters<typeof calculateListingRankScore>[0]),
+      }));
+
       return ok({
-        data: rows,
+        data: rankedRows,
         meta: {
           page: 1,
-          limit: Math.min(rows.length, 100),
-          total: rows.length,
+          limit: Math.min(rankedRows.length, 100),
+          total: rankedRows.length,
           totalPages: 1,
         },
       });
@@ -408,8 +416,31 @@ export async function GET(req: NextRequest) {
         const total = Number(totalCount);
         const totalPages = cursor ? undefined : Math.ceil(total / limit);
 
+        let userVector = null;
+        if (viewerId) {
+          try {
+            userVector = await getUserInterestVector(viewerId);
+          } catch {
+            // ignore recommendation failure
+          }
+        }
+
+        const rankedData = data.map((property) => {
+          const baseRank = calculateListingRankScore(
+            property as Parameters<typeof calculateListingRankScore>[0],
+          );
+          const recommendationScore = userVector
+            ? calculateRecommendationScore(userVector, property)
+            : 0;
+          return {
+            ...property,
+            rankingScore: baseRank,
+            recommendationScore,
+          };
+        });
+
         return {
-          data,
+          data: rankedData,
           meta: {
             ...(cursor
               ? { nextCursor, hasMore }

@@ -54,3 +54,7 @@ export const groupBookingQuerySchema = z.object({
     status: z.enum(GROUP_BOOKING_STATUSES).optional(),
     propertyId: z.string().uuid().optional(),
 });
+export const referralActionSchema = z.object({
+    id: z.string().uuid(),
+    action: z.enum(["convert_voucher", "apply_offset"]),
+});

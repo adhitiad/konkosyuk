@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { locales } from "@/config";
+import { SITE_URL, DEFAULT_OG_IMAGE, breadcrumbSchema } from "@/components/seo/schema";
 
 export async function generateMetadata({
   params,
@@ -34,7 +35,7 @@ export async function generateMetadata({
       siteName: "KonkosYuk",
       images: [
         {
-          url: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&h=630&fit=crop",
+          url: DEFAULT_OG_IMAGE,
           width: 1200,
           height: 630,
           alt: "KonkosYuk Landing Page",
@@ -48,13 +49,19 @@ export async function generateMetadata({
       title: "KonkosYuk - Sewa Kost & Ruko Aman",
       description:
         "Platform sewa properti terpercaya dengan sistem DP 35% yang aman.",
-      images: [
-        "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&h=630&fit=crop",
-      ],
+      images: [DEFAULT_OG_IMAGE],
     },
     robots: {
       index: true,
       follow: true,
     },
   };
+}
+
+export async function generateJsonLd({ locale }: { locale: string }) {
+  return [
+    breadcrumbSchema([
+      { name: "Home", url: `${SITE_URL}/${locale}` },
+    ]),
+  ];
 }

@@ -1,6 +1,8 @@
 import { StaticPageLayout } from "@/components/static-page-layout";
 import { Metadata } from "next";
 import { locales } from "@/config";
+import { JsonLd } from "@/components/seo/json-ld";
+import { SITE_URL, breadcrumbSchema } from "@/components/seo/schema";
 
 export async function generateMetadata({
   params,
@@ -23,12 +25,43 @@ export async function generateMetadata({
         locales.map((l) => [l, `/${l}/umum/syarat-dan-ketentuan`]),
       ) as Record<string, string>,
     } as Metadata["alternates"] & { "x-default": string },
+    openGraph: {
+      title: "Syarat & Ketentuan - KonkosYuk",
+      description: "Baca syarat dan ketentuan penggunaan platform KonkosYuk.",
+      url: `${SITE_URL}/${locale}/umum/syarat-dan-ketentuan`,
+      siteName: "KonkosYuk",
+      images: [
+        {
+          url: `${SITE_URL}/og-image.jpg`,
+          width: 1200,
+          height: 630,
+          alt: "Syarat & Ketentuan KonkosYuk",
+        },
+      ],
+      locale,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Syarat & Ketentuan - KonkosYuk",
+      description: "Baca syarat dan ketentuan penggunaan platform KonkosYuk.",
+      images: [`${SITE_URL}/og-image.jpg`],
+    },
   };
 }
 
 export default function TermsPage() {
   return (
     <StaticPageLayout title="Syarat & Ketentuan" lastUpdated="7 Agustus 2026">
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", url: `${SITE_URL}/id` },
+          {
+            name: "Syarat & Ketentuan",
+            url: `${SITE_URL}/id/umum/syarat-dan-ketentuan`,
+          },
+        ])}
+      />
       <h2>1. Penerimaan Syarat</h2>
       <p>
         Dengan menggunakan KonkosYuk, Anda menyetujui seluruh aturan dan

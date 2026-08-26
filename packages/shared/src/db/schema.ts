@@ -2776,5 +2776,135 @@ export const featureFlagsRelations = relations(featureFlags, () => ({
   // Placeholder for future relations if needed.
 }));
 
+export const analyticsEvents = pgTable(
+  "analytics_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id").references(() => users.id),
+    sessionId: text("session_id"),
+    event: text("event").notNull(),
+    properties: jsonb("properties").default("{}"),
+    userAgent: text("user_agent"),
+    ipAddress: text("ip_address"),
+    referrer: text("referrer"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("idx_analytics_events_user").on(table.userId),
+    eventIdx: index("idx_analytics_events_event").on(table.event),
+    createdAtIdx: index("idx_analytics_events_created").on(table.createdAt),
+  }),
+);
+
+export const userInterestVectors = pgTable(
+  "user_interest_vectors",
+  {
+    userId: uuid("user_id").primaryKey().references(() => users.id),
+    typeWeights: jsonb("type_weights").notNull().default("{}"),
+    cityWeights: jsonb("city_weights").notNull().default("{}"),
+    priceBucketWeights: jsonb("price_bucket_weights").notNull().default("{}"),
+    amenitySet: jsonb("amenity_set").notNull().default("[]"),
+    areaWeights: jsonb("area_weights").notNull().default("{}"),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("idx_user_interest_vectors_user").on(table.userId),
+  }),
+);
+
+export const propertySimilarities = pgTable(
+  "property_similarities",
+  {
+    propertyId: uuid("property_id").references(() => properties.id),
+    similarPropertyId: uuid("similar_property_id").references(() => properties.id),
+    similarityScore: numeric("similarity_score", { precision: 5, scale: 4 }).notNull(),
+    cachedAt: timestamp("cached_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    propertyIdIdx: index("idx_property_similarities_property").on(table.propertyId),
+    similarPropertyIdIdx: index("idx_property_similarities_similar").on(table.similarPropertyId),
+    propertyPairUnique: unique("property_similarities_pair_unique").on(table.propertyId, table.similarPropertyId),
+  }),
+);
+
+export const experiments = pgTable(
+  "experiments",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    status: text("status").notNull().default("draft"),
+    variants: jsonb("variants").notNull(),
+    metrics: jsonb("metrics").notNull(),
+    startDate: timestamp("start_date", { mode: "date" }),
+    endDate: timestamp("end_date", { mode: "date" }),
+  },
+  (table) => ({
+    statusIdx: index("idx_experiments_status").on(table.status),
+  }),
+);
+
+export const experimentAssignments = pgTable(
+  "experiment_assignments",
+  {
+    userId: uuid("user_id").references(() => users.id),
+    experimentId: text("experiment_id").references(() => experiments.id),
+    variant: text("variant").notNull(),
+    assignedAt: timestamp("assigned_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdExperimentIdUnique: unique("experiment_assignments_user_experiment_unique").on(table.userId, table.experimentId),
+    userIdIdx: index("idx_experiment_assignments_user").on(table.userId),
+    experimentIdIdx: index("idx_experiment_assignments_experiment").on(table.experimentId),
+  }),
+);
+
+export const analyticsEventsRelations = relations(analyticsEvents, ({ one }) => ({
+  user: one(users, {
+    fields: [analyticsEvents.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userInterestVectorsRelations = relations(userInterestVectors, ({ one }) => ({
+  user: one(users, {
+    fields: [userInterestVectors.userId],
+    references: [users.id],
+  }),
+}));
+
+export const experimentsRelations = relations(experiments, () => ({
+  // Placeholder for future relations if needed.
+}));
+
+export const experimentAssignmentsRelations = relations(experimentAssignments, ({ one }) => ({
+  user: one(users, {
+    fields: [experimentAssignments.userId],
+    references: [users.id],
+  }),
+  experiment: one(experiments, {
+    fields: [experimentAssignments.experimentId],
+    references: [experiments.id],
+  }),
+}));
+
+export const waSession = pgTable("wa_session", {
+  id: text("id").primaryKey(),
+  data: jsonb("data").notNull().default({}),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+});
+
+export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
+export type NewAnalyticsEvent = typeof analyticsEvents.$inferInsert;
+export type UserInterestVector = typeof userInterestVectors.$inferSelect;
+export type NewUserInterestVector = typeof userInterestVectors.$inferInsert;
+export type PropertySimilarity = typeof propertySimilarities.$inferSelect;
+export type NewPropertySimilarity = typeof propertySimilarities.$inferInsert;
+export type Experiment = typeof experiments.$inferSelect;
+export type NewExperiment = typeof experiments.$inferInsert;
+export type ExperimentAssignment = typeof experimentAssignments.$inferSelect;
+export type NewExperimentAssignment = typeof experimentAssignments.$inferInsert;
+
 export type FeatureFlag = typeof featureFlags.$inferSelect;
 export type NewFeatureFlag = typeof featureFlags.$inferInsert;
+export type WaSession = typeof waSession.$inferSelect;
+export type NewWaSession = typeof waSession.$inferInsert;

@@ -16,6 +16,10 @@
     "./db/schema": {
       "types": "./dist/db/schema.d.ts",
       "default": "./dist/db/schema.js"
+    },
+    "./lib/logger": {
+      "types": "./dist/lib/logger.d.ts",
+      "default": "./dist/lib/logger.js"
     }
   },
   "scripts": {
@@ -27,6 +31,7 @@
   "dependencies": {
     "drizzle-orm": "^0.45.2",
     "pg": "^8.22.0",
+    "winston": "^3.19.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

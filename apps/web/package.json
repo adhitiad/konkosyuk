@@ -22,10 +22,7 @@
     "db:seed-campus-areas": "tsx src/scripts/seed-campus-areas.ts",
     "db:seed-inspections": "tsx src/scripts/seed-inspection-templates.ts",
     "db:encrypt-payment-secrets": "tsx scripts/encrypt-payment-gateway-configs.ts",
-    "db:baseline": "tsx scripts/baseline-drizzle.ts",
-    "worker:start": "bun src/workers/index.ts",
-    "worker:dev": "bun --watch src/workers/index.ts",
-    "dev:all": "concurrently \"bun run dev\" \"bun run worker:dev\" --names \"web,worker\""
+    "db:baseline": "tsx scripts/baseline-drizzle.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -44,7 +41,6 @@
     "axios": "^1.19.0",
     "better-auth": "^1.6.26",
     "browser-image-compression": "^2.0.2",
-    "bullmq": "^6.2.0",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.10.0",
     "clsx": "^2.1.1",
@@ -91,7 +87,6 @@
     "@vitejs/plugin-react": "^6.0.5",
     "@vitest/coverage-v8": "^4.1.10",
     "@vitest/ui": "^4.1.10",
-    "concurrently": "^10.0.5",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",

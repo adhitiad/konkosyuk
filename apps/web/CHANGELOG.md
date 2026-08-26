@@ -9,6 +9,76 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/lang/id/).
 
 ### Added
 
+- Layanan WhatsApp (`apps/wa`) menggunakan Evolution API sebagai backend Baileys wrapper
+- Ahrefs analytics script di root layout untuk tracking SEO dan backlink data
+- Session storage WhatsApp berbasis database (`wa_session` table di `packages/shared/src/db/schema.ts`)
+- Endpoint QR code untuk autentikasi pertama kali: `GET /wa/qr` (PNG via `qrcode`)
+- Endpoint status koneksi: `GET /wa/status`
+- Endpoint webhook Evolution API: `POST /webhook/evolution` untuk menerima pesan incoming
+- Webhook endpoint internal: `POST /webhook/notify` dengan HMAC verification untuk notifikasi dari apps/web
+- AI service wrapper untuk Aion Labs (`aion-labs/aion-3.0`, temperature 0.55)
+- Command handler untuk pesan incoming: CEK BOOKING, BAYAR, PERPANJANG, KELUHAN, LAPORAN
+- Formatter pesan WhatsApp dengan parsing otomatis booking code dan nominal
+
+### Changed
+
+- Migrasi dari Baileys direct SDK ke Evolution API REST client
+- `apps/wa` kini hanya memanggil REST endpoint Evolution API (create instance, get QR, send message)
+- Session storage dari Baileys creds ke Evolution API instance config
+- Message handler menyesuaikan format webhook Evolution API
+- Command handlers signature diubah dari `(message: WAMessage, parts)` ke `(phone: string, parts)`
+- Dependencies: hapus `@whiskeysockets/baileys`, tetap pakai `openai`, `qrcode`, `hono`, `drizzle-orm`
+- Server tetap menggunakan `Bun.serve({ fetch: app.fetch })` untuk kompatibilitas Windows dev & Linux production
+
+### Fixed
+
+- Rollback Baileys dari v7.0.0-rc14 ke v6.7.23 untuk mengatasi bug 428 "Connection Terminated" sebelum QR muncul
+- Perbaikan reconnect logic: hanya reconnect jika bukan `loggedOut`, dengan delay 3 detik
+- Perbaikan server startup: mengganti `app.listen()` (tidak ada di Hono v4) dengan `Bun.serve({ fetch: app.fetch })`
+- Perbaikan `EADDRINUSE`: tambah logging instruktif saat port sudah dipakai
+- Perbaiki dummy credentials: gunakan `crypto.getRandomValues()` 32-byte keys agar valid untuk `libsignal`
+
+### Changed
+
+- Worker BullMQ dipindahkan dari `apps/web` ke `apps/cronJob` untuk arsitektur microservice
+- Web app (`apps/web`) sekarang hanya fokus pada HTTP layer (Next.js)
+- Deployment worker menggunakan Docker multi-stage build dari root monorepo
+
+### Removed
+
+- Worker code dari `apps/web` (src/workers/, src/lib/queue/, src/lib/cron/, src/actions/cron/)
+- Dependencies `bullmq` dan `concurrently` dari `apps/web`
+- Scripts `worker:start`, `worker:dev`, `dev:all` dari `apps/web/package.json`
+- `Dockerfile.worker`, `render.yaml`, `scripts/sync-worker-env.ts` dari `apps/web`
+- Session storage berbasis database untuk koneksi WhatsApp (`wa_session` table)
+- Webhook endpoint `POST /webhook/notify` dengan HMAC Bearer token verification
+- Command handler untuk pesan incoming: CEK BOOKING, BAYAR, PERPANJANG, KELUHAN, LAPORAN
+- Vercel deployment config untuk `apps/wa`
+
+### Changed
+
+- Shared schema (`packages/shared/src/db/schema.ts`) ditambahkan tabel `wa_session`
+
+### Added
+
+- Design dokumen algoritma optimasi konversi di `docs/algorithms/conversion-optimization.md`:
+  - Similar properties algorithm (hybrid content + geo-based, 60/40 weight)
+  - Lead quality scoring & distribution untuk owner (platinum/gold/silver/bronze tier)
+  - Dynamic listing ranking (quality 40%, freshness 20%, demand 25%, performance 15%)
+  - Conversion funnel analytics dengan SQL queries untuk daily funnel, drop-off analysis, cohort retention, owner funnel
+  - Churn prediction algorithm (rule-based scoring dengan intervensi otomatis)
+  - A/B testing framework dengan statistical significance testing
+  - Monitoring & alerting thresholds untuk semua metrik kunci
+  - Database schema untuk analytics_events, user_interest_vectors, property_similarities, experiments
+  - **Prioritisasi kritikal**: 4 algoritma HIGH (2 minggu), 2 algoritma MEDIUM (4-6 minggu), 2 algoritma LOW (8-12 minggu)
+  - Implementation roadmap: Fase 1 (2 minggu), Fase 2 (3 minggu), Fase 3 (4 minggu)
+
+### Fase Finale: Testing & Dashboard
+- Unit tests untuk recommendation algorithms (`recommendation-score.test.ts`, `lead-quality-scorer.test.ts`)
+- Owner insights dashboard page (`/owner/insights`) dengan property stats, inquiry stats, booking stats, dan ranking tips
+- Sidebar navigation baru untuk owner insights
+- Semua quality gates pass: lint clean, typecheck clean (hanya pre-existing errors), 349 tests passed
+
 - Referral system P0: commission calculation, eligibility sweep, voucher redemption
 - `voucher_redeemed_at` column pada tabel `referrals` untuk mencegah double-spend voucher
 - Server action `linkReferralCode` untuk capture referral code saat signup
@@ -29,6 +99,19 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/lang/id/).
 - Environment variables `OTTO_BASE_URL`, `OTTO_CLIENT_ID`, `OTTO_SECRET_KEY`, `OTTO_WEBHOOK_SECRET`
 - Graceful fallback pada `env.ts` saat variabel environment belum di-set di Vercel
 - Sandbox adapter production guard: mock/sandbox mode ditolak di production
+
+### SEO & Performance
+
+- Schema.org JSON-LD utilities di `src/components/seo/schema.ts` untuk reusable structured data (Organization, WebSite, BreadcrumbList, FAQPage)
+- JSON-LD `WebSite` dengan `SearchAction` di root layout untuk rich results pencarian
+- JSON-LD `Organization` dengan `contactPoint` di root layout
+- JSON-LD `FAQPage` pada halaman FAQ untuk rich results Google
+- JSON-LD `BreadcrumbList` pada halaman statis (about, contact, privacy, refund-policy, terms)
+- Metadata halaman detail properti kini menyertakan `openGraph` dan `twitter` dengan gambar properti
+- Sitemap diperluas mencakup halaman statis publik (about, faq, contact, privacy, refund-policy, terms, ads/submit) untuk semua 8 locale
+- Robots.txt diperbaiki: menambahkan `host`, user-agent specific rules, dan pattern allow untuk protected routes
+- Core Web Vitals: perbaikan CLS pada `PropertyCard` dengan mengganti `min-h-[200px]` menjadi `aspect-video` untuk rasio aspek yang konsisten
+- Core Web Vitals: penambahan `priority` pada gambar utama properti di halaman detail untuk optimasi LCP
 
 ### Fixed
 

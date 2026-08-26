@@ -1,0 +1,161 @@
+import { createLogger, format, transports } from "winston";
+const SENSITIVE_KEYS = [
+    "password",
+    "secret",
+    "apiKey",
+    "api_key",
+    "token",
+    "accessToken",
+    "refreshToken",
+    "clientSecret",
+    "merchantKey",
+    "webhookSecret",
+    "privateKey",
+    "authorization",
+    "cookie",
+    "sessionId",
+    "ktpNumber",
+    "ktpImageUrl",
+    "balance",
+    "otp",
+    "cardNumber",
+    "cvv",
+];
+function sanitizeValue(key, value) {
+    if (typeof value === "string") {
+        if (SENSITIVE_KEYS.some((sensitive) => key.toLowerCase().includes(sensitive.toLowerCase()))) {
+            if (value.length <= 4)
+                return "***";
+            return `${value.slice(0, 4)}${"*".repeat(Math.min(value.length - 4, 8))}`;
+        }
+    }
+    if (typeof value === "object" && value !== null) {
+        if (Array.isArray(value)) {
+            return value.map((item) => sanitizeValue(key, item));
+        }
+        return sanitizeObject(value);
+    }
+    return value;
+}
+function sanitizeObject(obj) {
+    const sanitized = {};
+    for (const [key, value] of Object.entries(obj)) {
+        sanitized[key] = sanitizeValue(key, value);
+    }
+    return sanitized;
+}
+function sanitizeMetadata(metadata) {
+    if (!metadata)
+        return undefined;
+    return sanitizeObject(metadata);
+}
+const isProduction = process.env.NODE_ENV === "production";
+const { combine, timestamp, printf, colorize, json } = format;
+const sanitizeFormat = format((info) => {
+    const sanitized = { ...info };
+    for (const [key, value] of Object.entries(sanitized)) {
+        if (key === "level" || key === "message" || key === "timestamp") {
+            continue;
+        }
+        sanitized[key] = sanitizeValue(key, value);
+    }
+    return sanitized; // eslint-disable-line @typescript-eslint/no-explicit-any
+});
+const devLogFormat = combine(colorize(), timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), printf(({ timestamp, level, message, ...metadata }) => {
+    const metaEntries = Object.entries(metadata).filter(([k]) => k !== "Symbol(level)" && k !== "Symbol(message)");
+    let msg = `${timestamp} [${level}]: ${message}`;
+    if (metaEntries.length > 0) {
+        msg += ` ${JSON.stringify(metadata)}`;
+    }
+    return msg;
+}));
+export const logger = createLogger({
+    level: isProduction ? "info" : "debug",
+    format: combine(timestamp(), sanitizeFormat()),
+    transports: [
+        new transports.Console({
+            format: isProduction ? json() : devLogFormat,
+        }),
+    ],
+});
+export function logError(error, context, metadata) {
+    const errorObj = error instanceof Error ? error : new Error(String(error));
+    logger.error({
+        message: errorObj.message,
+        context,
+        error: {
+            message: errorObj.message,
+            stack: errorObj.stack,
+            name: errorObj.name,
+        },
+        ...sanitizeMetadata(metadata),
+    });
+}
+export function logInfo(message, metadata) {
+    logger.info({
+        message,
+        ...sanitizeMetadata(metadata),
+    });
+}
+export function logWarn(message, metadata) {
+    logger.warn({
+        message,
+        ...sanitizeMetadata(metadata),
+    });
+}
+export function logDebug(message, metadata) {
+    logger.debug({
+        message,
+        ...sanitizeMetadata(metadata),
+    });
+}
+export function logSecurityEvent(event, metadata) {
+    logger.warn({
+        message: `[SECURITY] ${event}`,
+        category: "security",
+        event,
+        ...sanitizeMetadata(metadata),
+    });
+}
+export function logApiRequest(method, path, statusCode, duration, userId, requestId) {
+    logger.info({
+        message: `${method} ${path} ${statusCode} ${duration}ms`,
+        category: "api",
+        method,
+        path,
+        statusCode,
+        duration,
+        userId,
+        requestId,
+    });
+}
+export function logDatabaseQuery(query, duration, rowsAffected, requestId) {
+    logger.debug({
+        message: `DB Query: ${duration}ms`,
+        category: "database",
+        query,
+        duration,
+        rowsAffected,
+        requestId,
+    });
+}
+export function logPaymentEvent(event, provider, bookingId, metadata) {
+    logger.info({
+        message: `[PAYMENT] ${event}`,
+        category: "payment",
+        event,
+        provider,
+        bookingId,
+        ...sanitizeMetadata(metadata),
+    });
+}
+export function logAuthEvent(event, userId, metadata) {
+    logger.info({
+        message: `[AUTH] ${event}`,
+        category: "auth",
+        event,
+        userId,
+        ...sanitizeMetadata(metadata),
+    });
+}
+export default logger;

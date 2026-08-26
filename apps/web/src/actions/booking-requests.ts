@@ -8,6 +8,8 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { logInfo, logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
+import { trackEvent, type AnalyticsPayload } from "@/lib/analytics";
+import { calculateLeadQuality } from "@/lib/recommendation/lead-quality-scorer";
 
 const createBookingRequestSchema = z.object({
   unitId: z.string().uuid(),
@@ -121,6 +123,30 @@ export async function createBookingRequestAction(
           startDate: new Date(validated.startDate),
         })
         .returning();
+
+      const leadQuality = await calculateLeadQuality(
+        session.user.id,
+        validated.propertyId,
+      );
+
+      if (leadQuality) {
+        logInfo("lead_quality_scored", {
+          bookingRequestId: request.id,
+          tenantId: session.user.id,
+          propertyId: validated.propertyId,
+          leadQuality,
+        });
+      }
+
+      const analyticsPayload: AnalyticsPayload = {
+        event: "inquiry_sent",
+        data: {
+          propertyId: validated.propertyId,
+          bookingType: "request",
+          numOccupants: validated.numOccupants,
+        },
+      };
+      await trackEvent(analyticsPayload);
 
       return { success: true, request } as const;
     });

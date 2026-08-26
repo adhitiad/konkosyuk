@@ -1,7 +1,13 @@
 import { pgTable, text, timestamp, uuid, jsonb, boolean, index, uniqueIndex, unique, numeric, integer, } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 export const userRole = ["cust", "owner", "admin", "staff"];
-export const propertyType = ["kost", "kontrakan", "apartemen", "rumah", "ruko"];
+export const propertyType = [
+    "kost",
+    "kontrakan",
+    "apartemen",
+    "rumah",
+    "ruko",
+];
 export const unitStatus = ["available", "booked", "maintenance"];
 export const bookingType = ["instant", "request"];
 export const bookingRequestStatus = [
@@ -90,7 +96,7 @@ export const maintenanceReportStatus = [
     "resolved",
     "rejected",
 ];
-export const paymentProvider = ["doku", "ipaymu", "nicepay", "mock"];
+export const paymentProvider = ["doku", "ipaymu", "nicepay", "otto", "mock"];
 export const paymentPurpose = [
     "dp",
     "full_payment",
@@ -102,6 +108,7 @@ export const paymentStatus = [
     "failed",
     "expired",
     "refunded",
+    "cancelled",
 ];
 export const paymentTransactionStatus = [
     "pending",
@@ -321,7 +328,7 @@ export const properties = pgTable("properties", {
     city: text("city"),
     district: text("district"),
     type: text("type", { enum: propertyType }).notNull(),
-    basePrice: text("base_price"),
+    basePrice: numeric("base_price", { precision: 12, scale: 2 }),
     packages: jsonb("packages")
         .$type()
         .notNull()
@@ -361,6 +368,7 @@ export const properties = pgTable("properties", {
     amenitiesGinIdx: index("properties_amenities_gin_idx").using("gin", table.amenities),
     metadataGinIdx: index("properties_metadata_gin_idx").using("gin", table.metadata),
     coordsIdx: index("idx_properties_coords").on(table.latitude, table.longitude),
+    cityActiveIdx: index("idx_properties_city_active").on(table.city, table.isActive),
 }));
 export const units = pgTable("units", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -375,7 +383,9 @@ export const units = pgTable("units", {
     status: text("status", { enum: unitStatus }).notNull().default("available"),
     metadata: jsonb("metadata").$type().default({}),
     roomSize: text("room_size"),
-    electricityIncluded: boolean("electricity_included").notNull().default(false),
+    electricityIncluded: boolean("electricity_included")
+        .notNull()
+        .default(false),
     furnitureIncluded: boolean("furniture_included").notNull().default(false),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
@@ -421,21 +431,6 @@ export const bookingRequests = pgTable("booking_requests", {
     propertyIdIdx: index("booking_requests_property_id_idx").on(table.propertyId),
     statusIdx: index("booking_requests_status_idx").on(table.status),
 }));
-export const loyaltyPoints = pgTable("loyalty_points", {
-    id: uuid("id").defaultRandom().primaryKey(),
-    userId: uuid("user_id")
-        .references(() => users.id)
-        .notNull(),
-    points: integer("points").notNull().default(0),
-    type: text("type", {
-        enum: ["earned", "redeemed", "expired", "bonus"],
-    }).notNull(),
-    source: text("source"),
-    referenceId: text("reference_id"),
-    description: text("description"),
-    expiresAt: timestamp("expires_at", { mode: "date" }),
-    createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
-});
 export const groupBookings = pgTable("group_bookings", {
     id: uuid("id").defaultRandom().primaryKey(),
     leadUserId: uuid("lead_user_id")
@@ -456,14 +451,19 @@ export const groupBookings = pgTable("group_bookings", {
     endDate: timestamp("end_date", { mode: "date" }).notNull(),
     metadata: jsonb("metadata").default({}),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
-});
+}, (table) => ({
+    leadUserIdIdx: index("group_bookings_lead_user_id_idx").on(table.leadUserId),
+    statusIdx: index("group_bookings_status_idx").on(table.status),
+    propertyIdIdx: index("group_bookings_property_id_idx").on(table.propertyId),
+    createdAtIdx: index("group_bookings_created_at_idx").on(table.createdAt),
+}));
 export const groupBookingMembers = pgTable("group_booking_members", {
     id: uuid("id").defaultRandom().primaryKey(),
     groupBookingId: uuid("group_booking_id")
         .references(() => groupBookings.id, { onDelete: "cascade" })
         .notNull(),
     userId: uuid("user_id")
-        .references(() => users.id)
+        .references(() => users.id, { onDelete: "cascade" })
         .notNull(),
     sharePercentage: numeric("share_percentage", {
         precision: 5,
@@ -475,8 +475,12 @@ export const groupBookingMembers = pgTable("group_booking_members", {
         enum: ["invited", "accepted", "rejected", "paid"],
     }).default("invited"),
     joinedAt: timestamp("joined_at", { mode: "date" }),
-    createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
-});
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+}, (table) => ({
+    groupBookingIdUserIdUnique: unique("group_booking_members_group_booking_id_user_id_unique").on(table.groupBookingId, table.userId),
+    statusIdx: index("group_booking_members_status_idx").on(table.status),
+    groupBookingIdIdx: index("group_booking_members_group_booking_id_idx").on(table.groupBookingId),
+}));
 export const roommatePreferences = pgTable("roommate_preferences", {
     id: uuid("id").defaultRandom().primaryKey(),
     userId: uuid("user_id")
@@ -754,7 +758,9 @@ export const bookings = pgTable("bookings", {
     metadata: jsonb("metadata").$type().default({}),
     rejectionReason: text("rejection_reason"),
     isGroupBooking: boolean("is_group_booking").default(false),
-    groupBookingId: uuid("group_booking_id").references(() => groupBookings.id),
+    groupBookingId: uuid("group_booking_id").references(() => groupBookings.id, {
+        onDelete: "cascade",
+    }),
     pricingRuleId: uuid("pricing_rule_id").references(() => seasonalPricingRules.id),
     basePriceAtBooking: numeric("base_price_at_booking", {
         precision: 12,
@@ -775,6 +781,9 @@ export const bookings = pgTable("bookings", {
     statusIdx: index("bookings_status_idx").on(table.status),
     userStatusCreatedIdx: index("bookings_user_status_created_idx").on(table.userId, table.status, table.createdAt),
     propertyStatusCreatedIdx: index("bookings_property_status_created_idx").on(table.propertyId, table.status, table.createdAt),
+    propertyAvailabilityIdx: index("bookings_property_availability_idx").on(table.propertyId, table.status, table.startDate, table.endDate),
+    groupBookingIdIdx: index("bookings_group_booking_id_idx").on(table.groupBookingId),
+    isGroupBookingIdx: index("bookings_is_group_booking_idx").on(table.isGroupBooking),
 }));
 export const payments = pgTable("payments", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -786,7 +795,7 @@ export const payments = pgTable("payments", {
     }),
     provider: text("provider", { enum: paymentProvider }).notNull(),
     purpose: text("purpose", { enum: paymentPurpose }).notNull(),
-    amount: text("amount").notNull(),
+    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
     currency: text("currency").notNull().default("IDR"),
     status: text("status", { enum: paymentStatus })
         .notNull()
@@ -804,6 +813,8 @@ export const payments = pgTable("payments", {
     providerIdx: index("payments_provider_idx").on(table.provider),
     statusIdx: index("payments_status_idx").on(table.status),
     propertyIdIdx: index("payments_property_id_idx").on(table.propertyId),
+    propertyStatusPaidAtIdx: index("payments_property_status_paidat_idx").on(table.propertyId, table.status, table.paidAt),
+    transactionIdUnique: unique("payments_transaction_id_unique").on(table.transactionId),
 }));
 export const refundRequestStatus = ["pending", "approved", "rejected"];
 export const refundRequests = pgTable("refund_requests", {
@@ -817,8 +828,8 @@ export const refundRequests = pgTable("refund_requests", {
     userId: uuid("user_id")
         .notNull()
         .references(() => users.id, { onDelete: "cascade" }),
-    amount: text("amount").notNull(),
-    approvedAmount: text("approved_amount"),
+    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+    approvedAmount: numeric("approved_amount", { precision: 12, scale: 2 }),
     reason: text("reason").notNull(),
     status: text("status", { enum: refundRequestStatus })
         .notNull()
@@ -1072,7 +1083,6 @@ export const usersRelations = relations(users, ({ many, one }) => ({
     twoFactors: many(twoFactor),
     referrals: many(referrals, { relationName: "referrer" }),
     refereeReferrals: many(referrals, { relationName: "referee" }),
-    loyaltyPoints: many(loyaltyPoints),
     rewardRedemptions: many(rewardRedemptions),
     leadGroupBookings: many(groupBookings),
     groupBookingMemberships: many(groupBookingMembers),
@@ -1625,12 +1635,6 @@ export const notificationSettings = pgTable("notification_settings", {
 }, (table) => ({
     createdAtIdx: index("notification_settings_created_at_idx").on(table.createdAt),
 }));
-export const loyaltyPointsRelations = relations(loyaltyPoints, ({ one }) => ({
-    user: one(users, {
-        fields: [loyaltyPoints.userId],
-        references: [users.id],
-    }),
-}));
 export const groupBookingsRelations = relations(groupBookings, ({ one, many }) => ({
     leadUser: one(users, {
         fields: [groupBookings.leadUserId],
@@ -1811,12 +1815,16 @@ export const referrals = pgTable("referrals", {
         precision: 12,
         scale: 2,
     }).default("0"),
-    refereeTransactionId: uuid("referee_transaction_id"),
+    refereeTransactionId: uuid("referee_transaction_id").references(() => payments.id, {
+        onDelete: "set null",
+    }),
     eligibleAt: timestamp("eligible_at", { mode: "date" }),
     payoutScheduledAt: timestamp("payout_scheduled_at", { mode: "date" }),
-    voucherCode: text("voucher_code"),
+    voucherCode: text("voucher_code").unique(),
+    voucherRedeemedAt: timestamp("voucher_redeemed_at", { mode: "date" }),
     offsetApplied: boolean("offset_applied").default(false),
     tier: integer("tier").default(1),
+    payoutIdempotencyKey: text("payout_idempotency_key").unique(),
     metadata: jsonb("metadata").default({}),
     completedAt: timestamp("completed_at", { mode: "date" }),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
@@ -1824,6 +1832,9 @@ export const referrals = pgTable("referrals", {
     referrerIdx: index("referrals_referrer_id_idx").on(table.referrerId),
     refereeIdx: index("referrals_referee_id_idx").on(table.refereeId),
     codeIdx: uniqueIndex("referrals_code_idx").on(table.code),
+    voucherCodeIdx: uniqueIndex("referrals_voucher_code_idx").on(table.voucherCode),
+    payoutIdempotencyKeyIdx: uniqueIndex("referrals_payout_idempotency_key_idx").on(table.payoutIdempotencyKey),
+    referrerRefereeCategoryUnique: uniqueIndex("referrals_referrer_referee_category_unique").on(table.referrerId, table.refereeId, table.category),
 }));
 export const loyaltyTransactions = pgTable("loyalty_transactions", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -1841,6 +1852,8 @@ export const loyaltyTransactions = pgTable("loyalty_transactions", {
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 }, (table) => ({
     userIdIdx: index("loyalty_transactions_user_id_idx").on(table.userId),
+    typeIdx: index("loyalty_transactions_type_idx").on(table.type),
+    expiresAtIdx: index("loyalty_transactions_expires_at_idx").on(table.expiresAt),
 }));
 export const rewards = pgTable("rewards", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -1866,6 +1879,8 @@ export const rewardRedemptions = pgTable("reward_redemptions", {
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 }, (table) => ({
     userIdIdx: index("reward_redemptions_user_id_idx").on(table.userId),
+    statusIdx: index("reward_redemptions_status_idx").on(table.status),
+    userRewardUnique: unique("reward_redemptions_user_reward_unique").on(table.userId, table.rewardId),
 }));
 export const referralsRelations = relations(referrals, ({ one }) => ({
     referrer: one(users, {
@@ -1908,7 +1923,13 @@ export const userNotificationPreferencesRelations = relations(userNotificationPr
 }));
 export const adType = ["kos", "kontrakan", "apartemen", "rumah"];
 export const adTier = ["reguler", "utama", "premium"];
-export const adPaymentStatus = ["pending", "paid", "rejected", "expired", "cancelled"];
+export const adPaymentStatus = [
+    "pending",
+    "paid",
+    "rejected",
+    "expired",
+    "cancelled",
+];
 export const positionType = ["rotation", "fixed_1", "fixed_2"];
 export const propertyAds = pgTable("property_ads", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -1934,7 +1955,9 @@ export const propertyAds = pgTable("property_ads", {
     impressions: integer("impressions").notNull().default(0),
     startDate: timestamp("start_date", { mode: "date" }).notNull().defaultNow(),
     endDate: timestamp("end_date", { mode: "date" }),
-    paymentStatus: text("payment_status", { enum: adPaymentStatus }).notNull().default("pending"),
+    paymentStatus: text("payment_status", { enum: adPaymentStatus })
+        .notNull()
+        .default("pending"),
     paidAt: timestamp("paid_at", { mode: "date" }),
     adminNote: text("admin_note"),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
@@ -1975,20 +1998,38 @@ export const adPackages = pgTable("ad_packages", {
 export const adPackagesRelations = relations(adPackages, ({ many }) => ({
     ads: many(propertyAds),
 }));
-export const propertyRuleType = ["general", "quiet_hours", "guest", "payment", "safety"];
+export const propertyRuleType = [
+    "general",
+    "quiet_hours",
+    "guest",
+    "payment",
+    "safety",
+];
 export const propertyRules = pgTable("property_rules", {
     id: uuid("property_rules_id").defaultRandom().primaryKey(),
     propertyId: uuid("property_rule_property_id")
         .references(() => properties.id, { onDelete: "cascade" })
         .notNull(),
     rule: text("property_rule_text").notNull(),
-    type: text("property_rule_type", { enum: propertyRuleType }).notNull().default("general"),
+    type: text("property_rule_type", { enum: propertyRuleType })
+        .notNull()
+        .default("general"),
     sortOrder: integer("property_rule_sort_order").notNull().default(0),
     createdAt: timestamp("property_rule_created_at").defaultNow().notNull(),
 }, (table) => ({
     propertyIdIdx: index("idx_property_rules_property").on(table.propertyId),
 }));
-export const nearbyPlaceType = ["makanan", "minuman", "atk", "ibadah", "belanja", "kesehatan", "pendidikan", "transportasi", "lainnya"];
+export const nearbyPlaceType = [
+    "makanan",
+    "minuman",
+    "atk",
+    "ibadah",
+    "belanja",
+    "kesehatan",
+    "pendidikan",
+    "transportasi",
+    "lainnya",
+];
 export const nearbyPlaces = pgTable("nearby_places", {
     id: uuid("nearby_place_id").defaultRandom().primaryKey(),
     propertyId: uuid("nearby_place_property_id")
@@ -1997,8 +2038,14 @@ export const nearbyPlaces = pgTable("nearby_places", {
     name: text("nearby_place_name").notNull(),
     type: text("nearby_place_type", { enum: nearbyPlaceType }).notNull(),
     distance: integer("nearby_place_distance").notNull(),
-    latitude: numeric("nearby_place_latitude", { precision: 10, scale: 8 }).notNull(),
-    longitude: numeric("nearby_place_longitude", { precision: 10, scale: 8 }).notNull(),
+    latitude: numeric("nearby_place_latitude", {
+        precision: 10,
+        scale: 8,
+    }).notNull(),
+    longitude: numeric("nearby_place_longitude", {
+        precision: 10,
+        scale: 8,
+    }).notNull(),
     sortOrder: integer("nearby_place_sort_order").notNull().default(0),
     createdAt: timestamp("nearby_place_created_at").defaultNow().notNull(),
 }, (table) => ({
@@ -2011,7 +2058,9 @@ export const roomFacilities = pgTable("room_facilities", {
     unitId: uuid("room_facility_unit_id")
         .references(() => units.id, { onDelete: "cascade" })
         .notNull(),
-    category: text("room_facility_category", { enum: roomFacilityCategory }).notNull(),
+    category: text("room_facility_category", {
+        enum: roomFacilityCategory,
+    }).notNull(),
     name: text("room_facility_name").notNull(),
     icon: text("room_facility_icon").notNull().default("circle-dot"),
     sortOrder: integer("room_facility_sort_order").notNull().default(0),
@@ -2078,3 +2127,90 @@ export const featureFlags = pgTable("feature_flags", {
 export const featureFlagsRelations = relations(featureFlags, () => ({
 // Placeholder for future relations if needed.
 }));
+export const analyticsEvents = pgTable("analytics_events", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id").references(() => users.id),
+    sessionId: text("session_id"),
+    event: text("event").notNull(),
+    properties: jsonb("properties").default("{}"),
+    userAgent: text("user_agent"),
+    ipAddress: text("ip_address"),
+    referrer: text("referrer"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+}, (table) => ({
+    userIdIdx: index("idx_analytics_events_user").on(table.userId),
+    eventIdx: index("idx_analytics_events_event").on(table.event),
+    createdAtIdx: index("idx_analytics_events_created").on(table.createdAt),
+}));
+export const userInterestVectors = pgTable("user_interest_vectors", {
+    userId: uuid("user_id").primaryKey().references(() => users.id),
+    typeWeights: jsonb("type_weights").notNull().default("{}"),
+    cityWeights: jsonb("city_weights").notNull().default("{}"),
+    priceBucketWeights: jsonb("price_bucket_weights").notNull().default("{}"),
+    amenitySet: jsonb("amenity_set").notNull().default("[]"),
+    areaWeights: jsonb("area_weights").notNull().default("{}"),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+}, (table) => ({
+    userIdIdx: index("idx_user_interest_vectors_user").on(table.userId),
+}));
+export const propertySimilarities = pgTable("property_similarities", {
+    propertyId: uuid("property_id").references(() => properties.id),
+    similarPropertyId: uuid("similar_property_id").references(() => properties.id),
+    similarityScore: numeric("similarity_score", { precision: 5, scale: 4 }).notNull(),
+    cachedAt: timestamp("cached_at", { mode: "date" }).notNull().defaultNow(),
+}, (table) => ({
+    propertyIdIdx: index("idx_property_similarities_property").on(table.propertyId),
+    similarPropertyIdIdx: index("idx_property_similarities_similar").on(table.similarPropertyId),
+    propertyPairUnique: unique("property_similarities_pair_unique").on(table.propertyId, table.similarPropertyId),
+}));
+export const experiments = pgTable("experiments", {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    status: text("status").notNull().default("draft"),
+    variants: jsonb("variants").notNull(),
+    metrics: jsonb("metrics").notNull(),
+    startDate: timestamp("start_date", { mode: "date" }),
+    endDate: timestamp("end_date", { mode: "date" }),
+}, (table) => ({
+    statusIdx: index("idx_experiments_status").on(table.status),
+}));
+export const experimentAssignments = pgTable("experiment_assignments", {
+    userId: uuid("user_id").references(() => users.id),
+    experimentId: text("experiment_id").references(() => experiments.id),
+    variant: text("variant").notNull(),
+    assignedAt: timestamp("assigned_at", { mode: "date" }).notNull().defaultNow(),
+}, (table) => ({
+    userIdExperimentIdUnique: unique("experiment_assignments_user_experiment_unique").on(table.userId, table.experimentId),
+    userIdIdx: index("idx_experiment_assignments_user").on(table.userId),
+    experimentIdIdx: index("idx_experiment_assignments_experiment").on(table.experimentId),
+}));
+export const analyticsEventsRelations = relations(analyticsEvents, ({ one }) => ({
+    user: one(users, {
+        fields: [analyticsEvents.userId],
+        references: [users.id],
+    }),
+}));
+export const userInterestVectorsRelations = relations(userInterestVectors, ({ one }) => ({
+    user: one(users, {
+        fields: [userInterestVectors.userId],
+        references: [users.id],
+    }),
+}));
+export const experimentsRelations = relations(experiments, () => ({
+// Placeholder for future relations if needed.
+}));
+export const experimentAssignmentsRelations = relations(experimentAssignments, ({ one }) => ({
+    user: one(users, {
+        fields: [experimentAssignments.userId],
+        references: [users.id],
+    }),
+    experiment: one(experiments, {
+        fields: [experimentAssignments.experimentId],
+        references: [experiments.id],
+    }),
+}));
+export const waSession = pgTable("wa_session", {
+    id: text("id").primaryKey(),
+    data: jsonb("data").notNull().default({}),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+});

@@ -5,7 +5,9 @@ import { FeaturedListingsSection } from "@/components/landing/featured-listings-
 import { PopularCitiesSection } from "@/components/landing/popular-cities-section";
 import { FeaturesSection } from "@/components/landing/features-section";
 import { FooterSection } from "@/components/landing/footer-section";
+import { JsonLd } from "@/components/seo/json-ld";
 import { generateMetadata as generatePageMetadata } from "@/app/[locale]/Metadata";
+import { SITE_URL } from "@/components/seo/schema";
 
 // H-4 fix: gunakan params route dinamis, bukan hardcode "id"
 export async function generateMetadata({
@@ -16,9 +18,33 @@ export async function generateMetadata({
   return generatePageMetadata({ params });
 }
 
-export default function Home() {
+export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Kost",
+          url: `${SITE_URL}/${locale}/properties?type=kost`,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Kontrakan",
+          url: `${SITE_URL}/${locale}/properties?type=kontrakan`,
+        },
+      ],
+    },
+  ];
+
   return (
     <main className="flex min-h-screen flex-col">
+      <JsonLd data={jsonLd} />
       <HeroSection />
       <AdCarousel />
       <CategoriesSection />

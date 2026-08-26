@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
+import { Script } from "next/script";
 import { Poppins, Inter } from "next/font/google";
 import { VercelAnalytics } from "@/app/analytics";
 import { PwaRegister } from "@/components/pwa-register";
 import { JsonLd } from "@/components/seo/json-ld";
+import {
+  organizationSchema,
+  websiteSchema,
+  SITE_URL,
+  DEFAULT_OG_IMAGE,
+} from "@/components/seo/schema";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -21,7 +28,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://konkosyuk.com"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "KonkosYuk - Booking Kost & Kontrakan Aman DP 35%",
     template: "%s | KonkosYuk",
@@ -41,8 +48,12 @@ export const metadata: Metadata = {
     "tenant scoring",
     "kost Jakarta",
     "kontrakan Bandung",
+    "kost Surabaya",
+    "kost Bandung",
+    "sewa rumah",
+    "platform properti",
   ],
-  authors: [{ name: "Adhitia Dwima", url: "https://konkosyuk.com" }],
+  authors: [{ name: "Adhitia Dwima", url: SITE_URL }],
   creator: "KonkosYuk Team",
   publisher: "KonkosYuk",
   formatDetection: { email: false, telephone: false },
@@ -54,19 +65,26 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "id_ID",
-    url: "https://konkosyuk.com",
+    url: SITE_URL,
     siteName: "KonkosYuk",
     title: "KonkosYuk - Booking Kost & Kontrakan Aman",
     description:
       "Cari hunian impian dengan DP 35%. Aman, transparan, dan bebas penipuan.",
-    images: ["/og-image.jpg"],
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: "KonkosYuk - Platform Sewa Kost & Kontrakan",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "KonkosYuk - Booking Kost & Kontrakan Aman",
     description:
       "Cari hunian impian dengan DP 35%. Aman, transparan, dan bebas penipuan.",
-    images: ["/og-image.jpg"],
+    images: [DEFAULT_OG_IMAGE],
   },
   robots: {
     index: true,
@@ -80,7 +98,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "/",
+    canonical: "/id",
     languages: {
       id: "/id",
       en: "/en",
@@ -126,21 +144,16 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://basemaps.cartocdn.com" />
       </head>
       <body className={`${poppins.className} antialiased`}>
-        <JsonLd
-          data={{
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            name: "KonkosYuk",
-            url: "https://konkosyuk.com",
-            logo: "https://konkosyuk.com/logo.png",
-            description:
-              "Platform booking kost dan kontrakan terpercaya dengan sistem DP 35%",
-            sameAs: [],
-          }}
-        />
+        <JsonLd data={organizationSchema} />
+        <JsonLd data={websiteSchema} />
         {children}
         <PwaRegister />
         <VercelAnalytics />
+        <Script
+          src="https://analytics.ahrefs.com/analytics.js"
+          data-key="h/og7b50yXD5Zyi+qhve/A"
+          async
+        />
       </body>
     </html>
   );

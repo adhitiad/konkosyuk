@@ -23,10 +23,10 @@ interface Property {
   name: string;
   description: string | null;
   address: string;
-  type: "kost" | "kontrakan";
+  type: "kost" | "kontrakan" | "apartemen" | "rumah" | "ruko";
   basePrice: string | null;
   amenities: string[];
-  images: string[];
+  images: string[] | null;
   metadata: Record<string, unknown>;
   hasSeasonalPricing?: boolean;
   seasonalPricingCount?: number;
@@ -44,8 +44,8 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, distanceKm }: PropertyCardProps) {
   const locale = useLocale();
-  const displayImages =
-    property.images?.length > 0
+  const displayImages: string[] =
+    property.images && property.images.length > 0
       ? property.images
       : property.metadata?.image
         ? [property.metadata.image as string]
@@ -57,73 +57,75 @@ export function PropertyCard({ property, distanceKm }: PropertyCardProps) {
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-lg border bg-background shadow-sm transition-all hover:shadow-md h-full">
       {/* Image Carousel Section */}
-      <div className="relative w-full bg-muted min-h-[200px]">
-        <Carousel className="w-full h-full min-h-[200px]">
-          <CarouselContent className="h-full min-h-[200px]">
-            {displayImages.map((imgSrc, index) => (
-              <CarouselItem
-                key={`${property.id}-img-${index}`}
-                className="h-full min-h-[200px]"
-              >
-                <div className="relative w-full h-full min-h-[200px]">
-                  <Image
-                    src={imgSrc}
-                    alt={`${property.name} - Image ${index + 1}`}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    priority={index === 0}
-                  />
+      <div className="relative w-full bg-muted">
+        <div className="aspect-video w-full">
+          <Carousel className="w-full h-full">
+            <CarouselContent className="h-full">
+              {displayImages.map((imgSrc, index) => (
+                <CarouselItem
+                  key={`${property.id}-img-${index}`}
+                  className="h-full"
+                >
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={imgSrc}
+                      alt={`${property.name} - Image ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      priority={index === 0}
+                    />
 
-                  {/* Badge Tipe Properti di atas gambar */}
-                  {index === 0 && (
-                    <Badge className="absolute top-3 left-3 bg-background/90 text-foreground backdrop-blur-sm border-0">
-                      {property.type === "kost" ? "Kost" : "Kontrakan"}
-                    </Badge>
+                    {/* Badge Tipe Properti di atas gambar */}
+                    {index === 0 && (
+                      <Badge className="absolute top-3 left-3 bg-background/90 text-foreground backdrop-blur-sm border-0">
+                        {property.type === "kost" ? "Kost" : "Kontrakan"}
+                      </Badge>
+                    )}
+
+                    {/* Seasonal Pricing Badge */}
+                    {index === 0 && property.hasSeasonalPricing && (
+                      <Badge
+                        variant="secondary"
+                        className="absolute top-3 left-3 mt-8 bg-orange-100 text-orange-700 border-orange-200"
+                      >
+                        <HugeiconsIcon
+                          icon={Tag01Icon}
+                          strokeWidth={2}
+                          className="size-3 mr-1"
+                        />
+                        Harga Musiman
+                      </Badge>
+                    )}
+
+                    {/* Image Counter */}
+                    {displayImages.length > 1 && (
+                      <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/60 text-white text-xs rounded-md backdrop-blur-sm">
+                        {index + 1} / {displayImages.length}
+                      </div>
+                    )}
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+
+            {/* Navigation Buttons - visible on hover */}
+            {displayImages.length > 1 && (
+              <>
+                <CarouselPrevious
+                  className={cn(
+                    "left-2 h-8 w-8 bg-background/80 hover:bg-background border-0 opacity-0 group-hover:opacity-100 transition-opacity",
                   )}
-
-                  {/* Seasonal Pricing Badge */}
-                  {index === 0 && property.hasSeasonalPricing && (
-                    <Badge
-                      variant="secondary"
-                      className="absolute top-3 left-3 mt-8 bg-orange-100 text-orange-700 border-orange-200"
-                    >
-                      <HugeiconsIcon
-                        icon={Tag01Icon}
-                        strokeWidth={2}
-                        className="size-3 mr-1"
-                      />
-                      Harga Musiman
-                    </Badge>
+                />
+                <CarouselNext
+                  className={cn(
+                    "right-2 h-8 w-8 bg-background/80 hover:bg-background border-0 opacity-0 group-hover:opacity-100 transition-opacity",
                   )}
-
-                  {/* Image Counter */}
-                  {displayImages.length > 1 && (
-                    <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/60 text-white text-xs rounded-md backdrop-blur-sm">
-                      {index + 1} / {displayImages.length}
-                    </div>
-                  )}
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-
-          {/* Navigation Buttons - visible on hover */}
-          {displayImages.length > 1 && (
-            <>
-              <CarouselPrevious
-                className={cn(
-                  "left-2 h-8 w-8 bg-background/80 hover:bg-background border-0 opacity-0 group-hover:opacity-100 transition-opacity",
-                )}
-              />
-              <CarouselNext
-                className={cn(
-                  "right-2 h-8 w-8 bg-background/80 hover:bg-background border-0 opacity-0 group-hover:opacity-100 transition-opacity",
-                )}
-              />
-            </>
-          )}
-        </Carousel>
+                />
+              </>
+            )}
+          </Carousel>
+        </div>
       </div>
 
       {/* Content Section */}

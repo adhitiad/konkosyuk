@@ -86,6 +86,13 @@ export declare const groupBookingQuerySchema: z.ZodObject<{
     }>>;
     propertyId: z.ZodOptional<z.ZodString>;
 }, z.core.$strip>;
+export declare const referralActionSchema: z.ZodObject<{
+    id: z.ZodString;
+    action: z.ZodEnum<{
+        convert_voucher: "convert_voucher";
+        apply_offset: "apply_offset";
+    }>;
+}, z.core.$strip>;
 export type CreateReferralInput = z.infer<typeof createReferralSchema>;
 export type ReferralQuery = z.infer<typeof referralQuerySchema>;
 export type RedeemRewardInput = z.infer<typeof redeemRewardSchema>;

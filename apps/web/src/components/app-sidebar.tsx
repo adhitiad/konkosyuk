@@ -64,6 +64,7 @@ const menuConfig: Record<
     { title: "units", href: "/owner/units", icon: Layers },
     { title: "incomingBookings", href: "/owner/bookings", icon: CalendarDays },
     { title: "bookingRequests", href: "/owner/booking-requests", icon: Users },
+    { title: "insights", href: "/owner/insights", icon: Activity },
     { title: "chat", href: "/chat", icon: MessageSquare },
     { title: "maintenance", href: "/owner/maintenance", icon: Wrench },
     { title: "pricing", href: "/owner/pricing", icon: BadgePercentIcon },

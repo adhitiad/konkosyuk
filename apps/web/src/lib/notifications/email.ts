@@ -255,3 +255,39 @@ export async function sendBookingRejectionEmail(
     logError(error, "Failed to send booking rejection email");
   }
 }
+
+export async function sendReEngagementEmail(
+  to: string,
+  name: string | null,
+  isOwner = false,
+) {
+  const client = await getResendClient();
+  if (!client) return;
+
+  const recipientName = name || "Pengguna";
+  const heading = isOwner
+    ? `Kami merindukan Anda, ${recipientName}!`
+    : `Kami merindukan Anda, ${recipientName}!`;
+  const content = isOwner
+    ? `<p>Properti Anda belum mendapatkan inquiry baru. Yuk, tingkatkan visibilitas dengan menambahkan foto dan verifikasi GPS.</p>
+       <p><a href="${process.env.NEXT_PUBLIC_APP_URL || "https://konkosyuk.com"}/owner/properties" style="color:#2563eb;text-decoration:underline">Kelola Properti Saya</a></p>`
+    : `<p>Sudah lama kami tidak melihat aktivitas Anda. Kami ingin membantu Anda menemukan properti impian!</p>
+       <p><a href="${process.env.NEXT_PUBLIC_APP_URL || "https://konkosyuk.com"}/properties" style="color:#2563eb;text-decoration:underline">Jelajahi Properti Sekarang</a></p>`;
+
+  try {
+    await client.emails.send({
+      from: await getFromEmail(),
+      to: [to],
+      subject: `KonkosYuk: Ada properti baru yang mungkin Anda suka!`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+          <h2 style="color: #2563eb;">${escapeHtml(heading)}</h2>
+          ${content}
+          <p style="margin-top: 24px; font-size: 12px; color: #64748b;">Email ini dikirim secara otomatis oleh sistem KonkosYuk.</p>
+        </div>
+      `,
+    });
+  } catch (error) {
+    logError(error, "Failed to send re-engagement email");
+  }
+}

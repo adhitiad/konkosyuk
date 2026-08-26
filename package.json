@@ -18,6 +18,8 @@
   },
   "devDependencies": {
     "@parcel/watcher": "^2.6.0",
+    "@typescript-eslint/eslint-plugin": "^8.68.0",
+    "@typescript-eslint/parser": "^8.68.0",
     "globals": "^17.11.0",
     "turbo": "^2.0.0"
   },

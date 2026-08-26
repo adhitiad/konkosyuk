@@ -1,6 +1,8 @@
 "use client";
 
 import { StaticPageLayout } from "@/components/static-page-layout";
+import { JsonLd } from "@/components/seo/json-ld";
+import { faqSchema } from "@/components/seo/schema";
 
 const faqTenants = [
   {
@@ -65,8 +67,11 @@ function AccordionItem({
 }
 
 export default function FaqPage() {
+  const allFaq = [...faqTenants, ...faqOwners];
+
   return (
     <StaticPageLayout title="Pertanyaan Umum (FAQ)">
+      <JsonLd data={faqSchema(allFaq)} />
       <h2>Untuk Penyewa (Tenant)</h2>
       <div className="space-y-3">
         {faqTenants.map((item) => (

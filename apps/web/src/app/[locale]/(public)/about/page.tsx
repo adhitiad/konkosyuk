@@ -1,6 +1,8 @@
 import { StaticPageLayout } from "@/components/static-page-layout";
 import { Metadata } from "next";
 import { locales } from "@/config";
+import { JsonLd } from "@/components/seo/json-ld";
+import { SITE_URL, breadcrumbSchema } from "@/components/seo/schema";
 
 export async function generateMetadata({
   params,
@@ -23,12 +25,42 @@ export async function generateMetadata({
         locales.map((l) => [l, `/${l}/about`]),
       ) as Record<string, string>,
     } as Metadata["alternates"] & { "x-default": string },
+    openGraph: {
+      title: "Tentang KonkosYuk",
+      description:
+        "Platform sewa properti terpercaya dengan sistem DP 35% yang aman dan verifikasi lokasi GPS.",
+      url: `${SITE_URL}/${locale}/about`,
+      siteName: "KonkosYuk",
+      images: [
+        {
+          url: `${SITE_URL}/og-image.jpg`,
+          width: 1200,
+          height: 630,
+          alt: "Tentang KonkosYuk",
+        },
+      ],
+      locale,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Tentang KonkosYuk",
+      description:
+        "Platform sewa properti terpercaya dengan sistem DP 35% yang aman.",
+      images: [`${SITE_URL}/og-image.jpg`],
+    },
   };
 }
 
 export default function AboutPage() {
   return (
     <StaticPageLayout title="Tentang KonkosYuk">
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", url: `${SITE_URL}/id` },
+          { name: "Tentang Kami", url: `${SITE_URL}/id/about` },
+        ])}
+      />
       <p>
         KonkosYuk adalah platform digital yang menghubungkan pencari kost &
         kontrakan dengan pemilik properti terpercaya di seluruh Indonesia. Kami
