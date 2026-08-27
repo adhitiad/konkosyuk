@@ -19,6 +19,6 @@ WORKDIR /root/
 
 COPY --from=builder /app/notification-service .
 
-EXPOSE 50052
+EXPOSE 50052 9091
 
 CMD ["./notification-service"]

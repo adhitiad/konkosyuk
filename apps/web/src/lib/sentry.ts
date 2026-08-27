@@ -70,3 +70,56 @@ export function addBreadcrumb(
     level: "info",
   });
 }
+
+export function startDatabaseSpan(
+  operation: string,
+  query: string,
+) {
+  return Sentry.startSpan(
+    {
+      name: `db: ${operation}`,
+      op: "db.query",
+      attributes: {
+        "db.system": "postgresql",
+        "db.operation": operation,
+        "db.query": query,
+      },
+    },
+    () => {},
+  );
+}
+
+export function startExternalApiSpan(
+  name: string,
+  url: string,
+) {
+  return Sentry.startSpan(
+    {
+      name: `external: ${name}`,
+      op: "http.client",
+      attributes: {
+        "http.url": url,
+        "server.address": new URL(url).hostname,
+      },
+    },
+    () => {},
+  );
+}
+
+export function startGrpcSpan(
+  method: string,
+  service: string,
+) {
+  return Sentry.startSpan(
+    {
+      name: `grpc: ${service}/${method}`,
+      op: "grpc.call",
+      attributes: {
+        "rpc.system": "grpc",
+        "rpc.service": service,
+        "rpc.method": method,
+      },
+    },
+    () => {},
+  );
+}

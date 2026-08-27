@@ -13,6 +13,7 @@
     "isolatedModules": true,
     "outDir": "./dist",
     "rootDir": "../../",
+    "types": ["bun"],
     "paths": {
       "@konkosyuk/shared": ["../../packages/shared/src/index.ts"],
       "@konkosyuk/shared/*": ["../../packages/shared/src/*"]

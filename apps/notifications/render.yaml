@@ -16,6 +16,8 @@ services:
         sync: false
       - key: GRPC_PORT
         value: "50052"
+      - key: METRICS_PORT
+        value: "9091"
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM_EMAIL

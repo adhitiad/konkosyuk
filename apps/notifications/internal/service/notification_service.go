@@ -10,6 +10,7 @@ import (
 
 	"notif/internal/domain"
 	"notif/internal/infra/crypto"
+	"notif/internal/metrics"
 )
 
 type NotificationService struct {
@@ -111,6 +112,7 @@ func (s *NotificationService) Dispatch(ctx context.Context, event domain.Notific
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
+			start := time.Now()
 			if _, err := s.notificationRepo.CreateNotification(ctx, domain.Notification{
 				UserID:      event.UserID,
 				Title:       event.Title,
@@ -123,10 +125,13 @@ func (s *NotificationService) Dispatch(ctx context.Context, event domain.Notific
 				mu.Lock()
 				errors = append(errors, fmt.Sprintf("inApp: %v", err))
 				channelResults["inApp"] = false
+				metrics.NotificationFailuresTotal.WithLabelValues("inApp").Inc()
 				mu.Unlock()
 			} else {
 				mu.Lock()
 				channelResults["inApp"] = true
+				metrics.NotificationsSentTotal.WithLabelValues("inApp").Inc()
+				metrics.NotificationSendDurationSeconds.WithLabelValues("inApp").Observe(time.Since(start).Seconds())
 				mu.Unlock()
 			}
 		}()
@@ -136,11 +141,13 @@ func (s *NotificationService) Dispatch(ctx context.Context, event domain.Notific
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
+			start := time.Now()
 			subscriptions, err := s.notificationRepo.GetPushSubscriptions(ctx, event.UserID)
 			if err != nil {
 				mu.Lock()
 				errors = append(errors, fmt.Sprintf("push: %v", err))
 				channelResults["push"] = false
+				metrics.NotificationFailuresTotal.WithLabelValues("push").Inc()
 				mu.Unlock()
 				return
 			}
@@ -148,10 +155,13 @@ func (s *NotificationService) Dispatch(ctx context.Context, event domain.Notific
 				mu.Lock()
 				errors = append(errors, fmt.Sprintf("push: %v", err))
 				channelResults["push"] = false
+				metrics.NotificationFailuresTotal.WithLabelValues("push").Inc()
 				mu.Unlock()
 			} else {
 				mu.Lock()
 				channelResults["push"] = true
+				metrics.NotificationsSentTotal.WithLabelValues("push").Inc()
+				metrics.NotificationSendDurationSeconds.WithLabelValues("push").Observe(time.Since(start).Seconds())
 				mu.Unlock()
 			}
 		}()
@@ -160,20 +170,28 @@ func (s *NotificationService) Dispatch(ctx context.Context, event domain.Notific
 	wg.Wait()
 
 	if channels.Email {
+		start := time.Now()
 		if err := s.sendEmailNotification(ctx, event); err != nil {
 			channelResults["email"] = false
 			errors = append(errors, fmt.Sprintf("email: %v", err))
+			metrics.NotificationFailuresTotal.WithLabelValues("email").Inc()
 		} else {
 			channelResults["email"] = true
+			metrics.NotificationsSentTotal.WithLabelValues("email").Inc()
+			metrics.NotificationSendDurationSeconds.WithLabelValues("email").Observe(time.Since(start).Seconds())
 		}
 	}
 
 	if s.whatsappSender != nil {
+		start := time.Now()
 		if err := s.sendWhatsAppNotification(ctx, event); err != nil {
 			channelResults["whatsapp"] = false
 			errors = append(errors, fmt.Sprintf("whatsapp: %v", err))
+			metrics.NotificationFailuresTotal.WithLabelValues("whatsapp").Inc()
 		} else {
 			channelResults["whatsapp"] = true
+			metrics.NotificationsSentTotal.WithLabelValues("whatsapp").Inc()
+			metrics.NotificationSendDurationSeconds.WithLabelValues("whatsapp").Observe(time.Since(start).Seconds())
 		}
 	}
 

@@ -27,6 +27,6 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/proto ./proto
 COPY --from=builder /app/src ./src
 
-EXPOSE 50051
+EXPOSE 50051 9090
 
 CMD ["bun", "run", "dist/server.js"]

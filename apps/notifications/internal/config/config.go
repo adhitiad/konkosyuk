@@ -10,6 +10,7 @@ type Config struct {
 	RedisURL                 string
 	EncryptionKey            string
 	GRPCPort                 string
+	MetricsPort              string
 	ResendAPIKey             string
 	ResendFromEmail          string
 	WhatsAppPhoneNumber      string
@@ -27,6 +28,7 @@ func Load() (*Config, error) {
 		RedisURL:                 os.Getenv("REDIS_URL"),
 		EncryptionKey:            os.Getenv("NOTIFICATION_ENCRYPTION_KEY"),
 		GRPCPort:                 getEnvOrDefault("GRPC_PORT", "50052"),
+		MetricsPort:              getEnvOrDefault("METRICS_PORT", "9091"),
 		ResendAPIKey:             os.Getenv("RESEND_API_KEY"),
 		ResendFromEmail:          os.Getenv("RESEND_FROM_EMAIL"),
 		WhatsAppPhoneNumber:      os.Getenv("WHATSAPP_PHONE_NUMBER"),

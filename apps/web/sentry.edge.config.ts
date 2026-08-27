@@ -82,6 +82,7 @@ export async function register() {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+    profilesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
     // @ts-ignore - Sentry type mismatch
     beforeSend: scrubEvent,
     // @ts-ignore - Sentry type mismatch

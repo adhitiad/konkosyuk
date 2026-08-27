@@ -7,6 +7,7 @@ import {
   closeSharedRedisConnection,
 } from "@/lib/redis";
 import { logInfo, logWarn } from "@konkosyuk/shared/lib/logger";
+import { bullmqJobsActive, bullmqJobsCompleted, bullmqJobsFailed, bullmqQueueLength } from "@/lib/metrics.js";
 
 import { processCleanupExpiredBookings } from "@/workers/processors/cleanup.processor";
 import { processCompleteExpiredBookings } from "@/workers/processors/complete.processor";
@@ -133,16 +134,34 @@ export function startWorkers() {
       connection: getSharedRedisConnection(),
     });
 
-    queueEvents.on("failed", async ({ jobId, failedReason }) => {
-      logWarn("Job failed", { queue: queueName, jobId, failedReason });
+    queueEvents.on("active", async ({ jobId: _jobId }) => {
+      bullmqJobsActive.labels(queueName).inc();
+      logInfo("Job active", { queue: queueName });
     });
 
-    queueEvents.on("completed", async ({ jobId }) => {
-      logInfo("Job completed", { queue: queueName, jobId });
+    queueEvents.on("completed", async ({ jobId: _jobId }) => {
+      bullmqJobsActive.labels(queueName).dec();
+      bullmqJobsCompleted.labels(queueName).inc();
+      logInfo("Job completed", { queue: queueName });
     });
 
-    queueEvents.on("stalled", async ({ jobId }) => {
-      logWarn("Job stalled", { queue: queueName, jobId });
+    queueEvents.on("failed", async ({ jobId: _jobId, failedReason }) => {
+      bullmqJobsActive.labels(queueName).dec();
+      bullmqJobsFailed.labels(queueName).inc();
+      logWarn("Job failed", { queue: queueName, failedReason });
+    });
+
+    queueEvents.on("stalled", async ({ jobId: _jobId }) => {
+      bullmqJobsActive.labels(queueName).dec();
+      logWarn("Job stalled", { queue: queueName });
+    });
+
+    queueEvents.on("waiting", async ({ jobId: _jobId }) => {
+      bullmqQueueLength.labels(queueName).inc();
+    });
+
+    queueEvents.on("delayed", async ({ jobId: _jobId }) => {
+      bullmqQueueLength.labels(queueName).inc();
     });
 
     queueEventsInstances.push(queueEvents);

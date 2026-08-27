@@ -1,5 +1,85 @@
 # Ringkasan Perubahan
 
+## Setup Monitoring Dasar untuk Auto-Scaling Detection - 27-Aug-2026 15:30
+
+### Ringkasan
+Menambahkan monitoring dasar untuk mendeteksi kapan aplikasi perlu di-scale. Implementasi mencakup Prometheus metrics endpoint, structured logging terpadu, Sentry performance monitoring, dan dokumentasi dashboard serta alerting rules.
+
+### Perubahan Utama
+- **Prometheus Metrics**: Menambahkan endpoint `/metrics` di `apps/grpc` (port 9090), `apps/notifications` (port 9091), dan `apps/cronJob` (port 9092)
+- **gRPC Metrics**: `grpc_requests_total`, `grpc_request_duration_seconds`, `grpc_active_connections`
+- **Notification Metrics**: `notifications_sent_total`, `notification_send_duration_seconds`, `notification_failures_total`
+- **BullMQ Metrics**: `bullmq_jobs_active`, `bullmq_jobs_completed`, `bullmq_jobs_failed`, `bullmq_queue_length`
+- **Structured Logging**: Semua service sudah log dalam JSON format di production dengan field wajib (timestamp, level, service, request_id, duration_ms, status_code)
+- **Sentry Performance**: Menambahkan `profilesSampleRate` dan custom span helpers untuk database, external API, dan gRPC calls
+- **Dashboard Documentation**: Membuat `docs/monitoring-dashboard.md` dengan rekomendasi tools, metric thresholds, dan alerting rules
+
+### File Diubah
+- `apps/grpc/src/server.ts` (metrics endpoint + instrumentation)
+- `apps/grpc/src/lib/metrics.ts` (baru)
+- `apps/grpc/package.json` (tambah `prom-client`)
+- `apps/grpc/Dockerfile.grpc` (expose port 9090)
+- `apps/notifications/internal/metrics/metrics.go` (baru)
+- `apps/notifications/internal/config/config.go` (tambah MetricsPort)
+- `apps/notifications/internal/service/notification_service.go` (track metrics per channel)
+- `apps/notifications/cmd/server/main.go` (HTTP metrics server)
+- `apps/notifications/go.mod` (tambah prometheus client)
+- `apps/notifications/Dockerfile` (expose port 9091)
+- `apps/notifications/render.yaml` (tambah METRICS_PORT)
+- `apps/cronJob/src/lib/metrics.ts` (baru)
+- `apps/cronJob/src/workers/index.ts` (metrics HTTP server)
+- `apps/cronJob/src/workers/main.worker.ts` (BullMQ metrics instrumentation)
+- `apps/cronJob/package.json` (tambah `prom-client`)
+- `apps/cronJob/render.yaml` (tambah METRICS_PORT)
+- `apps/web/src/lib/sentry.ts` (tambah span helpers untuk DB, external API, gRPC)
+- `apps/web/sentry.server.config.ts` (tambah profilesSampleRate)
+- `apps/web/sentry.client.config.ts` (tambah profilesSampleRate)
+- `apps/web/sentry.edge.config.ts` (tambah profilesSampleRate)
+- `docs/monitoring-dashboard.md` (baru)
+
+### Validasi
+- Semua service memiliki endpoint `/metrics` yang expose Prometheus format
+- Structured logging aktif di semua service (JSON di production)
+- Sentry performance monitoring dikonfigurasi dengan sample rate 10% di production
+
+---
+
+## Health Check Endpoints untuk Semua Services - 27-Aug-2026 15:47
+
+### Ringkasan
+Menambahkan health check endpoints ke semua services untuk load balancing dan monitoring. Setiap service memiliki endpoint `/health` untuk liveness probe dan `/ready` untuk readiness probe (kecuali web yang hanya `/api/health`).
+
+### Perubahan Utama
+- **apps/grpc**: Endpoint `/health` dan `/ready` di port 9090
+  - Cek Redis, Database, dan status gRPC server
+  - Return JSON `{ status, timestamp, checks }`
+  - Timeout 3 detik per check
+- **apps/notifications**: Endpoint `/health` di port 9091
+  - Cek PostgreSQL, Redis, WhatsApp session, dan Resend API
+  - Return JSON dengan format yang sama
+- **apps/cronJob**: Endpoint `/health` di port 9092
+  - Cek Redis connection dan queue status (stalled jobs)
+  - Return JSON `{ status, timestamp, checks }`
+- **apps/web**: Endpoint `/api/health` 
+  - Cek Database, Redis, dan Better Auth session store
+  - Sudah ada sebelumnya, ditambahkan check untuk auth session store
+
+### File Diubah
+- `apps/grpc/src/http-health.ts` (baru)
+- `apps/grpc/src/server.ts` (tambah health endpoints)
+- `apps/notifications/cmd/server/main.go` (tambah health handler)
+- `apps/cronJob/src/health.ts` (baru)
+- `apps/cronJob/src/workers/index.ts` (tambah health endpoint)
+- `apps/web/src/app/api/health/route.ts` (tambah auth check)
+
+### Validasi
+- Semua health endpoint return JSON dengan format konsisten
+- Endpoint public (no auth) untuk memungkinkan health check dari load balancer
+- Timeout 3 detik untuk setiap check
+- Return status 503 jika ada check yang gagal
+
+---
+
 ## Perbaikan Linting: Impor Server-Only di Komponen Klien
 
 ### Ringkasan

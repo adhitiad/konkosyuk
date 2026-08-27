@@ -49,6 +49,23 @@ async function checkRedis() {
   }
 }
 
+async function checkAuth() {
+  const started = performance.now();
+  try {
+    await db.select().from(sql`information_schema.tables`).limit(1);
+    return {
+      status: "healthy" as const,
+      latency: Math.round(performance.now() - started),
+    };
+  } catch (error) {
+    return {
+      status: "down" as const,
+      latency: Math.round(performance.now() - started),
+      error: error instanceof Error ? error.message : "Connection failed",
+    };
+  }
+}
+
 async function checkStorage() {
   const started = performance.now();
   const providers = await Promise.all([
@@ -148,9 +165,10 @@ async function checkPayments() {
 }
 
 export async function GET() {
-  const [database, redis, storage, payments] = await Promise.all([
+  const [database, redis, authCheck, storage, payments] = await Promise.all([
     checkDatabase(),
     checkRedis(),
+    checkAuth(),
     checkStorage(),
     checkPayments(),
   ]);
@@ -158,6 +176,7 @@ export async function GET() {
   const checks = {
     database,
     redis,
+    auth: authCheck,
     storage,
     payments,
   };
@@ -165,6 +184,7 @@ export async function GET() {
   const configuredChecks = [
     database,
     redis,
+    authCheck,
     storage,
     ...(storage.providers || []),
     ...(payments.providers || []),

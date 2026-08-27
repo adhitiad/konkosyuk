@@ -30,3 +30,5 @@ services:
         value: "DIDIT_WEBHOOK_SECRET_PLACEHOLDER"
       - key: NODE_ENV
         value: production
+      - key: METRICS_PORT
+        value: "9092"
