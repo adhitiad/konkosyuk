@@ -15,8 +15,7 @@ import {
 import { requireSession, type Role } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { fail, handleApiError, ok } from "@/lib/api";
-import { sendMaintenanceReportCreatedEmail } from "@/lib/notifications/email";
-import { sendMaintenanceWhatsApp } from "@/lib/notifications/whatsapp";
+import { sendMaintenanceReportCreatedEmail, sendMaintenanceWhatsApp } from "@/lib/notification-client";
 
 const createReportSchema = z.object({
   propertyId: z.string().uuid(),
@@ -129,6 +128,7 @@ export async function POST(req: NextRequest) {
       recipients.flatMap((recipient) => [
         recipient.email
           ? sendMaintenanceReportCreatedEmail(
+              recipient.id,
               recipient.email,
               recipient.name,
               property.name,
@@ -138,6 +138,7 @@ export async function POST(req: NextRequest) {
           : Promise.resolve(),
         recipient.phone || recipient.whatsapp
           ? sendMaintenanceWhatsApp(
+              recipient.id,
               recipient.phone || recipient.whatsapp || "",
               process.env.META_MAINTENANCE_CREATED_TEMPLATE ||
                 "maintenance_report_created",

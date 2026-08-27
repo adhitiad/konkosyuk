@@ -56,11 +56,33 @@ Migrasikan logika notifikasi yang terduplikasi di `apps/web` dan `apps/cronJob` 
 - **Go**: `github.com/jackc/pgx/v5`, `github.com/redis/go-redis/v9`, `github.com/resend/resend-go/v3`, `github.com/rs/zerolog`, `go.mau.fi/whatsmeow`, `golang.org/x/crypto`, `google.golang.org/grpc`, `google.golang.org/protobuf`, `github.com/go-telegram-bot-api/telegram-bot-api/v5`
 - **TypeScript**: `@grpc/grpc-js`, `@grpc/proto-loader`
 
+## WhatsApp Migration (Meta Graph API → whatsmeow)
+
+### Ringkasan
+Migrasikan WhatsApp sender dari Meta Graph API ke `go.mau.fi/whatsmeow` sesuai rules notification service. WhatsApp sekarang menggunakan session-based connection dengan QR pairing, bukan API token.
+
+### Perubahan Utama
+- **Go Service**: Ganti `MetaAccessToken`/`MetaPhoneNumberID` dengan `WhatsAppPhoneNumber`/`WhatsAppSessionPath`
+- **WhatsApp Sender**: Implementasi `whatsmeow` client dengan session persistence di filesystem
+- **Web App**: Ganti semua pemanggilan `notifications/whatsapp.ts` dengan wrapper functions di `notification-client.ts`
+- **Environment**: Ganti `META_ACCESS_TOKEN`, `META_PHONE_NUMBER_ID` → `WHATSAPP_PHONE_NUMBER`, `WHATSAPP_SESSION_PATH`
+
+### File Dihapus
+- `apps/web/src/lib/notifications/whatsapp.ts`
+- `apps/web/src/lib/notifications/email.ts`
+- `apps/web/src/lib/notifications/event-emitter.ts`
+- `apps/web/src/lib/notification-settings.ts`
+- `apps/web/src/lib/notification-crypto.ts`
+
+### File Baru
+- `apps/web/src/lib/email-client.ts` (helper untuk newsletter)
+- `apps/web/src/lib/notification-client.ts` (tambahan wrapper functions untuk email/WhatsApp)
+
 ## Verifikasi
-- **Lint**: 0 error, 17 warning (pre-existing, tidak ada error baru)
-- **TypeScript**: 0 type error
-- **TODO/FIXME**: 0
-- **Tests**: 108 passed
+- **Lint**: 0 error
+- **TypeScript**: 0 type error (pre-existing errors unrelated to notification changes)
+- **Tests**: 317 passed, 2 pre-existing timeout failures unrelated to changes
+- **Go Build**: Sukses
 - **Console.log debug**: 0 tertinggal
 
 ## Tabel Perubahan

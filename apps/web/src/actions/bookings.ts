@@ -34,11 +34,6 @@ import {
 } from "@/lib/packages/calculator";
 import { invalidateCacheByTag } from "@/lib/cache";
 import { updateTag } from "next/cache";
-import {
-  sendApprovalEmail,
-  sendBookingRequestEmail,
-  sendBookingRejectionEmail,
-} from "@/lib/notifications/email";
 import { dispatchNotification } from "@/lib/notification-client";
 import { getPaymentProvider } from "@/lib/payments";
 import { DP_RATIO } from "@/lib/payments/calculations";
@@ -332,6 +327,7 @@ export async function createBookingAction(
 
     if (owner?.email) {
       sendBookingRequestEmail(
+        owner.id,
         owner.email,
         owner.name,
         session.user.name,
@@ -520,6 +516,7 @@ export async function reviewBookingAction(
 
         if (tenant?.email && unit) {
           sendBookingRejectionEmail(
+            tenant.id,
             tenant.email,
             tenant.name,
             property.name,
@@ -568,6 +565,7 @@ export async function reviewBookingAction(
       if (tenant?.email && unit) {
         const dpAmount = Number(booking.metadata?.dpAmount ?? 0);
         sendApprovalEmail(
+          tenant.id,
           tenant.email,
           tenant.name,
           property.name,

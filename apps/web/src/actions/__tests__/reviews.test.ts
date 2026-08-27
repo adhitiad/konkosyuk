@@ -131,10 +131,17 @@ vi.mock("@/lib/notification-client", () => ({
   upsertNotificationSettings: vi.fn(),
   encryptNotificationValue: vi.fn(),
   decryptNotificationValue: vi.fn(),
-}));
-
-vi.mock("@/lib/notifications/event-emitter", () => ({
   eventEmitter: mockEventEmitter,
+  sendMaintenanceReportCreatedEmail: vi.fn(),
+  sendMaintenanceReportUpdatedEmail: vi.fn(),
+  sendApprovalEmail: vi.fn(),
+  sendBookingRequestEmail: vi.fn(),
+  sendBookingRejectionEmail: vi.fn(),
+  sendPaymentReceivedEmail: vi.fn(),
+  sendChatNotificationEmail: vi.fn(),
+  sendMaintenanceWhatsApp: vi.fn(),
+  sendApprovalWhatsApp: vi.fn(),
+  sendRefundApprovalWhatsApp: vi.fn(),
 }));
 
 describe("replyReviewAction", () => {

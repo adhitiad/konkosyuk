@@ -38,10 +38,6 @@ Set these di Vercel Dashboard → Settings → Environment Variables:
 | `CLOUDINARY_CLOUD_NAME`             | No       | Cloudinary cloud name                                    |
 | `CLOUDINARY_API_KEY`                | No       | Cloudinary API key                                       |
 | `CLOUDINARY_API_SECRET`             | No       | Cloudinary API secret                                    |
-| `META_ACCESS_TOKEN`                 | No       | Meta WhatsApp access token                               |
-| `META_PHONE_NUMBER_ID`              | No       | Meta WhatsApp phone number ID                            |
-| `META_MAINTENANCE_CREATED_TEMPLATE` | No       | Template name                                            |
-| `META_MAINTENANCE_UPDATED_TEMPLATE` | No       | Template name                                            |
 
 ### Project Settings
 

@@ -13,8 +13,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { createAuditLog } from "@/lib/audit-log";
-import { sendBookingRejectionEmail } from "@/lib/notifications/email";
-import { sendRefundApprovalWhatsApp } from "@/lib/notifications/whatsapp";
+import { sendBookingRejectionEmail, sendRefundApprovalWhatsApp } from "@/lib/notification-client";
 import { createNotification } from "@/lib/notification-client";
 import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
@@ -194,13 +193,14 @@ export async function reviewRefundAction(
       });
 
       const [tenant] = await db
-        .select({ email: users.email, name: users.name, phone: users.phone })
+        .select({ id: users.id, email: users.email, name: users.name, phone: users.phone })
         .from(users)
         .where(eq(users.id, refundRequest.userId))
         .limit(1);
 
       if (tenant?.email) {
         sendBookingRejectionEmail(
+          tenant.id,
           tenant.email,
           tenant.name,
           booking?.propertyId ?? "",
@@ -210,6 +210,7 @@ export async function reviewRefundAction(
 
       if (tenant?.phone) {
         sendRefundApprovalWhatsApp(
+          tenant.id,
           tenant.phone,
           tenant.name,
           userRefundAmount,
@@ -274,13 +275,14 @@ export async function reviewRefundAction(
         .where(eq(refundRequests.id, refundRequest.id));
 
       const [tenant] = await db
-        .select({ email: users.email, name: users.name, phone: users.phone })
+        .select({ id: users.id, email: users.email, name: users.name, phone: users.phone })
         .from(users)
         .where(eq(users.id, refundRequest.userId))
         .limit(1);
 
       if (tenant?.email) {
         sendBookingRejectionEmail(
+          tenant.id,
           tenant.email,
           tenant.name,
           booking?.propertyId ?? "",
@@ -292,6 +294,7 @@ export async function reviewRefundAction(
 
       if (tenant?.phone) {
         sendRefundApprovalWhatsApp(
+          tenant.id,
           tenant.phone,
           tenant.name,
           0,

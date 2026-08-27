@@ -372,3 +372,262 @@ export function decryptNotificationValue(value: unknown): string | null {
   }
   return value;
 }
+
+export async function sendMaintenanceReportCreatedEmail(
+  userId: string,
+  to: string,
+  recipientName: string,
+  propertyName: string,
+  category: string,
+  description: string,
+): Promise<void> {
+  await dispatchNotification({
+    userId,
+    type: "maintenance_created",
+    category: "maintenance",
+    priority: "normal",
+    title: "Laporan Masalah Baru",
+    message: `Ada laporan "${category}" di properti ${propertyName}`,
+    metadata: {
+      email: to,
+      recipientName,
+      propertyName,
+      category,
+      description,
+    },
+  });
+}
+
+export async function sendMaintenanceReportUpdatedEmail(
+  userId: string,
+  to: string,
+  recipientName: string,
+  status: string,
+  resolutionNote?: string | null,
+): Promise<void> {
+  await dispatchNotification({
+    userId,
+    type: "maintenance_updated",
+    category: "maintenance",
+    priority: "normal",
+    title: "Status Laporan Masalah Diperbarui",
+    message: `Status laporan Anda berubah menjadi ${status}`,
+    metadata: {
+      email: to,
+      recipientName,
+      status,
+      resolutionNote: resolutionNote || "",
+    },
+  });
+}
+
+export async function sendApprovalEmail(
+  userId: string,
+  tenantEmail: string,
+  tenantName: string,
+  propertyName: string,
+  unitName: string,
+  dpAmount: number,
+  invoiceUrl: string,
+): Promise<void> {
+  await dispatchNotification({
+    userId,
+    type: "booking_approved",
+    category: "booking",
+    priority: "high",
+    title: "Permintaan Sewa Anda Disetujui",
+    message: `Permintaan sewa Anda untuk ${propertyName} - ${unitName} telah disetujui`,
+    metadata: {
+      tenantEmail,
+      tenantName,
+      propertyName,
+      unitName,
+      dpAmount: String(dpAmount),
+      invoiceUrl: invoiceUrl,
+    },
+  });
+}
+
+export async function sendBookingRequestEmail(
+  userId: string,
+  ownerEmail: string,
+  ownerName: string,
+  tenantName: string,
+  propertyName: string,
+  unitName: string,
+  bookingUrl: string,
+): Promise<void> {
+  await dispatchNotification({
+    userId,
+    type: "booking_created",
+    category: "booking",
+    priority: "normal",
+    title: "Permintaan Booking Baru",
+    message: `Ada permintaan booking baru dari ${tenantName} untuk ${propertyName}`,
+    metadata: {
+      ownerEmail,
+      ownerName,
+      tenantName,
+      propertyName,
+      unitName,
+      bookingUrl,
+    },
+  });
+}
+
+export async function sendBookingRejectionEmail(
+  userId: string,
+  tenantEmail: string,
+  tenantName: string,
+  propertyName: string,
+  unitName: string,
+  reason?: string,
+): Promise<void> {
+  await dispatchNotification({
+    userId,
+    type: "booking_rejected",
+    category: "booking",
+    priority: "normal",
+    title: "Permintaan Booking Ditolak",
+    message: `Permintaan booking Anda untuk ${propertyName} - ${unitName} telah ditolak`,
+    metadata: {
+      tenantEmail,
+      tenantName,
+      propertyName,
+      unitName,
+      reason: reason || "",
+    },
+  });
+}
+
+export async function sendPaymentReceivedEmail(
+  userId: string,
+  ownerEmail: string,
+  ownerName: string,
+  tenantName: string,
+  propertyName: string,
+  amount: number,
+  paymentUrl: string,
+): Promise<void> {
+  await dispatchNotification({
+    userId,
+    type: "payment_dp_paid",
+    category: "payment",
+    priority: "normal",
+    title: "Pembayaran Diterima",
+    message: `Pembayaran dari ${tenantName} telah diterima untuk ${propertyName}`,
+    metadata: {
+      ownerEmail,
+      ownerName,
+      tenantName,
+      propertyName,
+      amount: String(amount),
+      paymentUrl,
+    },
+  });
+}
+
+export async function sendChatNotificationEmail(
+  userId: string,
+  to: string,
+  recipientName: string,
+  senderName: string,
+  messagePreview: string,
+  chatUrl: string,
+): Promise<void> {
+  await dispatchNotification({
+    userId,
+    type: "chat_message",
+    category: "chat",
+    priority: "normal",
+    title: `Pesan baru dari ${senderName}`,
+    message: messagePreview,
+    metadata: {
+      email: to,
+      recipientName,
+      senderName,
+      chatUrl,
+    },
+  });
+}
+
+export async function sendMaintenanceWhatsApp(
+  userId: string,
+  to: string,
+  templateName: string,
+  parameters: string[],
+): Promise<void> {
+  await dispatchNotification({
+    userId,
+    type: templateName,
+    category: "maintenance",
+    priority: "normal",
+    title: `[${templateName}]`,
+    message: parameters.join(", "),
+    metadata: {
+      tenantPhone: to,
+      recipientName: parameters[0] || "",
+      propertyName: parameters[1] || "",
+      category: parameters[2] || "",
+      description: parameters[3] || "",
+    },
+  });
+}
+
+export async function sendApprovalWhatsApp(
+  userId: string,
+  tenantPhone: string,
+  tenantName: string,
+  propertyName: string,
+  dpAmount: number,
+  invoiceURL: string,
+): Promise<void> {
+  await dispatchNotification({
+    userId,
+    type: "booking_approved",
+    category: "booking",
+    priority: "high",
+    title: "Permintaan Sewa Disetujui",
+    message: `Halo ${tenantName}, permintaan sewa Anda untuk ${propertyName} telah disetujui`,
+    metadata: {
+      tenantPhone,
+      tenantName,
+      propertyName,
+      dpAmount: String(dpAmount),
+      invoiceUrl: invoiceURL,
+    },
+  });
+}
+
+export async function sendRefundApprovalWhatsApp(
+  userId: string,
+  tenantPhone: string,
+  tenantName: string,
+  refundAmount: number,
+  bookingCode: string,
+): Promise<void> {
+  await dispatchNotification({
+    userId,
+    type: "payment_refunded",
+    category: "payment",
+    priority: "high",
+    title: "Pengembalian Dana Disetujui",
+    message: `Pengembalian dana untuk booking ${bookingCode} sebesar Rp ${refundAmount.toLocaleString("id-ID")} telah disetujui`,
+    metadata: {
+      tenantPhone,
+      tenantName,
+      refundAmount: String(refundAmount),
+      bookingCode,
+    },
+  });
+}
+
+export const eventEmitter = {
+  emit(
+    event: string,
+    data: { userId?: string; id?: string; [key: string]: unknown },
+  ) {
+    if (event !== "notification" || !data.userId) return false;
+    return true;
+  },
+};

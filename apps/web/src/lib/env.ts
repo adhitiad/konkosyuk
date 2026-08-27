@@ -30,14 +30,6 @@ const envSchema = z.object({
   // Notifications
   RESEND_API_KEY: z.string().optional(),
   RESEND_FROM_EMAIL: z.string().optional(),
-  META_ACCESS_TOKEN: z.string().optional(),
-  META_PHONE_NUMBER_ID: z.string().optional(),
-  META_MAINTENANCE_CREATED_TEMPLATE: z
-    .string()
-    .default("maintenance_report_created"),
-  META_MAINTENANCE_UPDATED_TEMPLATE: z
-    .string()
-    .default("maintenance_report_updated"),
   NOTIFICATION_ENCRYPTION_KEY: z.string().min(44),
   VAPID_SUBJECT: z.string().default("mailto:admin@konkosyuk.app"),
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().optional(),

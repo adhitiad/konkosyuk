@@ -125,6 +125,15 @@ func (s *NotificationService) Dispatch(ctx context.Context, event domain.Notific
 		}
 	}
 
+	if s.whatsappSender != nil {
+		if err := s.sendWhatsAppNotification(ctx, event); err != nil {
+			channelResults["whatsapp"] = false
+			errors = append(errors, fmt.Sprintf("whatsapp: %v", err))
+		} else {
+			channelResults["whatsapp"] = true
+		}
+	}
+
 	success := len(errors) == 0
 	var errorMsg string
 	if len(errors) > 0 {
@@ -179,12 +188,12 @@ func (s *NotificationService) UpdatePreferences(ctx context.Context, userID stri
 func (s *NotificationService) shouldSendNotification(ctx context.Context, userID, notifType string, priority domain.NotificationPriority) domain.ChannelPreferences {
 	prefs, err := s.preferenceRepo.GetPreferences(ctx, userID)
 	if err != nil || prefs == nil {
-		return domain.ChannelPreferences{InApp: true, Email: false, Push: false}
+		return defaultPreferences(notifType, priority)
 	}
 
 	typePrefs, ok := prefs.Preferences[notifType]
 	if !ok {
-		typePrefs = domain.ChannelPreferences{InApp: true, Email: false, Push: false}
+		return defaultPreferences(notifType, priority)
 	}
 
 	if s.isInQuietHours(prefs) && priority != domain.PriorityUrgent {
@@ -199,6 +208,48 @@ func (s *NotificationService) shouldSendNotification(ctx context.Context, userID
 	}
 
 	return typePrefs
+}
+
+func defaultPreferences(notifType string, priority domain.NotificationPriority) domain.ChannelPreferences {
+	defaults := map[string]domain.ChannelPreferences{
+		"booking_created":       {InApp: true, Email: true, Push: true},
+		"booking_approved":      {InApp: true, Email: true, Push: true},
+		"booking_rejected":      {InApp: true, Email: true, Push: false},
+		"booking_completed":     {InApp: true, Email: false, Push: true},
+		"booking_cancelled":     {InApp: true, Email: true, Push: false},
+		"payment_dp_paid":       {InApp: true, Email: false, Push: true},
+		"payment_full_paid":     {InApp: true, Email: true, Push: true},
+		"payment_failed":        {InApp: true, Email: true, Push: true},
+		"payment_refunded":      {InApp: true, Email: true, Push: true},
+		"maintenance_created":   {InApp: true, Email: true, Push: true},
+		"maintenance_updated":   {InApp: true, Email: true, Push: true},
+		"maintenance_resolved":  {InApp: true, Email: false, Push: true},
+		"inspection_created":    {InApp: true, Email: false, Push: true},
+		"inspection_completed":  {InApp: true, Email: true, Push: true},
+		"inspection_disputed":   {InApp: true, Email: true, Push: true},
+		"chat_message":          {InApp: true, Email: false, Push: true},
+		"review_received":       {InApp: true, Email: false, Push: false},
+		"booking_reminder_24h":  {InApp: true, Email: true, Push: true},
+		"booking_reminder_1h":   {InApp: true, Email: false, Push: true},
+		"pricing_alert":         {InApp: true, Email: false, Push: true},
+		"referral_created":      {InApp: true, Email: true, Push: false},
+		"referral_verifying":    {InApp: true, Email: true, Push: true},
+		"referral_eligible":     {InApp: true, Email: true, Push: true},
+		"referral_failed":       {InApp: true, Email: true, Push: true},
+		"referral_completed":    {InApp: true, Email: true, Push: true},
+		"referral_voucher_converted": {InApp: true, Email: true, Push: true},
+		"referral_offset_applied":    {InApp: true, Email: true, Push: true},
+		"referral_reward_earned":     {InApp: true, Email: true, Push: true},
+		"group_booking_invite":       {InApp: true, Email: true, Push: true},
+		"group_booking_updated":      {InApp: true, Email: false, Push: true},
+		"system":                      {InApp: true, Email: false, Push: false},
+	}
+
+	if defaults, ok := defaults[notifType]; ok {
+		return defaults
+	}
+
+	return domain.ChannelPreferences{InApp: true, Email: false, Push: false}
 }
 
 func (s *NotificationService) isInQuietHours(prefs *domain.UserNotificationPreferences) bool {
@@ -293,6 +344,79 @@ func (s *NotificationService) sendEmailNotification(ctx context.Context, event d
 				event.Metadata["senderName"],
 				event.Message,
 				event.Metadata["chatUrl"],
+			)
+		}
+	case "maintenance_created":
+		if event.Metadata["email"] != "" && event.Metadata["recipientName"] != "" &&
+			event.Metadata["propertyName"] != "" && event.Metadata["category"] != "" &&
+			event.Metadata["description"] != "" {
+			return s.emailSender.SendMaintenanceReportCreated(
+				event.Metadata["email"],
+				event.Metadata["recipientName"],
+				event.Metadata["propertyName"],
+				event.Metadata["category"],
+				event.Metadata["description"],
+			)
+		}
+	case "maintenance_updated":
+		if event.Metadata["email"] != "" && event.Metadata["recipientName"] != "" &&
+			event.Metadata["status"] != "" {
+			return s.emailSender.SendMaintenanceReportUpdated(
+				event.Metadata["email"],
+				event.Metadata["recipientName"],
+				event.Metadata["status"],
+				event.Metadata["resolutionNote"],
+			)
+		}
+	}
+
+	return nil
+}
+
+func (s *NotificationService) sendWhatsAppNotification(ctx context.Context, event domain.NotificationEvent) error {
+	if s.whatsappSender == nil {
+		return nil
+	}
+
+	switch event.Type {
+	case "booking_approved":
+		if event.Metadata["tenantPhone"] != "" && event.Metadata["tenantName"] != "" &&
+			event.Metadata["propertyName"] != "" && event.Metadata["dpAmount"] != "" &&
+			event.Metadata["invoiceUrl"] != "" {
+			dpAmount := parseFloat(event.Metadata["dpAmount"])
+			return s.whatsappSender.SendApprovalWhatsApp(
+				event.Metadata["tenantPhone"],
+				event.Metadata["tenantName"],
+				event.Metadata["propertyName"],
+				dpAmount,
+				event.Metadata["invoiceUrl"],
+			)
+		}
+	case "payment_refunded":
+		if event.Metadata["tenantPhone"] != "" && event.Metadata["tenantName"] != "" &&
+			event.Metadata["bookingCode"] != "" && event.Metadata["refundAmount"] != "" {
+			refundAmount := parseFloat(event.Metadata["refundAmount"])
+			return s.whatsappSender.SendRefundApprovalWhatsApp(
+				event.Metadata["tenantPhone"],
+				event.Metadata["tenantName"],
+				refundAmount,
+				event.Metadata["bookingCode"],
+			)
+		}
+	case "maintenance_created", "maintenance_updated":
+		if event.Metadata["tenantPhone"] != "" && event.Metadata["recipientName"] != "" &&
+			event.Metadata["propertyName"] != "" && event.Metadata["category"] != "" &&
+			event.Metadata["description"] != "" {
+			parameters := []string{
+				event.Metadata["recipientName"],
+				event.Metadata["propertyName"],
+				event.Metadata["category"],
+				event.Metadata["description"],
+			}
+			return s.whatsappSender.SendMaintenanceWhatsApp(
+				event.Metadata["tenantPhone"],
+				event.Type,
+				parameters,
 			)
 		}
 	}

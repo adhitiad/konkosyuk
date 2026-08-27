@@ -7,8 +7,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { createAuditLog } from "@/lib/audit-log";
-import { createNotification } from "@/lib/notification-client";
-import { sendRefundApprovalWhatsApp } from "@/lib/notifications/whatsapp";
+import { createNotification, sendRefundApprovalWhatsApp } from "@/lib/notification-client";
 import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
 
@@ -199,6 +198,7 @@ export async function requestRefundAction(
 
         if (owner.phone) {
           sendRefundApprovalWhatsApp(
+            owner.id,
             owner.phone,
             owner.name,
             0,

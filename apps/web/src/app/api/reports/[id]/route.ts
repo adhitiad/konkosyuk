@@ -11,8 +11,7 @@ import {
 import { requireSession, type Role } from "@/lib/auth";
 import { validateMutationCsrf } from "@/lib/api-auth";
 import { fail, handleApiError, ok } from "@/lib/api";
-import { sendMaintenanceReportUpdatedEmail } from "@/lib/notifications/email";
-import { sendMaintenanceWhatsApp } from "@/lib/notifications/whatsapp";
+import { sendMaintenanceReportUpdatedEmail, sendMaintenanceWhatsApp } from "@/lib/notification-client";
 
 const updateSchema = z.object({
   status: z.enum(["pending", "in_progress", "resolved", "rejected"]),
@@ -70,6 +69,7 @@ export async function PATCH(
     await Promise.allSettled([
       report.tenantEmail
         ? sendMaintenanceReportUpdatedEmail(
+            report.tenantId,
             report.tenantEmail,
             report.tenantName,
             body.status,
@@ -78,6 +78,7 @@ export async function PATCH(
         : Promise.resolve(),
       report.tenantPhone || report.tenantWhatsapp
         ? sendMaintenanceWhatsApp(
+            report.tenantId,
             report.tenantPhone || report.tenantWhatsapp || "",
             process.env.META_MAINTENANCE_UPDATED_TEMPLATE ||
               "maintenance_report_updated",

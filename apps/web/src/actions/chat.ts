@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
-import { sendChatNotificationEmail } from "@/lib/notifications/email";
+import { sendChatNotificationEmail } from "@/lib/notification-client";
 import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
 import { sanitizeString } from "@/lib/sanitize";
@@ -94,6 +94,7 @@ export async function sendMessageAction(
 
       if (recipient?.email) {
         sendChatNotificationEmail(
+          recipient.id,
           recipient.email,
           recipient.name,
           session.user.name,

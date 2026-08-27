@@ -11,8 +11,7 @@ import {
 import { eq, and } from "drizzle-orm";
 import { getPaymentProvider } from "./index";
 import type { WebhookContext, NormalizedWebhook } from "./types";
-import { sendPaymentReceivedEmail } from "@/lib/notifications/email";
-import { dispatchNotification } from "@/lib/notification-client";
+import { sendPaymentReceivedEmail, dispatchNotification } from "@/lib/notification-client";
 import { startReferralVerification } from "@/lib/referrals/verification";
 import { markOffsetConsumed } from "@/lib/referrals/offset";
 import { logError } from "@/lib/logger";
@@ -251,6 +250,7 @@ export async function handleWebhookRequest(
 
           if (owner?.email) {
             sendPaymentReceivedEmail(
+              owner.id,
               owner.email,
               owner.name,
               tenantName ?? "Tenant",

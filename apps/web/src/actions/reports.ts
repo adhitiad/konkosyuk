@@ -18,8 +18,8 @@ import { z } from "zod";
 import {
   sendMaintenanceReportCreatedEmail,
   sendMaintenanceReportUpdatedEmail,
-} from "@/lib/notifications/email";
-import { sendMaintenanceWhatsApp } from "@/lib/notifications/whatsapp";
+  sendMaintenanceWhatsApp,
+} from "@/lib/notification-client";
 import { validateActionCsrf } from "@/lib/api-auth";
 import { MAX_DESCRIPTION_LENGTH } from "@/lib/constants/actions";
 
@@ -188,6 +188,7 @@ export async function createReportAction(
       recipients.flatMap((recipient) => [
         recipient.email
           ? sendMaintenanceReportCreatedEmail(
+              recipient.id,
               recipient.email,
               recipient.name,
               property.name,
@@ -197,6 +198,7 @@ export async function createReportAction(
           : Promise.resolve(),
         recipient.phone || recipient.whatsapp
           ? sendMaintenanceWhatsApp(
+              recipient.id,
               recipient.phone || recipient.whatsapp || "",
               process.env.META_MAINTENANCE_CREATED_TEMPLATE ||
                 "maintenance_report_created",
@@ -312,6 +314,7 @@ export async function updateReportAction(
     await Promise.allSettled([
       report.tenantEmail
         ? sendMaintenanceReportUpdatedEmail(
+            report.tenantId,
             report.tenantEmail,
             report.tenantName,
             validated.status,
@@ -320,6 +323,7 @@ export async function updateReportAction(
         : Promise.resolve(),
       report.tenantPhone || report.tenantWhatsapp
         ? sendMaintenanceWhatsApp(
+            report.tenantId,
             report.tenantPhone || report.tenantWhatsapp || "",
             process.env.META_MAINTENANCE_UPDATED_TEMPLATE ||
               "maintenance_report_updated",

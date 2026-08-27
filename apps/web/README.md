@@ -165,10 +165,6 @@ VAPID_PRIVATE_KEY=
 # Email
 RESEND_API_KEY=
 RESEND_FROM_EMAIL=KonkosYuk <noreply@domain-anda.com>
-
-# WhatsApp
-META_ACCESS_TOKEN=
-META_PHONE_NUMBER_ID=
 ```
 
 ### 4. Setup Database

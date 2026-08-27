@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { getResendClient, getFromEmail } from "@/lib/notifications/email";
+import { getResendClient, getFromEmail } from "@/lib/email-client";
 import { ok, fail, handleApiError } from "@/lib/api";
 
 const newsletterSchema = z.object({
