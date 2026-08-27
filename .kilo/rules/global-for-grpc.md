@@ -67,14 +67,14 @@ export async function NamaMethod(
 
 Gunakan status code yang tepat dari `@grpc/grpc-js`:
 
-| Error | Status Code |
-|-------|-------------|
-| Unauthorized / token invalid | `UNAUTHENTICATED` |
-| Email sudah terdaftar | `ALREADY_EXISTS` |
-| User tidak ditemukan | `NOT_FOUND` |
-| Validasi gagal | `INVALID_ARGUMENT` |
-| Server error | `INTERNAL` |
-| Method tidak tersedia | `UNIMPLEMENTED` |
+| Error                        | Status Code        |
+| ---------------------------- | ------------------ |
+| Unauthorized / token invalid | `UNAUTHENTICATED`  |
+| Email sudah terdaftar        | `ALREADY_EXISTS`   |
+| User tidak ditemukan         | `NOT_FOUND`        |
+| Validasi gagal               | `INVALID_ARGUMENT` |
+| Server error                 | `INTERNAL`         |
+| Method tidak tersedia        | `UNIMPLEMENTED`    |
 
 ### Auth Interceptor
 
@@ -116,12 +116,12 @@ Gunakan status code yang tepat dari `@grpc/grpc-js`:
 
 ## 9. Environment Variables
 
-| Variable | Wajib | Deskripsi |
-|----------|-------|-----------|
-| `DATABASE_URL` | Ya | PostgreSQL connection string |
-| `BETTER_AUTH_SECRET` | Ya | Min 32 chars |
-| `PORT` | Opsional | Default `50051` |
-| `NODE_ENV` | Ya | `production` di deploy |
+| Variable             | Wajib    | Deskripsi                    |
+| -------------------- | -------- | ---------------------------- |
+| `DATABASE_URL`       | Ya       | PostgreSQL connection string |
+| `BETTER_AUTH_SECRET` | Ya       | Min 32 chars                 |
+| `PORT`               | Opsional | Default `50051`              |
+| `NODE_ENV`           | Ya       | `production` di deploy       |
 
 ## 10. Verification & Commands
 
@@ -136,6 +136,7 @@ bun run proto:gen    # generate proto stubs (jika dijalankan dari apps/grpc)
 ```
 
 Dari repo root:
+
 ```bash
 bun run proto:gen    # regenerate gRPC stubs
 ```
@@ -150,7 +151,7 @@ bun run proto:gen    # regenerate gRPC stubs
 
 ## 12. Catatan Tambahan
 
-- Semua perubahan wajib dicatat di `CHANGELOG.md` (di root monorepo)
+- Semua perubahan wajib dicatat di `CHANGELOG.md` pakai Tanggal `dd-MMM-yyyy hh:mm` (di root monorepo)
 - Gunakan `z.unknown()` bukan `z.any()` untuk schema validation
 - Ekstrak magic numbers ke named constants
 - JANGAN gunakan `console.*` di production — selalu pakai shared logger

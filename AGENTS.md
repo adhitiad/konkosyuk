@@ -7,6 +7,7 @@ Turborepo + Bun workspaces. Bun is pinned to **1.4.0** (`packageManager` + CI) �
 - `apps/web` — Next.js 16 web app (the main product; detailed rules in `apps/web/AGENTS.md`)
 - `apps/grpc` — standalone gRPC server (Bun) that powers the mobile app; consumes `proto/`
 - `apps/cronJob` — standalone BullMQ worker (Bun), deployed as a Render Background Worker
+- `apps/notifications` — standalone Go notification service (gRPC), deployed as a Render Background Worker; all notification logic lives here (email, WhatsApp, Telegram, Web Push)
 - `apps/mobile` — Flutter app (separate toolchain: `flutter`/`dart`); talks to `apps/grpc` over gRPC
 - `packages/shared` — shared Zod schemas, constants, types, pure utils (rules in `docs/shared-packages-guideline.md`)
 - `proto/konkosyuk/v1/*.proto` — buf/protoc source; generated stubs land in `apps/grpc/src/gen/**` (do not edit generated files)
@@ -25,12 +26,13 @@ bun run test     # runs each package's test task
 Per-app / focused:
 
 ```bash
-cd apps/web    && bun x tsc --noEmit          # typecheck (has known errors in 3 files, see apps/web/AGENTS.md)
+cd apps/web    && bun x tsc --noEmit          # typecheck (has known errors, see apps/web/AGENTS.md)
 cd apps/web    && bun run test -- --run       # one-shot unit tests (CI mode)
 cd apps/web    && bun run test:coverage       # coverage-gated run
 cd apps/web    && bun run test:e2e            # Playwright (auto-starts dev server)
 cd apps/grpc   && bun run dev                  # gRPC server with --watch
 cd apps/cronJob && bun run dev                 # worker with --watch (bun run start = prod)
+cd apps/notifications && go build ./cmd/server # build Go notification service
 cd apps/mobile && flutter <cmd>                # Flutter toolchain
 bun run proto:gen                              # regenerate gRPC stubs (run from repo root)
 ```
@@ -49,6 +51,7 @@ bun run proto:gen                              # regenerate gRPC stubs (run from
 - `BETTER_AUTH_SECRET` and `CRON_SECRET` must be ≥32 chars (`openssl rand -base64 32`).
 - `apps/cronJob` MUST share the same `REDIS_URL` and `DATABASE_URL` as web (BullMQ requirement).
 - `PAYMENT_MODE`: `mock` for dev; **production builds require `PAYMENT_MODE=live`** (`src/lib/payments/mock.ts` throws in production otherwise).
+- **Notification service**: `apps/notifications` requires `DATABASE_URL`, `REDIS_URL`, `NOTIFICATION_ENCRYPTION_KEY`, `RESEND_API_KEY`, `WHATSAPP_PHONE_NUMBER`, `WHATSAPP_SESSION_PATH`, `TELEGRAM_BOT_TOKEN`, `VAPID_PRIVATE_KEY`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `NOTIFICATION_SERVICE_SECRET`.
 
 ## Database
 
@@ -56,6 +59,14 @@ bun run proto:gen                              # regenerate gRPC stubs (run from
 - Local dev: `cd apps/web && bun run db:push` (no migration files).
 - Migrations: `db:generate` then `db:migrate`.
 - Seeds: use the `bun run db:seed-*` npm scripts (they load `.env.local`); don't invoke the tsx/seed files directly or env may not load.
+
+## Notification Architecture
+
+- All notification logic (email, WhatsApp, Telegram, Web Push) lives in `apps/notifications` (Go gRPC service).
+- Web app and cronJob call notifications via gRPC client (`packages/shared/src/lib/notification-grpc-client.ts` → `apps/web/src/lib/notification-client.ts`).
+- WhatsApp uses `go.mau.fi/whatsmeow` with session persistence — **not** Meta Graph API. Session path: `WHATSAPP_SESSION_PATH` (default `./whatsapp-session`).
+- Web app no longer has direct email/WhatsApp senders; wrapper functions in `notification-client.ts` dispatch via gRPC.
+- Old files deleted: `apps/web/src/lib/notifications/email.ts`, `apps/web/src/lib/notifications/whatsapp.ts`, `apps/web/src/lib/notifications/event-emitter.ts`, `apps/web/src/lib/notification-settings.ts`, `apps/web/src/lib/notification-crypto.ts`.
 
 ## Web app gotchas (full detail in `apps/web/AGENTS.md`)
 
@@ -84,3 +95,4 @@ bun run proto:gen                              # regenerate gRPC stubs (run from
 - Unit: Vitest + jsdom (`apps/web`). Coverage gates: 65% global, 90% for `currency`, `payments/calculations`, `payments/signature`, `sanitize`, `packages/calculator`.
 - E2E: Playwright (`apps/web`), auto-starts dev server at `http://localhost:3000`.
 - `apps/cronJob` has its own Vitest suite (`bun run test` in that dir).
+- `apps/notifications` has no tests yet (Go service).

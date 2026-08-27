@@ -5,16 +5,16 @@
 - **Jangan** mengelompokkan berdasarkan tipe file (`/models`, `/views`, `/controllers`).
 - **Lakukan** pengelompokan berdasarkan Fitur (Feature-First) agar skalabel.
 - Struktur folder yang wajib:
-   ```text
-   lib/
-   ├── core/          # Shared utilities, network (gRPC), theme, constants
-   ├── features/      # Fitur utama (auth, properties, bookings, reports)
-   │   └── auth/
-   │       ├── data/      # Models, API repositories (gRPC clients)
-   │       ├── domain/    # Entities, use cases (opsional untuk MVP)
-   │       └── presentation/ # UI (Screens, Widgets, State/Providers)
-   └── main.dart
-   ```
+  ```text
+  lib/
+  ├── core/          # Shared utilities, network (gRPC), theme, constants
+  ├── features/      # Fitur utama (auth, properties, bookings, reports)
+  │   └── auth/
+  │       ├── data/      # Models, API repositories (gRPC clients)
+  │       ├── domain/    # Entities, use cases (opsional untuk MVP)
+  │       └── presentation/ # UI (Screens, Widgets, State/Providers)
+  └── main.dart
+  ```
 
 ## 2. State Management (Pilihan: Riverpod)
 
@@ -52,4 +52,4 @@
 
 Jika untuk **Web** dan **Backend**, silakan lihat di `.kilo/rules/global-project-web-and-backend.md`. Dan untuk **Mobile**, silakan lihat di `.kilo/rules/global-for-mobile.md`.
 
-Dan semua aturan ini berlaku untuk semua proyek yang Anda kerjakan, baik itu proyek pribadi maupun proyek klien. Pastikan untuk selalu mematuhi aturan ini agar kode yang dihasilkan berkualitas tinggi, aman, dan mudah dipelihara. dan mohonn untuk catat segala bentuk perubahan di `CHANGELOG.md` (di root monorepo)
+Dan semua aturan ini berlaku untuk semua proyek yang Anda kerjakan, baik itu proyek pribadi maupun proyek klien. Pastikan untuk selalu mematuhi aturan ini agar kode yang dihasilkan berkualitas tinggi, aman, dan mudah dipelihara. dan mohonn untuk catat segala bentuk perubahan di `CHANGELOG.md` pakai Tanggal `dd-MMM-yyyy hh:mm` (di root monorepo)

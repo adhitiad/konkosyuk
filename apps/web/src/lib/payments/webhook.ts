@@ -278,7 +278,7 @@ export async function handleWebhookRequest(
                 ownerName: owner?.name,
                 propertyName: property.name,
                 unitName: booking.unitId,
-                amount: Number(payment.amount),
+                amount: String(Number(payment.amount)),
                 paymentUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/bookings`,
               },
             }).catch((err) =>

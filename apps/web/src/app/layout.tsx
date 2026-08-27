@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Script } from "next/script";
+import Script from "next/script";
 import { Poppins, Inter } from "next/font/google";
 import { VercelAnalytics } from "@/app/analytics";
 import { PwaRegister } from "@/components/pwa-register";

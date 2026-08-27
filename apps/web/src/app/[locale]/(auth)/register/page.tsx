@@ -22,11 +22,14 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Globe, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 import { AuthLayout } from "@/components/auth/auth-layout";
 import type { SessionUserWithRole } from "@/lib/auth-client";
 import { linkReferralCode } from "@/actions/referrals";
 import { toast } from "sonner";
+import { z, flattenError } from "zod";
+import { cn } from "@/lib/utils";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -41,6 +44,8 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const refCodeRef = useRef<string | null>(null);
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -55,6 +60,18 @@ export default function RegisterPage() {
       refCodeRef.current = ref;
     }
   }, []);
+
+  const registerSchema = z.object({
+    name: z.string().min(1, "Nama harus diisi"),
+    email: z.string().email("Format email tidak valid"),
+    password: z.string().min(8, "Password minimal 8 karakter"),
+    confirmPassword: z.string().min(8, "Konfirmasi password minimal 8 karakter"),
+    agreedToPrivacy: z
+      .boolean()
+      .refine((val) => val === true, {
+        message: "Anda harus menyetujui kebijakan privasi",
+      }),
+  });
 
   useEffect(() => {
     if (!isPending && session) {
@@ -72,14 +89,34 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFieldErrors({});
 
-    if (password !== confirmPassword) {
-      setError("Password dan konfirmasi password tidak cocok");
+    const validationResult = registerSchema.safeParse({
+      name,
+      email,
+      password,
+      confirmPassword,
+      agreedToPrivacy,
+    });
+
+    if (!validationResult.success) {
+      const flattened = flattenError(validationResult.error);
+      const errors: Record<string, string> = {};
+      for (const [field, messages] of Object.entries(flattened.fieldErrors)) {
+        if (messages?.[0]) {
+          errors[field] = messages[0];
+        }
+      }
+      if (password !== confirmPassword) {
+        errors.confirmPassword =
+          "Password dan konfirmasi password tidak cocok";
+      }
+      setFieldErrors(errors);
       return;
     }
 
-    if (password.length < 8) {
-      setError("Password minimal 8 karakter");
+    if (password !== confirmPassword) {
+      setFieldErrors({ confirmPassword: "Password dan konfirmasi password tidak cocok" });
       return;
     }
 
@@ -198,9 +235,12 @@ export default function RegisterPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="pl-9"
+                className={cn("pl-9", fieldErrors.name && "border-destructive")}
               />
             </div>
+            {fieldErrors.name && (
+              <p className="text-sm text-destructive">{fieldErrors.name}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -214,9 +254,12 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="pl-9"
+                className={cn("pl-9", fieldErrors.email && "border-destructive")}
               />
             </div>
+            {fieldErrors.email && (
+              <p className="text-sm text-destructive">{fieldErrors.email}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -247,7 +290,7 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
-                className="pl-9 pr-9"
+                className={cn("pl-9 pr-9", fieldErrors.password && "border-destructive")}
               />
               <button
                 type="button"
@@ -264,6 +307,9 @@ export default function RegisterPage() {
                 )}
               </button>
             </div>
+            {fieldErrors.password && (
+              <p className="text-sm text-destructive">{fieldErrors.password}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -278,7 +324,7 @@ export default function RegisterPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={8}
-                className="pl-9 pr-9"
+                className={cn("pl-9 pr-9", fieldErrors.confirmPassword && "border-destructive")}
               />
               <button
                 type="button"
@@ -297,7 +343,48 @@ export default function RegisterPage() {
                 )}
               </button>
             </div>
+            {fieldErrors.confirmPassword && (
+              <p className="text-sm text-destructive">
+                {fieldErrors.confirmPassword}
+              </p>
+            )}
           </div>
+
+          <div className="flex items-start gap-2">
+            <Checkbox
+              id="agreedToPrivacy"
+              checked={agreedToPrivacy}
+              onCheckedChange={(checked) => {
+                setAgreedToPrivacy(checked === true);
+                if (fieldErrors.agreedToPrivacy) {
+                  setFieldErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.agreedToPrivacy;
+                    return next;
+                  });
+                }
+              }}
+              required
+            />
+            <Label
+              htmlFor="agreedToPrivacy"
+              className="cursor-pointer text-sm leading-tight"
+            >
+              Saya setuju data pribadi saya diproses sesuai{" "}
+              <Link
+                href="/privacy"
+                className="text-primary hover:underline"
+                target="_blank"
+              >
+                Tujuan Pemrosesan Data Pribadi dalam Kebijakan Privasi
+              </Link>
+            </Label>
+          </div>
+          {fieldErrors.agreedToPrivacy && (
+            <p className="text-sm text-destructive -mt-2">
+              {fieldErrors.agreedToPrivacy}
+            </p>
+          )}
 
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Memproses..." : "Daftar"}

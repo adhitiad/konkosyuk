@@ -34,7 +34,7 @@ import {
 } from "@/lib/packages/calculator";
 import { invalidateCacheByTag } from "@/lib/cache";
 import { updateTag } from "next/cache";
-import { dispatchNotification } from "@/lib/notification-client";
+import { dispatchNotification, sendBookingRequestEmail, sendBookingRejectionEmail, sendApprovalEmail } from "@/lib/notification-client";
 import { getPaymentProvider } from "@/lib/payments";
 import { DP_RATIO } from "@/lib/payments/calculations";
 import { PAYMENT_EXPIRY_SECONDS } from "@/lib/payments/constants";
@@ -590,7 +590,7 @@ export async function reviewBookingAction(
           tenantName: tenant?.name,
           propertyName: property.name,
           unitName: unit?.name,
-          dpAmount: Number(booking.metadata?.dpAmount ?? 0),
+          dpAmount: String(Number(booking.metadata?.dpAmount ?? 0)),
           invoiceUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/bookings`,
         },
       }).catch((err) =>

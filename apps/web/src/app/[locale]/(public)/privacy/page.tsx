@@ -54,7 +54,7 @@ export async function generateMetadata({
 
 export default function PrivacyPage() {
   return (
-    <StaticPageLayout title="Kebijakan Privasi" lastUpdated="7 Agustus 2026">
+    <StaticPageLayout title="Kebijakan Privasi" lastUpdated="27 Agustus 2026">
       <JsonLd
         data={breadcrumbSchema([
           { name: "Home", url: `${SITE_URL}/id` },
@@ -74,14 +74,41 @@ export default function PrivacyPage() {
         <li>Data lokasi (alamat properti yang Anda cari atau daftarkan)</li>
       </ul>
 
-      <h2>2. Bagaimana Kami Menggunakan Informasi Anda</h2>
+      <h2>2. Tujuan Pemrosesan Data Pribadi</h2>
+      <p>
+        Data pribadi Anda diproses hanya untuk tujuan berikut:
+      </p>
+      <ul>
+        <li>
+          <strong>Verifikasi</strong> — Memastikan identitas dan kelengkapan profil
+          Anda sebagai pengguna platform.
+        </li>
+        <li>
+          <strong>Transaksi</strong> — Memproses pembayaran, booking, dan aktivitas
+          finansial lainnya di dalam platform.
+        </li>
+        <li>
+          <strong>Komunikasi</strong> — Mengirim notifikasi, pembaruan booking, dan
+          informasi penting seputar akun Anda.
+        </li>
+        <li>
+          <strong>Peningkatan Layanan</strong> — Menganalisis pola penggunaan untuk
+          meningkatkan kualitas dan pengalaman platform.
+        </li>
+        <li>
+          <strong>Kepatuhan Hukum</strong> — Memenuhi kewajiban hukum dan regulasi
+          yang berlaku, serta melindungi hak dan keamanan pengguna.
+        </li>
+      </ul>
+
+      <h2>3. Bagaimana Kami Menggunakan Informasi Anda</h2>
       <p>
         Informasi Anda digunakan untuk memproses booking, memverifikasi
         identitas, mengirim notifikasi penting seputar akun dan transaksi, serta
         meningkatkan kualitas layanan KonkosYuk.
       </p>
 
-      <h2>3. Berbagi Informasi dengan Pihak Ketiga</h2>
+      <h2>4. Berbagi Informasi dengan Pihak Ketiga</h2>
       <p>
         Kami hanya membagikan data Anda kepada pihak ketiga yang diperlukan
         untuk proses layanan, yaitu:
@@ -97,13 +124,13 @@ export default function PrivacyPage() {
         </li>
       </ul>
 
-      <h2>4. Keamanan Data</h2>
+      <h2>5. Keamanan Data</h2>
       <p>
         Kami menerapkan enkripsi password, secure session, dan praktik keamanan
         standar industri untuk melindungi data pribadi Anda.
       </p>
 
-      <h2>5. Hak Anda</h2>
+      <h2>6. Hak Anda</h2>
       <p>
         Anda memiliki hak untuk meminta penghapusan atau koreksi data pribadi
         Anda dengan menghubungi support@konkosyuk.com.

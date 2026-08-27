@@ -1,5 +1,43 @@
 # Ringkasan Perubahan
 
+## Fix Vercel Build Error - gRPC Client & Metadata Server Component
+
+### Ringkasan
+Memperbaiki 23 error build di Vercel yang terjadi karena dua halaman publik mengexport `generateMetadata` dari dalam komponen `"use client"`, serta modul Node.js-only (`@grpc/grpc-js`, `winston`) ikut ter-bundle ke client component melalui barrel export `packages/shared/src/index.ts`.
+
+### Perubahan Utama
+- **Halaman Publik**: Pindahkan logika interaktif ke client component terpisah agar `generateMetadata` tetap di Server Component (`ads/submit/page.tsx`, `contact/page.tsx`)
+- **Shared Barrel**: Hapus re-export `logger` dan `notification-grpc-client` dari `packages/shared/src/index.ts` agar tidak ter-bundle ke client
+- **Build**: `bun run build` berhasil tanpa error
+
+### File Diubah
+- `apps/web/src/app/[locale]/(public)/ads/submit/page.tsx`
+- `apps/web/src/app/[locale]/(public)/ads/submit/submit-ad-form.tsx`
+- `apps/web/src/app/[locale]/(public)/contact/page.tsx`
+- `apps/web/src/app/[locale]/(public)/contact/contact-form.tsx`
+- `packages/shared/src/index.ts`
+
+### File Dihapus
+- Tidak ada file dihapus
+
+---
+
+## Registrasi: Kebijakan Privasi & Validasi Checkbox
+
+### Ringkasan
+Memperbarui halaman Kebijakan Privasi dengan 5 tujuan pemrosesan data pribadi yang eksplisit, dan menambahkan checkbox wajib di halaman registrasi yang terhubung ke kebijakan privasi dengan validasi Zod.
+
+### Perubahan Utama
+- **Privacy Policy**: Tambah section "Tujuan Pemrosesan Data Pribadi" dengan 5 poin eksplisit (Verifikasi, Transaksi, Komunikasi, Peningkatan Layanan, Kepatuhan Hukum)
+- **Register Page**: Tambah checkbox wajib "Saya setuju data pribadi saya diproses sesuai Tujuan Pemrosesan Data Pribadi dalam Kebijakan Privasi" dengan link ke `/privacy`
+- **Validasi**: Gunakan Zod untuk memvalidasi checkbox beserta field form lainnya sebelum submit
+
+### File Diubah
+- `apps/web/src/app/[locale]/(public)/privacy/page.tsx`
+- `apps/web/src/app/[locale]/(auth)/register/page.tsx`
+
+---
+
 ## Notification Service Migration (TypeScript → Go gRPC)
 
 ### Ringkasan

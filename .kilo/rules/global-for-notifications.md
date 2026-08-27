@@ -344,7 +344,7 @@ message DispatchResponse {
 
 ## 17. Catatan Tambahan
 
-- Semua perubahan wajib dicatat di `CHANGELOG.md` (di root monorepo)
+- Semua perubahan wajib dicatat di `CHANGELOG.md` pakai Tanggal `dd-MMM-yyyy hh:mm` (di root monorepo)
 - Notification types dan enum didefinisikan di `packages/shared/src/db/schema.ts` — jangan redefine di sini
 - Database connection string harus sama dengan `apps/cronJob` dan `apps/web`
 - Jika mengganti sistem notifikasi yang ada, pastikan backward compatibility dengan cronJob yang masih mengirim ke web push / email

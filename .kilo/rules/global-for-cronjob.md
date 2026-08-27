@@ -81,11 +81,13 @@ src/
 ## 6. Notifikasi
 
 ### Channel
+
 - **In-app**: simpan ke tabel `notifications` di database
 - **Email**: kirim via Resend (gunakan `getResendClient()` yang cek settings dulu)
 - **Push**: kirim via `web-push` (VAPID keys dari env)
 
 ### Notification Service
+
 - Pakai `dispatchNotification()` di `notification-service.ts` untuk routing otomatis
 - User preferences disimpan di `user_notification_preferences` (per-event channel toggles)
 - Default preferences: `DEFAULT_PREFERENCES` map (lihat `notification-service.ts`)
@@ -93,26 +95,28 @@ src/
 - Email digest: `immediate` = kirim langsung, `daily`/`weekly` = batch
 
 ### Enkripsi
+
 - Kredensial (API keys) disimpan encrypted di tabel `notification_settings`
 - Pakai AES-256-GCM via `notification-crypto.ts`
 - `NOTIFICATION_ENCRYPTION_KEY` wajib base64-encoded 32-byte key
 
 ### Template
+
 - Semua email template pakai HTML inline styles (font-family: Arial, color #333, link #2563eb)
 - Escape HTML pada user input via `escapeHtml()`
 - Subject dan heading pakai bahasa Indonesia
 
 ## 7. Cron Job yang Tersedia
 
-| Job | Queue | Pattern | Deskripsi |
-|-----|-------|---------|-----------|
-| cleanup-expired-bookings | `cleanup-expired-bookings` | `0 * * * *` | Batal booking tidak dibayar dalam 6 jam |
-| complete-expired-bookings | `complete-expired-bookings` | `0 2 * * *` | Selesaikan booking lewat endDate |
-| saved-search-matcher | `saved-search-matcher` | `0 3 * * *` | Cocokkan properti baru dengan pencarian |
-| update-area-counts | `update-area-counts` | `0 4 * * *` | Update jumlah properti per area |
-| process-expired-refunds | `process-expired-refunds` | `0 5 * * *` | Auto-refund booking expired |
-| referral-eligibility-sweep | `referral-eligibility-sweep` | `0 * * * *` | Verifikasi referral setelah 5 hari |
-| churn-prediction | `churn-prediction` | `0 6 * * *` | Kirim email re-engagement |
+| Job                        | Queue                        | Pattern     | Deskripsi                               |
+| -------------------------- | ---------------------------- | ----------- | --------------------------------------- |
+| cleanup-expired-bookings   | `cleanup-expired-bookings`   | `0 * * * *` | Batal booking tidak dibayar dalam 6 jam |
+| complete-expired-bookings  | `complete-expired-bookings`  | `0 2 * * *` | Selesaikan booking lewat endDate        |
+| saved-search-matcher       | `saved-search-matcher`       | `0 3 * * *` | Cocokkan properti baru dengan pencarian |
+| update-area-counts         | `update-area-counts`         | `0 4 * * *` | Update jumlah properti per area         |
+| process-expired-refunds    | `process-expired-refunds`    | `0 5 * * *` | Auto-refund booking expired             |
+| referral-eligibility-sweep | `referral-eligibility-sweep` | `0 * * * *` | Verifikasi referral setelah 5 hari      |
+| churn-prediction           | `churn-prediction`           | `0 6 * * *` | Kirim email re-engagement               |
 
 ## 8. Logging & Error Handling
 
@@ -130,18 +134,18 @@ src/
 
 ## 10. Environment Variables
 
-| Variable | Wajib | Deskripsi |
-|----------|-------|-----------|
-| `DATABASE_URL` | Ya | PostgreSQL connection string |
-| `REDIS_URL` | Ya | Redis ioredis format |
-| `BETTER_AUTH_SECRET` | Ya | Min 32 chars |
-| `CRON_SECRET` | Ya | Min 32 chars |
-| `PAYMENT_CONFIG_ENCRYPTION_KEY` | Ya | Payment config encryption |
-| `RESEND_API_KEY` | Opsional | Resend API key (dari DB settings juga bisa) |
-| `RESEND_FROM_EMAIL` | Opsional | Default from email |
-| `NOTIFICATION_ENCRYPTION_KEY` | Ya | Base64-encoded 32-byte key |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Opsional | VAPID public key |
-| `VAPID_PRIVATE_KEY` | Opsional | VAPID private key |
+| Variable                        | Wajib    | Deskripsi                                   |
+| ------------------------------- | -------- | ------------------------------------------- |
+| `DATABASE_URL`                  | Ya       | PostgreSQL connection string                |
+| `REDIS_URL`                     | Ya       | Redis ioredis format                        |
+| `BETTER_AUTH_SECRET`            | Ya       | Min 32 chars                                |
+| `CRON_SECRET`                   | Ya       | Min 32 chars                                |
+| `PAYMENT_CONFIG_ENCRYPTION_KEY` | Ya       | Payment config encryption                   |
+| `RESEND_API_KEY`                | Opsional | Resend API key (dari DB settings juga bisa) |
+| `RESEND_FROM_EMAIL`             | Opsional | Default from email                          |
+| `NOTIFICATION_ENCRYPTION_KEY`   | Ya       | Base64-encoded 32-byte key                  |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY`  | Opsional | VAPID public key                            |
+| `VAPID_PRIVATE_KEY`             | Opsional | VAPID private key                           |
 
 ## 11. Verification & Commands
 
@@ -165,7 +169,7 @@ bun run test         # vitest (one-shot, run mode)
 
 ## 13. Catatan Tambahan
 
-- Semua perubahan wajib dicatat di `CHANGELOG.md` (di root monorepo)
+- Semua perubahan wajib dicatat di `CHANGELOG.md` pakai Tanggal `dd-MMM-yyyy hh:mm` (di root monorepo)
 - Path alias: `@/*` → `./src/*`, `@konkosyuk/shared/*` → `../../packages/shared/src/*`
 - Gunakan `z.unknown()` bukan `z.any()` untuk schema validation
 - Ekstrak magic numbers ke named constants

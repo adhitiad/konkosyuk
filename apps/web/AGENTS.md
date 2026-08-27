@@ -19,7 +19,7 @@ Shared package: `../../packages/shared`
 ## Commands
 
 - Use **Bun only**: `bun run dev`, `bun run build`, `bun run lint`, `bun run test`
-- Typecheck: `bun x tsc --noEmit` — currently has known errors in `src/app/api/newsletter/subscribe/__tests__/route.test.ts`, `src/app/global-not-found.tsx`, and `src/scripts/__tests__/seed.test.ts`
+- Typecheck: `bun x tsc --noEmit` — currently has known errors in `src/actions/bookings.ts`, `src/app/[locale]/(public)/ads/submit/page.tsx`, `src/app/layout.tsx`, and `src/lib/payments/webhook.ts`
 - DB push: `bun run db:push` (Drizzle push, no migrations for local dev)
 - Seed: `bun run db:seed`
 - Env file: `.env.local` (not `.env`)
