@@ -15,7 +15,7 @@ import { z } from "zod";
 import { createAuditLog } from "@/lib/audit-log";
 import { sendBookingRejectionEmail } from "@/lib/notifications/email";
 import { sendRefundApprovalWhatsApp } from "@/lib/notifications/whatsapp";
-import { createNotification } from "@/lib/notifications";
+import { createNotification } from "@/lib/notification-client";
 import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
 import { handleReferralFailureOnRefund } from "@/lib/referrals/verification";

@@ -11,7 +11,7 @@ import {
   dispatchReferralStatusUpdate,
   dispatchReferralVoucherConverted,
   dispatchReferralOffsetApplied,
-} from "@/lib/notification-service";
+} from "@/lib/notification-client";
 import {
   createReferralSchema,
   referralQuerySchema,

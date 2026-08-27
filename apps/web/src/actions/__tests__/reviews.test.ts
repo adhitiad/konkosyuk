@@ -110,10 +110,27 @@ vi.mock("@/lib/cache", () => ({
   invalidateCacheByTag: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@/lib/notifications", () => ({
+vi.mock("@/lib/notification-client", () => ({
   createNotification: (...args: unknown[]) => mockCreateNotification(...args),
   sendWebPushNotification: (...args: unknown[]) =>
     mockSendWebPushNotification(...args),
+  dispatchNotification: vi.fn(),
+  dispatchBookingReminder: vi.fn(),
+  dispatchPricingAlert: vi.fn(),
+  dispatchReferralReward: vi.fn(),
+  dispatchReferralStatusUpdate: vi.fn(),
+  dispatchReferralVoucherConverted: vi.fn(),
+  dispatchReferralOffsetApplied: vi.fn(),
+  dispatchGroupBookingInvite: vi.fn(),
+  dispatchGroupBookingUpdated: vi.fn(),
+  getUserPreferences: vi.fn(),
+  updateUserPreferences: vi.fn(),
+  shouldSendNotification: vi.fn(),
+  getDefaultPreferences: vi.fn(),
+  getNotificationSettings: vi.fn(),
+  upsertNotificationSettings: vi.fn(),
+  encryptNotificationValue: vi.fn(),
+  decryptNotificationValue: vi.fn(),
 }));
 
 vi.mock("@/lib/notifications/event-emitter", () => ({

@@ -3,7 +3,7 @@ import { requireSession } from "@/lib/auth";
 import { db } from "@/db";
 import { pushSubscriptions } from "@/db/schema";
 import { ok, fail, handleApiError } from "@/lib/api";
-import { sendWebPushNotification } from "@/lib/notifications";
+import { sendWebPushNotification } from "@/lib/notification-client";
 
 export async function POST(req: NextRequest) {
   try {

@@ -12,7 +12,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { invalidateCacheByTag } from "@/lib/cache";
-import { dispatchGroupBookingInvite } from "@/lib/notification-service";
+import { dispatchGroupBookingInvite } from "@/lib/notification-client";
 import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
 

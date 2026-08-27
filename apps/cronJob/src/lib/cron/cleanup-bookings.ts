@@ -4,7 +4,7 @@ import { eq, desc, lt, and, inArray } from "drizzle-orm";
 import {
   createNotification,
   sendWebPushNotification,
-} from "@/lib/notifications";
+} from "@/lib/notification-client";
 
 export interface CleanupResult {
   cancelledCount: number;

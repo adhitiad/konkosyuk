@@ -13,8 +13,26 @@ vi.mock("@/lib/auth", () => ({
 
 const mockDispatch = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 
-vi.mock("@/lib/notification-service", () => ({
+vi.mock("@/lib/notification-client", () => ({
   dispatchGroupBookingInvite: mockDispatch,
+  dispatchNotification: vi.fn(),
+  dispatchBookingReminder: vi.fn(),
+  dispatchPricingAlert: vi.fn(),
+  dispatchReferralReward: vi.fn(),
+  dispatchReferralStatusUpdate: vi.fn(),
+  dispatchReferralVoucherConverted: vi.fn(),
+  dispatchReferralOffsetApplied: vi.fn(),
+  dispatchGroupBookingUpdated: vi.fn(),
+  createNotification: vi.fn(),
+  sendWebPushNotification: vi.fn(),
+  getUserPreferences: vi.fn(),
+  updateUserPreferences: vi.fn(),
+  shouldSendNotification: vi.fn(),
+  getDefaultPreferences: vi.fn(),
+  getNotificationSettings: vi.fn(),
+  upsertNotificationSettings: vi.fn(),
+  encryptNotificationValue: vi.fn(),
+  decryptNotificationValue: vi.fn(),
 }));
 
 const mockResults: unknown[][] = [];

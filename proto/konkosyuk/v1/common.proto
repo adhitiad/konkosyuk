@@ -5,6 +5,8 @@ package konkosyuk.v1;
 option java_multiple_files = true;
 option java_package = "com.konkosyuk.api.v1";
 
+option go_package = "notif/proto/konkosyuk/v1";
+
 message Empty {}
 
 message PaginationRequest {

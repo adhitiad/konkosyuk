@@ -56,7 +56,7 @@ List endpoints often add `meta` manually for pagination: `ok({ data, meta: { tot
 - Schema: `src/db/schema.ts`
 - Drizzle config: `drizzle.config.ts` reads `DATABASE_URL` from `.env.local`
 - Most monetary columns use `numeric(...)`; payment `amount` is stored as `text` and cast to `NUMERIC` in queries
-- Redis: Upstash Redis (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`) for rate limiting, Ably, and caching
+- Redis: Upstash Redis via `REDIS_URL` in ioredis format (`rediss://...`), used for rate limiting, Ably, and caching. Do NOT use `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` — see `src/lib/redis.ts`.
 
 ## Quirks
 

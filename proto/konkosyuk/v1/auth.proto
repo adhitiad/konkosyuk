@@ -7,6 +7,8 @@ import "konkosyuk/v1/common.proto";
 option java_multiple_files = true;
 option java_package = "com.konkosyuk.api.v1";
 
+option go_package = "notif/proto/konkosyuk/v1";
+
 enum UserRole {
   USER_ROLE_UNSPECIFIED = 0;
   CUST = 1;

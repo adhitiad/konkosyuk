@@ -11,7 +11,7 @@ import { requireSession, Role } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import { eq, desc, and, sql, or, inArray } from "drizzle-orm";
-import { dispatchGroupBookingInvite } from "@/lib/notification-service";
+import { dispatchGroupBookingInvite } from "@/lib/notification-client";
 type GroupBookingInsert = typeof groupBookings.$inferInsert;
 type GroupBookingMemberInsert = typeof groupBookingMembers.$inferInsert;
 

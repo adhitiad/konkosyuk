@@ -11,7 +11,7 @@ import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import { eq, desc, sql, and, or, gte, lte } from "drizzle-orm";
-import { dispatchGroupBookingUpdated } from "@/lib/notification-service";
+import { dispatchGroupBookingUpdated } from "@/lib/notification-client";
 
 const updateGroupBookingSchema = z.object({
   status: z.enum(["pending", "confirmed", "cancelled", "completed"]).optional(),

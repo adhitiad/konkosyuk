@@ -4,7 +4,7 @@ import { eq, and, gte, desc, sql, SQLWrapper } from "drizzle-orm";
 import {
   createNotification,
   sendWebPushNotification,
-} from "@/lib/notifications";
+} from "@/lib/notification-client";
 import { getRedis } from "@/lib/redis";
 
 const NOTIFICATION_INTERVAL_HOURS = 24;

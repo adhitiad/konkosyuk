@@ -6,7 +6,7 @@ import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import { eq, sql } from "drizzle-orm";
 import type { Role } from "@/lib/auth";
-import { dispatchNotification } from "@/lib/notification-service";
+import { dispatchNotification } from "@/lib/notification-client";
 import { logError } from "@/lib/logger";
 
 const completeInspectionSchema = z.object({

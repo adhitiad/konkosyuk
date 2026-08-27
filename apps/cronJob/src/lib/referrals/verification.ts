@@ -9,7 +9,7 @@ import {
   getCommissionRate,
   type CommissionCategory,
 } from "./commission";
-import { dispatchReferralStatusUpdate } from "@/lib/notification-service";
+import { dispatchReferralStatusUpdate } from "@/lib/notification-client";
 import { logInfo, logError } from "@konkosyuk/shared/lib/logger";
 
 type DbExecutor = NodePgDatabase<typeof import("@konkosyuk/shared/db/schema")>;

@@ -10,7 +10,7 @@ import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 import { z } from "zod";
 import { eq, desc, sql } from "drizzle-orm";
-import { dispatchNotification } from "@/lib/notification-service";
+import { dispatchNotification } from "@/lib/notification-client";
 import { redeemRewardSchema } from "@konkosyuk/shared";
 
 export async function GET(req: NextRequest) {

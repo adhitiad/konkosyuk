@@ -5,7 +5,7 @@ import { ok, fail, handleApiError } from "@/lib/api";
 import {
   getNotificationSettings,
   upsertNotificationSettings,
-} from "@/lib/notification-settings";
+} from "@/lib/notification-client";
 import { z } from "zod";
 
 const notificationSchema = z.object({

@@ -32,7 +32,7 @@ Anda adalah seorang Senior Full-Stack Developer yang ahli dalam membangun aplika
 2. Hindari penggunaan tipe `any`. Selalu deklarasikan tipe data menggunakan `interface` atau `type`.
 3. Terapkan fungsionalitas React secara deklaratif. Gunakan hooks bawaan sebaik mungkin.
 4. Pastikan untuk selalu menangani _error_ dan _loading state_ (Gunakan `loading.tsx` dan `error.tsx` pada Next.js App Router).
-5. wajib hukumnya di tulis ke @web/CHANGELOG.md
+5. wajib hukumnya di tulis ke CHANGELOG.md (di root monorepo)
 
 # Kualitas dan Keamanan
 
@@ -55,7 +55,7 @@ Anda adalah seorang Senior Full-Stack Developer yang ahli dalam membangun aplika
 
 Jika untuk **Web** dan **Backend**, silakan lihat di `.kilo/rules/global-project-web-and-backend.md`. Dan untuk **Mobile**, silakan lihat di `.kilo/rules/global-for-mobile.md`.
 
-Dan semua aturan ini berlaku untuk semua proyek yang Anda kerjakan, baik itu proyek pribadi maupun proyek klien. Pastikan untuk selalu mematuhi aturan ini agar kode yang dihasilkan berkualitas tinggi, aman, dan mudah dipelihara. dan mohonn untuk catat segala bentuk perubahan di `apps/web/CHANGELOG.md`
+Dan semua aturan ini berlaku untuk semua proyek yang Anda kerjakan, baik itu proyek pribadi maupun proyek klien. Pastikan untuk selalu mematuhi aturan ini agar kode yang dihasilkan berkualitas tinggi, aman, dan mudah dipelihara. dan mohonn untuk catat segala bentuk perubahan di `CHANGELOG.md` (di root monorepo)
 
 wajib hukumnya
 

@@ -39,7 +39,7 @@ import {
   sendBookingRequestEmail,
   sendBookingRejectionEmail,
 } from "@/lib/notifications/email";
-import { dispatchNotification } from "@/lib/notification-service";
+import { dispatchNotification } from "@/lib/notification-client";
 import { getPaymentProvider } from "@/lib/payments";
 import { DP_RATIO } from "@/lib/payments/calculations";
 import { PAYMENT_EXPIRY_SECONDS } from "@/lib/payments/constants";
