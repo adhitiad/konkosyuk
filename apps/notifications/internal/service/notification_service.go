@@ -10,33 +10,76 @@ import (
 
 	"notif/internal/domain"
 	"notif/internal/infra/crypto"
-	"notif/internal/infra/email"
-	"notif/internal/infra/push"
-	"notif/internal/infra/telegram"
-	"notif/internal/infra/whatsapp"
-	"notif/internal/repository"
 )
 
 type NotificationService struct {
-	notificationRepo *repository.NotificationRepository
-	preferenceRepo   *repository.PreferenceRepository
-	settingsRepo     *repository.SettingsRepository
+	notificationRepo NotificationRepository
+	preferenceRepo   PreferenceRepository
+	settingsRepo     SettingsRepository
 	crypto           *crypto.Crypto
-	emailSender      *email.EmailSender
-	whatsappSender   *whatsapp.WhatsAppSender
-	telegramSender   *telegram.TelegramSender
-	pushSender       *push.PushSender
+	emailSender      EmailSender
+	whatsappSender   WhatsAppSender
+	telegramSender   TelegramSender
+	pushSender       PushSender
+}
+
+type NotificationRepository interface {
+	CreateNotification(ctx context.Context, n domain.Notification) (*domain.Notification, error)
+	GetUnreadCount(ctx context.Context, userID string) (int, error)
+	MarkAsRead(ctx context.Context, notificationID, userID string) error
+	GetPushSubscriptions(ctx context.Context, userID string) ([]domain.PushSubscription, error)
+	UpsertPushSubscription(ctx context.Context, s domain.PushSubscription) error
+	DeletePushSubscription(ctx context.Context, subscriptionID string) error
+}
+
+type PreferenceRepository interface {
+	GetPreferences(ctx context.Context, userID string) (*domain.UserNotificationPreferences, error)
+	UpsertPreferences(ctx context.Context, userID string, prefs domain.UserNotificationPreferences) (*domain.UserNotificationPreferences, error)
+}
+
+type SettingsRepository interface {
+	GetSettings(ctx context.Context) (*domain.NotificationSettings, error)
+	UpsertSettings(ctx context.Context, settings domain.NotificationSettings) (*domain.NotificationSettings, error)
+}
+
+type EmailSender interface {
+	SendApprovalEmail(tenantEmail, tenantName, propertyName, unitName string, dpAmount float64, invoiceURL string) error
+	SendBookingRequestEmail(ownerEmail, ownerName, tenantName, propertyName, unitName, bookingURL string) error
+	SendBookingRejectionEmail(tenantEmail, tenantName, propertyName, unitName, reason string) error
+	SendPaymentReceivedEmail(ownerEmail, ownerName, tenantName, propertyName string, amount float64, paymentURL string) error
+	SendChatNotificationEmail(email, recipientName, senderName, messagePreview, chatURL string) error
+	SendMaintenanceReportCreated(to, recipientName, propertyName, category, description string) error
+	SendMaintenanceReportUpdated(to, recipientName, status, resolutionNote string) error
+}
+
+type WhatsAppSender interface {
+	Start(ctx context.Context) error
+	Stop()
+	SendApprovalWhatsApp(tenantPhone, tenantName, propertyName string, dpAmount float64, invoiceURL string) error
+	SendRefundApprovalWhatsApp(tenantPhone, tenantName string, refundAmount float64, bookingCode string) error
+	SendMaintenanceWhatsApp(to, templateName string, parameters []string) error
+}
+
+type TelegramSender interface {
+	SendMessage(chatID int64, text string) error
+	SendBookingNotification(chatID int64, tenantName, propertyName, unitName, bookingURL string) error
+	SendPaymentNotification(chatID int64, ownerName, tenantName, propertyName string, amount float64, paymentURL string) error
+	SendChatNotification(chatID int64, recipientName, senderName, messagePreview, chatURL string) error
+}
+
+type PushSender interface {
+	SendNotification(userID, title, message string, subscriptions []domain.PushSubscription) error
 }
 
 func NewNotificationService(
-	notificationRepo *repository.NotificationRepository,
-	preferenceRepo *repository.PreferenceRepository,
-	settingsRepo *repository.SettingsRepository,
+	notificationRepo NotificationRepository,
+	preferenceRepo PreferenceRepository,
+	settingsRepo SettingsRepository,
 	crypto *crypto.Crypto,
-	emailSender *email.EmailSender,
-	whatsappSender *whatsapp.WhatsAppSender,
-	telegramSender *telegram.TelegramSender,
-	pushSender *push.PushSender,
+	emailSender EmailSender,
+	whatsappSender WhatsAppSender,
+	telegramSender TelegramSender,
+	pushSender PushSender,
 ) *NotificationService {
 	return &NotificationService{
 		notificationRepo: notificationRepo,

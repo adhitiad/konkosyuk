@@ -8,6 +8,7 @@ require (
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/resend/resend-go/v3 v3.17.0
 	github.com/rs/zerolog v1.35.1
+	github.com/stretchr/testify v1.12.1
 	go.mau.fi/whatsmeow v0.0.0-20260821141805-33cfac511629
 	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.12
@@ -26,9 +27,11 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/stretchr/objx v0.5.3 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.27 // indirect
 	go.mau.fi/libsignal v0.2.2 // indirect
 	go.mau.fi/util v0.10.1-0.20260820140024-eb612d936fde // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect

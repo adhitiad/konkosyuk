@@ -1,5 +1,72 @@
 # Ringkasan Perubahan
 
+## Pelarangan Impor Server-Only di Komponen Klien
+
+### Ringkasan
+Menambahkan aturan ESLint `no-restricted-imports` di `apps/web` untuk mencegah modul server-only diimpor ke dalam komponen klien. Aturan ini memblokir modul Node.js (`fs`, `path`, `crypto`, `winston`), gRPC (`@grpc/grpc-js`), ORM (`drizzle-orm`), serta file yang berada di direktori `server` atau `db`. Pengecualian diberikan untuk API routes, Server Actions, utilities server, dan skrip seed.
+
+### Perubahan Utama
+- Blokir impor modul `fs`, `path`, `crypto`, `winston`, dan `@grpc/grpc-js` secara global.
+- Blokir impor `drizzle-orm` serta path yang mengandung `/server/` atau `/db/` di direktori `components/` dan file bertanda `.client.ts`/`.client.tsx`.
+- Berikan pengecualian untuk file server: API routes, Server Actions, utilities server, skrip seed, dan konfigurasi test.
+- Tambahkan workflow GitHub Actions `lint.yml` untuk menjalankan `bun run lint` di `apps/web` pada setiap PR/push.
+
+### File Diubah
+- `apps/web/eslint.config.mjs` (ditambahkan aturan `no-restricted-imports`)
+- `.github/workflows/lint.yml` (baru)
+
+### File Terdeteksi Pelanggaran
+- `apps/web/src/components/property/save-search-button.tsx`
+- `apps/web/src/components/property/similar/similar-properties.tsx`
+- `apps/web/src/components/review-form.tsx`
+
+### Validasi
+- `bun run lint` di `apps/web` berhasil mendeteksi 3 pelanggaran di komponen klien (sesuai ekspektasi).
+- Peringatan ESLint pada `eslint.config.mjs` telah dinonaktifkan.
+
+---
+
+## Struktur Pengujian Dasar untuk apps/notifications
+
+### Ringkasan
+Membuat struktur pengujian dasar untuk layanan Go `apps/notifications` menggunakan framework testify (`assert` dan `mock`). Test mencakup enkripsi AES-256-GCM di package `crypto` dan mock pemanggilan repositori serta sender di package `service`.
+
+### Perubahan Utama
+- **Pengujian Crypto**: Test untuk AES-256-GCM encrypt/decrypt, validasi kunci 32 byte, penanganan input tidak valid, dan helper `MustEncrypt`/`MustDecrypt`.
+- **Pengujian Service**: Test untuk dispatch notifikasi (InApp, Email, Push), error handling multi-channel, serta operasi repository (GetUnreadCount, MarkRead, SubscribePush, GetSettings, UpdatePreferences).
+- **Refactor Service**: Mengubah `NotificationService` untuk menerima interface (dependency inversion) agar lebih mudah di-mock selama pengujian.
+- **Dependensi**: Menambahkan `github.com/stretchr/testify` ke `go.mod`.
+
+### File Diubah
+- `apps/notifications/internal/infra/crypto/crypto_test.go` (baru)
+- `apps/notifications/internal/service/notification_service_test.go` (baru)
+- `apps/notifications/internal/service/notification_service.go` (refactor ke interface)
+- `apps/notifications/go.mod` (update dependensi)
+
+### File Dihapus
+- Tidak ada file dihapus
+
+---
+
+## Dokumentasi README Aplikasi Mobile
+
+### Ringkasan
+Menulis ulang `apps/mobile/README.md` secara komprehensif dalam bahasa Indonesia, mencakup arsitektur aplikasi Flutter sebagai bagian dari monorepo Turborepo, komunikasi gRPC dengan `apps/grpc`, prasyarat pengembangan, langkah setup, dan struktur direktori.
+
+### Perubahan Utama
+- **Arsitektur**: Penjelasan komunikasi aplikasi mobile dengan `apps/grpc` melalui gRPC, penggunaan Riverpod untuk state management, dan flutter_secure_storage untuk token sesi.
+- **Prasyarat**: Flutter SDK, Bun (manajemen monorepo), dan protoc.
+- **Setup**: Langkah instalasi dependensi, generate stub gRPC (`bun run proto:gen` dari root monorepo), dan cara menjalankan aplikasi di emulator/device.
+- **Struktur Direktori**: Penjelasan `lib/` (core, features, main.dart), `android/`, `ios/`, dan `test/`.
+
+### File Diubah
+- `apps/mobile/README.md`
+
+### File Dihapus
+- Tidak ada file dihapus
+
+---
+
 ## Fix Vercel Build Error - gRPC Client & Metadata Server Component
 
 ### Ringkasan
@@ -578,6 +645,28 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/lang/id/).
 - Zod validation pada admin endpoints
 - SQL injection mitigation pada properties search
 - Sensitive data exposure mitigation
+
+---
+
+## Pembersihan Type Debt Menuju Strict Mode
+
+### Ringkasan
+Memperbaiki known TypeScript errors di `apps/web` sebagai bagian dari migrasi menuju `strict: true`. Fase 1 membersihkan penggunaan `any` yang eksplisit dan casting ganda yang tidak perlu di kode produksi.
+
+### Perubahan Utama
+- Mengganti `z.any()` menjadi `z.unknown()` di schema payment gateway admin untuk type safety yang lebih baik
+- Menghilangkan cast `as any` yang tidak perlu pada insert ads admin route setelah verifikasi tipe Drizzle schema cocok
+- Menyederhanakan double cast `as unknown as Record<string, unknown>` menjadi `as Record<string, unknown>` pada payment gateway manager untuk raw response eksternal
+
+### File Diubah
+- `apps/web/src/app/api/admin/payment-gateways/route.ts`
+- `apps/web/src/app/api/admin/ads/route.ts`
+- `apps/web/src/lib/payments/gateway-manager.ts`
+
+### Validasi
+- `bun x tsc --noEmit`: 0 error
+- `bun run lint`: lolos
+- `bun run test -- --run`: 319 passed, 0 failed
 
 ---
 
