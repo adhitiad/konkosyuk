@@ -19,11 +19,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { createSavedSearch } from "@/actions/saved-searches";
-import type { SavedSearch } from "@/db/schema";
 
 interface SaveSearchButtonProps {
   filters: Record<string, unknown>;
-  existingSearch?: SavedSearch | null;
+  existingSearch?: {
+    id: string;
+    name: string;
+    filters: Record<string, unknown>;
+  } | null;
 }
 
 function formatFilterPreview(filters: Record<string, unknown>): string {

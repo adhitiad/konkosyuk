@@ -13,18 +13,18 @@ export const dynamic = "force-dynamic";
 const createAdSchema = z.object({
   propertyId: z.string().uuid(),
   advertiserName: z.string().min(1).max(255),
-  advertiserPhone: z.string().max(50).optional().nullable(),
-  advertiserWhatsApp: z.string().max(50).optional().nullable(),
+  advertiserPhone: z.string().max(50).default(""),
+  advertiserWhatsApp: z.string().max(50).default(""),
   title: z.string().min(1).max(255),
-  description: z.string().max(2000).optional().nullable(),
-  imageUrl: z.string().url().optional().nullable(),
-  targetUrl: z.string().url().optional().nullable(),
-  location: z.string().max(255).optional().nullable(),
-  price: z.coerce.number().nonnegative().optional().nullable(),
-  type: z.string().max(50).optional().nullable(),
+  description: z.string().max(2000).default(""),
+  imageUrl: z.string().url().default(""),
+  targetUrl: z.string().url().default(""),
+  location: z.string().max(255).default(""),
+  price: z.coerce.number().nonnegative().default(0),
+  type: z.enum(["kontrakan", "apartemen", "rumah", "kos"]).default("kontrakan"),
   position: z.coerce.number().int().nonnegative().default(0),
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional().nullable(),
+  startDate: z.string().datetime().default(new Date().toISOString()),
+  endDate: z.string().datetime().nullable().default(null),
 });
 
 export async function GET(req: NextRequest) {
@@ -122,23 +122,25 @@ export async function POST(req: NextRequest) {
 
     const body = createAdSchema.parse(await req.json());
 
+    const adValues: typeof propertyAds.$inferInsert = {
+      advertiserName: body.advertiserName,
+      advertiserPhone: body.advertiserPhone ?? "",
+      advertiserWhatsApp: body.advertiserWhatsApp ?? null,
+      title: body.title,
+      description: body.description ?? "",
+      imageUrl: body.imageUrl ?? "",
+      targetUrl: body.targetUrl ?? null,
+      location: body.location ?? "",
+      price: body.price != null ? String(body.price) : null,
+      type: body.type ?? "kontrakan",
+      position: body.position,
+      startDate: body.startDate ? new Date(body.startDate) : new Date(),
+      endDate: body.endDate ? new Date(body.endDate) : null,
+    };
+
     const [ad] = await db
       .insert(propertyAds)
-      .values({
-        advertiserName: body.advertiserName,
-        advertiserPhone: body.advertiserPhone,
-        advertiserWhatsApp: body.advertiserWhatsApp,
-        title: body.title,
-        description: body.description,
-        imageUrl: body.imageUrl,
-        targetUrl: body.targetUrl,
-        location: body.location,
-        price: body.price,
-        type: body.type,
-        position: body.position,
-        startDate: body.startDate ? new Date(body.startDate) : new Date(),
-        endDate: body.endDate ? new Date(body.endDate) : null,
-      } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+      .values(adValues)
       .returning();
 
     return ok(ad, 201);

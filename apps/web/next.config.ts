@@ -74,27 +74,10 @@ const nextConfig: NextConfig = {
   },
   typedRoutes: true,
   async headers() {
-    const isProd = process.env.NODE_ENV === "production";
-
-    const csp = [
-      "default-src 'self'",
-      isProd
-        ? "script-src 'self' https://va.vercel-scripts.com https://analytics.ahrefs.com"
-        : "script-src 'self' 'unsafe-eval' https://va.vercel-scripts.com https://analytics.ahrefs.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://a.basemaps.cartocdn.com https://b.basemaps.cartocdn.com https://c.basemaps.cartocdn.com https://tile.openstreetmap.org https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org",
-      "font-src 'self' data: https://fonts.gstatic.com",
-      "connect-src 'self' https://nominatim.openstreetmap.org https://tile.openstreetmap.org https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://tiles.openstreetmap.org https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://a.basemaps.cartocdn.com https://b.basemaps.cartocdn.com https://c.basemaps.cartocdn.com https://*.cartodb.com https://api.maptiler.com https://tiles.maptiler.com https://*.maptiler.com https://demotiles.maplibre.org https://va.vercel-scripts.com https://vitals.vercel-insights.com https://analytics.ahrefs.com blob: data: ws: wss:",
-      "frame-src 'self'",
-      "worker-src 'self' blob:",
-      "media-src 'self' blob:",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'self'",
-      "manifest-src 'self'",
-      "report-uri /api/security/csp-report",
-      ...(isProd ? ["upgrade-insecure-requests"] : []),
+    const apiCsp = [
+      "default-src 'none'",
+      "connect-src 'self'",
+      "frame-ancestors 'none'",
     ].join("; ");
 
     return [
@@ -141,15 +124,15 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=(self)",
           },
-          {
-            key: "Content-Security-Policy",
-            value: csp,
-          },
         ],
       },
       {
         source: "/api/:path*",
         headers: [
+          {
+            key: "Content-Security-Policy",
+            value: apiCsp,
+          },
           {
             key: "Access-Control-Allow-Origin",
             value: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",

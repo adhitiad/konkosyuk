@@ -6,7 +6,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import type { Property } from "@/db/schema";
+
+interface SimilarProperty {
+  id: string;
+  name: string;
+  description: string | null;
+  address: string;
+  type: "kost" | "kontrakan" | "apartemen" | "rumah" | "ruko";
+  basePrice: string | null;
+  amenities: string[];
+  images: string[] | null;
+  metadata: Record<string, unknown>;
+  hasSeasonalPricing?: boolean;
+  seasonalPricingCount?: number;
+}
 
 interface SimilarPropertiesProps {
   propertyId: string;
@@ -23,7 +36,7 @@ export function SimilarProperties({ propertyId, limit = 8 }: SimilarPropertiesPr
         throw new Error(error.error || "Failed to fetch similar properties");
       }
       const json = await res.json();
-      return json.data as Property[];
+      return json.data as SimilarProperty[];
     },
     staleTime: 1000 * 60 * 60,
   });

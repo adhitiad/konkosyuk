@@ -42,11 +42,11 @@ interface BookingDetail {
   unitId: string;
   bookingType: string;
   status: string;
-  startDate: string;
-  endDate: string;
+  startDate: Date;
+  endDate: Date;
   metadata: Record<string, unknown>;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   propertyName: string | null;
   propertyAddress: string | null;
   unitName: string | null;
@@ -59,8 +59,8 @@ interface BookingDetail {
     currency: string;
     status: string;
     transactionId: string | null;
-    paidAt: string | null;
-    createdAt: string;
+    paidAt: Date | null;
+    createdAt: Date;
   }[];
   refundRequests?: {
     id: string;
@@ -81,12 +81,12 @@ const formatCurrency = (value: number | string | null | undefined) =>
     currency: "IDR",
   }).format(Number(value ?? 0));
 
-const formatDate = (value: string) =>
+const formatDate = (value: Date | string) =>
   new Intl.DateTimeFormat("id-ID", {
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(new Date(value));
+  }).format(value instanceof Date ? value : new Date(value));
 
 const getWorkingDaysBetween = (start: Date, end: Date): number => {
   let count = 0;
@@ -671,7 +671,7 @@ export default function BookingDetailPage() {
               {booking.status !== "rejected" &&
                 booking.status !== "cancelled" &&
                 booking.status !== "completed" &&
-                booking.startDate > new Date().toISOString() &&
+                booking.startDate > new Date() &&
                 booking.payments.some((p) => p.status === "success") && (
                   <Dialog open={refundOpen} onOpenChange={setRefundOpen}>
                     <DialogTrigger>

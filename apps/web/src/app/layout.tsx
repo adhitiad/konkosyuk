@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Poppins, Inter } from "next/font/google";
+import { headers } from "next/headers";
 import { VercelAnalytics } from "@/app/analytics";
 import { PwaRegister } from "@/components/pwa-register";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -117,6 +118,8 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const nonce = (await headers()).get("x-nonce");
+
   return (
     <html
       lang="id"
@@ -153,6 +156,7 @@ export default async function RootLayout({
           src="https://analytics.ahrefs.com/analytics.js"
           data-key="h/og7b50yXD5Zyi+qhve/A"
           async
+          nonce={nonce ?? undefined}
         />
       </body>
     </html>

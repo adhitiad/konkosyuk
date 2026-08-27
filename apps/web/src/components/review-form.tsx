@@ -7,12 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { StarRating } from "@/components/StarRating";
-import { reviewType } from "@/db/schema";
 import { createReviewAction } from "@/actions/reviews";
+
+type ReviewType = "tenant" | "property";
 
 interface ReviewFormProps {
   bookingId: string;
-  type: (typeof reviewType)[number];
+  type: ReviewType;
   targetId: string;
   targetName: string;
   onSuccess?: () => void;

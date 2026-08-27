@@ -1,5 +1,65 @@
 # Ringkasan Perubahan
 
+## Perbaikan Linting: Impor Server-Only di Komponen Klien
+
+### Ringkasan
+Menghapus impor modul server-only `@/db/schema` dari 3 komponen klien yang terdeteksi pelanggaran aturan ESLint `no-restricted-imports`. Mengganti impor schema dengan tipe lokal atau definisi tipe langsung di komponen.
+
+### Perubahan Utama
+- **save-search-button.tsx**: Menghapus impor `SavedSearch` dari `@/db/schema`, diganti dengan interface lokal `SaveSearchButtonProps` yang mendefinisikan bentuk data `existingSearch` secara eksplisit.
+- **similar-properties.tsx**: Menghapus impor `Property` dari `@/db/schema`, diganti dengan interface `SimilarProperty` yang sesuai dengan kebutuhan `PropertyCard`.
+- **review-form.tsx**: Menghapus impor `reviewType` dari `@/db/schema`, diganti dengan type literal `"tenant" | "property"`.
+
+### File Diubah
+- `apps/web/src/components/property/save-search-button.tsx`
+- `apps/web/src/components/property/similar/similar-properties.tsx`
+- `apps/web/src/components/review-form.tsx`
+
+### Validasi
+- `bun run lint` di `apps/web` berjalan tanpa error.
+- `bun run test -- --run` di `apps/web` lolos (319 tests).
+
+---
+
+## Perbaikan Konfigurasi Content Security Policy (CSP)
+
+### Ringkasan
+Memindahkan definisi CSP dari `next.config.ts` ke middleware `src/proxy.ts` agar header CSP diterapkan secara dinamis per-request dengan nonce yang benar. Menghapus duplikasi dan memastikan third-party script (Vercel Analytics, Ahrefs) serta Google Fonts diizinkan.
+
+### Perubahan Utama
+- **src/proxy.ts**: Fungsi `buildCsp` sekarang menghasilkan CSP header lengkap dengan nonce untuk `script-src` dan `style-src`. Directive `connect-src` tetap mengizinkan domain analytics, fonts, dan map tiles.
+- **next.config.ts**: Menghapus definisi CSP statis dari `headers()`; hanya header keamanan non-CSP dan CSP khusus API yang tetap di sini.
+- **src/app/layout.tsx**: Menambahkan nonce ke tag `<Script>` untuk analytics.ahrefs.com agar tidak diblokir oleh CSP.
+- **Fonts & Analytics**: `fonts.googleapis.com`, `fonts.gstatic.com`, `va.vercel-scripts.com`, dan `analytics.ahrefs.com` tetap diizinkan di CSP.
+
+### File Diubah
+- `apps/web/src/proxy.ts`
+- `apps/web/next.config.ts`
+- `apps/web/src/app/layout.tsx`
+
+---
+
+## Refactor Tipe Timestamp di Interface Domain
+
+### Ringkasan
+Mengganti tipe `string` menjadi `Date` pada field timestamp di interface domain `AdminBooking` dan `BookingDetail` agar konsisten dengan tipe data Drizzle. Menghapus casting `as any` yang tidak type-safe pada operasi database.
+
+### Perubahan Utama
+- **AdminBooking** (`apps/web/src/app/[locale]/(protected)/admin/page.tsx`): `startDate`, `endDate`, dan `createdAt` diubah menjadi `Date`.
+- **BookingDetail** (`apps/web/src/app/[locale]/(protected)/dashboard/bookings/[id]/page.tsx`): `startDate`, `endDate`, `createdAt`, `updatedAt`, dan `paidAt` diubah menjadi `Date`. Fungsi `formatDate` diperbarui untuk menerima `Date | string`.
+- **ads/route.ts**: Menghapus `as any` pada operasi `db.insert(propertyAds).values(...)`. Menambahkan validasi tipe dengan `typeof propertyAds.$inferInsert` dan memperbaiki schema Zod agar tidak menghasilkan `undefined` untuk field wajib.
+
+### File Diubah
+- `apps/web/src/app/[locale]/(protected)/admin/page.tsx`
+- `apps/web/src/app/[locale]/(protected)/dashboard/bookings/[id]/page.tsx`
+- `apps/web/src/app/api/admin/ads/route.ts`
+
+### Validasi
+- `bunx tsc --noEmit` di `apps/web` berjalan tanpa error.
+- `bun run test -- --run` di `apps/web` lolos (319 tests).
+
+---
+
 ## Pelarangan Impor Server-Only di Komponen Klien
 
 ### Ringkasan

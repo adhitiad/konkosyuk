@@ -29,8 +29,8 @@ function generateNonce(): string {
 
 function buildCsp(nonce: string, isProd: boolean): string {
   const scriptSrc = isProd
-    ? `'self' 'nonce-${nonce}' https://va.vercel-scripts.com`
-    : `'self' 'nonce-${nonce}' 'unsafe-eval' https://va.vercel-scripts.com`;
+    ? `'self' 'nonce-${nonce}' https://va.vercel-scripts.com https://analytics.ahrefs.com`
+    : `'self' 'nonce-${nonce}' 'unsafe-eval' https://va.vercel-scripts.com https://analytics.ahrefs.com`;
 
   return [
     "default-src 'self'",
@@ -38,7 +38,7 @@ function buildCsp(nonce: string, isProd: boolean): string {
     `style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com`,
     "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://a.basemaps.cartocdn.com https://b.basemaps.cartocdn.com https://c.basemaps.cartocdn.com https://tile.openstreetmap.org https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' https://nominatim.openstreetmap.org https://tile.openstreetmap.org https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://tiles.openstreetmap.org https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://a.basemaps.cartocdn.com https://b.basemaps.cartocdn.com https://c.basemaps.cartocdn.com https://*.cartodb.com https://api.maptiler.com https://tiles.maptiler.com https://*.maptiler.com https://demotiles.maplibre.org https://va.vercel-scripts.com https://vitals.vercel-insights.com blob: data: ws: wss:",
+    "connect-src 'self' https://nominatim.openstreetmap.org https://tile.openstreetmap.org https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://tiles.openstreetmap.org https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://a.basemaps.cartocdn.com https://b.basemaps.cartocdn.com https://c.basemaps.cartocdn.com https://*.cartodb.com https://api.maptiler.com https://tiles.maptiler.com https://*.maptiler.com https://demotiles.maplibre.org https://va.vercel-scripts.com https://vitals.vercel-insights.com https://analytics.ahrefs.com blob: data: ws: wss:",
     "frame-src 'self'",
     "worker-src 'self' blob:",
     "media-src 'self' blob:",

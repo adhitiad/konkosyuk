@@ -55,13 +55,13 @@ type PendingPropertiesCacheData = PendingPropertiesResponse | undefined;
 interface AdminBooking {
   id: string;
   status: string;
-  startDate: string;
-  endDate: string;
+  startDate: Date;
+  endDate: Date;
   propertyName: string | null;
   unitName: string | null;
   userName: string | null;
   userEmail: string | null;
-  createdAt: string;
+  createdAt: Date;
   metadata: Record<string, unknown>;
   propertyId: string;
 }
@@ -103,7 +103,7 @@ function AdminDashboardPage() {
 
       const today = new Date().toISOString().split("T")[0];
       const bookingsToday = bookingsList.filter((b) =>
-        b.createdAt?.startsWith(today),
+        b.createdAt?.toISOString().startsWith(today),
       );
 
       const revenue = bookingsList
