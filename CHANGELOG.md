@@ -1,5 +1,43 @@
 # Ringkasan Perubahan
 
+## Perbaikan QStash Signing Key untuk Build Vercel - 28-Agu-2026 07:57
+
+### Ringkasan
+Memperbaiki error `currentSigningKey and nextSigningKey are required` saat `next build` di Vercel dengan menambahkan fallback dummy key pada ketiga route handler QStash.
+
+### Perubahan Utama
+- **QStash Routes**: Mengganti pemanggilan `verifySignatureAppRouter` di tiga file route agar menggunakan objek konfigurasi eksplisit dengan fallback dummy key saat build time:
+  - `apps/web/app/api/qstash/check-costs/route.ts`
+  - `apps/web/app/api/qstash/worker/route.ts`
+  - `apps/web/app/api/qstash/dlq/route.ts`
+- **Build Verification**: `bun run build` berhasil 100% tanpa error, semua route QStash ter-compile dengan baik
+
+### File Diubah
+- `apps/web/app/api/qstash/check-costs/route.ts`
+- `apps/web/app/api/qstash/worker/route.ts`
+- `apps/web/app/api/qstash/dlq/route.ts`
+
+## Migrasi Redis dari ioredis ke Upstash Redis - 28-Agu-2026 07:49
+
+### Ringkasan
+Memigrasikan seluruh implementasi Redis dari `ioredis` ke `@upstash/redis` karena project sekarang menggunakan QStash dan Upstash Redis. Menghapus dependency `ioredis` dari `package.json`.
+
+### Perubahan Utama
+- **Redis Client**: Mengganti implementasi `src/lib/redis.ts` dari ioredis ke Upstash Redis, termasuk parser URL dari format ioredis (`redis://default:token@host:port`) ke format Upstash (`https://host` + token)
+- **Rate Limiter**: Menyederhanakan `src/lib/rate-limiter.ts` dengan menghapus branch khusus ioredis, sekarang menggunakan unified `RedisClient` interface
+- **Stats Tracking**: Menghapus branch khusus ioredis di `src/lib/stats.ts`, menggunakan `incr(key, ttl)` unified
+- **Usage Tracker**: Memperbarui `src/lib/usage-tracker.ts` untuk menggunakan `getRedis()` daripada `getSharedRedisConnection()`
+- **Tests**: Memperbarui `src/lib/__tests__/redis.test.ts` dan `src/__tests__/unit/stats.test.ts` untuk menggunakan mock Upstash Redis
+- **Package**: Menghapus `ioredis` dari `apps/web/package.json`
+
+### File Diubah
+- `apps/web/src/lib/redis.ts` (migrasi ke Upstash Redis)
+- `apps/web/src/lib/rate-limiter.ts` (menghapus branch ioredis)
+- `apps/web/src/lib/stats.ts` (menghapus branch ioredis)
+- `apps/web/src/lib/usage-tracker.ts` (update ke getRedis)
+- `apps/web/src/lib/__tests__/redis.test.ts` (mock Upstash Redis)
+- `apps/web/src/__tests__/unit/stats.test.ts` (mock Upstash Redis)
+
 ## Perbaikan TypeScript untuk Build Vercel (Phase 19) - 28-Agu-2026 14:26
 
 ### Ringkasan

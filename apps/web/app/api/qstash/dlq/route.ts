@@ -4,9 +4,12 @@ import { logInfo, logError } from "@/lib/logger";
 import { getRedis } from "@/lib/redis";
 import { trackStat } from "@/lib/stats";
 
-const QSTASH_CURRENT_SIGNING_KEY = process.env.QSTASH_CURRENT_SIGNING_KEY;
-const QSTASH_NEXT_SIGNING_KEY = process.env.QSTASH_NEXT_SIGNING_KEY;
 const DLQ_TTL = 604800;
+
+const qstashConfig = {
+  currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY ?? "build-time-dummy-key",
+  nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY ?? "build-time-dummy-key",
+};
 
 /**
  * Dead Letter Queue (DLQ) untuk QStash.
@@ -70,7 +73,4 @@ export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
     logError(error, "QStash DLQ error");
     throw error;
   }
-}, {
-  currentSigningKey: QSTASH_CURRENT_SIGNING_KEY,
-  nextSigningKey: QSTASH_NEXT_SIGNING_KEY,
-});
+}, qstashConfig);

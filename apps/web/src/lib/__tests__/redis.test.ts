@@ -1,21 +1,23 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const mockConnect = vi.fn().mockResolvedValue(undefined);
-const mockQuit = vi.fn().mockResolvedValue(undefined);
+const mockDisconnect = vi.fn().mockResolvedValue(undefined);
 const mockOn = vi.fn();
+const mockPing = vi.fn().mockResolvedValue("PONG");
 
-vi.mock("ioredis", () => {
+vi.mock("@upstash/redis", () => {
   class MockRedis {
     options: Record<string, unknown>;
-    constructor(_url: string, options?: Record<string, unknown>) {
-      this.options = options || {};
+    constructor(_options: Record<string, unknown>) {
+      this.options = _options || {};
     }
     connect = mockConnect;
-    quit = mockQuit;
+    disconnect = mockDisconnect;
     on = mockOn;
+    ping = mockPing;
   }
   return {
-    default: MockRedis,
+    Redis: MockRedis,
   };
 });
 
@@ -37,21 +39,20 @@ describe("redis.ts", () => {
     );
   });
 
-  it("createRedisConnection should pass required options", async () => {
+  it("createRedisConnection should parse ioredis URL to Upstash format", async () => {
     const { createRedisConnection } = await import("@/lib/redis");
     const conn = createRedisConnection();
-    expect(conn.options).toMatchObject({
-      maxRetriesPerRequest: 3,
-      enableReadyCheck: true,
-      lazyConnect: true,
+    expect((conn as unknown as { options: { url: string; token: string } }).options).toMatchObject({
+      url: "https://upstash.io",
+      token: "test-token",
     });
   });
 
-  it("createRedisClient should NOT set maxRetriesPerRequest to null", async () => {
+  it("createRedisClient should parse ioredis URL to Upstash format", async () => {
     const { createRedisClient } = await import("@/lib/redis");
     const client = createRedisClient();
-    expect(client.options.maxRetriesPerRequest).not.toBe(null);
-    expect(client.options.lazyConnect).toBe(true);
+    expect((client as unknown as { options: { url: string; token: string } }).options.url).toBe("https://upstash.io");
+    expect((client as unknown as { options: { url: string; token: string } }).options.token).toBe("test-token");
   });
 
   it("getRedis should return memory client when REDIS_URL is not set", async () => {

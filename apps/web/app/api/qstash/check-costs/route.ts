@@ -4,11 +4,14 @@ import { logInfo, logError } from "@/lib/logger";
 import { getAllUsageCurrentMonth, COST_THRESHOLDS } from "@/lib/usage-tracker";
 import { sendTelegram } from "../../../../lib/notifications/telegram";
 
-const QSTASH_CURRENT_SIGNING_KEY = process.env.QSTASH_CURRENT_SIGNING_KEY;
-const QSTASH_NEXT_SIGNING_KEY = process.env.QSTASH_NEXT_SIGNING_KEY;
 const ADMIN_TELEGRAM_CHAT_ID = process.env.ADMIN_TELEGRAM_CHAT_ID;
 const WARNING_THRESHOLD = 0.8;
 const CRITICAL_THRESHOLD = 1.0;
+
+const qstashConfig = {
+  currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY ?? "build-time-dummy-key",
+  nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY ?? "build-time-dummy-key",
+};
 
 export const POST = verifySignatureAppRouter(async (_request: NextRequest) => {
   try {
@@ -74,7 +77,4 @@ export const POST = verifySignatureAppRouter(async (_request: NextRequest) => {
       { status: 500 },
     );
   }
-}, {
-  currentSigningKey: QSTASH_CURRENT_SIGNING_KEY,
-  nextSigningKey: QSTASH_NEXT_SIGNING_KEY,
-});
+}, qstashConfig);

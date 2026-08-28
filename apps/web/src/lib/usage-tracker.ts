@@ -56,8 +56,8 @@ export async function trackUsage(
   const key = buildUsageKey(service, month);
 
   try {
-    const { getSharedRedisConnection } = await import("@/lib/redis");
-    const redis = getSharedRedisConnection();
+    const { getRedis } = await import("@/lib/redis");
+    const redis = await getRedis();
 
     await redis.incrby(key, count);
     await redis.expire(key, 40 * 24 * 60 * 60);
@@ -79,8 +79,8 @@ export async function getUsage(
   const key = buildUsageKey(service, targetMonth);
 
   try {
-    const redis = await import("@/lib/redis").then((mod) => mod.getSharedRedisConnection());
-    const value = await redis.get(key);
+    const redis = await import("@/lib/redis").then((mod) => mod.getRedis());
+    const value = await (await redis).get(key);
     return value ? Number(value) : 0;
   } catch (error) {
     console.error("[usage-tracker] Gagal membaca penggunaan", {

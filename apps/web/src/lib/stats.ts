@@ -11,7 +11,7 @@
  * Non-blocking: operasi Redis dijalankan dengan Promise.allSettled
  * agar kegagalan tracking tidak mempengaruhi flow utama.
  */
-import { getRedis, getRedisProvider, getSharedRedisConnection } from "@/lib/redis";
+import { getRedis } from "@/lib/redis";
 import { bufferStatUpdate } from "@/lib/stats-publisher";
 
 const STATS_TTL = 48 * 60 * 60;
@@ -32,14 +32,6 @@ export async function trackStat(channel: string, status: ChannelStatus): Promise
   const key = `stats:${channel}:${status}:${bucket}`;
 
   const redis = await getRedis();
-  const provider = getRedisProvider();
-
-  if (provider === "ioredis") {
-    const client = getSharedRedisConnection();
-    client.incr(key).then(() => client.expire(key, STATS_TTL)).catch(() => {});
-    bufferStatUpdate(channel, status, 1);
-    return;
-  }
 
   redis.incr(key, STATS_TTL).catch(() => {});
   bufferStatUpdate(channel, status, 1);

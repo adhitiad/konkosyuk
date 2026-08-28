@@ -1,8 +1,10 @@
-/** Konfigurasi koneksi Redis menggunakan ioredis untuk seluruh aplikasi. */
-import Redis from "ioredis";
+/**
+ * Konfigurasi koneksi Redis menggunakan Upstash Redis untuk seluruh aplikasi.
+ */
+import { Redis as UpstashRedis } from "@upstash/redis";
 import { logInfo } from "@/lib/logger";
 
-export type RedisProvider = "ioredis" | "memory";
+export type RedisProvider = "upstash" | "memory";
 
 export type RedisValue =
   string | number | boolean | null | Record<string, unknown> | unknown[];
@@ -12,6 +14,8 @@ export interface RedisClient {
   set(key: string, value: RedisValue, ttlSeconds?: number): Promise<void>;
   del(key: string): Promise<void>;
   incr(key: string, ttlSeconds?: number): Promise<number>;
+  incrby(key: string, increment: number, ttlSeconds?: number): Promise<number>;
+  expire(key: string, ttlSeconds: number): Promise<void>;
   push(key: string, value: RedisValue, ttlSeconds?: number): Promise<void>;
   range<T = unknown>(key: string, start: number, stop: number): Promise<T[]>;
   ping(): Promise<string>;
@@ -23,27 +27,24 @@ export interface RedisConnectionOptions {
   lazyConnect?: boolean;
 }
 
-/** Timeout koneksi TCP (ms) sebelum dianggap gagal. */
-const CONNECT_TIMEOUT_MS = 5_000;
-
 /** Timeout tunggu hasil probe PING (ms) sebelum fallback ke memory client. */
 const PROBE_TIMEOUT_MS = 3_000;
 
 /**
- * Pasang listener "error" agar ioredis tidak memunculkan
- * "[ioredis] Unhandled error event" saat koneksi gagal.
+ * Pasang listener "error" agar Upstash Redis tidak memunculkan
+ * error event saat koneksi gagal.
  */
-function attachErrorHandler(client: Redis): void {
-  client.on("error", (err: Error) => {
-    logInfo("[ioredis] Connection error", { message: err.message });
+function attachErrorHandler(client: UpstashRedis): void {
+  (client as unknown as { on: (event: string, handler: (err: Error) => void) => void }).on("error", (err: Error) => {
+    logInfo("[upstash-redis] Connection error", { message: err.message });
   });
 }
 
 /** Tutup koneksi secara paksa tanpa melempar error (untuk cleanup client gagal). */
-function safeDisconnect(client: Redis | null): void {
+function safeDisconnect(client: UpstashRedis | null): void {
   if (!client) return;
   try {
-    client.disconnect();
+    (client as unknown as { disconnect: () => Promise<void> }).disconnect();
   } catch {
     /* abaikan — client mungkin sudah tertutup */
   }
@@ -69,29 +70,41 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   });
 }
 
+/**
+ * Parse ioredis URL format ke Upstash Redis format.
+ * Input: redis://default:token@host:port
+ * Output: { url: "https://host", token: "token" }
+ */
+function parseUpstashRedisUrl(redisUrl: string): { url: string; token: string } {
+  const url = new URL(redisUrl);
+  const token = url.password || "";
+  const host = url.hostname;
+  return {
+    url: `https://${host}`,
+    token,
+  };
+}
+
 export function createRedisConnection(
   overrides?: RedisConnectionOptions,
-): Redis {
+): UpstashRedis {
   if (!process.env.REDIS_URL) {
     throw new Error("REDIS_URL harus diisi di environment variables");
   }
 
-  const connection = new Redis(process.env.REDIS_URL, {
-    maxRetriesPerRequest: 3,
-    enableReadyCheck: true,
-    lazyConnect: true,
-    connectTimeout: CONNECT_TIMEOUT_MS,
-    // Coba ulang maksimal ~5 detik antar percobaan agar tidak hang selamanya.
-    retryStrategy: (times: number) => Math.min(times * 500, 5_000),
+  const { url, token } = parseUpstashRedisUrl(process.env.REDIS_URL);
+  const connection = new UpstashRedis({
+    url,
+    token,
     ...overrides,
   });
   attachErrorHandler(connection);
   return connection;
 }
 
-let sharedConnection: Redis | null = null;
+let sharedConnection: UpstashRedis | null = null;
 
-export function getSharedRedisConnection(): Redis {
+export function getSharedRedisConnection(): UpstashRedis {
   if (!sharedConnection) {
     sharedConnection = createRedisConnection();
   }
@@ -100,37 +113,34 @@ export function getSharedRedisConnection(): Redis {
 
 export async function closeSharedRedisConnection(): Promise<void> {
   if (sharedConnection) {
-    await sharedConnection.quit();
+    await (sharedConnection as unknown as { disconnect: () => Promise<void> }).disconnect();
     sharedConnection = null;
   }
 }
 
-export function createRedisClient(overrides?: RedisConnectionOptions): Redis {
+export function createRedisClient(overrides?: RedisConnectionOptions): UpstashRedis {
   if (!process.env.REDIS_URL) {
     throw new Error("REDIS_URL harus diisi di environment variables");
   }
 
-  const client = new Redis(process.env.REDIS_URL, {
-    lazyConnect: true,
-    connectTimeout: CONNECT_TIMEOUT_MS,
-    // Gagal cepat per-perintah agar request API tidak menggantung puluhan detik.
-    commandTimeout: PROBE_TIMEOUT_MS,
-    maxRetriesPerRequest: 2,
-    retryStrategy: (times: number) => Math.min(times * 500, 5_000),
+  const { url, token } = parseUpstashRedisUrl(process.env.REDIS_URL);
+  const client = new UpstashRedis({
+    url,
+    token,
     ...overrides,
   });
   attachErrorHandler(client);
   return client;
 }
 
-class IoredisClient implements RedisClient {
-  constructor(private readonly client: Redis) {}
+class UpstashRedisClient implements RedisClient {
+  constructor(private readonly client: UpstashRedis) {}
 
   get<T>(key: string) {
     return this.client.get(key).then((value) => {
       if (value === null) return null;
       try {
-        return JSON.parse(value) as T;
+        return JSON.parse(value as string) as T;
       } catch {
         return value as T;
       }
@@ -141,7 +151,7 @@ class IoredisClient implements RedisClient {
     const serialized =
       typeof value === "string" ? value : JSON.stringify(value);
     if (ttlSeconds) {
-      await this.client.set(key, serialized, "EX", ttlSeconds);
+      await this.client.set(key, serialized, { ex: ttlSeconds });
     } else {
       await this.client.set(key, serialized);
     }
@@ -159,8 +169,20 @@ class IoredisClient implements RedisClient {
     return value;
   }
 
-  ping() {
-    return this.client.ping();
+  async incrby(key: string, increment: number, ttlSeconds?: number) {
+    const value = await this.client.incrby(key, increment);
+    if (ttlSeconds && value === 1) {
+      await this.client.expire(key, ttlSeconds);
+    }
+    return value;
+  }
+
+  async expire(key: string, ttlSeconds: number) {
+    await this.client.expire(key, ttlSeconds);
+  }
+
+  async ping() {
+    return Promise.resolve(this.client.ping());
   }
 
   async push(key: string, value: RedisValue, ttlSeconds?: number) {
@@ -172,7 +194,7 @@ class IoredisClient implements RedisClient {
 
   async range<T>(key: string, start: number, stop: number) {
     const values = await this.client.lrange(key, start, stop);
-    return values.map((v) => JSON.parse(v) as T);
+    return values.map((v) => JSON.parse(v as string) as T);
   }
 }
 
@@ -208,8 +230,21 @@ class MemoryClient implements RedisClient {
     return value;
   }
 
+  async incrby(key: string, increment: number, ttlSeconds?: number) {
+    const value = Number((await this.get<number>(key)) ?? 0) + increment;
+    await this.set(key, value, ttlSeconds);
+    return value;
+  }
+
+  async expire(key: string, ttlSeconds: number) {
+    const record = this.values.get(key);
+    if (record) {
+      record.expiresAt = Date.now() + ttlSeconds * 1000;
+    }
+  }
+
   async ping() {
-    return "PONG";
+    return Promise.resolve("PONG");
   }
 
   async push(key: string, value: RedisValue, ttlSeconds?: number) {
@@ -234,19 +269,15 @@ export async function getRedis(): Promise<RedisClient> {
   if (selectedClient) return selectedClient;
 
   if (process.env.REDIS_URL) {
-    let client: Redis | null = null;
+    let client: UpstashRedis | null = null;
     try {
       client = createRedisClient();
-      // Batasi waktu probe agar rate-limit/auth tidak menggantung saat Redis down.
       await withTimeout(client.ping(), PROBE_TIMEOUT_MS);
-      selectedClient = new IoredisClient(client);
-      selectedProvider = "ioredis";
+      selectedClient = new UpstashRedisClient(client);
+      selectedProvider = "upstash";
       return selectedClient;
     } catch {
-      // Disconnect client gagal supaya tidak jadi instance yatim yang terus
-      // mencoba koneksi ulang dan memunculkan "Unhandled error event".
       safeDisconnect(client);
-      /* fallback to memory */
     }
   }
 
@@ -261,15 +292,14 @@ export function getRedisProvider(): RedisProvider {
 
 export async function redisHealth() {
   if (process.env.REDIS_URL) {
-    let client: Redis | null = null;
+    let client: UpstashRedis | null = null;
     try {
       client = createRedisClient();
       await withTimeout(client.ping(), PROBE_TIMEOUT_MS);
-      return { ok: true, provider: "ioredis" as const };
+      return { ok: true, provider: "upstash" as const };
     } catch {
-      return { ok: false, provider: "ioredis" as const };
+      return { ok: false, provider: "upstash" as const };
     } finally {
-      // Health check memakai client sekali pakai — selalu tutup agar tidak bocor.
       safeDisconnect(client);
     }
   }

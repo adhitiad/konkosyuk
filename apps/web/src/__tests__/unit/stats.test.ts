@@ -1,31 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { trackStat } from "@/lib/stats";
 
-const { mockRedis, mockIoredisClient } = vi.hoisted(() => {
+const { mockRedis } = vi.hoisted(() => {
   const redis = {
     incr: vi.fn().mockResolvedValue(1),
     expire: vi.fn().mockResolvedValue(1),
   };
 
-  const ioredisClient = {
-    incr: vi.fn().mockReturnValue(1),
-    then: vi.fn().mockImplementation((onFulfilled) => Promise.resolve(onFulfilled?.(1))),
-    catch: vi.fn(),
-    expire: vi.fn(),
-    pipeline: vi.fn().mockReturnValue({
-      incr: vi.fn(),
-      expire: vi.fn(),
-      exec: vi.fn().mockResolvedValue([[1, 1]]),
-    }),
-  };
-
-  return { mockRedis: redis, mockIoredisClient: ioredisClient };
+  return { mockRedis: redis };
 });
 
 vi.mock("@/lib/redis", () => ({
   getRedis: vi.fn().mockResolvedValue(mockRedis),
   getRedisProvider: vi.fn().mockReturnValue("upstash"),
-  getSharedRedisConnection: vi.fn().mockReturnValue(mockIoredisClient),
 }));
 
 describe("trackStat", () => {
@@ -33,8 +20,6 @@ describe("trackStat", () => {
     vi.clearAllMocks();
     mockRedis.incr.mockClear();
     mockRedis.expire.mockClear();
-    mockIoredisClient.incr.mockClear();
-    mockIoredisClient.expire.mockClear();
   });
 
   it("should track success stat with correct key format", async () => {

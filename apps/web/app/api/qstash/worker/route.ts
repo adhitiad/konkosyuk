@@ -5,9 +5,12 @@ import { getRedis } from "@/lib/redis";
 import { sendNotification } from "../../../../lib/notifications";
 import { trackStat } from "@/lib/stats";
 
-const QSTASH_CURRENT_SIGNING_KEY = process.env.QSTASH_CURRENT_SIGNING_KEY;
-const QSTASH_NEXT_SIGNING_KEY = process.env.QSTASH_NEXT_SIGNING_KEY;
 const IDEMPOTENCY_TTL = 86400;
+
+const qstashConfig = {
+  currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY ?? "build-time-dummy-key",
+  nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY ?? "build-time-dummy-key",
+};
 
 export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
   const messageId = request.headers.get("upstash-message-id");
@@ -51,10 +54,7 @@ export const POST = verifySignatureAppRouter(async (request: NextRequest) => {
     logError(error, "QStash worker error");
     throw error;
   }
-}, {
-  currentSigningKey: QSTASH_CURRENT_SIGNING_KEY,
-  nextSigningKey: QSTASH_NEXT_SIGNING_KEY,
-});
+}, qstashConfig);
 
 interface ChannelPayload {
   channel: "email" | "telegram" | "whatsapp" | "push" | "in_app";
