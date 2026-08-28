@@ -1,5 +1,25 @@
 # Ringkasan Perubahan
 
+## Seed Data Tambahan (User, Owner, Staff, Properti, Iklan) - 28-Agu-2026 13:58
+
+### Ringkasan
+Menambahkan data seed tambahan untuk pengembangan dan testing: 16 user baru (10 cust/owner, 2 admin, 4 staff), 10 properti kost/kontrakan dari berbagai provinsi, dan 1 iklan.
+
+### Perubahan Utama
+- **Users**: 16 akun baru dengan role yang bervariasi (cust, owner, admin, staff)
+- **Properties**: 10 properti (6 kost, 4 kontrakan) dari 10 provinsi berbeda
+- **Units**: Unit per properti dengan harga dan status yang bervariasi
+- **Iklan**: 1 iklan aktif dengan paket reguler 7 hari
+
+### File Baru
+- `apps/web/scripts/seed-extra.ts`
+
+### File Diubah
+- `apps/web/package.json` (tambah script `db:seed-extra`)
+
+### Cara Penggunaan
+Jalankan `bun run db:seed-extra` dari direktori `apps/web` untuk menambahkan data seed tambahan.
+
 ## AI Notification Templates dengan Aion/Groq Gateway - 28-Agu-2026 08:40
 
 ### Ringkasan

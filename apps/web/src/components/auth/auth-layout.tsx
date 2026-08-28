@@ -50,7 +50,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           <div className="flex justify-center lg:justify-start mb-8">
             <Logo withText />
           </div>
-          <Card className="border shadow-sm">{children}</Card>
+          <Card className="border shadow-sm p-2 sm:p-6 md:p-4">{children}</Card>
         </div>
       </div>
     </div>

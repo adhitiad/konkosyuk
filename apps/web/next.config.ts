@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   images: {
+    unoptimized: process.env.NODE_ENV !== "production",
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
@@ -57,7 +58,6 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 365,
     contentDispositionType: "attachment",
   },
-  turbopack: false,
   experimental: {
     optimizePackageImports: [
       "@tanstack/react-query",

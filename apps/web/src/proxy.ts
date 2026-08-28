@@ -15,7 +15,10 @@ export const routing = defineRouting({
 export const config = {
   runtime: "nodejs",
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|logo.png|manifest.webmanifest|sw.js|.*\\..*).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|logo.png|manifest.webmanifest|sw.js|monitoring|.*\\..*).*)",
+    "/(id|en|my|th|vi|ko|zh|ru)/:path*",
+    "/((?!api|_next|_vercel|monitoring|.*\\..*).*)",
+    "/",
   ],
 };
 
@@ -34,10 +37,14 @@ function buildCsp(nonce: string, isProd: boolean): string {
     ? `'self' 'nonce-${nonce}' https://va.vercel-scripts.com https://analytics.ahrefs.com`
     : `'self' 'nonce-${nonce}' 'unsafe-eval' https://va.vercel-scripts.com https://analytics.ahrefs.com`;
 
+  const styleSrc = isProd
+    ? `'self' 'nonce-${nonce}' https://fonts.googleapis.com`
+    : `'self' 'unsafe-inline' https://fonts.googleapis.com`;
+
   return [
     "default-src 'self'",
     `script-src ${scriptSrc}`,
-    `style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com`,
+    `style-src ${styleSrc}`,
     "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://a.basemaps.cartocdn.com https://b.basemaps.cartocdn.com https://c.basemaps.cartocdn.com https://tile.openstreetmap.org https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org",
     "font-src 'self' data: https://fonts.gstatic.com",
     "connect-src 'self' https://nominatim.openstreetmap.org https://tile.openstreetmap.org https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://tiles.openstreetmap.org https://tiles.stadiamaps.com https://basemaps.cartocdn.com https://a.basemaps.cartocdn.com https://b.basemaps.cartocdn.com https://*.cartodb.com https://api.maptiler.com https://tiles.maptiler.com https://*.maptiler.com https://demotiles.maplibre.org https://va.vercel-scripts.com https://vitals.vercel-insights.com https://analytics.ahrefs.com blob: data: ws: wss:",
@@ -109,7 +116,7 @@ export async function proxy(request: NextRequest) {
 
   // API routes must bypass next-intl. Authentication, rate limiting, and CSRF
   // validation are handled by the route handlers, not Edge middleware.
-  if (path.startsWith("/api/")) {
+  if (path.startsWith("/api/") || path === "/monitoring") {
     const response = NextResponse.next();
     response.headers.set("x-request-id", requestId);
     return response;
