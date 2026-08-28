@@ -1,5 +1,26 @@
 # Ringkasan Perubahan
 
+## AI Notification Templates dengan Aion/Groq Gateway - 28-Agu-2026 08:40
+
+### Ringkasan
+Membangun sistem template notifikasi berbasis AI untuk email dan WhatsApp dengan strategi failover otomatis antara Aion dan Groq agar tetap dalam batas kuota gratis.
+
+### Perubahan Utama
+- **AI Gateway**: Membuat `src/lib/ai-gateway.ts` dengan strategi pergantian layanan AI:
+  - Primary: Aion (20K TPM, 20K daily token limit)
+  - Fallback: Groq (30 RPM, 14.4K RPD, 15K TPM, 500K TPD)
+  - Tracking penggunaan per-menit dan per-hari untuk kedua layanan
+  - Fallback otomatis ke template statis jika semua provider AI gagal
+- **AI Notification Templates**: Membuat `src/lib/ai-notification-templates.ts` dengan template AI untuk:
+  - Email: wrapper HTML profesional dengan branding KonkosYuk
+  - WhatsApp: format teks singkat yang mobile-friendly
+  - Template statis fallback untuk semua jenis notifikasi
+- **Konfigurasi**: Membaca konfigurasi dari `.env.local` (AION_API_KEY, AION_MODEL, GROQ_API_KEY, GROQ_MODEL)
+
+### File Baru
+- `apps/web/src/lib/ai-gateway.ts`
+- `apps/web/src/lib/ai-notification-templates.ts`
+
 ## Perbaikan QStash Signing Key untuk Build Vercel - 28-Agu-2026 07:57
 
 ### Ringkasan
