@@ -6,17 +6,7 @@ import { PopularCitiesSection } from "@/components/landing/popular-cities-sectio
 import { FeaturesSection } from "@/components/landing/features-section";
 import { FooterSection } from "@/components/landing/footer-section";
 import { JsonLd } from "@/components/seo/json-ld";
-import { generateMetadata as generatePageMetadata } from "@/app/[locale]/Metadata";
 import { SITE_URL } from "@/components/seo/schema";
-
-// H-4 fix: gunakan params route dinamis, bukan hardcode "id"
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  return generatePageMetadata({ params });
-}
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
