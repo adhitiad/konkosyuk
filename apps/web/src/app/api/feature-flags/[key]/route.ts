@@ -4,7 +4,7 @@ import { isFeatureEnabled } from "@/lib/feature-flags";
 import { ok, handleApiError } from "@/lib/api";
 
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ key: string }> },
 ) {
   try {

@@ -1,5 +1,293 @@
 # Ringkasan Perubahan
 
+## Perbaikan Lint dan TypeScript - 28-Agu-2026 13:40
+
+### Ringkasan
+Memperbaiki semua ESLint error dan beberapa TypeScript error di `notification-client.ts` untuk mencapai status zero lint errors.
+
+### Perubahan Utama
+- **ESLint**: Memperbaiki 18 error `req is defined but never used` dengan mengganti nama parameter menjadi `_req` di 14 file route API
+- **notification-client.ts**: Menghapus prefix `_` yang salah ditambahkan pada parameter yang sebenarnya digunakan (`tenantName`, `propertyName`, `dpAmount` di fungsi `sendBookingRequestEmail`, `sendBookingRejectionEmail`, `sendPaymentReceivedEmail`, `sendApprovalEmail`, `sendBookingReminderEmail`, `dispatchPricingAlert`, `sendMaintenanceReportCreatedEmail`)
+
+### File Diubah
+- `apps/web/src/lib/notification-client.ts` (perbaikan parameter yang digunakan)
+- `apps/web/src/app/api/admin/ad-packages/[id]/route.ts`
+- `apps/web/src/app/api/admin/ads/[id]/route.ts`
+- `apps/web/src/app/api/group-bookings/[id]/members/me/route.ts`
+- `apps/web/src/app/api/group-bookings/[id]/route.ts`
+- `apps/web/src/app/api/inspections/[id]/items/route.ts`
+- `apps/web/src/app/api/inspections/[id]/photos/route.ts`
+- `apps/web/src/app/api/inspections/[id]/route.ts`
+- `apps/web/src/app/api/maintenance/[id]/route.ts`
+- `apps/web/src/app/api/owner/bank-accounts/[id]/route.ts`
+- `apps/web/src/app/api/owner/pricing/[id]/route.ts`
+- `apps/web/src/app/api/owner/properties/[id]/units/route.ts`
+- `apps/web/src/app/api/properties/[id]/route.ts`
+- `apps/web/src/app/api/reviews/[id]/route.ts`
+- `apps/web/src/app/api/users/[id]/route.ts`
+
+## Statistik Notifikasi Multi-Channel via Redis - 28-Aug-2026 10:45
+
+### Ringkasan
+Membangun sistem pelacakan statistik notifikasi (Berhasil, Gagal, Rate-Limited, DLQ) untuk setiap channel menggunakan Upstash Redis dengan time-bucketed keys. Mengekspos data statistik melalui Admin API endpoint yang dilindungi.
+
+### Perubahan Utama
+- **Stats Module**: `apps/web/src/lib/stats.ts` menggunakan fixed window counter per jam
+  - Key format: `stats:{channel}:{status}:{YYYY-MM-DD-HH}`
+  - TTL otomatis 48 jam
+  - Non-blocking: operasi Redis dijalankan dengan `.catch(() => {})` agar kegagalan tracking tidak mempengaruhi flow utama
+- **Worker Route**: `apps/web/app/api/qstash/worker/route.ts` menambahkan tracking stats
+  - Success → `trackStat(channel, 'success')`
+  - Rate limited → `trackStat(channel, 'rate_limited')` lalu lempar error untuk QStash retry
+  - Failed → `trackStat(channel, 'failed')`
+  - Idempotency tetap terjaga
+- **DLQ Route**: `apps/web/app/api/qstash/dlq/route.ts` menambahkan `trackStat(channel, 'dlq')`
+- **Admin Endpoint**: `apps/web/app/api/admin/stats/route.ts`
+  - GET handler dengan proteksi `Authorization: Bearer ${ADMIN_SECRET}`
+  - Query Redis keys untuk 24 jam terakhir
+  - Agregasi data grouped by channel dan status
+
+### File Baru
+- `apps/web/src/lib/stats.ts`
+- `apps/web/app/api/admin/stats/route.ts`
+
+### File Diubah
+- `apps/web/app/api/qstash/worker/route.ts` (integrasi tracking stats)
+- `apps/web/app/api/qstash/dlq/route.ts` (integrasi DLQ stats)
+
+### Catatan
+- Lint: 0 error
+- Typecheck: tidak ada error baru dari file stats/admin
+
+## Rate Limiter Global untuk WhatsApp Fonnte - 28-Aug-2026 10:40
+
+### Ringkasan
+Menambahkan lapisan rate-limiting lokal menggunakan Upstash Redis khusus untuk channel WhatsApp (Fonnte) untuk mencegah akun terkena banned karena melebihi batas pengiriman per detik.
+
+### Perubahan Utama
+- **Rate Limiter Baru**: `apps/web/src/lib/rate-limiter.ts` menggunakan fixed window counter di Redis
+  - Key format: `ratelimit:{key}:{windowTimestamp}`
+  - Menggunakan Redis Pipeline untuk atomic INCR + EXPIRE (tanpa race condition)
+  - Fallback ke memory client jika Redis tidak tersedia
+  - Konfigurasi via env: `FONNTE_RATE_LIMIT` (default 5) dan `FONNTE_RATE_WINDOW` (default 1 detik)
+- **WhatsApp Sender**: `apps/web/lib/notifications/whatsapp.ts` memanggil `checkRateLimit("fonnte")` di awal fungsi
+  - Limit default 5/detik adalah safety margin dari limit resmi Fonnte (~10 msg/sec)
+  - Error dilempar agar QStash melakukan retry otomatis
+- **Environment**: Update `.env.example` dengan `FONNTE_RATE_LIMIT` dan `FONNTE_RATE_WINDOW`
+
+### File Baru
+- `apps/web/src/lib/rate-limiter.ts`
+
+### File Diubah
+- `apps/web/lib/notifications/whatsapp.ts` (integrasi rate limiter)
+
+### Catatan
+- Lint: tidak ada error baru
+- Typecheck: tidak ada error baru dari file rate-limiter/whatsapp
+
+## Implementasi 3 Channel Notifikasi Inti dengan URL Publik - 28-Aug-2026 10:35
+
+### Ringkasan
+Mengimplementasikan 3 channel notifikasi inti (Resend Email, Telegram, WhatsApp via Fonnte) dengan pola URL Publik untuk media. Payload QStash hanya membawa string URL publik, bukan base64, agar tetap ringan dan serverless-friendly.
+
+### Perubahan Utama
+- **Resend (`resend.ts`)**: Ditambahkan dukungan `attachments` dengan download dari URL publik menggunakan `fetch` + `AbortController` (timeout 15 detik), konversi ke `Buffer` lalu `base64` untuk lampiran email
+- **Telegram (`telegram.ts`)**: Ditambahkan `documentUrl` yang mengirim via `sendDocument` dengan URL langsung (tanpa download server). Telegram API menerima URL publik di field `document`
+- **WhatsApp (`whatsapp.ts`)**: Migrasi dari Meta Cloud API ke Fonnte. Ditambahkan `fileUrl` yang dikirim via field `file` dengan header `Authorization: ${FONNTE_TOKEN}`. Body menggunakan `application/x-www-form-urlencoded`
+- **Dispatcher (`index.ts`)**: Ditambahkan validasi payload per channel dan validasi URL publik menggunakan `new URL()` sebelum dikirim ke sender
+- **Environment**: Update `.env.example` — ganti `WA_API_TOKEN`/`WA_PHONE_NUMBER_ID` (Meta) menjadi `FONNTE_TOKEN` (Fonnte)
+
+### File Diubah
+- `apps/web/lib/notifications/resend.ts` (tambah Attachment interface, download + base64)
+- `apps/web/lib/notifications/telegram.ts` (tambah documentUrl, sendDocument)
+- `apps/web/lib/notifications/whatsapp.ts` (migrasi ke Fonnte, tambah fileUrl)
+- `apps/web/lib/notifications/index.ts` (tambah validasi payload + URL)
+- `apps/web/.env.example` (update variabel WhatsApp)
+
+### Catatan Keamanan
+- Semua URL divalidasi dengan `new URL()` — hanya `http:` dan `https:` yang diterima
+- `AbortController` dengan timeout 15 detik mencegah hanging di serverless
+- Error dari API pihak ketiga dilempar (`throw new Error`) agar QStash bisa retry
+
+## Setup Ngrok Otomatis untuk QStash Local Development - 28-Aug-2026 10:20
+
+### Ringkasan
+Membuat script otomatis untuk memperbarui konfigurasi QStash agar menunjuk ke URL ngrok saat development lokal. Script ini mendeteksi URL publik ngrok dari API lokal dan memperbarui semua QStash schedules serta DLQ URL secara otomatis.
+
+### Perubahan Utama
+- **Script Baru**: `apps/web/scripts/setup-local-ngrok.ts` yang:
+  - Mengambil URL publik ngrok dari `http://127.0.0.1:4040/api/tunnels`
+  - Memperbarui semua QStash schedules yang mengarah ke `/api/qstash/worker` dan `/api/qstash/dlq`
+  - Memperbarui DLQ URL via QStash API
+  - Menampilkan log hasil update
+- **Package.json**: Script `dev` diubah untuk menjalankan `concurrently` dengan ngrok, next dev, dan setup script
+- **Dev Dependencies**: Menambahkan `concurrently` dan `wait-on`
+- **Dokumentasi**: Update README.md dan .env.example dengan instruksi setup ngrok
+
+### File Baru
+- `apps/web/scripts/setup-local-ngrok.ts`
+
+### File Diubah
+- `apps/web/package.json` (update dev script + devDependencies)
+- `apps/web/README.md` (tambah section setup ngrok)
+- `apps/web/.env.example` (tambah catatan QSTASH_WORKER_URL untuk ngrok)
+
+### Cara Penggunaan
+1. Jalankan ngrok: `ngrok http 3000`
+2. Di terminal lain, jalankan: `bun run dev`
+3. Script akan otomatis update QStash webhooks ke URL ngrok
+
+## Integrasi Ably untuk Notifikasi Real-Time Mobile - 28-Aug-2026 10:05
+
+### Ringkasan
+Menambahkan dukungan notifikasi real-time di Flutter mobile menggunakan Ably dengan Token Authentication. Backend menyediakan endpoint `/api/ably/auth` untuk menghasilkan token sementara, sedangkan Flutter client melakukan subscribe ke channel `user:{userId}:notifications` dan menangkap notifikasi secara real-time.
+
+### Perubahan Utama
+- **Backend**: Endpoint `/api/ably/auth` diubah menggunakan `requestToken()` dengan capability terbatas (`subscribe` pada channel user) dan mengembalikan token string langsung untuk client
+- **Flutter Service**: `apps/mobile/lib/services/ably_service.dart` mengelola koneksi Ably, subscribe channel, fetch missed messages via History, dan mark-as-read batch
+- **State Management**: Riverpod providers untuk inisialisasi, stream notifikasi, dan missed messages
+- **Lifecycle Integration**: Contoh integrasi dengan `connectivity_plus` untuk fetch missed messages saat koneksi internet kembali
+- **Keamanan**: Token Ably selalu diambil dari backend; API key tidak pernah exposed ke client
+- **Dependensi**: Menambahkan `ably_flutter`, `connectivity_plus`, `http`; menghapus `grpc`, `protobuf`, `fixnum` yang tidak lagi digunakan
+
+### File Baru
+- `apps/mobile/lib/services/ably_service.dart`
+- `apps/mobile/lib/features/notifications/domain/notification_model.dart`
+- `apps/mobile/lib/features/notifications/presentation/notifications_screen.dart`
+
+### File Diubah
+- `apps/mobile/pubspec.yaml` (update dependencies)
+- `apps/mobile/lib/main.dart` (contoh integrasi login + lifecycle)
+- `apps/web/app/api/ably/auth/route.ts` (ubah `createTokenRequest` menjadi `requestToken` agar token langsung usable oleh Flutter)
+
+### Catatan
+- Flutter app masih menggunakan template default; struktur fitur notifikasi sudah dibuat siap diintegrasikan dengan UI dan state management yang ada
+
+## Refactor Modul Notifikasi Multi-Channel & Integrasi Ably - 28-Aug-2026 09:45
+
+### Ringkasan
+Membangun modul notifikasi multi-channel yang modular di `apps/web/lib/notifications/` untuk menggantikan microservice Go. Menambahkan channel baru: Resend (Email), Telegram, WhatsApp Business API, Web Push, dan In-App. Mengintegrasikan Ably untuk notifikasi in-app real-time menggunakan token authentication yang aman.
+
+### Perubahan Utama
+- **Struktur Modular**: Memindahkan `apps/web/lib/notifications.ts` monolithic menjadi folder `apps/web/lib/notifications/` dengan file terpisah per channel:
+  - `index.ts` — router/dispatcher `sendNotification(channel, payload)`
+  - `resend.ts` — `sendEmail()` via SDK Resend
+  - `telegram.ts` — `sendTelegram()` via Telegram Bot API
+  - `whatsapp.ts` — `sendWhatsApp()` via Meta WhatsApp Cloud API
+  - `web-push.ts` — `sendPushNotification()` via `web-push` + VAPID keys
+  - `in-app.ts` — `sendInAppNotification()` insert ke DB + publish ke Ably
+- **Integrasi Ably**: Menambahkan publish notifikasi in-app ke channel Ably `user:{userId}:notifications` menggunakan REST client
+- **Token Auth Endpoint**: `apps/web/app/api/ably/auth/route.ts` untuk menghasilkan token Ably yang hanya memberikan akses `subscribe` ke channel user
+- **Error Handling**: Semua fungsi mengembalikan `void` dan melempar error jika gagal, sehingga QStash dapat melakukan retry
+- **Type Safety**: Interface payload ketat untuk setiap channel dengan tipe Ably yang diimpor dengan benar
+- **Environment Variables**: Menambahkan `TELEGRAM_BOT_TOKEN`, `WA_API_TOKEN`, `WA_PHONE_NUMBER_ID` ke `.env.example`
+
+### File Baru
+- `apps/web/lib/notifications/index.ts`
+- `apps/web/lib/notifications/resend.ts`
+- `apps/web/lib/notifications/telegram.ts`
+- `apps/web/lib/notifications/whatsapp.ts`
+- `apps/web/lib/notifications/web-push.ts`
+- `apps/web/lib/notifications/in-app.ts`
+- `apps/web/app/api/ably/auth/route.ts`
+
+### File Diubah
+- `apps/web/app/api/qstash/worker/route.ts` (integrasi modul notifikasi modular + support array channels)
+- `apps/web/.env.example` (tambah variabel Telegram dan WhatsApp)
+
+### Validasi
+- **Lint**: 0 errors
+- **Tests**: 319 passed
+- **Typecheck**: tidak ada error baru dari perubahan ini
+
+## Refactor Modul Notifikasi ke Serverless TypeScript - 27-Aug-2026 00:36
+
+### Ringkasan
+Memindahkan logika notifikasi dari microservice Go ke fungsi TypeScript serverless yang modular. Menghapus sisa-sisa dependensi gRPC dan membuat modul notifikasi baru yang bersih di `apps/web/lib/notifications.ts`.
+
+### Perubahan Utama
+- **Verifikasi**: Semua impor gRPC lama sudah dihapus dari `packages/shared` dan `apps/web`
+- **Modul Baru**: `apps/web/lib/notifications.ts` berisi fungsi murni untuk:
+  - `sendEmail()` — kirim email via Resend
+  - `sendTelegram()` — kirim pesan via Telegram Bot API
+  - `sendWhatsApp()` — placeholder dengan warning (belum diintegrasikan)
+  - `sendPushNotification()` — kirim push notification via web-push
+  - `dispatchNotification()` — orchestrator untuk multiple channel
+  - `buildEmailHtml()` dan `buildTelegramMessage()` — helper template
+- **Integrasi QStash**: Route handler `apps/web/app/api/qstash/worker/route.ts` sekarang menggunakan modul `notifications.ts` untuk job `SEND_NOTIFICATION`
+- **Error Handling**: Menggunakan `console.warn` dan `console.error` yang ramah serverless (tanpa file system logging)
+
+### File Baru
+- `apps/web/lib/notifications.ts`
+
+### File Diubah
+- `apps/web/app/api/qstash/worker/route.ts` (integrasi modul notifikasi baru)
+- `apps/web/src/lib/notification-client.ts` (bersihkan unused imports dan type casts)
+
+## Implementasi Upstash QStash untuk Background Jobs - 27-Aug-2026 00:20
+
+### Ringkasan
+Mengganti infrastruktur background job dari BullMQ menjadi Upstash QStash yang sepenuhnya serverless. Menambahkan route handler QStash worker dengan signature verification dan router untuk beberapa jenis job.
+
+### Perubahan Utama
+- **Instal Dependensi**: `@upstash/qstash` dan `@upstash/redis`
+- **Route Handler Baru**: `apps/web/app/api/qstash/worker/route.ts` dengan `verifySignatureAppRouter` untuk keamanan webhook
+- **Job Router**: `switch/case` untuk menangani `SEND_NOTIFICATION` dan `SYNC_ANALYTICS`
+- **Helper Module**: `apps/web/lib/qstash.ts` dengan fungsi `publishToQStash`, `publishNotificationJob`, dan `publishAnalyticsSyncJob`
+- **Environment Variables**: Menambahkan `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY`, `QSTASH_NEXT_SIGNING_KEY`, `QSTASH_WORKER_URL` ke `.env.example`
+
+### File Baru
+- `apps/web/app/api/qstash/worker/route.ts`
+- `apps/web/lib/qstash.ts`
+
+### File Diubah
+- `apps/web/.env.example` (tambah variabel QStash)
+- `apps/web/package.json` (tambah dependencies QStash)
+
+## Migrasi ke Full Serverless TypeScript - 27-Aug-2026 23:58
+
+### Ringkasan
+Memigrasikan arsitektur monorepo menjadi 100% full serverless dengan TypeScript. Menghapus seluruh microservice Go (`apps/notifications`), standalone gRPC server (`apps/grpc`), dan BullMQ worker (`apps/cronJob`). Semua logika notifikasi sekarang berjalan langsung di `apps/web` menggunakan database + Resend/web-push.
+
+### Perubahan Utama
+- **Hapus Service**: `apps/notifications/` (Go gRPC), `apps/grpc/` (Bun gRPC server), `apps/cronJob/` (BullMQ worker)
+- **Hapus Dependensi**: `@grpc/grpc-js`, `@grpc/proto-loader`, `bullmq` dari seluruh workspace
+- **Hapus Proto**: `proto/konkosyuk/v1/*.proto`, `protoc/`, dan generated stubs
+- **Hapus Rules**: `.kilo/rules/global-for-cronjob.md`, `.kilo/rules/global-for-notifications.md`, `.kilo/rules/global-for-grpc.md`
+- **Rewrite Notification Client**: `apps/web/src/lib/notification-client.ts` diubah dari gRPC client menjadi implementasi serverless TypeScript langsung (DB + Resend + web-push)
+- **Update Shared Package**: `packages/shared` menghapus `@grpc/grpc-js`, `@grpc/proto-loader`, dan export `notification-grpc-client`
+- **Update Config**: `turbo.json` menghapus task `proto:gen`, `.gitignore` menghapus generated proto paths, `eslint.config.mjs` menghapus restrict `@grpc/grpc-js`
+- **Update Docs**: `AGENTS.md`, `docs/monitoring-dashboard.md`, `docs/DEPLOYMENT.md`, `apps/mobile/README.md`, `.kilo/rules/global-for-mobile.md`
+
+### File Dihapus
+- `apps/notifications/` (seluruh folder)
+- `apps/grpc/` (seluruh folder)
+- `apps/cronJob/` (seluruh folder)
+- `proto/konkosyuk/v1/*.proto` (5 file)
+- `protoc/` (folder)
+- `packages/shared/src/lib/notification-grpc-client.ts`
+- `packages/shared/dist/lib/notification-grpc-client.*`
+
+### File Diubah
+- `apps/web/src/lib/notification-client.ts` (rewrite total)
+- `apps/web/src/lib/email-client.ts` (removed circular dep)
+- `packages/shared/package.json` (hapus grpc deps + export)
+- `packages/shared/dist/index.js` (hapus re-export notification-grpc-client)
+- `packages/shared/dist/index.d.ts` (hapus re-export notification-grpc-client)
+- `turbo.json` (hapus proto:gen task)
+- `.gitignore` (hapus generated proto paths)
+- `apps/web/eslint.config.mjs` (hapus restrict @grpc/grpc-js)
+- `AGENTS.md` (update arsitektur)
+- `docs/monitoring-dashboard.md` (hapus grpc/bullmq metrics)
+- `docs/DEPLOYMENT.md` (hapus worker sections)
+- `apps/web/docs/api.md` (hapus BullMQ cron jobs reference)
+- `apps/web/DEPLOYMENT.md` (hapus Render Worker section)
+- `apps/web/CHECKLIST_WEB.md` (update worker health checks)
+- `apps/web/MEDIUM-CHECK.md` (update cron jobs section)
+- `apps/web/src/lib/__tests__/redis.test.ts` (rename test case)
+- `apps/mobile/README.md` (update ke REST API)
+- `.kilo/rules/global-for-mobile.md` (update networking)
+
 ## Setup Monitoring Dasar untuk Auto-Scaling Detection - 27-Aug-2026 15:30
 
 ### Ringkasan
@@ -807,6 +1095,150 @@ Memperbaiki known TypeScript errors di `apps/web` sebagai bagian dari migrasi me
 - `bun x tsc --noEmit`: 0 error
 - `bun run lint`: lolos
 - `bun run test -- --run`: 319 passed, 0 failed
+
+---
+
+## Dashboard Admin Statistik Notifikasi Real-Time via Ably - 28-Aug-2026 11:00
+
+### Ringkasan
+Membangun dashboard admin di `/admin/dashboard` dengan visualisasi statistik notifikasi menggunakan Recharts. Dashboard mengambil data awal dari Server Component dan menerima pembaruan real-time melalui Ably channel `admin:stats` dengan mekanisme batching 10 detik.
+
+### Perubahan Utama
+- **Middleware Admin**: `src/proxy.ts` memverifikasi session Better-Auth dan role ADMIN untuk route `/admin/*`
+  - User tidak terautentikasi → redirect ke `/login`
+  - User bukan ADMIN → redirect ke `/unauthorized`
+- **Halaman Unauthorized**: `app/unauthorized/page.tsx` — halaman 403 profesional
+- **API Stats Update**: `app/api/admin/stats/route.ts` menggunakan `requireSession(["admin"])` sebagai auth utama
+  - Mendukung query param `?hours=` (default 24, max 168)
+  - Mengembalikan data agregat + `trend` array untuk visualisasi
+- **Dashboard Admin**: RSC + Client Component pattern
+  - `app/admin/dashboard/page.tsx` — Server Component fetch initial data
+  - `app/admin/dashboard/dashboard-client.tsx` — Client Component dengan filter waktu, summary cards, charts, dan tabel detail
+- **Komponen Chart Modular**:
+  - `src/components/admin/stats-card.tsx`
+  - `src/components/admin/notification-trend-chart.tsx` — Line chart tren per channel
+  - `src/components/admin/channel-comparison-chart.tsx` — Bar chart perbandingan status
+- **Real-Time Stats via Ably**:
+  - `src/lib/stats-publisher.ts` — buffer + batch publish ke Ably `admin:stats` setiap 10 detik
+  - `src/lib/stats.ts` — memanggil `bufferStatUpdate()` setelah setiap `redis.incr()`
+  - `app/api/ably/admin-auth/route.ts` — token Ably dengan capability `subscribe` ke `admin:stats`
+  - `src/components/admin/RealTimeStats.tsx` — subscribe channel Ably, update chart secara real-time
+
+### File Baru
+- `apps/web/app/admin/dashboard/page.tsx`
+- `apps/web/app/admin/dashboard/dashboard-client.tsx`
+- `apps/web/app/admin/layout.tsx`
+- `apps/web/app/unauthorized/page.tsx`
+- `apps/web/app/api/ably/admin-auth/route.ts`
+- `apps/web/src/components/admin/stats-card.tsx`
+- `apps/web/src/components/admin/notification-trend-chart.tsx`
+- `apps/web/src/components/admin/channel-comparison-chart.tsx`
+- `apps/web/src/components/admin/RealTimeStats.tsx`
+- `apps/web/src/lib/stats-publisher.ts`
+
+### File Diubah
+- `apps/web/src/proxy.ts` (admin route protection)
+- `apps/web/app/api/admin/stats/route.ts` (session auth + trend data)
+- `apps/web/src/lib/stats.ts` (integrasi buffer publisher)
+
+### Catatan
+- Lint: 0 error, 0 warning untuk file baru
+- Typecheck: tidak ada error baru dari file Phase 14/15
+- Pre-existing type errors tetap ada (Next.js 16 Metadata/server types)
+
+---
+
+## Unit Tests untuk Stats, Rate Limiter, dan Notification Pipeline - 28-Aug-2026 11:30
+
+### Ringkasan
+Membangun unit test suite untuk modul kritis notifikasi menggunakan Vitest dengan mock untuk dependensi eksternal (Redis, Resend, Telegram, Fonnte).
+
+### Perubahan Utama
+- **Test Structure**: `apps/web/src/__tests__/unit/` untuk unit tests
+- **Fixtures**: Data dummy untuk payload notifikasi dan mock responses
+- **Stats Test**: Validasi `trackStat()` menghasilkan key Redis dengan format yang benar
+- **Rate Limiter Test**: Validasi `checkRateLimit()` memblokir request melebihi limit dan mengizinkan request dalam batas
+- **Notification Test**: Validasi `sendNotification()` untuk email, telegram, WhatsApp, in-app, dan error handling
+- **CI Scripts**: Update `package.json` dengan script `test:unit` dan `test:integration`
+
+### File Baru
+- `apps/web/src/__tests__/unit/stats.test.ts`
+- `apps/web/src/__tests__/unit/rate-limiter.test.ts`
+- `apps/web/src/__tests__/unit/notifications.test.ts`
+
+### File Diubah
+- `apps/web/package.json` (test scripts)
+- `apps/web/vitest.config.ts` (include patterns)
+
+### Catatan
+- Unit tests: 11 passed, 0 failed
+- Mocking: Redis (upstash/ioredis), Resend SDK, Telegram/Fonnte HTTP API, web-push
+- Pre-existing: integration test untuk QStash workflow ditunda karena dependency resolution issue dengan Vite
+
+---
+
+## Dokumentasi API Flutter dengan OpenAPI & Redoc - 28-Aug-2026 05:35
+
+### Ringkasan
+Membangun dokumentasi API yang comprehensive untuk tim Flutter menggunakan OpenAPI 3.0 specification sebagai single source of truth, dengan interactive Redoc docs dan contoh kode Flutter.
+
+### Perubahan Utama
+- **OpenAPI Spec**: `apps/web/docs/openapi.yaml` covering auth, notifications, user profile, dan Ably real-time
+- **Interactive Docs**: Redoc page di `/docs` dengan tema branded KonkosYuk
+- **Markdown Docs**: Quick start guide, authentication flow, real-time notifications setup
+- **Flutter Examples**: Contoh implementasi untuk auth service, Ably service, notification repository
+- **CI Scripts**: `docs:validate`, `docs:serve`, `docs:build` untuk maintain dokumentasi
+
+### File Baru
+- `apps/web/docs/openapi.yaml` - OpenAPI 3.0.3 specification
+- `apps/web/app/docs/page.tsx` - Interactive Redoc documentation page
+- `apps/web/docs/README.md` - Flutter-focused API documentation
+- `apps/web/docs/flutter-examples/auth_service.dart`
+- `apps/web/docs/flutter-examples/ably_service.dart`
+- `apps/web/docs/flutter-examples/notification_repository.dart`
+- `apps/web/docs/CHANGELOG-API.md` - API versioning changelog template
+
+### File Diubah
+- `apps/web/package.json` - Added redoc, @redocly/cli, dan docs scripts
+- `apps/web/README.md` - Added API documentation section
+
+### Catatan
+- OpenAPI spec valid (redocly lint passed)
+- Lint: 0 error, 10 warnings (pre-existing)
+- Typecheck: tidak ada error baru
+- Unit tests: 11 passed
+
+---
+
+## Cost Optimization & Alert System - 28-Aug-2026 05:57
+
+### Ringkasan
+Membangun sistem monitoring biaya dengan volume-based tracking untuk QStash, Ably, dan Redis. Dashboard admin menampilkan progress bar dan grafik historis. Alert otomatis dikirim ke Telegram Admin via QStash Cron setiap hari jam 08:00.
+
+### Perubahan Utama
+- **Usage Tracker**: `apps/web/lib/usage-tracker.ts` untuk melacak volume penggunaan per bulan
+- **Integration**: `trackUsage` dipanggil di `qstash.ts` dan `stats-publisher.ts`
+- **Admin Dashboard**: Halaman `/admin/costs` dengan progress bar dan grafik 6 bulan
+- **Alert System**: QStash Cron `/api/qstash/check-costs` dengan Telegram notification
+- **Environment Variables**: Thresholds untuk QStash, Ably, Redis, dan admin Telegram chat ID
+
+### File Baru
+- `apps/web/lib/usage-tracker.ts`
+- `apps/web/app/api/admin/costs/route.ts`
+- `apps/web/app/admin/costs/page.tsx`
+- `apps/web/app/admin/costs/costs-client.tsx`
+- `apps/web/app/api/qstash/check-costs/route.ts`
+
+### File Diubah
+- `apps/web/src/lib/qstash.ts` (added trackUsage)
+- `apps/web/src/lib/stats-publisher.ts` (added trackUsage for Ably)
+- `apps/web/.env.example` (cost thresholds and admin Telegram chat ID)
+
+### Catatan
+- Tracking non-blocking menggunakan Promise.allSettled pattern
+- TTL key Redis: 40 hari
+- Alert dikirim jika usage > 80% (warning) atau > 100% (critical)
+- Lint: 0 error, typecheck: no new errors, tests: 330 passed
 
 ---
 

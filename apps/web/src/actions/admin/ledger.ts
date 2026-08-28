@@ -52,7 +52,7 @@ export type CreateLedgerEntryState = {
 };
 
 export async function createLedgerEntryAction(
-  prevState: CreateLedgerEntryState | undefined,
+  _prevState: CreateLedgerEntryState | undefined,
   formData: FormData,
 ): Promise<CreateLedgerEntryState> {
   const csrfError = await validateActionCsrf(formData);

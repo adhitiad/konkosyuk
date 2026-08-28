@@ -39,10 +39,6 @@ mobile/android/.gradle/
 mobile/ios/Pods/
 mobile/ios/.symlinks/
 
-# Generated proto code
-apps/grpc/src/gen/
-apps/mobile/lib/gen/
-
 # Experimental / scratch apps (not part of the committed monorepo)
 apps/wa/
 apps/web/test-results

@@ -50,6 +50,14 @@ Platform booking kost & kontrakan modern dengan pembayaran aman, verifikasi KYC,
 - **Notifikasi Real-time:** In-app + Web Push Notification
 - **Multi-Bahasa:** ID, EN, MY, TH, VI, KO, ZH, RU
 
+## 📚 Dokumentasi API untuk Flutter
+
+Dokumentasi API lengkap untuk tim Flutter tersedia di:
+
+- **[API Documentation](./docs/README.md)** - Quick start, authentication flow, real-time notifications, dan error handling
+- **[OpenAPI Spec](./docs/openapi.yaml)** - Single source of truth untuk API specification
+- **[Interactive Docs](/docs)** - Redoc interaktif yang di-host di aplikasi
+
 ## 🛠️ Tech Stack
 
 | Layer         | Teknologi                                       |
@@ -190,6 +198,31 @@ bun run dev
 ```
 
 Buka [http://localhost:3000](http://localhost:3000) di browser.
+
+### 7. Setup Ngrok untuk Webhook Lokal
+
+Untuk menerima webhook dari Upstash QStash saat development lokal, jalankan ngrok terlebih dahulu:
+
+```bash
+# Install ngrok jika belum ada
+# https://ngrok.com/download
+
+# Jalankan ngrok
+ngrok http 3000
+```
+
+ Kemudian jalankan development server di terminal lain:
+
+```bash
+bun run dev
+```
+
+Script `setup-local-ngrok.ts` akan otomatis:
+1. Mendeteksi URL publik ngrok dari API lokal (`http://127.0.0.1:4040/api/tunnels`)
+2. Memperbarui konfigurasi QStash schedules dan DLQ agar menunjuk ke URL ngrok
+3. Menampilkan log: `✅ QStash webhooks updated to point to: https://<ngrok-url>`
+
+Pastikan ngrok berjalan di port `4040` (default) sebelum menjalankan `bun run dev`.
 
 ## 📂 Struktur Folder
 

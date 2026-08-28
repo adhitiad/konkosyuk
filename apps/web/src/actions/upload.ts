@@ -51,7 +51,7 @@ export type UploadImageState = {
 };
 
 export async function uploadImageAction(
-  prevState: UploadImageState | undefined,
+  _prevState: UploadImageState | undefined,
   formData: FormData,
 ): Promise<UploadImageState> {
   try {

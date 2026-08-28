@@ -43,7 +43,7 @@ export type UpdateReviewState = {
 };
 
 export async function updateReviewAction(
-  prevState: UpdateReviewState | undefined,
+  _prevState: UpdateReviewState | undefined,
   formData: FormData,
 ): Promise<UpdateReviewState> {
   const csrfError = await validateActionCsrf(formData);
@@ -115,7 +115,7 @@ export type DeleteReviewState = {
 };
 
 export async function deleteReviewAction(
-  prevState: DeleteReviewState | undefined,
+  _prevState: DeleteReviewState | undefined,
   formData: FormData,
 ): Promise<DeleteReviewState> {
   const csrfError = await validateActionCsrf(formData);
@@ -186,7 +186,7 @@ export type ReplyReviewState = {
 };
 
 export async function replyReviewAction(
-  prevState: ReplyReviewState | undefined,
+  _prevState: ReplyReviewState | undefined,
   formData: FormData,
 ): Promise<ReplyReviewState> {
   const csrfError = await validateActionCsrf(formData);
@@ -313,7 +313,7 @@ export type CreateReviewState = {
 };
 
 export async function createReviewAction(
-  prevState: CreateReviewState | undefined,
+  _prevState: CreateReviewState | undefined,
   formData: FormData,
 ): Promise<CreateReviewState> {
   const csrfError = await validateActionCsrf(formData);

@@ -1,6 +1,0 @@
-node_modules/
-dist/
-gen/
-.env
-.env.local
-*.log

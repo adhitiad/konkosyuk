@@ -26,7 +26,7 @@ export type AddBankAccountState = {
 };
 
 export async function addBankAccountAction(
-  prevState: AddBankAccountState | undefined,
+  _prevState: AddBankAccountState | undefined,
   formData: FormData,
 ): Promise<AddBankAccountState> {
   const csrfError = await validateActionCsrf(formData);
@@ -130,7 +130,7 @@ export type UpdateBankAccountState = {
 };
 
 export async function updateBankAccountAction(
-  prevState: UpdateBankAccountState | undefined,
+  _prevState: UpdateBankAccountState | undefined,
   formData: FormData,
 ): Promise<UpdateBankAccountState> {
   const csrfError = await validateActionCsrf(formData);
@@ -228,7 +228,7 @@ export type DeleteBankAccountState = {
 };
 
 export async function deleteBankAccountAction(
-  prevState: DeleteBankAccountState | undefined,
+  _prevState: DeleteBankAccountState | undefined,
   formData: FormData,
 ): Promise<DeleteBankAccountState> {
   const csrfError = await validateActionCsrf(formData);

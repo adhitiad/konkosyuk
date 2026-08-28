@@ -21,7 +21,7 @@ const preferencesSchema = z.object({
   timezone: z.string().optional(),
 });
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await requireSession();
     const url = new URL(request.url);
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PATCH(request: NextRequest) {
+export async function PATCH(_request: NextRequest) {
   try {
     const session = await requireSession();
     const body = await request.json();

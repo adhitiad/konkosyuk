@@ -38,7 +38,7 @@ export type CreateReportState = {
 };
 
 export async function createReportAction(
-  prevState: CreateReportState | undefined,
+  _prevState: CreateReportState | undefined,
   formData: FormData,
 ): Promise<CreateReportState> {
   const csrfError = await validateActionCsrf(formData);
@@ -243,7 +243,7 @@ export type UpdateReportState = {
 };
 
 export async function updateReportAction(
-  prevState: UpdateReportState | undefined,
+  _prevState: UpdateReportState | undefined,
   formData: FormData,
 ): Promise<UpdateReportState> {
   const csrfError = await validateActionCsrf(formData);

@@ -19,7 +19,7 @@ export type ToggleWishlistState = {
 };
 
 export async function toggleWishlist(
-  prevState: ToggleWishlistState | undefined,
+  _prevState: ToggleWishlistState | undefined,
   formData: FormData,
 ): Promise<ToggleWishlistState> {
   const csrfError = await validateActionCsrf(formData);

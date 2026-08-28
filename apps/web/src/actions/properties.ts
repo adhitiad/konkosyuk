@@ -43,7 +43,7 @@ export type CreatePropertyState = {
 };
 
 export async function createPropertyAction(
-  prevState: CreatePropertyState | undefined,
+  _prevState: CreatePropertyState | undefined,
   formData: FormData,
 ): Promise<CreatePropertyState> {
   const csrfError = await validateActionCsrf(formData);
@@ -194,7 +194,7 @@ export type UpdatePropertyState = {
 };
 
 export async function updatePropertyAction(
-  prevState: UpdatePropertyState | undefined,
+  _prevState: UpdatePropertyState | undefined,
   formData: FormData,
 ): Promise<UpdatePropertyState> {
   const csrfError = await validateActionCsrf(formData);
@@ -341,7 +341,7 @@ export type DeletePropertyState = {
 };
 
 export async function deletePropertyAction(
-  prevState: DeletePropertyState | undefined,
+  _prevState: DeletePropertyState | undefined,
   formData: FormData,
 ): Promise<DeletePropertyState> {
   const csrfError = await validateActionCsrf(formData);
@@ -402,7 +402,7 @@ export type FeaturePropertyState = {
 const FEATURED_DURATION_DAYS = 30;
 
 export async function featurePropertyAction(
-  prevState: FeaturePropertyState | undefined,
+  _prevState: FeaturePropertyState | undefined,
   formData: FormData,
 ): Promise<FeaturePropertyState> {
   const csrfError = await validateActionCsrf(formData);
@@ -503,7 +503,7 @@ const approvePropertySchema = z.object({
 });
 
 export async function approvePropertyAction(
-  prevState: ApprovePropertyState | undefined,
+  _prevState: ApprovePropertyState | undefined,
   formData: FormData,
 ): Promise<ApprovePropertyState> {
   const csrfError = await validateActionCsrf(formData);
@@ -612,7 +612,7 @@ const checkoutFeaturedSchema = z.object({
 });
 
 export async function checkoutFeaturedAction(
-  prevState: CheckoutFeaturedState | undefined,
+  _prevState: CheckoutFeaturedState | undefined,
   formData: FormData,
 ): Promise<CheckoutFeaturedState> {
   const csrfError = await validateActionCsrf(formData);

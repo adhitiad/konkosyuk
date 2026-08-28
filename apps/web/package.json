@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "concurrently \"ngrok http 3000\" \"next dev\" \"tsx scripts/setup-local-ngrok.ts\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
-    "test:ui": "vitest --ui",
+    "test:unit": "vitest run src/__tests__/unit",
+    "test:integration": "vitest run src/__tests__/integration",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
@@ -22,7 +23,10 @@
     "db:seed-campus-areas": "tsx src/scripts/seed-campus-areas.ts",
     "db:seed-inspections": "tsx src/scripts/seed-inspection-templates.ts",
     "db:encrypt-payment-secrets": "tsx scripts/encrypt-payment-gateway-configs.ts",
-    "db:baseline": "tsx scripts/baseline-drizzle.ts"
+    "db:baseline": "tsx scripts/baseline-drizzle.ts",
+    "docs:serve": "redoc-cli serve docs/openapi.yaml",
+    "docs:build": "redoc-cli build docs/openapi.yaml -o docs/index.html",
+    "docs:validate": "redocly lint docs/openapi.yaml"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -35,6 +39,8 @@
     "@sentry/nextjs": "10",
     "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-table": "^9.1.0",
+    "@upstash/qstash": "^2.11.3",
+    "@upstash/redis": "^1.38.3",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "ably": "^2.27.0",
@@ -62,6 +68,7 @@
     "react-icons": "^5.7.0",
     "react-map-gl": "^8.1.2",
     "recharts": "3.8.0",
+    "redoc": "^2.5.3",
     "resend": "^6.18.1",
     "shadcn": "^4.16.1",
     "sonner": "^2.0.7",
@@ -76,6 +83,7 @@
   "devDependencies": {
     "@better-auth/utils": "^0.5.0",
     "@playwright/test": "^1.62.1",
+    "@redocly/cli": "^2.49.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
@@ -87,6 +95,7 @@
     "@vitejs/plugin-react": "^6.0.5",
     "@vitest/coverage-v8": "^4.1.10",
     "@vitest/ui": "^4.1.10",
+    "concurrently": "^9.0.0",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
@@ -95,7 +104,8 @@
     "tailwindcss": "^4",
     "tsx": "^4.23.6",
     "typescript": "^6",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "wait-on": "^7.2.0"
   },
   "ignoreScripts": [
     "sharp",

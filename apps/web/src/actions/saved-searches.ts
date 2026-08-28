@@ -20,7 +20,7 @@ export type ActionState = {
 };
 
 export async function createSavedSearch(
-  _prevState: ActionState | undefined,
+  __prevState: ActionState | undefined,
   formData: FormData,
 ): Promise<ActionState> {
   const csrfError = await validateActionCsrf(formData);

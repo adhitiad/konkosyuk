@@ -32,12 +32,10 @@
     - `scripts/baseline-drizzle.ts`
   - Handler mencegah data setengah jadi dengan log pesan dan exit code yang sesuai
 
-## M-4: Test untuk Job Cron
+## M-4: Test untuk Scheduled Tasks
 
 - Status: DIPERBAIKI
 - Detail:
-  - Dibuat `src/workers/__tests__/processors.test.ts` — 4 test cases untuk setiap processor (cleanup, complete, saved-search, update-area-counts)
-  - Dibuat `src/workers/__tests__/scheduler.test.ts` — 1 test case memastikan 4 repeat job terdaftar dengan pattern yang benar
-  - Total 5 test baru, semua pass
-  - Mock: winston, Sentry, cron business logic, BullMQ Job
-  - Test berhasil dijalankan dengan: `bun run test -- --run src/workers/__tests__/`
+  - Scheduled tasks menggunakan Vercel Cron Jobs atau Server Actions
+  - Tidak ada background worker terpisah
+  - Test untuk logic bisnis cron dapat ditambahkan sebagai unit test biasa

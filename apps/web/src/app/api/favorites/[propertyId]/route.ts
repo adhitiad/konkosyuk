@@ -7,7 +7,7 @@ import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, handleApiError } from "@/lib/api";
 
 export async function DELETE(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ propertyId: string }> },
 ) {
   try {

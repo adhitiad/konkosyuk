@@ -25,7 +25,7 @@ export type CreateBookingRequestState = {
 };
 
 export async function createBookingRequestAction(
-  prevState: CreateBookingRequestState | undefined,
+  _prevState: CreateBookingRequestState | undefined,
   formData: FormData,
 ): Promise<CreateBookingRequestState> {
   const csrfError = await validateActionCsrf(formData);
@@ -190,7 +190,7 @@ export type ReviewBookingRequestState = {
 };
 
 export async function reviewBookingRequestAction(
-  prevState: ReviewBookingRequestState | undefined,
+  _prevState: ReviewBookingRequestState | undefined,
   formData: FormData,
 ): Promise<ReviewBookingRequestState> {
   const csrfError = await validateActionCsrf(formData);

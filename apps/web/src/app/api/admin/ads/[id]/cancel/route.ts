@@ -10,7 +10,7 @@ import { logError } from "@/lib/logger";
 export const dynamic = "force-dynamic";
 
 export async function POST(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {

@@ -2,11 +2,8 @@
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": ["**/.env.*local"],
   "tasks": {
-    "proto:gen": {
-      "outputs": ["src/gen/**"]
-    },
     "build": {
-      "dependsOn": ["^build", "^proto:gen"],
+      "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**", "build/**", "public/build/**"]
     },
     "dev": {

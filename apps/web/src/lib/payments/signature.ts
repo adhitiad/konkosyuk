@@ -31,7 +31,7 @@ export function generateMd5Signature(data: string): string {
 }
 
 export function verifySignature(
-  rawBody: string,
+  _rawBody: string,
   signatureHeader: string | null,
   expectedSignature: string,
 ): boolean {
@@ -41,14 +41,14 @@ export function verifySignature(
 }
 
 export function verifyHmacHex(
-  rawBody: string,
+  _rawBody: string,
   signatureHeader: string | null,
   secret: string,
   prefix = "sha256=",
 ): boolean {
   if (!signatureHeader) return false;
 
-  const expected = hmacSha256Hex(rawBody, secret);
+  const expected = hmacSha256Hex(_rawBody, secret);
   const actual = signatureHeader.startsWith(prefix)
     ? signatureHeader.slice(prefix.length)
     : signatureHeader;

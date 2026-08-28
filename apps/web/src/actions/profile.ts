@@ -22,7 +22,7 @@ export type UpdateProfileState = {
 };
 
 export async function updateProfileAction(
-  prevState: UpdateProfileState | undefined,
+  _prevState: UpdateProfileState | undefined,
   formData: FormData,
 ): Promise<UpdateProfileState> {
   const csrfError = await validateActionCsrf(formData);
@@ -86,7 +86,7 @@ export type UpdateUserProfileState = {
 };
 
 export async function updateUserProfileAction(
-  prevState: UpdateUserProfileState | undefined,
+  _prevState: UpdateUserProfileState | undefined,
   formData: FormData,
 ): Promise<UpdateUserProfileState> {
   const csrfError = await validateActionCsrf(formData);

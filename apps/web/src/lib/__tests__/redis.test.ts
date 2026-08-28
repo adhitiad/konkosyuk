@@ -37,7 +37,7 @@ describe("redis.ts", () => {
     );
   });
 
-  it("createRedisConnection should pass BullMQ-required options", async () => {
+  it("createRedisConnection should pass required options", async () => {
     const { createRedisConnection } = await import("@/lib/redis");
     const conn = createRedisConnection();
     expect(conn.options).toMatchObject({

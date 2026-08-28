@@ -19,7 +19,7 @@ const notificationsRateLimitConfig = {
   keyPrefix: "rl:notifications",
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 async function notificationsHandler(_req: NextRequest): Promise<Response> {
   const startTime = Date.now();
 

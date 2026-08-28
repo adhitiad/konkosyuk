@@ -1,4 +1,0 @@
-version: v1
-name: konkosyuk
-deps:
-  - buf.build/googleapis/googleapis

@@ -5,12 +5,8 @@ Turborepo + Bun workspaces. Bun is pinned to **1.4.0** (`packageManager` + CI) �
 ## Workspace layout
 
 - `apps/web` — Next.js 16 web app (the main product; detailed rules in `apps/web/AGENTS.md`)
-- `apps/grpc` — standalone gRPC server (Bun) that powers the mobile app; consumes `proto/`
-- `apps/cronJob` — standalone BullMQ worker (Bun), deployed as a Render Background Worker
-- `apps/notifications` — standalone Go notification service (gRPC), deployed as a Render Background Worker; all notification logic lives here (email, WhatsApp, Telegram, Web Push)
-- `apps/mobile` — Flutter app (separate toolchain: `flutter`/`dart`); talks to `apps/grpc` over gRPC
+- `apps/mobile` — Flutter app (separate toolchain: `flutter`/`dart`)
 - `packages/shared` — shared Zod schemas, constants, types, pure utils (rules in `docs/shared-packages-guideline.md`)
-- `proto/konkosyuk/v1/*.proto` — buf/protoc source; generated stubs land in `apps/grpc/src/gen/**` (do not edit generated files)
 
 ## Commands
 
@@ -30,11 +26,7 @@ cd apps/web    && bun x tsc --noEmit          # typecheck (has known errors, see
 cd apps/web    && bun run test -- --run       # one-shot unit tests (CI mode)
 cd apps/web    && bun run test:coverage       # coverage-gated run
 cd apps/web    && bun run test:e2e            # Playwright (auto-starts dev server)
-cd apps/grpc   && bun run dev                  # gRPC server with --watch
-cd apps/cronJob && bun run dev                 # worker with --watch (bun run start = prod)
-cd apps/notifications && go build ./cmd/server # build Go notification service
 cd apps/mobile && flutter <cmd>                # Flutter toolchain
-bun run proto:gen                              # regenerate gRPC stubs (run from repo root)
 ```
 
 ## Verification & CI
@@ -42,16 +34,18 @@ bun run proto:gen                              # regenerate gRPC stubs (run from
 - Local order: `lint` → `typecheck` → `test`.
 - `bun run test` at root runs web's Vitest in **watch mode** and can hang Turbo — use `cd apps/web && bun run test -- --run` for a one-shot run.
 - CI split: `ci-fast` (lint, typecheck, web unit tests on PR/push to main+develop), `ci-slow` (coverage, `next build`, Playwright E2E on main+develop), `security` (bun audit, TruffleHog, Semgrep — weekly).
-- `proto:gen` must run from the **repo root**: the script references the top-level `proto/` directory and writes into `apps/grpc/src/gen`. Edit the `.proto` files, never `src/gen`.
 
 ## Environment & secrets
 
 - Copy `apps/web/.env.example` → `apps/web/.env.local`. Use `.env.local`, NOT `.env`.
 - **Redis = `REDIS_URL` in ioredis format** (Upstash `rediss://...` URL). Do NOT use `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` — the "Redis" line in `apps/web/AGENTS.md` is outdated; the code (`src/lib/redis.ts`) uses ioredis + `REDIS_URL` only.
-- `BETTER_AUTH_SECRET` and `CRON_SECRET` must be ≥32 chars (`openssl rand -base64 32`).
-- `apps/cronJob` MUST share the same `REDIS_URL` and `DATABASE_URL` as web (BullMQ requirement).
+- `BETTER_AUTH_SECRET` must be ≥32 chars (`openssl rand -base64 32`).
 - `PAYMENT_MODE`: `mock` for dev; **production builds require `PAYMENT_MODE=live`** (`src/lib/payments/mock.ts` throws in production otherwise).
-- **Notification service**: `apps/notifications` requires `DATABASE_URL`, `REDIS_URL`, `NOTIFICATION_ENCRYPTION_KEY`, `RESEND_API_KEY`, `WHATSAPP_PHONE_NUMBER`, `WHATSAPP_SESSION_PATH`, `TELEGRAM_BOT_TOKEN`, `VAPID_PRIVATE_KEY`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `NOTIFICATION_SERVICE_SECRET`.
+- Notification settings are stored directly in the web app database (`notification_settings` table). Configure via `apps/web/.env.local`:
+  - `RESEND_API_KEY` — for email notifications
+  - `RESEND_FROM_EMAIL` — sender address
+  - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` — for web push notifications
+  - `NOTIFICATION_ENCRYPTION_KEY` — base64-encoded 32-byte key for credential encryption
 
 ## Database
 
@@ -62,11 +56,14 @@ bun run proto:gen                              # regenerate gRPC stubs (run from
 
 ## Notification Architecture
 
-- All notification logic (email, WhatsApp, Telegram, Web Push) lives in `apps/notifications` (Go gRPC service).
-- Web app and cronJob call notifications via gRPC client (`packages/shared/src/lib/notification-grpc-client.ts` → `apps/web/src/lib/notification-client.ts`).
-- WhatsApp uses `go.mau.fi/whatsmeow` with session persistence — **not** Meta Graph API. Session path: `WHATSAPP_SESSION_PATH` (default `./whatsapp-session`).
-- Web app no longer has direct email/WhatsApp senders; wrapper functions in `notification-client.ts` dispatch via gRPC.
-- Old files deleted: `apps/web/src/lib/notifications/email.ts`, `apps/web/src/lib/notifications/whatsapp.ts`, `apps/web/src/lib/notifications/event-emitter.ts`, `apps/web/src/lib/notification-settings.ts`, `apps/web/src/lib/notification-crypto.ts`.
+- All notification logic (email, WhatsApp, Telegram, Web Push) lives in `apps/web` via `src/lib/notification-client.ts`.
+- Notifications are dispatched directly from the web app using:
+  - **In-app**: stored in `notifications` table
+  - **Email**: sent via Resend (`resend` package)
+  - **Push**: sent via `web-push` with VAPID keys
+  - **WhatsApp/Telegram**: currently logged as warning; direct API integration can be added later
+- Web app no longer depends on external gRPC notification services.
+- Old files deleted: `packages/shared/src/lib/notification-grpc-client.ts`, `apps/notifications/`, `apps/cronJob/`, `apps/grpc/`.
 
 ## Web app gotchas (full detail in `apps/web/AGENTS.md`)
 
@@ -94,5 +91,3 @@ bun run proto:gen                              # regenerate gRPC stubs (run from
 
 - Unit: Vitest + jsdom (`apps/web`). Coverage gates: 65% global, 90% for `currency`, `payments/calculations`, `payments/signature`, `sanitize`, `packages/calculator`.
 - E2E: Playwright (`apps/web`), auto-starts dev server at `http://localhost:3000`.
-- `apps/cronJob` has its own Vitest suite (`bun run test` in that dir).
-- `apps/notifications` has no tests yet (Go service).

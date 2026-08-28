@@ -31,7 +31,7 @@ export async function getSettingsAction() {
 }
 
 export async function upsertSettingAction(
-  prevState: unknown,
+  _prevState: unknown,
   formData: FormData,
 ): Promise<Response> {
   const csrfError = await validateActionCsrf(formData);
@@ -92,7 +92,7 @@ const platformFeeSchema = z.object({
 });
 
 export async function updatePlatformFeeAction(
-  prevState: unknown,
+  _prevState: unknown,
   formData: FormData,
 ): Promise<Response> {
   const csrfError = await validateActionCsrf(formData);

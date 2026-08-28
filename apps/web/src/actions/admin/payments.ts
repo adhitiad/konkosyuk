@@ -41,7 +41,7 @@ export type CreateManualPaymentState = {
 };
 
 export async function createManualPaymentAction(
-  prevState: CreateManualPaymentState | undefined,
+  _prevState: CreateManualPaymentState | undefined,
   formData: FormData,
 ): Promise<CreateManualPaymentState> {
   const csrfError = await validateActionCsrf(formData);
@@ -166,7 +166,7 @@ export type CancelPaymentState = {
 };
 
 export async function cancelPaymentAction(
-  prevState: CancelPaymentState | undefined,
+  _prevState: CancelPaymentState | undefined,
   formData: FormData,
 ): Promise<CancelPaymentState> {
   const csrfError = await validateActionCsrf(formData);
@@ -299,7 +299,7 @@ export type ReconcilePaymentState = {
 };
 
 export async function reconcilePaymentAction(
-  prevState: ReconcilePaymentState | undefined,
+  _prevState: ReconcilePaymentState | undefined,
   formData: FormData,
 ): Promise<ReconcilePaymentState> {
   const csrfError = await validateActionCsrf(formData);

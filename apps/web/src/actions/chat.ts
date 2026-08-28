@@ -34,7 +34,7 @@ export type SendMessageState = {
 };
 
 export async function sendMessageAction(
-  prevState: SendMessageState | undefined,
+  _prevState: SendMessageState | undefined,
   formData: FormData,
 ): Promise<SendMessageState> {
   const csrfError = await validateActionCsrf(formData);

@@ -23,7 +23,7 @@ export type RequestRefundState = {
 };
 
 export async function requestRefundAction(
-  prevState: RequestRefundState | undefined,
+  _prevState: RequestRefundState | undefined,
   formData: FormData,
 ): Promise<RequestRefundState> {
   const csrfError = await validateActionCsrf(formData);

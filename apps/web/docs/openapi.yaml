@@ -1,0 +1,589 @@
+openapi: 3.0.3
+info:
+  title: KonkosYuk API
+  description: |
+    Dokumentasi API untuk aplikasi Flutter KonkosYuk.
+    Base URL: `https://your-domain.com`
+    
+    ## Autentikasi
+    Semua endpoint memerlukan Bearer token dari Better-Auth.
+    Dapatkan token dari `/api/auth/sign-in/email` atau `/api/auth/sign-up/email`.
+    
+    ## Real-Time Notifications
+    Gunakan endpoint `/api/ably/auth` untuk mendapatkan token Ably,
+    lalu subscribe ke channel `user:{userId}:notifications`.
+  version: 1.0.0
+  license:
+    name: MIT
+
+servers:
+  - url: https://your-domain.com
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Better-Auth session token
+
+  schemas:
+    Notification:
+      type: object
+      required:
+        - id
+        - userId
+        - type
+        - title
+        - message
+        - isRead
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum:
+            - booking_created
+            - booking_approved
+            - booking_rejected
+            - booking_completed
+            - booking_cancelled
+            - payment_dp_paid
+            - payment_full_paid
+            - payment_failed
+            - payment_refunded
+            - maintenance_created
+            - maintenance_updated
+            - maintenance_resolved
+            - inspection_created
+            - inspection_completed
+            - inspection_disputed
+            - chat_message
+            - review_received
+            - system
+        title:
+          type: string
+        message:
+          type: string
+        actionUrl:
+          type: string
+          nullable: true
+        actionLabel:
+          type: string
+          nullable: true
+        referenceId:
+          type: string
+          nullable: true
+        referenceType:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    NotificationPreferences:
+      type: object
+      required:
+        - preferences
+      properties:
+        preferences:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              inApp:
+                type: boolean
+              email:
+                type: boolean
+              push:
+                type: boolean
+        emailDigest:
+          type: string
+          enum:
+            - immediate
+            - daily
+            - weekly
+            - never
+          default: immediate
+        quietHoursStart:
+          type: string
+          nullable: true
+        quietHoursEnd:
+          type: string
+          nullable: true
+        timezone:
+          type: string
+          default: Asia/Jakarta
+
+    UserProfile:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - role
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+            - cust
+            - owner
+            - admin
+            - staff
+        phone:
+          type: string
+          nullable: true
+        image:
+          type: string
+          format: uri
+          nullable: true
+        province:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        district:
+          type: string
+          nullable: true
+        kycStatus:
+          type: string
+          nullable: true
+        reputationScore:
+          type: number
+          nullable: true
+        balance:
+          type: number
+          nullable: true
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AblyTokenResponse:
+      type: object
+      required:
+        - token
+        - expiresIn
+        - clientId
+      properties:
+        token:
+          type: string
+        expiresIn:
+          type: integer
+        clientId:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+
+    PaginationMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+
+    NotificationsResponse:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            notifications:
+              type: array
+              items:
+                $ref: '#/components/schemas/Notification'
+            meta:
+              $ref: '#/components/schemas/PaginationMeta'
+
+  responses:
+    Unauthorized:
+      description: Token tidak valid atau expired
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "Unauthorized"
+    NotFound:
+      description: Resource tidak ditemukan
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "Not found"
+
+paths:
+  /api/auth/sign-in/email:
+    post:
+      tags:
+        - Auth
+      summary: Login dengan email dan password
+      description: Autentikasi user menggunakan email dan password
+      operationId: authSignInEmail
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login berhasil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      user:
+                        $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          description: Request body tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/sign-up/email:
+    post:
+      tags:
+        - Auth
+      summary: Registrasi akun baru
+      description: Membuat akun baru dengan email dan password
+      operationId: authSignUpEmail
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                name:
+                  type: string
+                  minLength: 3
+      responses:
+        '200':
+          description: Registrasi berhasil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      user:
+                        $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Request body tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/get-session:
+    get:
+      tags:
+        - Auth
+      summary: Get current session
+      description: Mendapatkan informasi session user yang sedang login
+      operationId: authGetSession
+      responses:
+        '200':
+          description: Session valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/ably/auth:
+    get:
+      tags:
+        - Ably
+      summary: Get Ably authentication token
+      description: |
+        Mendapatkan token Ably untuk subscribe ke channel real-time.
+        Token ini hanya valid untuk channel `user:{userId}:notifications`.
+      operationId: ablyAuth
+      responses:
+        '200':
+          description: Token berhasil dibuat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AblyTokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/notifications:
+    get:
+      tags:
+        - Notifications
+      summary: Get notification history
+      description: |
+        Mendapatkan riwayat notifikasi user.
+        Default: 50 notifikasi terbaru.
+      operationId: getNotifications
+      responses:
+        '200':
+          description: Daftar notifikasi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      tags:
+        - Notifications
+      summary: Mark notification as read
+      description: Menandai satu notifikasi sebagai sudah dibaca
+      operationId: markNotificationAsRead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - notificationId
+              properties:
+                notificationId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Notifikasi berhasil ditandai sebagai dibaca
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/notifications/preferences:
+    get:
+      tags:
+        - Notifications
+      summary: Get notification preferences
+      description: Mendapatkan preferensi notifikasi user
+      operationId: getNotificationPreferences
+      responses:
+        '200':
+          description: Preferensi notifikasi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/NotificationPreferences'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      tags:
+        - Notifications
+      summary: Update notification preferences
+      description: Memperbarui preferensi notifikasi user
+      operationId: updateNotificationPreferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferences'
+      responses:
+        '200':
+          description: Preferensi berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          description: Request body tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/user/profile:
+    patch:
+      tags:
+        - User
+      summary: Update user profile
+      description: Memperbarui profil user
+      operationId: updateUserProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - phone
+              properties:
+                name:
+                  type: string
+                  minLength: 3
+                  maxLength: 255
+                phone:
+                  type: string
+                  minLength: 1
+                  maxLength: 20
+                image:
+                  type: string
+                  format: uri
+                  nullable: true
+                province:
+                  type: string
+                  nullable: true
+                city:
+                  type: string
+                  nullable: true
+                district:
+                  type: string
+                  nullable: true
+      responses:
+        '200':
+          description: Profil berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                      user:
+                        $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          description: Request body tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/me:
+    get:
+      tags:
+        - User
+      summary: Get current user profile
+      description: Mendapatkan profil user yang sedang login
+      operationId: getCurrentUserProfile
+      responses:
+        '200':
+          description: Profil user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'

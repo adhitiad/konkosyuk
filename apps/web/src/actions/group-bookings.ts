@@ -43,7 +43,7 @@ const createGroupBookingSchema = z.object({
 });
 
 export async function createGroupBookingAction(
-  prevState: CreateGroupBookingState | undefined,
+  _prevState: CreateGroupBookingState | undefined,
   formData: FormData,
 ): Promise<CreateGroupBookingState> {
   const csrfError = await validateActionCsrf(formData);

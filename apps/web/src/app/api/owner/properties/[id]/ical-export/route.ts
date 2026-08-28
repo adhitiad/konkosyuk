@@ -8,7 +8,7 @@ import { generateIcalString } from "@/lib/ical/ical-generator";
 import type { Role } from "@/lib/auth";
 
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {

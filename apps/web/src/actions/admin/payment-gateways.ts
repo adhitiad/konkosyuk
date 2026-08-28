@@ -73,7 +73,7 @@ export type UpsertPaymentGatewayState = {
 };
 
 export async function upsertPaymentGatewayAction(
-  prevState: UpsertPaymentGatewayState | undefined,
+  _prevState: UpsertPaymentGatewayState | undefined,
   formData: FormData,
 ): Promise<UpsertPaymentGatewayState> {
   const csrfError = await validateActionCsrf(formData);
@@ -224,7 +224,7 @@ export type DeletePaymentGatewayState = {
 };
 
 export async function deletePaymentGatewayAction(
-  prevState: DeletePaymentGatewayState | undefined,
+  _prevState: DeletePaymentGatewayState | undefined,
   formData: FormData,
 ): Promise<DeletePaymentGatewayState> {
   const csrfError = await validateActionCsrf(formData);

@@ -11,37 +11,32 @@ export default [
       "no-restricted-imports": [
         "error",
         {
-          paths: [
+          "paths": [
             {
-              name: "fs",
-              message:
+              "name": "fs",
+              "message":
                 "Dilarang mengimpor modul server-only 'fs' ke dalam komponen klien. Pisahkan logika ini ke Server Action atau file utilitas server.",
             },
             {
-              name: "path",
-              message:
+              "name": "path",
+              "message":
                 "Dilarang mengimpor modul server-only 'path' ke dalam komponen klien. Pisahkan logika ini ke Server Action atau file utilitas server.",
             },
             {
-              name: "crypto",
-              message:
+              "name": "crypto",
+              "message":
                 "Dilarang mengimpor modul server-only 'crypto' ke dalam komponen klien. Pisahkan logika ini ke Server Action atau file utilitas server.",
             },
             {
-              name: "winston",
-              message:
+              "name": "winston",
+              "message":
                 "Dilarang mengimpor modul server-only 'winston' ke dalam komponen klien. Pisahkan logika ini ke Server Action atau file utilitas server.",
             },
-            {
-              name: "@grpc/grpc-js",
-              message:
-                "Dilarang mengimpor modul server-only '@grpc/grpc-js' ke dalam komponen klien. Pisahkan logika ini ke Server Action atau file utilitas server.",
-            },
           ],
-          patterns: [
+          "patterns": [
             {
-              group: ["*/server/*", "*/db/*"],
-              message:
+              "group": ["*/server/*", "*/db/*"],
+              "message":
                 "Dilarang mengimpor modul server-only ke dalam komponen klien. Pisahkan logika ini ke Server Action atau file utilitas server.",
             },
           ],
@@ -70,47 +65,42 @@ export default [
       "no-restricted-imports": [
         "error",
         {
-          paths: [
+          "paths": [
             {
-              name: "fs",
-              message:
+              "name": "fs",
+              "message":
                 "Dilarang mengimpor modul server-only 'fs' ke dalam komponen klien. Pisahkan logika ini ke Server Action atau file utilitas server.",
             },
             {
-              name: "path",
-              message:
+              "name": "path",
+              "message":
                 "Dilarang mengimpor modul server-only 'path' ke dalam komponen klien. Pisahkan logika ini ke Server Action atau file utilitas server.",
             },
             {
-              name: "crypto",
-              message:
+              "name": "crypto",
+              "message":
                 "Dilarang mengimpor modul server-only 'crypto' ke dalam komponen klien. Pisahkan logika ini ke Server Action atau file utilitas server.",
             },
             {
-              name: "winston",
-              message:
+              "name": "winston",
+              "message":
                 "Dilarang mengimpor modul server-only 'winston' ke dalam komponen klien. Pisahkan logika ini ke Server Action atau file utilitas server.",
             },
             {
-              name: "@grpc/grpc-js",
-              message:
-                "Dilarang mengimpor modul server-only '@grpc/grpc-js' ke dalam komponen klien. Pisahkan logika ini ke Server Action atau file utilitas server.",
-            },
-            {
-              name: "drizzle-orm",
-              message:
+              "name": "drizzle-orm",
+              "message":
                 "Dilarang mengimpor modul server-only 'drizzle-orm' ke dalam komponen klien. Pisahkan logika ini ke Server Action atau file utilitas server.",
             },
           ],
-          patterns: [
+          "patterns": [
             {
-              group: ["/drizzle-orm/*"],
-              message:
+              "group": ["/drizzle-orm/*"],
+              "message":
                 "Dilarang mengimpor modul server-only 'drizzle-orm' ke dalam komponen klien. Pisahkan logika ini ke Server Action atau file utilitas server.",
             },
             {
-              group: ["*/server/*", "*/db/*"],
-              message:
+              "group": ["*/server/*", "*/db/*"],
+              "message":
                 "Dilarang mengimpor modul server-only ke dalam komponen klien. Pisahkan logika ini ke Server Action atau file utilitas server.",
             },
           ],
@@ -134,6 +124,16 @@ export default [
     ],
     rules: {
       "no-restricted-imports": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          args: "all",
+          argsIgnorePattern: "^_",
+          vars: "all",
+          varsIgnorePattern: "^_",
+          ignoreRestSiblings: true,
+        },
+      ],
     },
   },
 ];

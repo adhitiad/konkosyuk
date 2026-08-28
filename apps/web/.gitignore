@@ -58,6 +58,7 @@ AUDIT_**.md
 /.playwright-mcp
 SECURITY_**.md
 SECURITY_**_**.md
+**-CHECK.md
 
 
 # sentry

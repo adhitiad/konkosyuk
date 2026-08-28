@@ -85,7 +85,7 @@ Base Path: `/api/properties`, `/api/units`, `/api/ads`, `/api/health`, dll
 
 ### 4. Cron Jobs
 
-Cron jobs sekarang berjalan di Render sebagai Background Worker (BullMQ + Redis), bukan melalui API Route.
+Cron jobs dijalankan menggunakan Vercel Cron Jobs atau scheduling native Next.js. Tidak ada background worker terpisah.
 
 ### 5. Admin API
 

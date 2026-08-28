@@ -28,7 +28,7 @@ export type CreateUnitState = {
 };
 
 export async function createUnitAction(
-  prevState: CreateUnitState | undefined,
+  _prevState: CreateUnitState | undefined,
   formData: FormData,
 ): Promise<CreateUnitState> {
   const csrfError = await validateActionCsrf(formData);
@@ -121,7 +121,7 @@ export type UpdateUnitState = {
 };
 
 export async function updateUnitAction(
-  prevState: UpdateUnitState | undefined,
+  _prevState: UpdateUnitState | undefined,
   formData: FormData,
 ): Promise<UpdateUnitState> {
   const csrfError = await validateActionCsrf(formData);
@@ -211,7 +211,7 @@ export type DeleteUnitState = {
 };
 
 export async function deleteUnitAction(
-  prevState: DeleteUnitState | undefined,
+  _prevState: DeleteUnitState | undefined,
   formData: FormData,
 ): Promise<DeleteUnitState> {
   const csrfError = await validateActionCsrf(formData);

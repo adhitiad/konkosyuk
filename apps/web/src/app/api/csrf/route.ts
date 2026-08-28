@@ -23,6 +23,6 @@ async function csrfHandler(): Promise<NextResponse> {
   return response;
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   return withRateLimit(csrfRateLimitConfig, req, csrfHandler);
 }

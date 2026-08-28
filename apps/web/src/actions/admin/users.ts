@@ -34,7 +34,7 @@ export type UpdateUserState = {
 };
 
 export async function updateUserAction(
-  prevState: UpdateUserState | undefined,
+  _prevState: UpdateUserState | undefined,
   formData: FormData,
 ): Promise<UpdateUserState> {
   const csrfError = await validateActionCsrf(formData);
@@ -201,7 +201,7 @@ export type DeleteUserState = {
 };
 
 export async function deleteUserAction(
-  prevState: DeleteUserState | undefined,
+  _prevState: DeleteUserState | undefined,
   formData: FormData,
 ): Promise<DeleteUserState> {
   const csrfError = await validateActionCsrf(formData);
@@ -281,7 +281,7 @@ export type BanUserState = {
 };
 
 export async function banUserAction(
-  prevState: BanUserState | undefined,
+  _prevState: BanUserState | undefined,
   formData: FormData,
 ): Promise<BanUserState> {
   const csrfError = await validateActionCsrf(formData);
@@ -385,7 +385,7 @@ export type CreateUserState = {
 };
 
 export async function createUserAction(
-  prevState: CreateUserState | undefined,
+  _prevState: CreateUserState | undefined,
   formData: FormData,
 ): Promise<CreateUserState> {
   const csrfError = await validateActionCsrf(formData);

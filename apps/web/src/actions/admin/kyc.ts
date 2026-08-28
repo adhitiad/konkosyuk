@@ -22,7 +22,7 @@ export type ApproveKycState = {
 };
 
 export async function approveKycAction(
-  prevState: ApproveKycState | undefined,
+  _prevState: ApproveKycState | undefined,
   formData: FormData,
 ): Promise<ApproveKycState> {
   const csrfError = await validateActionCsrf(formData);

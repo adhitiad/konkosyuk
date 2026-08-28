@@ -22,7 +22,7 @@ export type ReprocessWebhookState = {
 };
 
 export async function reprocessWebhookAction(
-  prevState: ReprocessWebhookState | undefined,
+  _prevState: ReprocessWebhookState | undefined,
   formData: FormData,
 ): Promise<ReprocessWebhookState> {
   const csrfError = await validateActionCsrf(formData);

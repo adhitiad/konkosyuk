@@ -6,7 +6,7 @@ import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 
 export async function PUT(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {

@@ -21,7 +21,7 @@ export default function FavoriteButtonClient({
   const [isPending, startTransition] = useTransition();
   const [isFavorite, setIsFavorite] = useOptimistic(
     initialFavorite,
-    (prev, newValue: boolean) => newValue,
+    (_prev, newValue: boolean) => newValue,
   );
 
   const handleSubmit = (formData: FormData) => {

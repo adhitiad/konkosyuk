@@ -22,7 +22,7 @@ export type UpdateNotificationState = {
 };
 
 export async function updateNotificationAction(
-  _prevState: UpdateNotificationState | undefined,
+  __prevState: UpdateNotificationState | undefined,
   formData: FormData,
 ): Promise<UpdateNotificationState> {
   const csrfError = await validateActionCsrf(formData);
@@ -79,7 +79,7 @@ export type AdminUpdateNotificationState = {
 };
 
 export async function adminUpdateNotificationAction(
-  _prevState: AdminUpdateNotificationState | undefined,
+  __prevState: AdminUpdateNotificationState | undefined,
   formData: FormData,
 ): Promise<AdminUpdateNotificationState> {
   const csrfError = await validateActionCsrf(formData);

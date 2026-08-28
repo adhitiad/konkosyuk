@@ -22,7 +22,7 @@ export type ProcessWithdrawalState = {
 };
 
 export async function processWithdrawalAction(
-  prevState: ProcessWithdrawalState | undefined,
+  _prevState: ProcessWithdrawalState | undefined,
   formData: FormData,
 ): Promise<ProcessWithdrawalState> {
   const csrfError = await validateActionCsrf(formData);

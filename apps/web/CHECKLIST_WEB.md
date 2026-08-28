@@ -5,7 +5,7 @@
 **Framework:** Next.js 16.3.1 + React 19.2.8 + TypeScript 6.0.3  
 **Package Manager:** Bun 1.4.0  
 **Database:** PostgreSQL (Drizzle ORM)  
-**Cache/Queue:** Redis (ioredis) + BullMQ  
+**Cache:** Redis (ioredis)  
 **Last Updated:** 2026-08-25
 
 ---
@@ -150,21 +150,21 @@
 
 ---
 
-### 7. Worker Health
+### 7. Cron Jobs Health
 
 | Item | Check                                                    | Status | Evidence |
 | ---- | -------------------------------------------------------- | ------ | -------- |
-| 7.1  | BullMQ workers have `QueueEvents` listeners              | ☐      |          |
-| 7.2  | Worker process monitored (restart on crash)              | ☐      |          |
-| 7.3  | Dead letter queue configured                             | ☐      |          |
-| 7.4  | Worker metrics exposed (jobs processed, failed, stalled) | ☐      |          |
-| 7.5  | Graceful shutdown implemented (SIGINT/SIGTERM)           | ☐      |          |
+| 7.1  | Vercel Cron Jobs configured (jika ada scheduled tasks)   | ☐      |          |
+| 7.2  | Cron jobs menggunakan Server Actions atau API Routes     | ☐      |          |
+| 7.3  | Timeout dan retry policy untuk cron jobs                 | ☐      |          |
+| 7.4  | Error handling dan alerting untuk cron jobs              | ☐      |          |
+| 7.5  | Idempotency untuk mencegah duplicate execution           | ☐      |          |
 
 **Evidence:**
 
 ```
-[ ] src/workers/index.ts has QueueEvents
-[ ] Worker restart policy:
+[ ] vercel.json cron configuration:
+[ ] Server Action atau API Route untuk cron jobs:
 ```
 
 ---

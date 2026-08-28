@@ -3,14 +3,14 @@
 ## 1. Arsitektur & Struktur Folder (Feature-First)
 
 - **Jangan** mengelompokkan berdasarkan tipe file (`/models`, `/views`, `/controllers`).
-- **Lakukan** pengelompokan berdasarkan Fitur (Feature-First) agar skalabel.
+- **Lakukan** pengelompokkan berdasarkan Fitur (Feature-First) agar skalabel.
 - Struktur folder yang wajib:
   ```text
   lib/
-  ├── core/          # Shared utilities, network (gRPC), theme, constants
+  ├── core/          # Shared utilities, network (HTTP), theme, constants
   ├── features/      # Fitur utama (auth, properties, bookings, reports)
   │   └── auth/
-  │       ├── data/      # Models, API repositories (gRPC clients)
+  │       ├── data/      # Models, API repositories (HTTP clients)
   │       ├── domain/    # Entities, use cases (opsional untuk MVP)
   │       └── presentation/ # UI (Screens, Widgets, State/Providers)
   └── main.dart
@@ -24,11 +24,10 @@
 
 ## 3. Networking & API
 
-- gRPC channel (`grpc_channel.dart`) = client utama untuk semua data/business logic call.
-- Buat satu instance gRPC channel di `lib/core/network/grpc_channel.dart` dengan interceptor untuk menyuntikkan Token Auth secara otomatis.
-- Base URL gRPC harus diambil dari Environment Variables, jangan di-hardcode.
+- HTTP client (Dio) = client utama untuk semua data/business logic call ke REST API.
+- Base URL API harus diambil dari Environment Variables, jangan di-hardcode.
 - Handle error secara global di interceptor (misal: jika 401/Unauthenticated, auto-logout).
-- Dio tetap dipakai KHUSUS untuk: upload file (multipart ke `/api/upload` existing) dan endpoint yang belum sempat dimigrasi (fallback selama Phase 1-3 berjalan bertahap).
+- Dio tetap dipakai KHUSUS untuk: upload file (multipart ke `/api/upload` existing) dan endpoint lain yang menggunakan REST.
 
 ## 4. UI & Theming
 
@@ -39,7 +38,7 @@
 
 ## 5. Local Storage & Caching
 
-- Token sesi WAJIB disimpan lewat `flutter_secure_storage`, bukan SharedPreferences/Hive polos. Alasan: token gRPC adalah bearer token yang jika bocor memberikan akses penuh tanpa cookie HttpOnly protection seperti di web. SharedPreferences disimpan dalam plaintext di filesystem aplikasi, mudah di-extract dengan root/jailbreak. `flutter_secure_storage` menggunakan Keychain (iOS) dan Keystore (Android).
+- Token sesi WAJIB disimpan lewat `flutter_secure_storage`, bukan SharedPreferences/Hive polos. Alasan: token bearer yang jika bocor memberikan akses penuh tanpa cookie HttpOnly protection seperti di web. SharedPreferences disimpan dalam plaintext di filesystem aplikasi, mudah di-extract dengan root/jailbreak. `flutter_secure_storage` menggunakan Keychain (iOS) dan Keystore (Android).
 - Preferensi non-sensitif (bahasa/tema) tetap boleh SharedPreferences seperti aturan asli.
 - Untuk caching data properti/listing, manfaatkan fitur caching bawaan Riverpod.
 

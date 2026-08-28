@@ -38,7 +38,7 @@ export type ReviewRefundState = {
 };
 
 export async function reviewRefundAction(
-  prevState: ReviewRefundState | undefined,
+  _prevState: ReviewRefundState | undefined,
   formData: FormData,
 ): Promise<ReviewRefundState> {
   const csrfError = await validateActionCsrf(formData);

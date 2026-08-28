@@ -8,20 +8,16 @@ Set these di Vercel Dashboard → Settings → Environment Variables:
 
 | Variable                            | Required | Description                                              |
 | ----------------------------------- | -------- | -------------------------------------------------------- |
-| `DATABASE_URL`                      | Yes      | Supabase PostgreSQL connection string                    |
-| `REDIS_URL`                         | Yes      | Redis Labs connection string (sudah ada di `.env.local`) |
-| `UPSTASH_REDIS_REST_URL`            | Yes      | Upstash Redis REST URL                                   |
-| `UPSTASH_REDIS_REST_TOKEN`          | Yes      | Upstash Redis REST Token                                 |
+| `DATABASE_URL`                      | Yes      | PostgreSQL connection string                             |
+| `REDIS_URL`                         | Yes      | Upstash Redis connection string (ioredis format)          |
 | `BETTER_AUTH_SECRET`                | Yes      | Min 32 karakter random                                   |
 | `BETTER_AUTH_URL`                   | Yes      | `https://<your-domain>`                                  |
-| `CRON_SECRET`                       | Yes      | Min 32 karakter random                                   |
 | `PAYMENT_CONFIG_ENCRYPTION_KEY`     | Yes      | Base64 32 byte                                           |
 | `RESEND_API_KEY`                    | Yes      | Resend API key                                           |
 | `RESEND_FROM_EMAIL`                 | Yes      | `KonkosYuk <noreply@domain-anda.com>`                    |
 | `DIDIT_API_KEY`                     | Yes      | Didit API key                                            |
 | `DIDIT_WEBHOOK_SECRET`              | Yes      | Didit webhook secret                                     |
 | `NEXT_PUBLIC_APP_URL`               | Yes      | `https://<your-domain>`                                  |
-| `NEXT_PUBLIC_MAPTILER_API_KEY`      | Yes      | MapTiler API key                                         |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY`      | Yes      | Web Push VAPID public key                                |
 | `VAPID_PRIVATE_KEY`                 | Yes      | Web Push VAPID private key                               |
 | `GOOGLE_CLIENT_ID`                  | No       | Google OAuth client ID                                   |
@@ -41,7 +37,7 @@ Set these di Vercel Dashboard → Settings → Environment Variables:
 
 ### Project Settings
 
-- **Root Directory**: `web`
+- **Root Directory**: `apps/web`
 - **Build Command**: `bun run build`
 - **Output Directory**: `.next`
 - **Install Command**: `bun install`
@@ -52,46 +48,7 @@ Set these di Vercel Dashboard → Settings → Environment Variables:
 
 - `poweredByHeader` sudah di-set `false` di `next.config.ts`
 - Security headers (HSTS, CSP, X-Frame-Options, dll) sudah dikonfigurasi
-- Cron jobs tidak di-deploy ke Vercel — handled oleh worker di Render
-
----
-
-## Render (Worker)
-
-### Setup
-
-1. Buat Worker service di Render
-2. Set **Root Directory** ke `web`
-3. Set **Runtime** ke `Bun`
-4. Set **Build Command** ke `bun install`
-5. Set **Start Command** ke `bun run worker:start`
-
-### Environment Variables
-
-Set these di Render Dashboard → Environment:
-
-| Variable                        | Required | Description                           |
-| ------------------------------- | -------- | ------------------------------------- |
-| `DATABASE_URL`                  | Yes      | Supabase PostgreSQL connection string |
-| `REDIS_URL`                     | Yes      | Redis Labs connection string          |
-| `BETTER_AUTH_SECRET`            | Yes      | Min 32 karakter random                |
-| `CRON_SECRET`                   | Yes      | Min 32 karakter random                |
-| `PAYMENT_CONFIG_ENCRYPTION_KEY` | Yes      | Base64 32 byte                        |
-| `RESEND_API_KEY`                | Yes      | Resend API key                        |
-| `RESEND_FROM_EMAIL`             | Yes      | `KonkosYuk <noreply@domain-anda.com>` |
-| `DIDIT_API_KEY`                 | Yes      | Didit API key                         |
-| `DIDIT_WEBHOOK_SECRET`          | Yes      | Didit webhook secret                  |
-| `NODE_ENV`                      | Yes      | `production`                          |
-
-### Alternative: render.yaml
-
-File `render.yaml` sudah disediakan di root `web/`. Import langsung ke Render untuk setup otomatis.
-
-### Notes
-
-- Worker menggunakan BullMQ dengan 4 queue (cleanup, complete, saved-search, update-area-counts)
-- Semua job dijadwalkan dengan cron pattern (setiap jam, jam 2, 3, 4 pagi)
-- Graceful shutdown di-handle pada SIGINT/SIGTERM
+- Cron jobs menggunakan Vercel Cron Jobs atau Server Actions, tidak ada background worker terpisah
 
 ---
 
@@ -100,8 +57,8 @@ File `render.yaml` sudah disediakan di root `web/`. Import langsung ke Render un
 - [ ] `bun run build` passes tanpa error
 - [ ] `bun run lint` passes tanpa error
 - [ ] `bun run test -- --run` passes
-- [ ] Semua env variables required sudah di-set di Vercel dan Render
+- [ ] Semua env variables required sudah di-set di Vercel
 - [ ] `REDIS_URL` menggunakan instance Redis yang aktif
-- [ ] `DATABASE_URL` menggunakan Supabase pooler (IPv4-only)
-- [ ] `BETTER_AUTH_SECRET` dan `CRON_SECRET` minimal 32 karakter
+- [ ] `DATABASE_URL` menggunakan PostgreSQL yang aktif
+- [ ] `BETTER_AUTH_SECRET` minimal 32 karakter
 - [ ] `vercel.json` tidak memiliki cron path yang tidak ada

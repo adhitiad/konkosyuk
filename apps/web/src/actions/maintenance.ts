@@ -29,7 +29,7 @@ export type CreateMaintenanceTicketState = {
 };
 
 export async function createMaintenanceTicketAction(
-  prevState: CreateMaintenanceTicketState | undefined,
+  _prevState: CreateMaintenanceTicketState | undefined,
   formData: FormData,
 ): Promise<CreateMaintenanceTicketState> {
   const csrfError = await validateActionCsrf(formData);
@@ -136,7 +136,7 @@ export type UpdateMaintenanceTicketState = {
 };
 
 export async function updateMaintenanceTicketAction(
-  prevState: UpdateMaintenanceTicketState | undefined,
+  _prevState: UpdateMaintenanceTicketState | undefined,
   formData: FormData,
 ): Promise<UpdateMaintenanceTicketState> {
   const csrfError = await validateActionCsrf(formData);

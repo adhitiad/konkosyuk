@@ -12,33 +12,20 @@ Environment variables wajib:
 - `REDIS_URL` (format ioredis/TCP, bukan Upstash REST)
 - `BETTER_AUTH_SECRET` (≥32 chars)
 - `NEXT_PUBLIC_APP_URL`
+- `RESEND_API_KEY` — untuk notifikasi email
+- `VAPID_PRIVATE_KEY` / `NEXT_PUBLIC_VAPID_PUBLIC_KEY` — untuk web push notification
 
-## Render (Background Worker BullMQ)
+## Notifications
 
-Worker ini berjalan di Render sebagai Background Worker service menggunakan Docker.
+Semua logika notifikasi (email, push, in-app) berjalan langsung di dalam web app menggunakan:
+- **Resend** untuk email
+- **web-push** untuk push notification
+- **Database** untuk in-app notifications dan preferences
 
-### Konfigurasi Render
+Tidak ada service notifikasi terpisah. Konfigurasi notifikasi disimpan di tabel `notification_settings` dan dapat diubah melalui halaman admin.
 
-- **Root Directory**: `.` (repo root, bukan `apps/web`)
-- **Dockerfile Path**: `apps/web/Dockerfile.worker`
-- **Environment**: Docker
-- **Plan**: Background Worker (atau Starter jika tidak butuh background worker khusus)
+## Catatan Penting
 
-### Environment Variables
-
-- `DATABASE_URL` — PostgreSQL connection string
-- `REDIS_URL` — ioredis format (contoh Upstash: `rediss://default:<token>@<endpoint>.upstash.io:6379`)
-- Payment gateway secrets yang dipakai processor (`DOKU_WEBHOOK_SECRET`, `IPAYMU_API_KEY`, `NICEPAY_MERCHANT_KEY`, dst)
-- `BETTER_AUTH_SECRET` jika worker butuh akses auth
-- `NEXT_PUBLIC_APP_URL` jika worker butuh generate URL
-
-### Health Check
-
-Render Background Worker tidak expose HTTP port. Health check-nya lewat log dan metrics:
-- Pastikan log muncul: `Memulai BullMQ worker...` lalu `Worker started successfully`
-- Render akan restart otomatis jika proses exit dengan kode non-zero
-- Monitor via Render dashboard: CPU/memory usage dan restart count
-
-### Catatan Penting
-
-Web app (Vercel) dan worker (Render) **harus** connect ke Redis instance yang sama. BullMQ producer di server actions dan consumer di worker wajib share Redis yang sama, atau job yang di-enqueue dari Vercel tidak akan pernah diproses worker di Render.
+- Web app berjalan 100% di Vercel sebagai serverless functions.
+- Tidak ada long-running worker atau background service yang perlu di-deploy secara terpisah.
+- Cron jobs yang membutuhkan scheduling dapat diimplementasikan menggunakan Vercel Cron Jobs.
