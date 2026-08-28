@@ -57,7 +57,7 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 365,
     contentDispositionType: "attachment",
   },
-  turbopack: {},
+  turbopack: false,
   experimental: {
     optimizePackageImports: [
       "@tanstack/react-query",
