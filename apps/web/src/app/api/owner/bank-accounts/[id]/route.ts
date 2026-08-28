@@ -8,7 +8,7 @@ import { eq, and } from "drizzle-orm";
 import { logError } from "@/lib/logger";
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -40,7 +40,7 @@ export async function GET(
 }
 
 export async function PATCH(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {

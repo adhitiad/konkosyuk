@@ -5,7 +5,7 @@ import { eq, desc } from "drizzle-orm";
 import { ok, handleApiError } from "@/lib/api";
 
 export async function GET(
-  _req: NextRequest,
+  __req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {

@@ -17,9 +17,10 @@ export async function GET(_request: NextRequest) {
       ttl: 3600,
     };
 
-    const tokenResult = await auth.requestToken(tokenParams);
-    const token = (tokenResult as { token: string }).token;
-    const expiresIn = (tokenResult as { expiresIn: number }).expiresIn;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tokenResult = (await auth.requestToken(tokenParams as any)) as unknown as { token: string; expiresIn: number };
+    const token = tokenResult.token;
+    const expiresIn = tokenResult.expiresIn;
 
     return NextResponse.json({
       token,

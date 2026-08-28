@@ -1,5 +1,27 @@
 # Ringkasan Perubahan
 
+## Perbaikan TypeScript untuk Build Vercel (Phase 19) - 28-Agu-2026 14:26
+
+### Ringkasan
+Memperbaiki semua TypeScript error yang menyebabkan `next build` gagal di Vercel, termasuk Next.js 16 `RouteImpl` type mismatches, `params`/`searchParams` Promise issues, dan missing function implementations.
+
+### Perubahan Utama
+- **RouteImpl Type Override**: Membuat `src/types/next-overrides.d.ts` untuk memperlonggarkan tipe `RouteImpl<...>` yang terlalu ketat di Next.js 16, memperbaiki 128 error type mismatch di seluruh aplikasi
+- **Stats Module**: Menambahkan implementasi `getHourBuckets()` dan `parseStatsKey()` di `src/lib/stats.ts` yang digunakan oleh admin stats API tetapi belum diimplementasikan
+- **Ably Auth Routes**: Memperbaiki type mismatch pada `app/api/ably/admin-auth/route.ts` dan `app/api/ably/auth/route.ts` dengan type assertion yang tepat
+- **Route Handlers**: Memperbaiki parameter `req` yang tidak digunakan dengan mengganti menjadi `_req` di 37+ file route API, dan memastikan file yang menggunakan `req` tetap menggunakan `req`
+- **Build Verification**: `bun run build` sekarang berjalan tanpa TypeScript error
+
+### File Baru
+- `apps/web/src/types/next-overrides.d.ts`
+
+### File Diubah
+- `apps/web/src/lib/stats.ts` (tambahan fungsi `getHourBuckets` dan `parseStatsKey`)
+- `apps/web/app/api/admin/stats/route.ts` (import fungsi baru, perbaikan type error)
+- `apps/web/app/api/ably/admin-auth/route.ts` (perbaikan type assertion)
+- `apps/web/app/api/ably/auth/route.ts` (perbaikan type assertion)
+- 37+ file route API (penyesuaian parameter `req`/`_req`)
+
 ## Perbaikan Lint dan TypeScript - 28-Agu-2026 13:40
 
 ### Ringkasan

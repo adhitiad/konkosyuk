@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSharedRedisConnection } from "@/lib/redis";
 import { logError } from "@/lib/logger";
 import { requireSession } from "@/lib/auth";
+import { getHourBuckets, parseStatsKey } from "@/lib/stats";
 
 export interface TrendData {
   timestamp: string;
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
       }
 
       const channelStats = aggregated[parsed.channel];
-      if (parsed.status in channelStats && parsed.status !== "total") {
+      if (parsed.status in channelStats) {
         channelStats[parsed.status as keyof typeof channelStats] = count;
       }
 
@@ -114,7 +115,10 @@ function buildTrendData(
     for (const [channel, entries] of channelMap) {
       const entry = entries.find((e) => e.timestamp === bucket);
       if (entry && entry.status === "success") {
-        item[channel as keyof TrendData] = entry.count;
+        const channelKey = channel as keyof Omit<TrendData, "timestamp">;
+        if (channelKey in item) {
+          item[channelKey] = entry.count;
+        }
       }
     }
 

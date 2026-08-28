@@ -60,7 +60,7 @@ function sanitizeUpdateBody(
 }
 
 export async function PATCH(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -109,7 +109,7 @@ export async function PATCH(
 }
 
 export async function PUT(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {

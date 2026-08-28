@@ -44,3 +44,26 @@ export async function trackStat(channel: string, status: ChannelStatus): Promise
   redis.incr(key, STATS_TTL).catch(() => {});
   bufferStatUpdate(channel, status, 1);
 }
+
+export function getHourBuckets(hours: number): string[] {
+  const buckets: string[] = [];
+  const now = new Date();
+  for (let i = hours - 1; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 60 * 60 * 1000);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const hour = String(d.getHours()).padStart(2, "0");
+    buckets.push(`${year}-${month}-${day}-${hour}`);
+  }
+  return buckets;
+}
+
+export function parseStatsKey(key: string): { channel: string; status: ChannelStatus; bucket: string } | null {
+  const parts = key.split(":");
+  if (parts.length !== 4 || parts[0] !== "stats") return null;
+  const [_, channel, status, bucket] = parts;
+  if (!channel || !status || !bucket) return null;
+  if (!["success", "failed", "rate_limited", "dlq"].includes(status)) return null;
+  return { channel, status: status as ChannelStatus, bucket };
+}

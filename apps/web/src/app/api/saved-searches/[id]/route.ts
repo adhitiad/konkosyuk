@@ -6,7 +6,7 @@ import { requireSession } from "@/lib/auth";
 import { ok, fail, handleApiError } from "@/lib/api";
 
 export async function DELETE(
-  _req: NextRequest,
+  __req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -44,7 +44,7 @@ export async function DELETE(
 }
 
 export async function PATCH(
-  _req: NextRequest,
+  __req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {

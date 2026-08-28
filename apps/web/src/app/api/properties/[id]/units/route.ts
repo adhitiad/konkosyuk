@@ -8,7 +8,7 @@ import { logError } from "@/lib/logger";
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  _req: NextRequest,
+  __req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {

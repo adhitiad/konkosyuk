@@ -7,7 +7,7 @@ const handler = toNextJsHandler(auth);
 
 export const GET = handler.GET;
 
-export async function POST(_req: NextRequest) {
+export async function POST(req: NextRequest) {
   const limited = await enforceRateLimit(req, authRateLimit);
   if (limited) return limited;
   return handler.POST(req);

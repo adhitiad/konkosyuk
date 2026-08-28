@@ -7,7 +7,7 @@ import { validateMutationCsrf } from "@/lib/api-auth";
 import { ok, handleApiError } from "@/lib/api";
 
 export async function PATCH(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {

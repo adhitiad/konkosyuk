@@ -6,7 +6,7 @@ import { handleApiError } from "@/lib/api";
 export const runtime = "nodejs";
 
 export async function GET(
-  _req: NextRequest,
+  __req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
