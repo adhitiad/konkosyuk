@@ -26,7 +26,7 @@ export default async function manifest({
     orientation: "portrait-primary",
     icons: [
       {
-        src: "/logo.png",
+        src: "/icons/logo-konkosyuk.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",

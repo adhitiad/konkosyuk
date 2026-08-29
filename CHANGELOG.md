@@ -1,5 +1,31 @@
 # Ringkasan Perubahan
 
+## Perbaikan Dropdown Sidebar (Routing & Interaksi) - 29-Agu-2026 11:15
+
+### Ringkasan
+Perbaikan komponen `SidebarGroupedMenu` (`apps/web/src/components/sidebar-grouped-menu.tsx`). Tiap item dropdown salah membangun URL dengan locale ganda (`localeHref(locale, prefixLocale(href))`), sehingga navigasi menghasilkan path rusak seperti `/id/id/dashboard`. Item juga berupa `<Link>` biasa sehingga menu tidak menutup saat diklik dan tidak mendukung navigasi keyboard.
+
+### Perubahan Utama
+- Hapus pembungkus `prefixLocale` yang berlebih; URL item kini `localeHref(locale, item.href)` (sesuai pola di seluruh aplikasi)
+- Item diubah menjadi `DropdownMenuItem` dengan `render={<Link/>}` agar menu menutup saat diklik dan mendukung keyboard navigation
+- Tambah highlight item aktif berdasarkan `usePathname` (cocok persis atau diawali path)
+- Perbaiki lebar konten dropdown: `w-(--sidebar-width)` (tidak terdefinisi di portal) diganti `w-64` + `p-1`
+
+## Logo Brand Tema-Sensitif (Light/Dark) - 29-Agu-2026 11:02
+
+### Ringkasan
+Komponen `Logo` (`apps/web/src/components/ui/logo.tsx`) diperbarui agar menampilkan logo berbeda berdasarkan tema aktif: tema light memakai `/icons/konkoyuk.png` dan tema dark/aurora memakai `/icons/logo-konkosyuk.png`. Sebelumnya selalu memakai `/logo-icon.svg`.
+
+### Perubahan Utama
+- Tambah pemetaan `LOGO_PER_THEME` (light → konkoyuk.png, dark/aurora → logo-konkosyuk.png)
+- Komponen `Logo` membaca tema via `useTheme` dan memilih aset gambar sesuai tema
+- Metadata favicon/apple-touch di `layout.tsx` juga tema-sensitif via `media="(prefers-color-scheme: ...)"` (light → konkoyuk.png, dark → logo-konkosyuk.png)
+- Logo SEO `organizationSchema` di `schema.ts` diarahkan ke `/icons/konkoyuk.png`
+- Ikon PWA `manifest.ts` diarahkan ke `/icons/logo-konkosyuk.png`
+- File ikon lama diganti dengan logo baru: `public/logo.png`, `public/icons/icon-192.png`, dan `public/icons/icon-512.png` diisi ulang dengan `/icons/konkoyuk.png` agar PWA, halaman offline, dan service worker konsisten menampilkan logo baru
+
+Catatan: favicon metadata mengikuti preferensi OS (`prefers-color-scheme`), bukan toggle tema di dalam aplikasi, karena keterbatasan HTML metadata.
+
 ## Konsolidasi Type Domain ke src/types/ - 29-Agu-2026 03:50
 
 ### Ringkasan

@@ -27,7 +27,7 @@ export const organizationSchema = {
   "@type": "Organization",
   name: SITE_NAME,
   url: SITE_URL,
-  logo: `${SITE_URL}/logo.png`,
+  logo: `${SITE_URL}/icons/konkoyuk.png`,
   description:
     "Platform booking kost dan kontrakan terpercaya dengan sistem DP 35%",
   sameAs: [] as string[],

@@ -60,8 +60,14 @@ export const metadata: Metadata = {
   formatDetection: { email: false, telephone: false },
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
+    icon: [
+      { url: "/icons/konkoyuk.png", media: "(prefers-color-scheme: light)" },
+      { url: "/icons/logo-konkosyuk.png", media: "(prefers-color-scheme: dark)" },
+    ],
+    apple: [
+      { url: "/icons/konkoyuk.png", media: "(prefers-color-scheme: light)" },
+      { url: "/icons/logo-konkosyuk.png", media: "(prefers-color-scheme: dark)" },
+    ],
   },
   openGraph: {
     type: "website",

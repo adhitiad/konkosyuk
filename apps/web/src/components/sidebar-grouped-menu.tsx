@@ -2,10 +2,12 @@
 
 import type { ElementType } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -37,9 +39,8 @@ export function SidebarGroupedMenu({ groups }: SidebarGroupedMenuProps) {
   const t = useTranslations("common");
   const tSidebar = useTranslations("sidebar");
   const locale = useLocale();
+  const pathname = usePathname();
   const { state } = useSidebar();
-
-  const prefixLocale = (href: string) => `/${locale}${href}`;
 
   return (
     <SidebarMenu>
@@ -67,21 +68,33 @@ export function SidebarGroupedMenu({ groups }: SidebarGroupedMenuProps) {
               side="right"
               sideOffset={8}
               align="start"
-              className="w-(--sidebar-width) min-w-48 bg-sidebar"
+              className="w-64 min-w-48 bg-sidebar p-1"
             >
-              {group.items.map((item) => (
-                <Link
-                  key={item.title}
-                  href={localeHref(locale, prefixLocale(item.href))}
-                  className={cn(
-                    "flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm outline-hidden select-none",
-                    "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                  )}
-                >
-                  <item.icon className="h-4 w-4 shrink-0" />
-                  <span>{t(item.title)}</span>
-                </Link>
-              ))}
+              {group.items.map((item) => {
+                const href = localeHref(locale, item.href);
+                const isActive =
+                  pathname === href || pathname.startsWith(`${href}/`);
+                return (
+                  <DropdownMenuItem
+                    key={item.title}
+                    render={
+                      <Link
+                        href={href}
+                        className="flex items-center gap-2.5 rounded-xl px-3 py-2"
+                      />
+                    }
+                    className={cn(
+                      "cursor-pointer text-sm outline-hidden select-none",
+                      "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                      isActive &&
+                        "bg-sidebar-accent font-medium text-sidebar-accent-foreground",
+                    )}
+                  >
+                    <item.icon className="h-4 w-4 shrink-0" />
+                    <span>{t(item.title)}</span>
+                  </DropdownMenuItem>
+                );
+              })}
             </DropdownMenuContent>
           </DropdownMenu>
         </SidebarMenuItem>
