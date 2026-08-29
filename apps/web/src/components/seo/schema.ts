@@ -1,9 +1,21 @@
 import { Metadata } from "next";
 import { locales } from "@/config";
 
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") ||
-  "https://konkosyuk.com";
+const getSiteUrl = (): string => {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "");
+  if (appUrl && !appUrl.includes("localhost")) {
+    return appUrl;
+  }
+
+  const vercelUrl = process.env.VERCEL_URL;
+  if (vercelUrl) {
+    return `https://${vercelUrl}`;
+  }
+
+  return "https://konkosyuk.com";
+};
+
+export const SITE_URL = getSiteUrl();
 
 export const SITE_NAME = "KonkosYuk";
 

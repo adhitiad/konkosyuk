@@ -1,0 +1,10 @@
+Contact: mailto:security@konkosyuk.com
+Contact: https://konkosyuk.com/contact
+Preferred-Languages: id, en
+Expires: 2027-12-31T23:59:59.000Z
+Policy: https://konkosyuk.com/umum/syarat-dan-ketentuan
+
+# Security Policy
+# Please report security vulnerabilities to security@konkosyuk.com
+# We will acknowledge receipt within 24 hours and provide a more detailed
+# response within 72 hours indicating the next steps in handling your report.

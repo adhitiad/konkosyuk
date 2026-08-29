@@ -4,7 +4,9 @@ import type { Role, SessionUserWithRole } from "@/types/user";
 const appUrl =
   typeof window !== "undefined"
     ? window.location.origin
-    : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    : process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.VERCEL_URL ||
+      "https://konkosyuk.com";
 
 export const authClient = createAuthClient({
   baseURL: appUrl,

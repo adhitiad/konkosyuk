@@ -6,8 +6,7 @@ export const metadata: Metadata = {
 };
 
 async function getInitialStats() {
-  const base = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const res = await fetch(`${base}/api/admin/stats?hours=24`, {
+  const res = await fetch(`/api/admin/stats?hours=24`, {
     cache: "no-store",
   });
 

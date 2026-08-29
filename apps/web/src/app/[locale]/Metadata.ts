@@ -55,6 +55,9 @@ export async function generateMetadata({
       index: true,
       follow: true,
     },
+    other: {
+      "zero-threat-verification": "zeroThreat=MTEwMTI=TVRFd01UST0=TVRFd01UST",
+    },
   };
 }
 

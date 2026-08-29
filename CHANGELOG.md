@@ -1,5 +1,53 @@
 # Ringkasan Perubahan
 
+## Tambah Meta Tag Zero Threat Verification - 29-Agu-2026 13:41
+
+### Ringkasan
+Menambahkan meta tag verifikasi zero threat ke halaman utama untuk memenuhi persyaratan scanner keamanan.
+
+### Perubahan Utama
+- Tambah meta tag `zero-threat-verification` dengan content `zeroThreat=MTEwMTI=TVRFd01UST0=TVRFd01UST` di `src/app/[locale]/Metadata.ts`
+
+## Tambah Domain Production ke Trusted Origins - 29-Agu-2026 13:39
+
+### Ringkasan
+Menambahkan domain production `https://konkosyuk-web.vercel.app` ke `trustedOrigins` di Better Auth untuk mencegah error origin tidak dipercaya saat aplikasi diakses melalui Vercel.
+
+### Perubahan Utama
+- Tambah `https://konkosyuk-web.vercel.app` ke array `trustedOrigins` di `src/lib/auth.ts`
+
+## Perbaikan Mixed Content & Security Headers - 29-Agu-2026 14:00
+
+### Ringkasan
+Memperbaiki mixed content yang terdeteksi oleh website scanner: URL `http://localhost:3000` muncul di canonical dan author link di halaman production. Juga menambahkan `security.txt` dan memperbaiki fallback URL yang tidak aman di beberapa file.
+
+### Perubahan Utama
+- Perbaiki `schema.ts` agar `SITE_URL` tidak fallback ke `localhost` dan mendeteksi `VERCEL_URL`
+- Ganti fallback `http://localhost:3000` menjadi relative URL di admin pages (`costs/page.tsx`, `dashboard/page.tsx`)
+- Ganti fallback `http://localhost:3000` menjadi `""` di `axios.ts` agar API calls selalu same-origin
+- Perbaiki `auth-client.ts` SSR fallback menggunakan `VERCEL_URL` atau production URL
+- Tambahkan `public/.well-known/security.txt` untuk vulnerability disclosure
+
+## Perbaikan Role-Based Access Control pada Layout - 29-Agu-2026 13:29
+
+### Ringkasan
+Layout admin dan owner tidak memeriksa peran pengguna di sisi server, sehingga pengguna terautentikasi dengan peran lain (misalnya `cust`) dapat mengakses halaman admin dan owner. Perlindungan hanya ada di sisi klien melalui HOC (`withAdminAuth`, `withOwnerAuth`), yang memungkinkan kebocoran data saat render awal.
+
+### Perubahan Utama
+- Tambahkan `requireSession(["admin", "staff"])` pada `admin/layout.tsx` untuk membatasi akses server-side
+- Tambahkan `requireSession(["owner", "admin", "staff"])` pada `owner/layout.tsx` untuk membatasi akses server-side
+- Kedua layout melakukan redirect ke `/login` jika pengguna tidak memiliki peran yang diizinkan
+
+## Perbaikan Sidebar & Navbar Tidak Muncul - 29-Agu-2026 13:35
+
+### Ringkasan
+Sidebar dan navbar tidak muncul di halaman admin, owner, dan user karena `ProtectedLayout` hanya mengembalikan `children` tanpa membungkus dengan `AppLayout`. Beberapa layout turunan (dashboard, owner, favorites) juga redundan melakukan wrapping `AppLayout`.
+
+### Perubahan Utama
+- Wrap `ProtectedLayout` dengan `AppLayout` agar semua halaman protected mendapatkan sidebar dan navbar
+- Hapus wrapping `AppLayout` dari `dashboard/layout.tsx`, `owner/layout.tsx`, dan `dashboard/favorites/layout.tsx` untuk menghindari double wrap
+- Admin layout tetap hanya menyediakan metadata SEO (`noindex`, canonical) tanpa wrapping UI
+
 ## Perbaikan Build Vercel & Type Safety - 29-Agu-2026 12:35
 
 ### Ringkasan

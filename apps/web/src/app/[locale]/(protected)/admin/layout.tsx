@@ -1,4 +1,6 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { requireSession } from "@/lib/auth";
 import { locales } from "@/config";
 
 export async function generateMetadata({
@@ -28,5 +30,11 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  try {
+    await requireSession(["admin", "staff"]);
+  } catch {
+    redirect("/login");
+  }
+
   return children;
 }

@@ -1,9 +1,16 @@
-import { AppLayout } from "@/components/app-layout";
+import { redirect } from "next/navigation";
+import { requireSession } from "@/lib/auth";
 
-export default function OwnerLayout({
+export default async function OwnerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AppLayout>{children}</AppLayout>;
+  try {
+    await requireSession(["owner", "admin", "staff"]);
+  } catch {
+    redirect("/login");
+  }
+
+  return children;
 }

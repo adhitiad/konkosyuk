@@ -1,22 +1,19 @@
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/auth";
+import { AppLayout } from "@/components/app-layout";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProtectedLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-
   try {
     await requireSession();
   } catch {
-    redirect(`/${locale}/login`);
+    redirect("/login");
   }
 
-  return children;
+  return <AppLayout>{children}</AppLayout>;
 }

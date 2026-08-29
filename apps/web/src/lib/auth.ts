@@ -17,6 +17,7 @@ export const auth = betterAuth({
     "http://localhost:3001",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
+    "https://konkosyuk-web.vercel.app",
     process.env.BETTER_AUTH_URL,
     process.env.BETTER_AUTH_URL_SECONDARY,
     process.env.NEXT_PUBLIC_APP_URL,

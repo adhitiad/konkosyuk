@@ -18,8 +18,7 @@ interface CostData {
 }
 
 async function getCostData(): Promise<CostData> {
-  const base = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const res = await fetch(`${base}/api/admin/costs?monthsBack=6`, {
+  const res = await fetch(`/api/admin/costs?monthsBack=6`, {
     cache: "no-store",
   });
 
