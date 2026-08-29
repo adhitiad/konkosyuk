@@ -90,10 +90,10 @@ export default function OwnerInsightsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
-              {data.propertyStats.active} / {data.propertyStats.total}
+              {data.propertyStats?.active ?? 0} / {data.propertyStats?.total ?? 0}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {data.propertyStats.completionRate}% lengkap
+              {data.propertyStats?.completionRate ?? 0}% lengkap
             </p>
           </CardContent>
         </Card>
@@ -110,9 +110,9 @@ export default function OwnerInsightsPage() {
             />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{data.inquiryStats.total}</p>
+            <p className="text-3xl font-bold">{data.inquiryStats?.total ?? 0}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              {data.inquiryStats.responseRate}% respons rate
+              {data.inquiryStats?.responseRate ?? 0}% respons rate
             </p>
           </CardContent>
         </Card>
@@ -129,9 +129,9 @@ export default function OwnerInsightsPage() {
             />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{data.bookingStats.total}</p>
+            <p className="text-3xl font-bold">{data.bookingStats?.total ?? 0}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              {data.bookingStats.confirmationRate}% konfirmasi
+              {data.bookingStats?.confirmationRate ?? 0}% konfirmasi
             </p>
           </CardContent>
         </Card>
@@ -149,10 +149,10 @@ export default function OwnerInsightsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
-              {data.propertyStats.gpsVerified}
+              {data.propertyStats?.gpsVerified ?? 0}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {data.propertyStats.featured} featured
+              {data.propertyStats?.featured ?? 0} featured
             </p>
           </CardContent>
         </Card>
@@ -163,13 +163,13 @@ export default function OwnerInsightsPage() {
           <CardTitle>Rekomendasi Peningkatan Peringkat</CardTitle>
         </CardHeader>
         <CardContent>
-          {data.rankingTips.length === 0 ? (
+          {data.rankingTips?.length === 0 ? (
             <p className="text-muted-foreground">
               Properti Anda sudah dalam kondisi bagus!
             </p>
           ) : (
             <ul className="space-y-2">
-              {data.rankingTips.map((tip, index) => (
+              {data.rankingTips?.map((tip, index) => (
                 <li
                   key={index}
                   className="text-sm text-muted-foreground border-l-2 border-primary pl-3"

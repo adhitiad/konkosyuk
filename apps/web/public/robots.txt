@@ -1,0 +1,26 @@
+User-agent: *
+Allow: /
+
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /owner/
+Disallow: /login/
+Disallow: /sign-in/
+Disallow: /sign-up/
+Disallow: /forgot-password/
+Disallow: /reset-password/
+Disallow: /two-factor/
+Disallow: /profile/
+Disallow: /settings/
+Disallow: /notifications/
+Disallow: /bookings/
+Disallow: /payments/
+Disallow: /favorites/
+Disallow: /wishlists/
+Disallow: /comparisons/
+Disallow: /chat/
+Disallow: /reviews/
+
+Sitemap: https://konkosyuk.com/sitemap.xml

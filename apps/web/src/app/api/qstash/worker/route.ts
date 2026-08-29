@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifySignatureAppRouter } from "@upstash/qstash/nextjs";
 import { logInfo, logError } from "@/lib/logger";
 import { getRedis } from "@/lib/redis";
-import { sendNotification } from "../../../../lib/notifications";
+import { sendNotification } from "@/lib/notifications";
 import { trackStat } from "@/lib/stats";
 
 const IDEMPOTENCY_TTL = 86400;

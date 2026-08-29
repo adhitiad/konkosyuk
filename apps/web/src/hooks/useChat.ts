@@ -3,21 +3,21 @@ import { Realtime, RealtimeChannel, PresenceMessage } from "ably";
 import { sendMessageAction } from "@/actions/chat";
 import { captureException } from "@/lib/sentry";
 import type {
-  Message,
+  ChatMessage,
   ChatRoom,
   TypingUser,
   UseChatOptions,
   UseChatReturn,
 } from "@/types/ui";
 
-export type { Message, ChatRoom, TypingUser, UseChatOptions, UseChatReturn };
+export type { ChatMessage, ChatRoom, TypingUser, UseChatOptions, UseChatReturn };
 
 export function useChat({
   roomId,
   currentUserId,
   onMessageReceived,
 }: UseChatOptions): UseChatReturn {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [connectionStatus, setConnectionStatus] = useState("initialized");
   const [isTyping, setIsTyping] = useState(false);
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
@@ -70,7 +70,7 @@ export function useChat({
 
         channel.subscribe((message) => {
           if (!mounted) return;
-          const msg = message.data as Message;
+          const msg = message.data as ChatMessage;
           setMessages((prev) => {
             const exists = prev.some((m) => m.id === msg.id);
             if (exists) return prev;
@@ -140,13 +140,7 @@ export function useChat({
           setMessages((prev) => {
             const exists = prev.some((m) => m.id === result.data?.id);
             if (exists) return prev;
-            return [
-              ...prev,
-              {
-                ...result.data!,
-                createdAt: result.data!.createdAt.toISOString(),
-              },
-            ];
+            return [...prev, result.data as ChatMessage];
           });
         } else {
           captureException(
@@ -206,12 +200,20 @@ export function useChat({
     }
   }, [roomId]);
 
+  const sendMessageWithAttachment = useCallback(
+    async (_content: string, _file: File) => {
+      // Attachment upload belum diimplementasikan untuk chat ini.
+    },
+    [roomId],
+  );
+
   return {
     messages,
     connectionStatus,
     isTyping,
     typingUsers: typingUsers.filter((u) => u.clientId !== currentUserId),
     sendMessage,
+    sendMessageWithAttachment,
     startTyping,
     stopTyping,
     markAsRead,

@@ -1,29 +1,32 @@
-"use client";
+import { Metadata } from "next";
+import { locales } from "@/config";
 
-import { AppLayout } from "@/components/app-layout";
-import { useSession } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
-import type { Role } from "@/lib/auth";
-import { useEffect } from "react";
-import type { SessionUserWithRole } from "@/lib/auth-client";
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
 
-export default function AdminLayout({
+  return {
+    robots: {
+      index: false,
+      follow: false,
+    },
+    alternates: {
+      canonical: `/${locale}/admin`,
+      languages: Object.fromEntries(
+        locales.map((l) => [l, `/${l}/admin`]),
+      ) as Record<string, string>,
+      "x-default": "/id/admin",
+    } as Metadata["alternates"] & { "x-default": string },
+  };
+}
+
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session, isPending } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    const userRole = (session?.user as SessionUserWithRole | undefined)?.role;
-    if (
-      !isPending &&
-      (!session || !["admin", "staff"].includes(userRole as Role))
-    ) {
-      router.replace("/login");
-    }
-  }, [session, isPending, router]);
-
-  return <AppLayout>{children}</AppLayout>;
+  return children;
 }

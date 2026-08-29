@@ -158,6 +158,9 @@ export interface UseChatReturn {
   typingUsers: TypingUser[];
   sendMessage: (content: string) => Promise<void>;
   sendMessageWithAttachment: (content: string, file: File) => Promise<void>;
+  startTyping: () => void;
+  stopTyping: () => void;
+  markAsRead: () => Promise<void>;
 }
 
 export interface BeforeInstallPromptEvent extends Event {

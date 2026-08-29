@@ -1,5 +1,57 @@
 # Ringkasan Perubahan
 
+## Perbaikan Build Vercel & Type Safety - 29-Agu-2026 12:35
+
+### Ringkasan
+Memperbaiki beberapa error yang memblokir build Vercel (`bun run build`). Meliputi module not found pada qstash routes, bundle winston ke client component, dan ketidakcocokan tipe pada hook chat.
+
+### Perubahan Utama
+- Buat `apps/web/src/lib/notifications/index.ts` dan `telegram.ts` sebagai wrapper untuk API notifikasi legacy yang dipanggil qstash routes
+- Ekspor `sendEmail` dan `sendPush` dari `notification-client.ts` agar dapat digunakan oleh wrapper notifications
+- Perbaiki import qstash routes dari relative path ke `@/lib/notifications`
+- Buat `apps/web/src/lib/logger-client.ts` untuk penggunaan client-side agar winston tidak di-bundle ke browser
+- Ganti import logger di `dashboard-client.tsx` menjadi `@/lib/logger-client`
+- Perbaiki tipe `UseChatReturn` menambahkan `startTyping`, `stopTyping`, `markAsRead`, `sendMessageWithAttachment`
+- Samakan tipe state `useChat` menjadi `ChatMessage[]` dan perbaiki cast channel subscribe
+- Perbaiki `ChatWindow.tsx` menggunakan `ChatMessage` dan `formatMessageTime` yang menerima `Date`
+
+## Perbaikan SEO: robots.txt & Canonical Admin - 29-Agu-2026 12:20
+
+### Ringkasan
+Perbaikan masalah SEO yang terdeteksi oleh Lighthouse: file `robots.txt` tidak ada, dan halaman admin memiliki canonical URL yang tidak valid (mengarah ke root `/id` instead of `/id/admin`). Halaman admin juga seharusnya tidak diindeks karena memerlukan autentikasi.
+
+### Perubahan Utama
+- Tambahkan `public/robots.txt` dengan aturan dasar: allow root, disallow halaman authenticated (admin, dashboard, owner, login, dll)
+- Buat layout admin baru `apps/web/src/app/[locale]/(protected)/admin/layout.tsx` yang menetapkan `robots: { index: false, follow: false }` dan `alternates` dengan canonical `/id/admin` beserta hreflang untuk semua locale
+- Memperbaiki canonical URL yang diwarisi dari root layout yang salah menunjuk ke `/id`
+
+## Perbaikan Hydration Mismatch Admin & Error Logging - 29-Agu-2026 12:05
+
+### Ringkasan
+Perbaikan hydration mismatch di halaman admin (`/id/admin`) yang terjadi karena perbedaan render server dan client pada komponen `AdminProtectedComponent`. Juga mengganti `console.error` yang tidak sesuai aturan dengan `logError` dari logger module.
+
+### Perubahan Utama
+- Tambahkan state `mounted` pada `withAdminAuth` HOC untuk menyelaraskan render server dan client mencegah hydration mismatch
+- Ganti `console.error("Error fetching stats:", error)` dengan `logError(error, "Error fetching stats")` di `dashboard-client.tsx`
+
+## Perbaikan OwnerInsightsPage (Cannot read properties of undefined) - 29-Agu-2026 11:50
+
+### Ringkasan
+Perbaikan `OwnerInsightsPage` (`src/app/[locale]/(protected)/owner/insights/page.tsx`). API `/api/owner/insights` mungkin mengembalikan respons tanpa nested object (`propertyStats`, `inquiryStats`, dll) yang terdefinisi, sehingga terjadi runtime TypeError.
+
+### Perubahan Utama
+- Tambahkan optional chaining (`?.`) dan nullish coalescing (`?? 0`) di semua akses nested object (`propertyStats`, `inquiryStats`, `bookingStats`, `rankingTips`)
+- Mencegah crash saat field tidak tersedia dari API
+
+## Perbaikan Halaman Admin Ads (filteredAds.map is not a function) - 29-Agu-2026 11:38
+
+### Ringkasan
+Perbaikan `AdminAdsPage` (`src/app/[locale]/(protected)/admin/ads/page.tsx`). Endpoint `GET /api/admin/ads` mengembalikan `ok({ data: ads, meta })` sehingga bentuk responsnya `{ success, data: { data: [...], meta } }`. Komponen salah membaca `json.data` (objek wrapper) sebagai array, sehingga `filteredAds.map` gagal (bukan fungsi).
+
+### Perubahan Utama
+- Di `queryFn`, bongkar dengan benar: `json.data?.data` (array) dengan fallback defensif `Array.isArray(payload) ? payload : payload?.data ?? []`
+- Menghindari crash saat respons tidak sesuai bentuk yang diharapkan
+
 ## Perbaikan Dropdown Sidebar (Routing & Interaksi) - 29-Agu-2026 11:15
 
 ### Ringkasan

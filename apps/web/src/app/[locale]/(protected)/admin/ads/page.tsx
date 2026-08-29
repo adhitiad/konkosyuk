@@ -60,7 +60,8 @@ function AdminAdsPage() {
       const res = await fetch(`/api/admin/ads?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch ads");
       const json = await res.json();
-      return json.data as Ad[];
+      const payload = json.data;
+      return (Array.isArray(payload) ? payload : payload?.data ?? []) as Ad[];
     },
   });
 

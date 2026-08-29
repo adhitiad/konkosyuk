@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifySignatureAppRouter } from "@upstash/qstash/nextjs";
 import { logInfo, logError } from "@/lib/logger";
 import { getAllUsageCurrentMonth, COST_THRESHOLDS } from "@/lib/usage-tracker";
-import { sendTelegram } from "../../../../lib/notifications/telegram";
+import { sendTelegram } from "@/lib/notifications/telegram";
 
 const ADMIN_TELEGRAM_CHAT_ID = process.env.ADMIN_TELEGRAM_CHAT_ID;
 const WARNING_THRESHOLD = 0.8;

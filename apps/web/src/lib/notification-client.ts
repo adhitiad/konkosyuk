@@ -127,7 +127,7 @@ async function getUserPrefs(userId: string): Promise<UserPreferences> {
   };
 }
 
-async function sendEmail(to: string, subject: string, html: string) {
+export async function sendEmail(to: string, subject: string, html: string) {
   const client = await getResendClient();
   const from = await getFromEmail();
   if (!client) {
@@ -149,7 +149,7 @@ async function sendEmail(to: string, subject: string, html: string) {
   }
 }
 
-async function sendPush(userId: string, title: string, message: string) {
+export async function sendPush(userId: string, title: string, message: string) {
   try {
     const subscriptions = await db
       .select()

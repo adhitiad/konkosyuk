@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { useChat, type Message } from "@/hooks/useChat";
+import { useChat, type ChatMessage } from "@/hooks/useChat";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -73,11 +73,11 @@ export default function ChatWindow({
     }
   };
 
-  const formatMessageTime = (dateString: string) => {
-    return format(new Date(dateString), "HH:mm", { locale: id });
+  const formatMessageTime = (date: Date) => {
+    return format(date, "HH:mm", { locale: id });
   };
 
-  const isOwnMessage = (message: Message) => {
+  const isOwnMessage = (message: ChatMessage) => {
     return message.senderId === currentUserId;
   };
 

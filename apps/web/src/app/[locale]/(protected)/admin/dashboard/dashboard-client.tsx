@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { logError } from "@/lib/logger-client";
 import StatsCard from "@/components/admin/stats-card";
 import NotificationTrendChart, {
   TrendData,
@@ -97,7 +98,7 @@ export default function AdminDashboardClient({
         const data = (await res.json()) as StatsResponse;
         setStats(data);
       } catch (error) {
-        console.error("Error fetching stats:", error);
+        logError(error, "Error fetching stats");
       }
     }
 
