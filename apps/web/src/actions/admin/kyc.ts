@@ -8,18 +8,13 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { createAuditLog } from "@/lib/audit-log";
 import { validateActionCsrf } from "@/lib/api-auth";
+import type { ApproveKycState } from "@/types/action";
 
 const approveKycSchema = z.object({
   userId: z.string().uuid(),
   action: z.enum(["verified", "rejected"]),
   adminNote: z.string().optional(),
 });
-
-export type ApproveKycState = {
-  success?: boolean;
-  error?: string;
-  message?: string;
-};
 
 export async function approveKycAction(
   _prevState: ApproveKycState | undefined,

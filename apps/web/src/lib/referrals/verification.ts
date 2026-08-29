@@ -11,17 +11,14 @@ import {
 } from "./commission";
 import { dispatchReferralStatusUpdate } from "@/lib/notification-client";
 import { logInfo, logError } from "@/lib/logger";
+import type { StartReferralVerificationInput } from "@/types/infrastructure";
+
+export type { StartReferralVerificationInput };
 
 type DbExecutor = NodePgDatabase<typeof import("@/db/schema")>;
 
 function isCommissionCategory(value: unknown): value is CommissionCategory {
   return value === "owner" || value === "tenant";
-}
-
-export interface StartReferralVerificationInput {
-  refereeUserId: string;
-  paymentId: string;
-  paymentAmount: number;
 }
 
 export async function startReferralVerification(

@@ -15,41 +15,15 @@
 import OpenAI from "openai";
 import Groq from "groq-sdk";
 import { logError, logWarn } from "@/lib/logger";
+import type {
+  AIProvider,
+  AIConfig,
+  AITemplateRequest,
+  AITemplateResponse,
+  UsageTracker,
+} from "@/types/infrastructure";
 
-export type AIProvider = "aion" | "groq" | "static";
-
-export interface AIConfig {
-  provider: AIProvider;
-  aionApiKey: string;
-  aionModel: string;
-  aionTemperature: number;
-  groqApiKey: string;
-  groqModel: string;
-  groqTemperature: number;
-}
-
-export interface AITemplateRequest {
-  notificationType: string;
-  channel: "email" | "whatsapp";
-  language?: "id" | "en";
-  context: Record<string, unknown>;
-}
-
-export interface AITemplateResponse {
-  subject?: string;
-  title?: string;
-  body: string;
-  provider: AIProvider;
-}
-
-interface UsageTracker {
-  minuteTokens: number;
-  dailyTokens: number;
-  minuteRequests: number;
-  dailyRequests: number;
-  lastMinuteReset: number;
-  lastDayReset: number;
-}
+export type { AIProvider, AIConfig, AITemplateRequest, AITemplateResponse };
 
 const usage: Record<AIProvider, UsageTracker> = {
   aion: {

@@ -6,11 +6,7 @@ import { db } from "@/db";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { logError } from "@/lib/logger";
-
-export interface LinkReferralResult {
-  success: boolean;
-  error?: string;
-}
+import type { LinkReferralResult } from "@/types/action";
 
 export async function linkReferralCode(
   refCode: string,

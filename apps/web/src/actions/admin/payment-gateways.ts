@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { createAuditLog } from "@/lib/audit-log";
 import { validateActionCsrf } from "@/lib/api-auth";
+import type { UpsertPaymentGatewayState, DeletePaymentGatewayState } from "@/types/action";
 import {
   decryptPaymentConfig,
   encryptPaymentConfig,
@@ -59,18 +60,6 @@ const upsertGatewaySchema = z.object({
   isActive: z.boolean().default(false),
 });
 
-export type UpsertPaymentGatewayState = {
-  success?: boolean;
-  error?: string;
-  data?: {
-    id: string;
-    provider: string;
-    config: Record<string, unknown>;
-    environment: string | null;
-    isActive: boolean | null;
-    updatedAt: Date | null;
-  };
-};
 
 export async function upsertPaymentGatewayAction(
   _prevState: UpsertPaymentGatewayState | undefined,
@@ -217,11 +206,6 @@ const deleteGatewaySchema = z.object({
   provider: z.enum(["doku", "ipaymu", "nicepay", "otto"]),
 });
 
-export type DeletePaymentGatewayState = {
-  success?: boolean;
-  error?: string;
-  message?: string;
-};
 
 export async function deletePaymentGatewayAction(
   _prevState: DeletePaymentGatewayState | undefined,

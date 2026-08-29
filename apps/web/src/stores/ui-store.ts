@@ -1,11 +1,5 @@
 import { create } from "zustand";
-
-interface UIStore {
-  bookingModalOpen: boolean;
-  activeBookingId: string | null;
-  openBookingModal: (bookingId: string) => void;
-  closeBookingModal: () => void;
-}
+import type { UIStore } from "@/types/store";
 
 export const useUIStore = create<UIStore>((set) => ({
   bookingModalOpen: false,

@@ -1,12 +1,9 @@
 import { db } from "@/db";
 import { payments, bookings } from "@/db/schema";
 import { eq, and, or, gte, sql } from "drizzle-orm";
+import type { FraudCheckResult } from "@/types/infrastructure";
 
-export interface FraudCheckResult {
-  isBlocked: boolean;
-  reason?: string;
-  requiresManualReview: boolean;
-}
+export type { FraudCheckResult };
 
 export async function checkFraudFlags(
   userId: string,

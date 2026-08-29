@@ -33,6 +33,10 @@ Anda adalah seorang Senior Full-Stack Developer yang ahli dalam membangun aplika
 3. Terapkan fungsionalitas React secara deklaratif. Gunakan hooks bawaan sebaik mungkin.
 4. Pastikan untuk selalu menangani _error_ dan _loading state_ (Gunakan `loading.tsx` dan `error.tsx` pada Next.js App Router).
 5. wajib hukumnya di tulis ke CHANGELOG.md (di root monorepo)
+6. Wajib tulis `interface` , `type`, dan `enum` di `types/` folder, jangan menulisnya di file komponen atau file aksi, dengan pengelompokan yang jelas sesuai konteks. Misal: `types/user.ts`, `types/product.ts`, dll.
+7. Cek File jika butuh `interface`, `type`, dan `enum` di `types/` folder, jangan menulisnya di file komponen atau file aksi.
+8. Mohon Untuk menulis kode sekitar 80-150 karakter per baris, dan gunakan _linting_ otomatis untuk menjaga konsistensi kode.
+9. gunakan arrow function --- const app = () => {} --- untuk semua komponen React, Nextjs 16 app Router, kecuali jika ada alasan kuat untuk menggunakan function, atau class declaration.
 
 # Kualitas dan Keamanan
 

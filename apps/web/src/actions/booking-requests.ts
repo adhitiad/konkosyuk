@@ -10,6 +10,10 @@ import { logInfo, logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
 import { trackEvent, type AnalyticsPayload } from "@/lib/analytics";
 import { calculateLeadQuality } from "@/lib/recommendation/lead-quality-scorer";
+import type {
+  CreateBookingRequestState,
+  ReviewBookingRequestState,
+} from "@/types/action";
 
 const createBookingRequestSchema = z.object({
   unitId: z.string().uuid(),
@@ -17,12 +21,6 @@ const createBookingRequestSchema = z.object({
   numOccupants: z.coerce.number().int().min(1),
   startDate: z.string().datetime(),
 });
-
-export type CreateBookingRequestState = {
-  success?: boolean;
-  error?: string;
-  data?: unknown;
-};
 
 export async function createBookingRequestAction(
   _prevState: CreateBookingRequestState | undefined,
@@ -182,12 +180,6 @@ const reviewBookingRequestSchema = z.object({
   status: z.enum(["approved", "rejected"]),
   agreedPrice: z.coerce.number().positive().optional(),
 });
-
-export type ReviewBookingRequestState = {
-  success?: boolean;
-  error?: string;
-  data?: unknown;
-};
 
 export async function reviewBookingRequestAction(
   _prevState: ReviewBookingRequestState | undefined,

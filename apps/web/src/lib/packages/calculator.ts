@@ -2,7 +2,7 @@ import type {
   PackageItem,
   PropertyPackages,
   DurationUnit,
-} from "@/lib/types/property-packages";
+ } from "@/types/property";
 import {
   calculateSeasonalPrice,
   type AppliedSeasonalRule,

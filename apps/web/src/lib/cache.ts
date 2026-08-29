@@ -1,10 +1,7 @@
 import { getRedis, type RedisValue } from "./redis";
+import type { CacheOptions } from "@/types/infrastructure";
 
-export interface CacheOptions {
-  ttlSeconds?: number;
-  tags?: string[];
-  condition?: boolean;
-}
+export type { CacheOptions };
 
 const DEFAULT_TTL = 300; // 5 minutes
 const CACHE_PREFIX = "cache:";

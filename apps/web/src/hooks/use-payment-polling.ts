@@ -1,21 +1,9 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { apiClient } from "@/lib/axios";
-
-interface UsePaymentPollingOptions {
-  invoiceNumber: string | null | undefined;
-  onSuccess?: (payment: Record<string, unknown>) => void;
-  intervalMs?: number;
-  maxAttempts?: number;
-}
-
-interface UsePaymentPollingResult {
-  payment: Record<string, unknown> | null;
-  isLoading: boolean;
-  isSuccess: boolean;
-  isTimeout: boolean;
-  attempt: number;
-  error: string | null;
-}
+import type {
+  UsePaymentPollingOptions,
+  UsePaymentPollingResult,
+} from "@/types/ui";
 
 export function usePaymentPolling({
   invoiceNumber,

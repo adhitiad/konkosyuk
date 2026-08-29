@@ -1,5 +1,8 @@
 import { logError, logInfo } from "@/lib/logger";
 import { MetricPool, type PooledMetric } from "@/lib/perf";
+import type { MetricSnapshot } from "@/types/infrastructure";
+
+export type { MetricSnapshot };
 
 const metrics = new Map<string, PooledMetric>();
 const MAX_METRICS = 100;
@@ -19,17 +22,6 @@ export function recordMetric(name: string, latencyMs: number, error?: unknown) {
     current.lastErrorAt = new Date().toISOString();
     current.lastError = error instanceof Error ? error.message : String(error);
   }
-}
-
-export interface MetricSnapshot {
-  requests: number;
-  errors: number;
-  totalLatencyMs: number;
-  lastLatencyMs: number;
-  lastErrorAt?: string;
-  lastError?: string;
-  averageLatencyMs: number;
-  errorRate: number;
 }
 
 export function getMetricsSnapshot(): Record<string, MetricSnapshot> {

@@ -2,39 +2,21 @@ import type { PaymentGatewayConfig } from "@/db/schema";
 import { getAxiosInstance } from "@/lib/api";
 import { decryptPaymentConfig } from "@/lib/payment-config-crypto";
 import type { AxiosError } from "axios";
+import type {
+  GatewayProvider,
+  GatewayConfig,
+  PaymentRequest,
+  PaymentResponse,
+  PaymentItemDetail,
+} from "@/types/payment";
 
-export type GatewayProvider = "doku" | "ipaymu" | "nicepay" | "otto";
-
-export interface GatewayConfig {
-  clientId?: string;
-  secretKey?: string;
-  webhookSecret?: string;
-  merchantCode?: string;
-  baseUrl?: string;
-}
-
-export interface PaymentRequest {
-  invoiceNumber: string;
-  amount: number;
-  customerName: string;
-  customerEmail: string;
-  customerPhone?: string;
-  itemDetails: Array<{
-    name: string;
-    quantity: number;
-    price: number;
-  }>;
-  returnUrl?: string;
-  cancelUrl?: string;
-}
-
-export interface PaymentResponse {
-  success: boolean;
-  transactionId?: string;
-  paymentUrl?: string;
-  message?: string;
-  rawResponse?: Record<string, unknown>;
-}
+export type {
+  GatewayProvider,
+  GatewayConfig,
+  PaymentRequest,
+  PaymentResponse,
+};
+export type { PaymentItemDetail };
 
 interface DokuCreateResponse {
   transactionId: string;

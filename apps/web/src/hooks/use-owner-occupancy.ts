@@ -2,24 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/axios";
-
-type OccupancyResponse = {
-  overallOccupancy: number;
-  byProperty: Array<{
-    propertyId: string;
-    propertyName: string;
-    totalUnits: number;
-    occupiedUnits: number;
-    occupancyRate: number;
-    avgDailyRate: number;
-  }>;
-  dailyData: Array<{
-    date: string;
-    occupied: number;
-    total: number;
-    rate: number;
-  }>;
-};
+import type { OccupancyResponse } from "@/types/ui";
 
 export function useOwnerOccupancy(params: {
   propertyId?: string;

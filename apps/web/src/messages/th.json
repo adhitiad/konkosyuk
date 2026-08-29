@@ -34,11 +34,30 @@
     "auditLogs": "บันทึกตรวจสอบ",
     "generalLedger": "สมุดบัญชีรวม",
     "pengaturanProfil": "การตั้งค่าโปรไฟล์",
-    "settings": "การตั้งค่า",
-    "appSettings": "App Settings"
+    "insights": "ข้อมูลเชิงลึก",
+    "favorites": "รายการที่ชอบ",
+    "groupBookings": "การจองกลุ่ม",
+    "inspections": "การตรวจสอบ",
+    "loyalty": "ความภาคภูมิใจ",
+    "referrals": "การอ้างอิง",
+    "savedSearches": "การค้นหาที่บันทึกไว้",
+    "adPackages": "แพ็กเกจโฆษณา",
+    "adRevenue": "รายได้จากโฆษณา",
+    "ads": "โฆษณา",
+    "costs": "ค่าใช้จ่าย",
+    "featureFlags": "ธงคุณสมบัติ",
+    "refundRequests": "คำขอการคืนเงิน"
   },
   "sidebar": {
-    "menu": "เมนู"
+    "menu": "เมนู",
+    "dashboard": "แผงควบคุม",
+    "keuangan": "การเงิน",
+    "book": "การจอง",
+    "analitik": "การวิเคราะห์",
+    "alat": "เครื่องมือ",
+    "notifikasi": "การแจ้งเตือน",
+  "chat": "แชท",
+  "profil": "โปรไฟล์"
   },
   "navbar": {
     "title": "Konkosyuk"

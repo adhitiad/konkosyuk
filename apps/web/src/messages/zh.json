@@ -34,11 +34,30 @@
     "auditLogs": "审计日志",
     "generalLedger": "总账",
     "pengaturanProfil": "个人资料设置",
-    "settings": "设置",
-    "appSettings": "App Settings"
+    "insights": "洞察",
+    "favorites": "收藏",
+    "groupBookings": "团体预订",
+    "inspections": "检查",
+    "loyalty": "忠诚度",
+    "referrals": "推荐",
+    "savedSearches": "保存的搜索",
+    "adPackages": "广告包",
+    "adRevenue": "广告收入",
+    "ads": "广告",
+    "costs": "费用",
+    "featureFlags": "功能标志",
+    "refundRequests": "退款请求"
   },
   "sidebar": {
-    "menu": "菜单"
+    "menu": "菜单",
+    "dashboard": "仪表板",
+    "keuangan": "财务",
+    "book": "预订",
+    "analitik": "分析",
+    "alat": "工具",
+    "notifikasi": "通知",
+  "chat": "聊天",
+  "profil": "个人资料"
   },
   "navbar": {
     "title": "Konkosyuk"

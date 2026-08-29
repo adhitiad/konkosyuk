@@ -35,11 +35,30 @@
     "paymentGateways": "Payment Gateways",
     "auditLogs": "Audit Logs",
     "generalLedger": "General Ledger",
-    "settings": "Settings",
-    "appSettings": "App Settings"
+    "insights": "Insights",
+    "favorites": "My Favorites",
+    "groupBookings": "Group Bookings",
+    "inspections": "Inspections",
+    "loyalty": "Loyalty",
+    "referrals": "Referrals",
+    "savedSearches": "Saved Searches",
+    "adPackages": "Ad Packages",
+    "adRevenue": "Ad Revenue",
+    "ads": "Ads",
+    "costs": "Costs",
+    "featureFlags": "Feature Flags",
+    "refundRequests": "Refund Requests"
   },
   "sidebar": {
-    "menu": "Menu"
+    "menu": "Menu",
+    "dashboard": "Dashboard",
+    "keuangan": "Finance",
+    "book": "Bookings",
+    "analitik": "Analytics",
+    "alat": "Tools",
+    "notifikasi": "Notifications",
+  "chat": "Chat",
+  "profil": "Profile"
   },
   "navbar": {
     "title": "Konkosyuk"

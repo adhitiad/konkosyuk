@@ -1,20 +1,12 @@
 import { Client } from "@upstash/qstash";
 import { trackUsage } from "@/lib/usage-tracker";
+import type {
+  QStashJobType,
+  QStashJobPayload,
+  PublishToQStashOptions,
+} from "@/types/infrastructure";
 
-export type QStashJobType = "SEND_NOTIFICATION" | "SYNC_ANALYTICS";
-
-export interface QStashJobPayload {
-  type: QStashJobType;
-  payload: Record<string, unknown>;
-}
-
-export interface PublishToQStashOptions {
-  url?: string;
-  retries?: number;
-  retryDelay?: string;
-  delay?: string | number;
-  label?: string | string[];
-}
+export type { QStashJobType, QStashJobPayload, PublishToQStashOptions };
 
 export async function publishToQStash(
   job: QStashJobPayload,

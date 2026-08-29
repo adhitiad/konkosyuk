@@ -34,11 +34,30 @@
     "auditLogs": "Журнал аудита",
     "generalLedger": "Главная книга",
     "pengaturanProfil": "Настройки профиля",
-    "settings": "Настройки",
-    "appSettings": "App Settings"
+    "insights": "Инсайты",
+    "favorites": "Избранное",
+    "groupBookings": "Групповые бронирования",
+    "inspections": "Осмотр",
+    "loyalty": "Лояльность",
+    "referrals": "Рефералы",
+    "savedSearches": "Сохраненные поиски",
+    "adPackages": "Рекламные пакеты",
+    "adRevenue": "Рекламный доход",
+    "ads": "Реклама",
+    "costs": "Расходы",
+    "featureFlags": "Флаги функций",
+    "refundRequests": "Запросы на возврат"
   },
   "sidebar": {
-    "menu": "Меню"
+    "menu": "Меню",
+    "dashboard": "Панель управления",
+    "keuangan": "Финансы",
+    "book": "Бронирование",
+    "analitik": "Аналитика",
+    "alat": "Инструменты",
+    "notifikasi": "Уведомления",
+  "chat": "Чат",
+  "profil": "Профиль"
   },
   "navbar": {
     "title": "Konkosyuk"

@@ -37,7 +37,7 @@ const PropertyMapPicker = dynamic(
 import PackageForm from "@/components/owner/package-form";
 import { createPropertyAction } from "@/actions/properties";
 import type { CreatePropertyInput } from "@konkosyuk/shared";
-import type { PropertyPackages } from "@/lib/types/property-packages";
+import type { PropertyPackages } from "@/types/property";
 import { useLocale } from "next-intl";
 
 const propertyTypeOptions = [

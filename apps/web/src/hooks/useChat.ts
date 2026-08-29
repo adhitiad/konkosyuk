@@ -2,46 +2,15 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { Realtime, RealtimeChannel, PresenceMessage } from "ably";
 import { sendMessageAction } from "@/actions/chat";
 import { captureException } from "@/lib/sentry";
+import type {
+  Message,
+  ChatRoom,
+  TypingUser,
+  UseChatOptions,
+  UseChatReturn,
+} from "@/types/ui";
 
-export interface Message {
-  id: string;
-  roomId: string;
-  senderId: string;
-  content: string;
-  createdAt: string;
-  isRead: boolean;
-}
-
-export interface ChatRoom {
-  id: string;
-  propertyId: string;
-  tenantId: string;
-  ownerId: string;
-  lastMessageAt?: string;
-  createdAt: string;
-}
-
-export interface TypingUser {
-  clientId: string;
-  timestamp: number;
-}
-
-export interface UseChatOptions {
-  roomId: string | null;
-  currentUserId: string;
-  onMessageReceived?: (message: Message) => void;
-}
-
-export interface UseChatReturn {
-  messages: Message[];
-  connectionStatus: string;
-  isTyping: boolean;
-  typingUsers: TypingUser[];
-  sendMessage: (content: string) => Promise<void>;
-  startTyping: () => void;
-  stopTyping: () => void;
-  markAsRead: () => Promise<void>;
-}
+export type { Message, ChatRoom, TypingUser, UseChatOptions, UseChatReturn };
 
 export function useChat({
   roomId,

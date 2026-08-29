@@ -34,11 +34,31 @@
     "paymentGateways": "Payment Gateway",
     "auditLogs": "Log Audit",
     "generalLedger": "Buku Besar",
-    "settings": "Pengaturan",
-    "appSettings": "Pengaturan App"
+    "appSettings": "Pengaturan App",
+    "insights": "Wawasan",
+    "favorites": "Favorit Saya",
+    "groupBookings": "Booking Grup",
+    "inspections": "Inspeksi",
+    "loyalty": "Loyalitas",
+    "referrals": "Rujukan",
+    "savedSearches": "Pencarian Tersimpan",
+    "adPackages": "Paket Iklan",
+    "adRevenue": "Pendapatan Iklan",
+    "ads": "Iklan",
+    "costs": "Biaya",
+    "featureFlags": "Flag Fitur",
+    "refundRequests": "Permintaan Pengembalian"
   },
   "sidebar": {
-    "menu": "Menu"
+    "menu": "Menu",
+    "dashboard": "Dashboard",
+    "keuangan": "Keuangan",
+    "book": "Booking",
+    "analitik": "Analitik",
+    "alat": "Alat",
+    "notifikasi": "Notifikasi",
+  "chat": "Chat",
+  "profil": "Profil"
   },
   "navbar": {
     "title": "Konkosyuk"

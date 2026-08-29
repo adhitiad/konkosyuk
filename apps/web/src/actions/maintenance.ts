@@ -10,6 +10,10 @@ import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
 import { sanitizeString } from "@/lib/sanitize";
 import { MAX_DESCRIPTION_LENGTH } from "@/lib/constants/actions";
+import type {
+  CreateMaintenanceTicketState,
+  UpdateMaintenanceTicketState,
+} from "@/types/action";
 
 const createTicketSchema = z.object({
   unitId: z.string().uuid(),
@@ -21,12 +25,6 @@ const createTicketSchema = z.object({
   priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
   images: z.array(z.string().url("URL gambar tidak valid")).optional(),
 });
-
-export type CreateMaintenanceTicketState = {
-  success?: boolean;
-  error?: string;
-  data?: unknown;
-};
 
 export async function createMaintenanceTicketAction(
   _prevState: CreateMaintenanceTicketState | undefined,
@@ -128,12 +126,6 @@ const updateTicketSchema = z.object({
   ownerNotes: z.string().optional(),
   priority: z.enum(["low", "medium", "high", "urgent"]).optional(),
 });
-
-export type UpdateMaintenanceTicketState = {
-  success?: boolean;
-  error?: string;
-  data?: unknown;
-};
 
 export async function updateMaintenanceTicketAction(
   _prevState: UpdateMaintenanceTicketState | undefined,

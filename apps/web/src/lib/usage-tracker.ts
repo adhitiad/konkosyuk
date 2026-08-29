@@ -15,20 +15,13 @@
  * Non-blocking: kegagalan tracking tidak mempengaruhi flow utama.
  */
 
-export type UsageService = "qstash" | "ably" | "redis";
+import type {
+  UsageService,
+  UsageAction,
+  UsageMetric,
+} from "@/types/analytics";
 
-export type UsageAction =
-  | "publish"
-  | "command"
-  | "request"
-  | string;
-
-export interface UsageMetric {
-  service: UsageService;
-  action: UsageAction;
-  count: number;
-  month: string;
-}
+export type { UsageService, UsageAction, UsageMetric };
 
 function getCurrentMonth(): string {
   const now = new Date();

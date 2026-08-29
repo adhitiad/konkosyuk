@@ -6,7 +6,8 @@ import { toast } from "@/components/ui/toast";
 import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { uploadImageAction, type UploadImageState } from "@/actions/upload";
+import { uploadImageAction } from "@/actions/upload";
+import type { UploadImageState } from "@/types/action";
 import { useActionState } from "react";
 import { getCsrfToken } from "@/lib/axios";
 

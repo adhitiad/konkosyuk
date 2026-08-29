@@ -8,14 +8,9 @@ import {
 } from "@/db/schema";
 import { eq, sql, and, desc, inArray } from "drizzle-orm";
 import { getRedis } from "@/lib/redis";
+import type { UserInterestVector } from "@/types/infrastructure";
 
-export interface UserInterestVector {
-  typeWeights: Record<string, number>;
-  cityWeights: Record<string, number>;
-  priceBucketWeights: Record<number, number>;
-  amenitySet: string[];
-  areaWeights: Record<string, number>;
-}
+export type { UserInterestVector };
 
 const REDIS_KEY_PREFIX = "user:vector:";
 const CACHE_TTL = 86400;

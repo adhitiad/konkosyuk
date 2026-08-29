@@ -1,9 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
+import type { UploadResult } from "@/types/infrastructure";
 
-export interface UploadResult {
-  url: string;
-  provider: "cloudinary";
-}
+export type { UploadResult };
 
 function ensureConfigured() {
   cloudinary.config({

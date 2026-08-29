@@ -34,7 +34,8 @@ import { AlertCircleIcon, Add01Icon } from "@hugeicons/core-free-icons";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import AddUnitDialog from "./add-unit-dialog";
 import type { Unit } from "@/db/schema";
-import { updateUnitAction, UpdateUnitState } from "@/actions/units";
+import { updateUnitAction } from "@/actions/units";
+import type { UpdateUnitState } from "@/types/action";
 import { captureException } from "@/lib/sentry";
 
 interface UnitResponse {

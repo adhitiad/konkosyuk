@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { uploadFile } from "@/lib/storage-manager";
 import { validateActionCsrf } from "@/lib/api-auth";
 import { logError } from "@/lib/logger";
+import type { UploadImageState } from "@/types/action";
 
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const maxFileSize = 5 * 1024 * 1024;
@@ -40,15 +41,6 @@ async function validateImageSignature(file: File): Promise<boolean> {
 
   return detectedType === file.type;
 }
-
-export type UploadImageState = {
-  success?: boolean;
-  error?: string;
-  data?: {
-    url: string;
-    provider: string;
-  };
-};
 
 export async function uploadImageAction(
   _prevState: UploadImageState | undefined,

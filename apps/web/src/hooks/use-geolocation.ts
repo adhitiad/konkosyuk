@@ -2,14 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { getUserLocation } from "@/lib/geolocation";
-
-interface GeolocationState {
-  latitude: number | null;
-  longitude: number | null;
-  loading: boolean;
-  error: string | null;
-  enabled: boolean;
-}
+import type { GeolocationState } from "@/types/ui";
 
 const ENABLED_KEY = "gps-search-enabled";
 const LAST_LOCATION_KEY = "user-last-location";

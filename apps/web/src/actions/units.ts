@@ -10,22 +10,7 @@ import { createUnitSchema, updateUnitSchema } from "@konkosyuk/shared";
 import { invalidateCacheByTag } from "@/lib/cache";
 import type { Role } from "@/lib/auth";
 import { validateActionCsrf } from "@/lib/api-auth";
-
-export type CreateUnitState = {
-  success?: boolean;
-  error?: string;
-  data?: {
-    id: string;
-    propertyId: string;
-    name: string;
-    description: string | null;
-    price: string;
-    capacity: string | null;
-    size: string | null;
-    status: string;
-    createdAt: Date;
-  };
-};
+import type { CreateUnitState, UpdateUnitState, DeleteUnitState } from "@/types/action";
 
 export async function createUnitAction(
   _prevState: CreateUnitState | undefined,
@@ -103,22 +88,6 @@ export async function createUnitAction(
     return { error: "Gagal menambahkan unit", success: false };
   }
 }
-
-export type UpdateUnitState = {
-  success?: boolean;
-  error?: string;
-  data?: {
-    id: string;
-    propertyId: string;
-    name: string;
-    description: string | null;
-    price: string;
-    capacity: string | null;
-    size: string | null;
-    status: string;
-    updatedAt: Date;
-  };
-};
 
 export async function updateUnitAction(
   _prevState: UpdateUnitState | undefined,
@@ -204,11 +173,6 @@ export async function updateUnitAction(
     return { error: "Gagal memperbarui unit", success: false };
   }
 }
-
-export type DeleteUnitState = {
-  success?: boolean;
-  error?: string;
-};
 
 export async function deleteUnitAction(
   _prevState: DeleteUnitState | undefined,

@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { createAuditLog } from "@/lib/audit-log";
 import { validateActionCsrf } from "@/lib/api-auth";
+import type { ProcessWithdrawalState } from "@/types/action";
 
 const processWithdrawalSchema = z.object({
   id: z.string().uuid(),
@@ -15,11 +16,6 @@ const processWithdrawalSchema = z.object({
   adminNote: z.string().optional(),
 });
 
-export type ProcessWithdrawalState = {
-  success?: boolean;
-  error?: string;
-  message?: string;
-};
 
 export async function processWithdrawalAction(
   _prevState: ProcessWithdrawalState | undefined,

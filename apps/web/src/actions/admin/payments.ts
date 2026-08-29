@@ -10,6 +10,7 @@ import type { Role } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit-log";
 import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
+import type { CreateManualPaymentState, CancelPaymentState, ReconcilePaymentState } from "@/types/action";
 import { handleReferralFailureOnRefund } from "@/lib/referrals/verification";
 
 const createManualPaymentSchema = z.object({
@@ -34,11 +35,6 @@ const createManualPaymentSchema = z.object({
     .default("pending"),
 });
 
-export type CreateManualPaymentState = {
-  success?: boolean;
-  error?: string;
-  data?: unknown;
-};
 
 export async function createManualPaymentAction(
   _prevState: CreateManualPaymentState | undefined,
@@ -160,10 +156,6 @@ const cancelPaymentSchema = z.object({
   reason: z.string().min(1, "Alasan pembatalan wajib diisi"),
 });
 
-export type CancelPaymentState = {
-  success?: boolean;
-  error?: string;
-};
 
 export async function cancelPaymentAction(
   _prevState: CancelPaymentState | undefined,
@@ -293,10 +285,6 @@ const reconcilePaymentSchema = z.object({
   reason: z.string().min(1, "Alasan rekonsiliasi wajib diisi"),
 });
 
-export type ReconcilePaymentState = {
-  success?: boolean;
-  error?: string;
-};
 
 export async function reconcilePaymentAction(
   _prevState: ReconcilePaymentState | undefined,

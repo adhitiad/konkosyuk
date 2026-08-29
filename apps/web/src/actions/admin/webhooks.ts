@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { createAuditLog } from "@/lib/audit-log";
 import { validateActionCsrf } from "@/lib/api-auth";
+import type { ReprocessWebhookState } from "@/types/action";
 import { getPaymentProvider } from "@/lib/payments";
 import { handleWebhookRequest } from "@/lib/payments/webhook";
 import type { WebhookContext } from "@/lib/payments/types";
@@ -16,10 +17,6 @@ const reprocessWebhookSchema = z.object({
   webhookId: z.string().uuid(),
 });
 
-export type ReprocessWebhookState = {
-  success?: boolean;
-  error?: string;
-};
 
 export async function reprocessWebhookAction(
   _prevState: ReprocessWebhookState | undefined,

@@ -34,11 +34,30 @@
     "auditLogs": "Log Audit",
     "generalLedger": "Buku Besar",
     "pengaturanProfil": "Tetapan Profil",
-    "settings": "Tetapan",
-    "appSettings": "App Settings"
+    "insights": "Wawasan",
+    "favorites": "Favorit Saya",
+    "groupBookings": "Tempahan Kumpulan",
+    "inspections": "Pemeriksaan",
+    "loyalty": "Setia",
+    "referrals": "Rujukan",
+    "savedSearches": "Carian Tersimpan",
+    "adPackages": "Pakej Iklan",
+    "adRevenue": "Pendapatan Iklan",
+    "ads": "Iklan",
+    "costs": "Kos",
+    "featureFlags": "Bendera Ciri",
+    "refundRequests": "Permintaan Pengembalian"
   },
   "sidebar": {
-    "menu": "Menu"
+    "menu": "Menu",
+    "dashboard": "Papan Pemuka",
+    "keuangan": "Kewangan",
+    "book": "Tempahan",
+    "analitik": "Analitik",
+    "alat": "Alat",
+    "notifikasi": "Notifikasi",
+  "chat": "Chat",
+  "profil": "Profil"
   },
   "navbar": {
     "title": "Konkosyuk"

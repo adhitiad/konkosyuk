@@ -22,7 +22,7 @@ import { DEFAULT_FEATURED_LISTING_PRICE } from "@/lib/constants/actions";
 import { logError } from "@/lib/logger";
 import { getPaymentProvider } from "@/lib/payments";
 import { createAuditLog } from "@/lib/audit-log";
-import type { PropertyPackages } from "@/lib/types/property-packages";
+import type { PropertyPackages } from "@/types/property";
 import type { NewProperty, NewPayment } from "@/db/schema";
 import { validateActionCsrf } from "@/lib/api-auth";
 import {
@@ -30,17 +30,14 @@ import {
   redeemVoucherAtomically,
 } from "@/lib/referrals/voucher";
 import { sanitizeString } from "@/lib/sanitize";
-
-export type CreatePropertyState = {
-  success?: boolean;
-  error?: string;
-  data?: {
-    id: string;
-    name: string;
-    ownerId: string;
-    createdAt: Date;
-  };
-};
+import type {
+  CreatePropertyState,
+  UpdatePropertyState,
+  DeletePropertyState,
+  FeaturePropertyState,
+  ApprovePropertyState,
+  CheckoutFeaturedState,
+} from "@/types/action";
 
 export async function createPropertyAction(
   _prevState: CreatePropertyState | undefined,
@@ -187,12 +184,6 @@ export async function createPropertyAction(
   }
 }
 
-export type UpdatePropertyState = {
-  success?: boolean;
-  error?: string;
-  data?: typeof properties.$inferSelect;
-};
-
 export async function updatePropertyAction(
   _prevState: UpdatePropertyState | undefined,
   formData: FormData,
@@ -335,11 +326,6 @@ export async function updatePropertyAction(
   }
 }
 
-export type DeletePropertyState = {
-  success?: boolean;
-  error?: string;
-};
-
 export async function deletePropertyAction(
   _prevState: DeletePropertyState | undefined,
   formData: FormData,
@@ -392,12 +378,6 @@ export async function deletePropertyAction(
     return { error: "Gagal menghapus properti", success: false };
   }
 }
-
-export type FeaturePropertyState = {
-  success?: boolean;
-  error?: string;
-  data?: typeof properties.$inferSelect;
-};
 
 const FEATURED_DURATION_DAYS = 30;
 
@@ -490,12 +470,6 @@ export async function featurePropertyAction(
     return { error: "Gagal mengaktifkan featured property", success: false };
   }
 }
-
-export type ApprovePropertyState = {
-  success?: boolean;
-  error?: string;
-  data?: typeof properties.$inferSelect;
-};
 
 const approvePropertySchema = z.object({
   propertyId: z.string().uuid(),
@@ -591,19 +565,6 @@ export async function approvePropertyAction(
     return { error: "Gagal memproses approval properti", success: false };
   }
 }
-
-export type CheckoutFeaturedState = {
-  success?: boolean;
-  error?: string;
-  data?: {
-    paymentId: string;
-    invoiceNumber: string;
-    redirectUrl?: string;
-    qrCode?: string;
-    vaNumber?: string;
-    expiresAt?: Date;
-  };
-};
 
 const checkoutFeaturedSchema = z.object({
   propertyId: z.string().uuid(),

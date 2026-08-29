@@ -8,17 +8,9 @@ import {
   bookingRequests,
 } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import type { LeadQualityResult } from "@/types/infrastructure";
 
-export interface LeadQualityResult {
-  score: number;
-  tier: "platinum" | "gold" | "silver" | "bronze";
-  breakdown: {
-    verification: number;
-    reputation: number;
-    intent: number;
-    fit: number;
-  };
-}
+export type { LeadQualityResult };
 
 export async function calculateLeadQuality(
   tenantId: string,

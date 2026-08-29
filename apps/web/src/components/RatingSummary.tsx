@@ -2,7 +2,7 @@
 
 import { StarRating } from "@/components/StarRating";
 import { ReviewCard } from "@/components/ReviewCard";
-import { ReviewCardData } from "@/lib/types/reviews";
+import { ReviewCardData } from "@/types/review";
 
 interface RatingSummaryProps {
   averageRating: number;

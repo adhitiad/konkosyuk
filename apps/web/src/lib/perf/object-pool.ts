@@ -5,17 +5,14 @@
  * pool menyimpan objek yang sudah tidak dipakai dan mengembalikannya saat
  * dibutuhkan lagi.
  */
+import type {
+  PoolOptions,
+  PooledMetric,
+  PooledRateLimitResult,
+  PooledCookieMap,
+} from "@/types/infrastructure";
 
-export interface PoolOptions<T> {
-  /** Factory function untuk membuat objek baru */
-  create: () => T;
-  /** Reset objek ke state awal sebelum di-reuse */
-  reset: (obj: T) => void;
-  /** Jumlah objek yang di-pre-alokasi saat pool dibuat */
-  initialSize?: number;
-  /** Maksimum objek yang disimpan di pool (sisanya di-GC) */
-  maxSize?: number;
-}
+export type { PoolOptions, PooledMetric, PooledRateLimitResult, PooledCookieMap };
 
 export class ObjectPool<T> {
   private readonly pool: T[] = [];
@@ -85,16 +82,6 @@ export class ObjectPool<T> {
 // Specialized Pools
 // ---------------------------------------------------------------------------
 
-/** Metric object yang di-reuse di monitoring.ts */
-export interface PooledMetric {
-  requests: number;
-  errors: number;
-  totalLatencyMs: number;
-  lastLatencyMs: number;
-  lastErrorAt?: string;
-  lastError?: string;
-}
-
 export const MetricPool = new ObjectPool<PooledMetric>({
   create: () => ({
     requests: 0,
@@ -116,13 +103,6 @@ export const MetricPool = new ObjectPool<PooledMetric>({
   maxSize: 128,
 });
 
-/** RateLimitResult object yang di-reuse */
-export interface PooledRateLimitResult {
-  success: boolean;
-  remaining: number;
-  resetAtMs: number; // Pakai timestamp number, bukan Date object
-}
-
 export const RateLimitResultPool = new ObjectPool<PooledRateLimitResult>({
   create: () => ({
     success: false,
@@ -137,14 +117,6 @@ export const RateLimitResultPool = new ObjectPool<PooledRateLimitResult>({
   initialSize: 16,
   maxSize: 64,
 });
-
-/**
- * Reusable object untuk cookie parsing.
- * Kunci di-clear setiap kali, tapi objek itu sendiri di-reuse.
- */
-export interface PooledCookieMap {
-  [key: string]: string;
-}
 
 export const CookieMapPool = new ObjectPool<PooledCookieMap>({
   create: () => Object.create(null) as PooledCookieMap,

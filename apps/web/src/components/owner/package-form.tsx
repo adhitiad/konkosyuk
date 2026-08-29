@@ -8,7 +8,7 @@ import type {
   PropertyPackages,
   PackageItem,
   DurationUnit,
-} from "@/lib/types/property-packages";
+ } from "@/types/property";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("id-ID", {

@@ -9,21 +9,11 @@ import { z } from "zod";
 import { addBankAccountSchema } from "@konkosyuk/shared";
 import { invalidateCacheByTag } from "@/lib/cache";
 import { validateActionCsrf } from "@/lib/api-auth";
-
-export type AddBankAccountState = {
-  success?: boolean;
-  error?: string;
-  errorCode?: string;
-  data?: {
-    id: string;
-    accountType: string;
-    providerName: string;
-    accountNumber: string;
-    accountName: string;
-    isPrimary: boolean;
-    createdAt: Date;
-  };
-};
+import type {
+  AddBankAccountState,
+  UpdateBankAccountState,
+  DeleteBankAccountState,
+} from "@/types/action";
 
 export async function addBankAccountAction(
   _prevState: AddBankAccountState | undefined,
@@ -114,20 +104,6 @@ export async function addBankAccountAction(
     return { error: "Gagal menambahkan rekening", success: false };
   }
 }
-
-export type UpdateBankAccountState = {
-  success?: boolean;
-  error?: string;
-  data?: {
-    id: string;
-    accountType: string;
-    providerName: string;
-    accountNumber: string;
-    accountName: string;
-    isPrimary: boolean;
-    createdAt: Date;
-  };
-};
 
 export async function updateBankAccountAction(
   _prevState: UpdateBankAccountState | undefined,
@@ -221,11 +197,6 @@ export async function updateBankAccountAction(
     return { error: "Gagal memperbarui rekening", success: false };
   }
 }
-
-export type DeleteBankAccountState = {
-  success?: boolean;
-  error?: string;
-};
 
 export async function deleteBankAccountAction(
   _prevState: DeleteBankAccountState | undefined,

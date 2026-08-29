@@ -5,11 +5,9 @@ import type { NodePgQueryResultHKT } from "drizzle-orm/node-postgres";
 import { referrals } from "@/db/schema";
 import { db } from "@/db";
 import * as schemaModule from "@/db/schema";
+import type { OffsetPreview } from "@/types/infrastructure";
 
-export interface OffsetPreview {
-  availableBalance: number;
-  referralIds: string[];
-}
+export type { OffsetPreview };
 
 export async function previewAvailableOffset(
   userId: string,

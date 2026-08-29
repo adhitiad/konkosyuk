@@ -10,6 +10,27 @@ import {
 import { eq, sql, and } from "drizzle-orm";
 import { logError, logWarn } from "@/lib/logger";
 import { notificationType } from "@konkosyuk/shared/db/schema";
+import type {
+  NotificationCategory,
+  NotificationPriority,
+  NotificationEvent,
+  ChannelPreferences,
+  UserPreferences,
+  NotificationSettings,
+  DispatchResponse,
+  EmailTemplateVariables,
+} from "@/types/notification";
+
+export type {
+  NotificationCategory,
+  NotificationPriority,
+  NotificationEvent,
+  ChannelPreferences,
+  UserPreferences,
+  NotificationSettings,
+  DispatchResponse,
+  EmailTemplateVariables,
+};
 
 const db = createDb(process.env.DATABASE_URL!, {
   max: 5,
@@ -26,63 +47,6 @@ if (vapidPublicKey && vapidPrivateKey) {
     vapidPublicKey,
     vapidPrivateKey,
   );
-}
-
-export type NotificationCategory =
-  | "booking"
-  | "payment"
-  | "maintenance"
-  | "inspection"
-  | "chat"
-  | "review"
-  | "system";
-
-export type NotificationPriority = "low" | "normal" | "high" | "urgent";
-
-export interface NotificationEvent {
-  userId: string;
-  type: string;
-  category: NotificationCategory;
-  priority?: NotificationPriority;
-  title: string;
-  message: string;
-  actionUrl?: string;
-  actionLabel?: string;
-  referenceId?: string;
-  referenceType?: string;
-  metadata?: Record<string, string>;
-}
-
-export interface ChannelPreferences {
-  inApp: boolean;
-  email: boolean;
-  push: boolean;
-}
-
-export interface UserPreferences {
-  preferences: Record<string, ChannelPreferences>;
-  emailDigest: "immediate" | "daily" | "weekly" | "never";
-  quietHoursStart?: string | null;
-  quietHoursEnd?: string | null;
-  timezone: string;
-}
-
-export interface NotificationSettings {
-  id: string;
-  resendApiKey: string | null;
-  resendFromEmail: string | null;
-  metaAccessToken: string | null;
-  metaPhoneNumberId: string | null;
-  metaMaintenanceCreatedTemplate: string | null;
-  metaMaintenanceUpdatedTemplate: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface DispatchResponse {
-  success: boolean;
-  channelResults: Record<string, boolean>;
-  error: string;
 }
 
 const DEFAULT_PREFERENCES: Record<string, ChannelPreferences> = {

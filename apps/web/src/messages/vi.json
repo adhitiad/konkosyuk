@@ -34,11 +34,30 @@
     "auditLogs": "Nhật ký kiểm toán",
     "generalLedger": "Sổ cái",
     "pengaturanProfil": "Cài đặt hồ sơ",
-    "settings": "Cài đặt",
-    "appSettings": "App Settings"
+    "insights": "Hiểu biết",
+    "favorites": "Yêu thích",
+    "groupBookings": "Đặt phòng nhóm",
+    "inspections": "Kiểm tra",
+    "loyalty": "Trung thành",
+    "referrals": "Giới thiệu",
+    "savedSearches": "Tìm kiếm đã lưu",
+    "adPackages": "Gói quảng cáo",
+    "adRevenue": "Doanh thu quảng cáo",
+    "ads": "Quảng cáo",
+    "costs": "Chi phí",
+    "featureFlags": "Cờ tính năng",
+    "refundRequests": "Yêu cầu hoàn tiền"
   },
   "sidebar": {
-    "menu": "Menu"
+    "menu": "Menu",
+    "dashboard": "Bảng điều khiển",
+    "keuangan": "Tài chính",
+    "book": "Đặt phòng",
+    "analitik": "Phân tích",
+    "alat": "Công cụ",
+    "notifikasi": "Thông báo",
+  "chat": "Trò chuyện",
+  "profil": "Hồ sơ"
   },
   "navbar": {
     "title": "Konkosyuk"

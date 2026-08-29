@@ -11,6 +11,7 @@ import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
 import { sanitizeString } from "@/lib/sanitize";
 import { MAX_CHAT_MESSAGE_LENGTH } from "@/lib/constants/actions";
+import type { SendMessageState } from "@/types/action";
 
 const sendMessageSchema = z.object({
   roomId: z.string().uuid(),
@@ -19,19 +20,6 @@ const sendMessageSchema = z.object({
     .min(1, "Pesan tidak boleh kosong")
     .max(MAX_CHAT_MESSAGE_LENGTH, "Pesan terlalu panjang"),
 });
-
-export type SendMessageState = {
-  success?: boolean;
-  error?: string;
-  data?: {
-    id: string;
-    roomId: string;
-    senderId: string;
-    content: string;
-    createdAt: Date;
-    isRead: boolean;
-  };
-};
 
 export async function sendMessageAction(
   _prevState: SendMessageState | undefined,

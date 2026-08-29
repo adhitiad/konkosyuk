@@ -3,29 +3,14 @@
  */
 import { Redis as UpstashRedis } from "@upstash/redis";
 import { logInfo } from "@/lib/logger";
+import type {
+  RedisProvider,
+  RedisValue,
+  RedisClient,
+  RedisConnectionOptions,
+} from "@/types/infrastructure";
 
-export type RedisProvider = "upstash" | "memory";
-
-export type RedisValue =
-  string | number | boolean | null | Record<string, unknown> | unknown[];
-
-export interface RedisClient {
-  get<T = unknown>(key: string): Promise<T | null>;
-  set(key: string, value: RedisValue, ttlSeconds?: number): Promise<void>;
-  del(key: string): Promise<void>;
-  incr(key: string, ttlSeconds?: number): Promise<number>;
-  incrby(key: string, increment: number, ttlSeconds?: number): Promise<number>;
-  expire(key: string, ttlSeconds: number): Promise<void>;
-  push(key: string, value: RedisValue, ttlSeconds?: number): Promise<void>;
-  range<T = unknown>(key: string, start: number, stop: number): Promise<T[]>;
-  ping(): Promise<string>;
-}
-
-export interface RedisConnectionOptions {
-  maxRetriesPerRequest?: number | null;
-  enableReadyCheck?: boolean;
-  lazyConnect?: boolean;
-}
+export type { RedisProvider, RedisValue, RedisClient, RedisConnectionOptions };
 
 /** Timeout tunggu hasil probe PING (ms) sebelum fallback ke memory client. */
 const PROBE_TIMEOUT_MS = 3_000;

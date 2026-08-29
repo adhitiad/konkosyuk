@@ -34,11 +34,30 @@
     "auditLogs": "감사 로그",
     "generalLedger": "총계정원장",
     "pengaturanProfil": "프로필 설정",
-    "settings": "설정",
-    "appSettings": "App Settings"
+    "insights": "통찰력",
+    "favorites": "즐겨찾기",
+    "groupBookings": "그룹 예약",
+    "inspections": "검사",
+    "loyalty": "충성도",
+    "referrals": "추천",
+    "savedSearches": "저장된 검색",
+    "adPackages": "광고 패키지",
+    "adRevenue": "광고 수익",
+    "ads": "광고",
+    "costs": "비용",
+    "featureFlags": "기능 플래그",
+    "refundRequests": "환불 요청"
   },
   "sidebar": {
-    "menu": "메뉴"
+    "menu": "메뉴",
+    "dashboard": "대시보드",
+    "keuangan": "재정",
+    "book": "예약",
+    "analitik": "분석",
+    "alat": "도구",
+    "notifikasi": "알림",
+  "chat": "채팅",
+  "profil": "프로필"
   },
   "navbar": {
     "title": "Konkosyuk"

@@ -1,9 +1,6 @@
-export interface ImageCompressionOptions {
-  maxSizeMB?: number;
-  maxWidthOrHeight?: number;
-  useWebWorker?: boolean;
-  onProgress?: (progress: number) => void;
-}
+import type { ImageCompressionOptions } from "@/types/infrastructure";
+
+export type { ImageCompressionOptions };
 
 export async function compressImage(
   file: File,

@@ -1,4 +1,6 @@
-export type CommissionCategory = "owner" | "tenant";
+import type { CommissionCategory } from "@/types/infrastructure";
+
+export type { CommissionCategory };
 
 export const OWNER_TIER_RATES: Record<number, number> = {
   1: 0.01,

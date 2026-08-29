@@ -7,16 +7,11 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { validateActionCsrf } from "@/lib/api-auth";
+import type { ToggleWishlistState } from "@/types/action";
 
 const toggleWishlistSchema = z.object({
   propertyId: z.string().uuid(),
 });
-
-export type ToggleWishlistState = {
-  success?: boolean;
-  error?: string;
-  favorited?: boolean;
-};
 
 export async function toggleWishlist(
   _prevState: ToggleWishlistState | undefined,

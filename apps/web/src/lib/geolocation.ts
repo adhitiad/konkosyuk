@@ -151,12 +151,8 @@ export async function getCoordsFromAddress(
   };
 }
 
-export interface StructuredAddress {
-  displayName: string;
-  province: string;
-  city: string;
-  district: string;
-}
+import type { StructuredAddress } from "@/types/infrastructure";
+export type { StructuredAddress };
 
 export async function getStructuredAddressFromCoords(
   lat: number,

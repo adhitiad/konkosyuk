@@ -9,6 +9,7 @@ import { z } from "zod";
 import type { Role } from "@/lib/auth";
 import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
+import type { CreateLedgerEntryState } from "@/types/action";
 
 const createLedgerEntrySchema = z
   .object({
@@ -45,11 +46,6 @@ const createLedgerEntrySchema = z
     },
   );
 
-export type CreateLedgerEntryState = {
-  success?: boolean;
-  error?: string;
-  data?: typeof generalLedger.$inferSelect;
-};
 
 export async function createLedgerEntryAction(
   _prevState: CreateLedgerEntryState | undefined,

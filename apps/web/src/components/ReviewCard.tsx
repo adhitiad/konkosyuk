@@ -4,7 +4,7 @@ import { StarRating } from "@/components/StarRating";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
 import Image from "next/image";
-import { ReviewCardData } from "@/lib/types/reviews";
+import { ReviewCardData } from "@/types/review";
 
 interface ReviewCardProps {
   review: ReviewCardData;

@@ -17,7 +17,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { DialogClose } from "@/components/ui/dialog";
-import { createUnitAction, CreateUnitState } from "@/actions/units";
+import { createUnitAction } from "@/actions/units";
+import type { CreateUnitState } from "@/types/action";
 
 interface AddUnitDialogProps {
   propertyId: string;

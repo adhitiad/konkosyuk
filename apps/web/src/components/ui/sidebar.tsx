@@ -701,6 +701,7 @@ function SidebarMenuSubButton({
 
 export {
   Sidebar,
+  sidebarMenuButtonVariants,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,

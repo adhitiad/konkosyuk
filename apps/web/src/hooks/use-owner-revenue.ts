@@ -2,30 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/axios";
-
-type RevenuePeriod = "month" | "quarter" | "year";
-
-type RevenueResponse = {
-  totalRevenue: number;
-  totalTransactions: number;
-  averageTransactionValue: number;
-  comparedToPreviousPeriod: {
-    revenueChange: number;
-    transactionChange: number;
-  };
-  monthlyData: Array<{
-    label: string;
-    revenue: number;
-    transactions: number;
-  }>;
-  topProperties: Array<{
-    propertyId: string;
-    propertyName: string;
-    revenue: number;
-    transactions: number;
-    occupancyRate: number;
-  }>;
-};
+import type { RevenuePeriod, RevenueResponse } from "@/types/ui";
 
 export function useOwnerRevenue(params: {
   period: RevenuePeriod;

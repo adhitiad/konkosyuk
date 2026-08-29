@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { defineRouting } from "next-intl/routing";
-import { auth } from "@/lib/auth";
 
 export const routing = defineRouting({
   locales: ["en", "id", "my", "th", "vi", "ko", "zh", "ru"],
@@ -13,7 +12,6 @@ export const routing = defineRouting({
 // Keep the proxy limited to locale-aware UI requests. API handlers, metadata,
 // service workers, and static assets must execute in their native runtimes.
 export const config = {
-  runtime: "nodejs",
   matcher: [
     "/((?!api|_next/static|_next/image|favicon.ico|logo.png|manifest.webmanifest|sw.js|monitoring|.*\\..*).*)",
     "/(id|en|my|th|vi|ko|zh|ru)/:path*",
@@ -120,23 +118,6 @@ export async function proxy(request: NextRequest) {
     const response = NextResponse.next();
     response.headers.set("x-request-id", requestId);
     return response;
-  }
-
-  // Admin routes require ADMIN role
-  if (path.startsWith("/admin/") || path === "/admin") {
-    const session = await auth.api.getSession({
-      headers: request.headers,
-    });
-
-    if (!session) {
-      const url = new URL("/login", request.url);
-      url.searchParams.set("callbackUrl", path);
-      return NextResponse.redirect(url);
-    }
-
-    if (session.user.role !== "admin") {
-      return NextResponse.redirect(new URL("/unauthorized", request.url));
-    }
   }
 
   const nonce = generateNonce();

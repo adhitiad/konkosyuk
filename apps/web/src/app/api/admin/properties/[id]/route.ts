@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { properties, bookings } from "@/db/schema";
 import type { NewProperty } from "@/db/schema";
-import type { PropertyPackages } from "@/lib/types/property-packages";
+import type { PropertyPackages } from "@/types/property";
 import { eq, and, inArray } from "drizzle-orm";
 import { validateAdminOnlyRequest } from "@/lib/api-auth";
 import { ok, fail, handleApiError } from "@/lib/api";

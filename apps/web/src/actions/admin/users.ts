@@ -10,6 +10,7 @@ import { hashPassword } from "better-auth/crypto";
 import { createAuditLog } from "@/lib/audit-log";
 import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
+import type { UpdateUserState, DeleteUserState, BanUserState, CreateUserState } from "@/types/action";
 
 const updateUserSchema = z.object({
   id: z.string().uuid(),
@@ -27,11 +28,6 @@ const updateUserSchema = z.object({
   province: z.string().nullable().optional(),
 });
 
-export type UpdateUserState = {
-  success?: boolean;
-  error?: string;
-  message?: string;
-};
 
 export async function updateUserAction(
   _prevState: UpdateUserState | undefined,
@@ -194,11 +190,6 @@ const deleteUserSchema = z.object({
   id: z.string().uuid(),
 });
 
-export type DeleteUserState = {
-  success?: boolean;
-  error?: string;
-  message?: string;
-};
 
 export async function deleteUserAction(
   _prevState: DeleteUserState | undefined,
@@ -274,11 +265,6 @@ const banUserSchema = z.object({
   banReason: z.string().optional(),
 });
 
-export type BanUserState = {
-  success?: boolean;
-  error?: string;
-  message?: string;
-};
 
 export async function banUserAction(
   _prevState: BanUserState | undefined,
@@ -377,12 +363,6 @@ const createUserSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export type CreateUserState = {
-  success?: boolean;
-  error?: string;
-  message?: string;
-  data?: unknown;
-};
 
 export async function createUserAction(
   _prevState: CreateUserState | undefined,

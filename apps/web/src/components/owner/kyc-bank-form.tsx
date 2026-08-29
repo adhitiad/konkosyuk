@@ -22,10 +22,8 @@ import {
   showToastWarning,
 } from "@/lib/use-toast-custom";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  addBankAccountAction,
-  AddBankAccountState,
-} from "@/actions/bank-accounts";
+import { addBankAccountAction } from "@/actions/bank-accounts";
+import type { AddBankAccountState } from "@/types/action";
 import { useLocale } from "next-intl";
 
 const PROVIDERS = [

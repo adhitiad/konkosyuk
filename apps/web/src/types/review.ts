@@ -1,3 +1,7 @@
+/**
+ * Tipe-tipe review dan rating.
+ */
+
 export interface ReviewCardData {
   id: string;
   type: "tenant" | "property";
@@ -30,3 +34,14 @@ export interface PropertyRatingsData {
   ratingDistribution: Record<number, number>;
   recentReviews: ReviewCardData[];
 }
+
+export type ReviewInput = {
+  rating: number;
+  cleanliness: number;
+  security: number;
+  accuracy: number;
+  communication: number;
+  valueForMoney: number;
+  comment: string;
+  propertyId: string;
+};

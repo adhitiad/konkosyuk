@@ -12,6 +12,12 @@ import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
 import { sanitizeString } from "@/lib/sanitize";
 import { MAX_REVIEW_LENGTH } from "@/lib/constants/actions";
+import type {
+  CreateReviewState,
+  UpdateReviewState,
+  DeleteReviewState,
+  ReplyReviewState,
+} from "@/types/action";
 
 const createReviewSchema = z.object({
   type: z.enum(["tenant", "property"]),
@@ -35,12 +41,6 @@ const replyReviewSchema = z.object({
   reviewId: z.string().uuid(),
   content: z.string().max(1000),
 });
-
-export type UpdateReviewState = {
-  success?: boolean;
-  error?: string;
-  data?: unknown;
-};
 
 export async function updateReviewAction(
   _prevState: UpdateReviewState | undefined,
@@ -109,11 +109,6 @@ export async function updateReviewAction(
   }
 }
 
-export type DeleteReviewState = {
-  success?: boolean;
-  error?: string;
-};
-
 export async function deleteReviewAction(
   _prevState: DeleteReviewState | undefined,
   formData: FormData,
@@ -178,12 +173,6 @@ export async function deleteReviewAction(
     return { error: "Gagal menghapus review", success: false };
   }
 }
-
-export type ReplyReviewState = {
-  success?: boolean;
-  error?: string;
-  data?: unknown;
-};
 
 export async function replyReviewAction(
   _prevState: ReplyReviewState | undefined,
@@ -305,12 +294,6 @@ export async function replyReviewAction(
     return { error: "Gagal membalas review", success: false };
   }
 }
-
-export type CreateReviewState = {
-  success?: boolean;
-  error?: string;
-  data?: unknown;
-};
 
 export async function createReviewAction(
   _prevState: CreateReviewState | undefined,

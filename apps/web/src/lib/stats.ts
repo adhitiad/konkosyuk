@@ -13,10 +13,11 @@
  */
 import { getRedis } from "@/lib/redis";
 import { bufferStatUpdate } from "@/lib/stats-publisher";
+import type { ChannelStatus } from "@/types/analytics";
+
+export type { ChannelStatus };
 
 const STATS_TTL = 48 * 60 * 60;
-
-export type ChannelStatus = "success" | "failed" | "rate_limited" | "dlq";
 
 function getTimeBucket(): string {
   const now = new Date();

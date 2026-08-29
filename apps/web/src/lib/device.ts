@@ -1,14 +1,12 @@
 import { cookies } from "next/headers";
 import { CookieMapPool } from "@/lib/perf";
+import type { DeviceInfo } from "@/types/infrastructure";
+
+export type { DeviceInfo };
 
 const DEVICE_ID_COOKIE = "device_id";
 const DEVICE_NAME_COOKIE = "device_name";
 const DEVICE_ID_MAX_AGE = 60 * 60 * 24 * 365;
-
-export interface DeviceInfo {
-  deviceId: string;
-  deviceName: string;
-}
 
 export function generateDeviceId(): string {
   return crypto.randomUUID();

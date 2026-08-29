@@ -20,10 +20,8 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { WalletIcon } from "@hugeicons/core-free-icons";
 import type { OwnerBankAccount } from "@/db/schema";
-import {
-  createWithdrawalAction,
-  CreateWithdrawalState,
-} from "@/actions/withdrawals";
+import { createWithdrawalAction } from "@/actions/withdrawals";
+import type { CreateWithdrawalState } from "@/types/action";
 import { apiClient } from "@/lib/axios";
 
 interface Withdrawal {

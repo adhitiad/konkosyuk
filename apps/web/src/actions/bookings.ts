@@ -42,6 +42,7 @@ import { generateInvoiceNumber, money } from "@/lib/utils";
 import { checkFraudFlags } from "@/lib/fraud-check";
 import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
+import type { CreateBookingState, ReviewBookingState } from "@/types/action";
 
 const createBookingSchema = z.object({
   propertyId: z.string().uuid(),
@@ -54,28 +55,6 @@ const createBookingSchema = z.object({
   paymentType: z.enum(["dp", "full"]).default("dp"),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
-
-export type CreateBookingState = {
-  success?: boolean;
-  error?: string;
-  data?: {
-    id: string;
-    propertyId: string;
-    unitId: string;
-    bookingType: string;
-    status: string;
-    startDate: Date;
-    endDate: Date;
-    metadata: Record<string, unknown> | null;
-    createdAt: Date;
-    updatedAt: Date;
-    payment: {
-      totalPrice: number;
-      dpAmount: number;
-      remainingAmount: number;
-    };
-  };
-};
 
 export async function createBookingAction(
   _prevState: CreateBookingState | undefined,
@@ -385,12 +364,6 @@ const reviewBookingSchema = z.object({
   status: z.enum(["confirmed", "rejected"]),
   note: z.string().optional(),
 });
-
-export type ReviewBookingState = {
-  success?: boolean;
-  error?: string;
-  data?: unknown;
-};
 
 export async function reviewBookingAction(
   _prevState: ReviewBookingState | undefined,

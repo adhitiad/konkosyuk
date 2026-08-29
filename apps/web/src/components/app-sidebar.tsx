@@ -3,20 +3,7 @@
 import { useSession } from "@/lib/auth-client";
 import type { Role } from "@/lib/auth";
 import type { SessionUserWithRole } from "@/lib/auth-client";
-import Link from "next/link";
-import { LogoutButton } from "@/components/logout-button";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarGroup,
-  SidebarGroupLabel,
-} from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -34,123 +21,263 @@ import {
   Bell,
   FileText,
   Shield,
-  HeartPulse,
   Wrench,
   MessageSquare,
   BadgePercentIcon,
+  Heart,
+  Landmark,
+  Receipt,
+  RefreshCw,
+  Globe,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { Logo } from "@/components/ui/logo";
-import { useLocale } from "next-intl";
-import { localeHref } from "@/lib/i18n";
+import { SidebarGroupedMenu } from "@/components/sidebar-grouped-menu";
+import type { SidebarGroup } from "@/components/sidebar-grouped-menu";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+} from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { LogoutButton } from "@/components/logout-button";
 
-const menuConfig: Record<
-  Role,
-  { title: string; href: string; icon: React.ElementType }[]
-> = {
-  cust: [
+const custDashboardGroup: SidebarGroup = {
+  label: "dashboard",
+  icon: LayoutDashboard,
+  items: [
     { title: "dashboard", href: "/dashboard", icon: LayoutDashboard },
     { title: "myBookings", href: "/dashboard/bookings", icon: CalendarDays },
-    { title: "payment", href: "/dashboard/payments", icon: CreditCard },
+    { title: "groupBookings", href: "/dashboard/group-bookings", icon: Users },
+    { title: "inspections", href: "/dashboard/inspections", icon: FileText },
+    { title: "favorites", href: "/dashboard/favorites", icon: Heart },
+    { title: "loyalty", href: "/dashboard/loyalty", icon: BadgePercentIcon },
     { title: "maintenance", href: "/dashboard/maintenance", icon: Wrench },
-    { title: "search", href: "/properties", icon: Search },
-    { title: "chat", href: "/chat", icon: MessageSquare },
-    { title: "notifications", href: "/notifications", icon: Bell },
-    { title: "pengaturanProfil", href: "/settings/profile", icon: User },
+    { title: "referrals", href: "/dashboard/referrals", icon: Users },
+    { title: "payment", href: "/dashboard/payments", icon: CreditCard },
   ],
-  owner: [
-    { title: "dashboard", href: "/owner", icon: LayoutDashboard },
-    { title: "myProperties", href: "/owner/properties", icon: Building2 },
-    { title: "units", href: "/owner/units", icon: Layers },
-    { title: "incomingBookings", href: "/owner/bookings", icon: CalendarDays },
+};
+
+const keuanganGroup: SidebarGroup = {
+  label: "keuangan",
+  icon: Wallet,
+  items: [{ title: "wallet", href: "/owner/wallet", icon: Wallet }],
+};
+
+const bookGroup: SidebarGroup = {
+  label: "book",
+  icon: CalendarDays,
+  items: [
+    { title: "myBookings", href: "/owner/bookings", icon: CalendarDays },
     { title: "bookingRequests", href: "/owner/booking-requests", icon: Users },
+    { title: "groupBookings", href: "/owner/group-bookings", icon: Users },
+  ],
+};
+
+const analitikGroup: SidebarGroup = {
+  label: "analitik",
+  icon: BarChart3,
+  items: [
+    { title: "analytics", href: "/owner/analytics", icon: BarChart3 },
     { title: "insights", href: "/owner/insights", icon: Activity },
-    { title: "chat", href: "/chat", icon: MessageSquare },
+    { title: "reports", href: "/owner/reports", icon: FileText },
+    { title: "generalLedger", href: "/admin/general-ledger", icon: Landmark },
+    { title: "auditLogs", href: "/admin/audit-logs", icon: Shield },
+  ],
+};
+
+const alatGroup: SidebarGroup = {
+  label: "alat",
+  icon: Wrench,
+  items: [
+    { title: "savedSearches", href: "/saved-searches", icon: Search },
     { title: "maintenance", href: "/owner/maintenance", icon: Wrench },
     { title: "pricing", href: "/owner/pricing", icon: BadgePercentIcon },
-    { title: "analytics", href: "/owner/analytics", icon: BarChart3 },
-    { title: "reports", href: "/owner/reports", icon: FileText },
-    { title: "notifications", href: "/notifications", icon: Bell },
-    { title: "wallet", href: "/owner/wallet", icon: Wallet },
-    {
-      title: "bankAccounts",
-      href: "/owner/settings/bank-accounts",
-      icon: CreditCard,
-    },
+    { title: "units", href: "/owner/units", icon: Layers },
     { title: "kyc", href: "/owner/kyc", icon: IdCard },
+    { title: "myProperties", href: "/owner/properties", icon: Building2 },
+    { title: "ads", href: "/admin/ads", icon: Globe },
+    { title: "adPackages", href: "/admin/ad-packages", icon: BadgePercentIcon },
+    { title: "featureFlags", href: "/admin/feature-flags", icon: BadgePercentIcon },
+    { title: "systemHealth", href: "/admin/system-health", icon: Shield },
+    { title: "webhookLog", href: "/admin/webhooks", icon: Activity },
+    { title: "activityLogs", href: "/admin/activity-logs", icon: FileText },
+  ],
+};
+
+const chatGroup: SidebarGroup = {
+  label: "chat",
+  icon: MessageSquare,
+  items: [{ title: "chat", href: "/chat", icon: MessageSquare }],
+};
+
+const notifikasiGroup: SidebarGroup = {
+  label: "notifikasi",
+  icon: Bell,
+  items: [
+    { title: "notifications", href: "/notifications", icon: Bell },
+    { title: "pushNotifications", href: "/admin/push-notifications", icon: Bell },
+    { title: "notificationSettings", href: "/admin/settings/notifications", icon: Settings },
+  ],
+};
+
+const profilGroup: SidebarGroup = {
+  label: "profil",
+  icon: User,
+  items: [
     { title: "pengaturanProfil", href: "/settings/profile", icon: User },
+  ],
+};
+
+const adminDashboardGroup: SidebarGroup = {
+  label: "dashboard",
+  icon: LayoutDashboard,
+  items: [
+    { title: "dashboard", href: "/admin", icon: LayoutDashboard },
+    { title: "analytics", href: "/admin/analytics", icon: BarChart3 },
+    { title: "users", href: "/admin/users", icon: Users },
+    { title: "properties", href: "/admin/properties", icon: Building2 },
+    { title: "payment", href: "/admin/payments", icon: CreditCard },
+    { title: "paymentGateways", href: "/admin/payment-gateways", icon: Wallet },
+    { title: "kycRequests", href: "/admin/kyc-requests", icon: IdCard },
+    { title: "maintenance", href: "/admin/maintenance-reports", icon: Wrench },
+    { title: "refundRequests", href: "/admin/refund-requests", icon: RefreshCw },
+    { title: "adRevenue", href: "/admin/ad-revenue", icon: Receipt },
+    { title: "costs", href: "/admin/costs", icon: Receipt },
+  ],
+};
+
+const menuConfig: Record<Role, SidebarGroup[]> = {
+  cust: [
+    custDashboardGroup,
+    keuanganGroup,
+    bookGroup,
+    analitikGroup,
+    alatGroup,
+    chatGroup,
+    notifikasiGroup,
+    profilGroup,
+  ],
+  owner: [
+    {
+      label: "dashboard",
+      icon: LayoutDashboard,
+      items: [
+        { title: "dashboard", href: "/owner", icon: LayoutDashboard },
+        { title: "favorites", href: "/dashboard/favorites", icon: Heart },
+        { title: "loyalty", href: "/dashboard/loyalty", icon: BadgePercentIcon },
+        { title: "maintenance", href: "/owner/maintenance", icon: Wrench },
+        { title: "inspections", href: "/owner/inspections", icon: FileText },
+        { title: "payment", href: "/dashboard/payments", icon: CreditCard },
+        { title: "referrals", href: "/dashboard/referrals", icon: Users },
+      ],
+    },
+    keuanganGroup,
+    bookGroup,
+    {
+      label: "analitik",
+      icon: BarChart3,
+      items: [
+        { title: "analytics", href: "/owner/analytics", icon: BarChart3 },
+        { title: "insights", href: "/owner/insights", icon: Activity },
+        { title: "reports", href: "/owner/reports", icon: FileText },
+    ],
+    },
+    {
+      label: "alat",
+      icon: Wrench,
+      items: [
+        { title: "pricing", href: "/owner/pricing", icon: BadgePercentIcon },
+        { title: "units", href: "/owner/units", icon: Layers },
+        { title: "kyc", href: "/owner/kyc", icon: IdCard },
+        { title: "myProperties", href: "/owner/properties", icon: Building2 },
+    ],
+    },
+    chatGroup,
+    notifikasiGroup,
+    profilGroup,
   ],
   admin: [
-    { title: "dashboard", href: "/admin", icon: LayoutDashboard },
-    { title: "analytics", href: "/admin/analytics", icon: BarChart3 },
-    { title: "users", href: "/admin/users", icon: Users },
-    { title: "properties", href: "/admin/properties", icon: Building2 },
-    { title: "booking", href: "/admin/bookings", icon: CalendarDays },
-    { title: "payment", href: "/admin/payments", icon: CreditCard },
-    { title: "paymentGateways", href: "/admin/payment-gateways", icon: Wallet },
-    { title: "webhookLog", href: "/admin/webhooks", icon: Activity },
-    { title: "kycRequests", href: "/admin/kyc-requests", icon: IdCard },
-    { title: "notifications", href: "/admin/notifications", icon: Bell },
+    adminDashboardGroup,
     {
-      title: "pushNotifications",
-      href: "/admin/push-notifications",
-      icon: Bell,
+      label: "keuangan",
+      icon: Wallet,
+      items: [
+        { title: "wallet", href: "/owner/wallet", icon: Wallet },
+        { title: "bankAccounts", href: "/owner/settings/bank-accounts", icon: CreditCard },
+        { title: "refundRequests", href: "/admin/refund-requests", icon: RefreshCw },
+        { title: "adRevenue", href: "/admin/ad-revenue", icon: Receipt },
+        { title: "costs", href: "/admin/costs", icon: Receipt },
+    ],
     },
     {
-      title: "notificationSettings",
-      href: "/admin/settings/notifications",
-      icon: Settings,
+      label: "book",
+      icon: CalendarDays,
+      items: [
+        { title: "incomingBookings", href: "/admin/bookings", icon: CalendarDays },
+    ],
     },
-    { title: "maintenance", href: "/admin/maintenance-reports", icon: Wrench },
-    { title: "systemHealth", href: "/admin/system-health", icon: HeartPulse },
-    { title: "activityLogs", href: "/admin/activity-logs", icon: FileText },
-    { title: "auditLogs", href: "/admin/audit-logs", icon: Shield },
-    { title: "generalLedger", href: "/admin/general-ledger", icon: FileText },
-    { title: "reports", href: "/admin/reports/demographics", icon: BarChart3 },
-    { title: "appSettings", href: "/admin/settings", icon: Settings },
-    { title: "settings", href: "/admin/settings/monetization", icon: Settings },
-    { title: "pengaturanProfil", href: "/settings/profile", icon: User },
+    analitikGroup,
+    {
+      label: "alat",
+      icon: Wrench,
+      items: [
+        { title: "systemHealth", href: "/admin/system-health", icon: Shield },
+        { title: "featureFlags", href: "/admin/feature-flags", icon: BadgePercentIcon },
+        { title: "webhookLog", href: "/admin/webhooks", icon: Activity },
+        { title: "activityLogs", href: "/admin/activity-logs", icon: FileText },
+        { title: "ads", href: "/admin/ads", icon: Globe },
+        { title: "adPackages", href: "/admin/ad-packages", icon: BadgePercentIcon },
+        { title: "appSettings", href: "/admin/settings", icon: Settings },
+        { title: "settings", href: "/admin/settings/monetization", icon: BadgePercentIcon },
+      ],
+    },
+    chatGroup,
+    notifikasiGroup,
+    profilGroup,
   ],
   staff: [
-    { title: "dashboard", href: "/admin", icon: LayoutDashboard },
-    { title: "analytics", href: "/admin/analytics", icon: BarChart3 },
-    { title: "users", href: "/admin/users", icon: Users },
-    { title: "properties", href: "/admin/properties", icon: Building2 },
-    { title: "booking", href: "/admin/bookings", icon: CalendarDays },
-    { title: "payment", href: "/admin/payments", icon: CreditCard },
-    { title: "paymentGateways", href: "/admin/payment-gateways", icon: Wallet },
-    { title: "webhookLog", href: "/admin/webhooks", icon: Activity },
-    { title: "kycRequests", href: "/admin/kyc-requests", icon: IdCard },
-    { title: "notifications", href: "/admin/notifications", icon: Bell },
+    adminDashboardGroup,
     {
-      title: "pushNotifications",
-      href: "/admin/push-notifications",
-      icon: Bell,
+      label: "keuangan",
+      icon: Wallet,
+      items: [
+        { title: "wallet", href: "/owner/wallet", icon: Wallet },
+        { title: "bankAccounts", href: "/owner/settings/bank-accounts", icon: CreditCard },
+        { title: "refundRequests", href: "/admin/refund-requests", icon: RefreshCw },
+      ],
     },
     {
-      title: "notificationSettings",
-      href: "/admin/settings/notifications",
-      icon: Settings,
+      label: "book",
+      icon: CalendarDays,
+      items: [
+        { title: "incomingBookings", href: "/admin/bookings", icon: CalendarDays },
+      ],
     },
-    { title: "maintenance", href: "/admin/maintenance-reports", icon: Wrench },
-    { title: "systemHealth", href: "/admin/system-health", icon: HeartPulse },
-    { title: "activityLogs", href: "/admin/activity-logs", icon: FileText },
-    { title: "auditLogs", href: "/admin/audit-logs", icon: Shield },
-    { title: "generalLedger", href: "/admin/general-ledger", icon: FileText },
-    { title: "reports", href: "/admin/reports/demographics", icon: BarChart3 },
-    { title: "pengaturanProfil", href: "/settings/profile", icon: User },
+    analitikGroup,
+    {
+      label: "alat",
+      icon: Wrench,
+      items: [
+        { title: "systemHealth", href: "/admin/system-health", icon: Shield },
+        { title: "webhookLog", href: "/admin/webhooks", icon: Activity },
+        { title: "activityLogs", href: "/admin/activity-logs", icon: FileText },
+        { title: "appSettings", href: "/admin/settings", icon: Settings },
+      ],
+    },
+    chatGroup,
+    notifikasiGroup,
+    profilGroup,
   ],
 };
 
 export function AppSidebar() {
   const { data: session } = useSession();
   const t = useTranslations("common");
-  const tSidebar = useTranslations("sidebar");
-  const locale = useLocale();
   const user = session?.user as SessionUserWithRole | undefined;
 
   const role = (user?.role as Role | undefined) ?? "cust";
-  const items = menuConfig[role] ?? menuConfig.cust;
+  const groups = menuConfig[role] ?? menuConfig.cust;
 
   const initials =
     user?.name
@@ -159,8 +286,6 @@ export function AppSidebar() {
       .join("")
       .toUpperCase()
       .slice(0, 2) ?? "U";
-
-  const prefixLocale = (href: string) => `/${locale}${href}`;
 
   return (
     <Sidebar collapsible="icon">
@@ -173,32 +298,12 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>{tSidebar("menu")}</SidebarGroupLabel>
-          <SidebarMenu>
-            {items?.map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  render={
-                    <Link href={localeHref(locale, prefixLocale(item.href))}>
-                      <item.icon />
-                      <span>{t(item.title)}</span>
-                    </Link>
-                  }
-                  tooltip={t(item.title)}
-                />
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
+        <SidebarGroupedMenu groups={groups} />
       </SidebarContent>
       <SidebarFooter>
         <div className="flex items-center gap-2 px-2 group-data-[collapsible=icon]:justify-center">
           <Avatar className="h-8 w-8">
-            <AvatarImage
-              src={user?.image ?? undefined}
-              alt={user?.name ?? ""}
-            />
+            <AvatarImage src={user?.image ?? undefined} alt={user?.name ?? ""} />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           <div className="hidden flex-col group-data-[collapsible=icon]:hidden">

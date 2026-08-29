@@ -119,6 +119,7 @@ export default [
       "src/app/**/*.{ts,tsx}",
       "src/scripts/**/*.{ts,tsx}",
       "src/lib/**/*.{ts,tsx}",
+      "src/types/**/*.{ts,tsx}",
       "scripts/**/*.{ts,tsx}",
       "vitest.config.ts",
     ],

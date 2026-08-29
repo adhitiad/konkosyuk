@@ -1,9 +1,7 @@
 import { uploadToCloudinary } from "@/lib/cloudinary";
+import type { UploadResult } from "@/types/infrastructure";
 
-export interface UploadResult {
-  url: string;
-  provider: "cloudinary";
-}
+export type { UploadResult };
 
 export async function uploadFile(
   file: File,

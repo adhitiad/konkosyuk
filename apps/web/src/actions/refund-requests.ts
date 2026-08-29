@@ -10,17 +10,13 @@ import { createAuditLog } from "@/lib/audit-log";
 import { createNotification, sendRefundApprovalWhatsApp } from "@/lib/notification-client";
 import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
+import type { RequestRefundState } from "@/types/action";
 
 const requestRefundSchema = z.object({
   bookingId: z.string().uuid(),
   paymentId: z.string().uuid(),
   reason: z.string().min(10, "Alasan refund minimal 10 karakter"),
 });
-
-export type RequestRefundState = {
-  success?: boolean;
-  error?: string;
-};
 
 export async function requestRefundAction(
   _prevState: RequestRefundState | undefined,

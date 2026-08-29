@@ -1,18 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type { Ad } from "@/types/ui";
 
-export interface Ad {
-  id: string;
-  title: string;
-  description: string;
-  imageUrl: string;
-  targetUrl: string | null;
-  location: string;
-  price: string | null;
-  type: string;
-  advertiserName: string;
-}
+export type { Ad };
 
 export function useAds(type?: string): {
   ads: Ad[];

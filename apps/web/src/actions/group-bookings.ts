@@ -15,22 +15,10 @@ import { invalidateCacheByTag } from "@/lib/cache";
 import { dispatchGroupBookingInvite } from "@/lib/notification-client";
 import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
+import type { CreateGroupBookingState } from "@/types/action";
 
 type GroupBookingInsert = typeof groupBookings.$inferInsert;
 type GroupBookingMemberInsert = typeof groupBookingMembers.$inferInsert;
-
-export type CreateGroupBookingState = {
-  success?: boolean;
-  error?: string;
-  data?: {
-    id: string;
-    propertyId: string;
-    unitId: string;
-    status: string;
-    startDate: Date;
-    endDate: Date;
-  };
-};
 
 const createGroupBookingSchema = z.object({
   propertyId: z.string().uuid(),

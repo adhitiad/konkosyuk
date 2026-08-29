@@ -6,17 +6,7 @@
  */
 
 import { trackUsage } from "@/lib/usage-tracker";
-
-type StatUpdate = {
-  channel: string;
-  status: string;
-  count: number;
-};
-
-type StatsPayload = {
-  timestamp: string;
-  updates: StatUpdate[];
-};
+import type { StatUpdate, StatsPayload } from "@/types/analytics";
 
 const buffer = new Map<string, StatUpdate>();
 let intervalId: ReturnType<typeof setInterval> | null = null;

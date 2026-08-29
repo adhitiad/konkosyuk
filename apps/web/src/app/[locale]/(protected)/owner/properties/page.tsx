@@ -35,7 +35,7 @@ import {
   Calendar03Icon,
 } from "@hugeicons/core-free-icons";
 import type { Property } from "@/db/schema";
-import type { PropertyPackages } from "@/lib/types/property-packages";
+import type { PropertyPackages } from "@/types/property";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
 import { KycGuard } from "@/components/kyc/kyc-guard";
 import { deletePropertyAction } from "@/actions/properties";

@@ -7,17 +7,12 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { validateActionCsrf } from "@/lib/api-auth";
+import type { ActionState } from "@/types/action";
 
 const createSavedSearchSchema = z.object({
   name: z.string().optional(),
   filters: z.record(z.string(), z.unknown()),
 });
-
-export type ActionState = {
-  success?: boolean;
-  error?: string;
-  data?: unknown;
-};
 
 export async function createSavedSearch(
   __prevState: ActionState | undefined,

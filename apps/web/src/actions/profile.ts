@@ -9,17 +9,12 @@ import { z } from "zod";
 import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
 import { sanitizeString } from "@/lib/sanitize";
+import type { UpdateProfileState, UpdateUserProfileState } from "@/types/action";
 
 const updateProfileSchema = z.object({
   name: z.string().min(3, "Nama minimal 3 karakter").max(255),
   phone: z.string().min(1, "Nomor telepon wajib diisi").max(20),
 });
-
-export type UpdateProfileState = {
-  success?: boolean;
-  error?: string;
-  data?: typeof users.$inferSelect;
-};
 
 export async function updateProfileAction(
   _prevState: UpdateProfileState | undefined,
@@ -78,12 +73,6 @@ const updateUserProfileSchema = z.object({
   city: z.string().optional().nullable(),
   district: z.string().optional().nullable(),
 });
-
-export type UpdateUserProfileState = {
-  success?: boolean;
-  error?: string;
-  data?: typeof users.$inferSelect;
-};
 
 export async function updateUserProfileAction(
   _prevState: UpdateUserProfileState | undefined,

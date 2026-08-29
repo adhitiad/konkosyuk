@@ -17,6 +17,7 @@ import { sendBookingRejectionEmail, sendRefundApprovalWhatsApp } from "@/lib/not
 import { createNotification } from "@/lib/notification-client";
 import { logError } from "@/lib/logger";
 import { validateActionCsrf } from "@/lib/api-auth";
+import type { ReviewRefundState } from "@/types/action";
 import { handleReferralFailureOnRefund } from "@/lib/referrals/verification";
 
 const reviewRefundSchema = z.object({
@@ -32,10 +33,6 @@ const reviewRefundSchema = z.object({
     .optional(),
 });
 
-export type ReviewRefundState = {
-  success?: boolean;
-  error?: string;
-};
 
 export async function reviewRefundAction(
   _prevState: ReviewRefundState | undefined,

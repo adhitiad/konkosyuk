@@ -4,19 +4,7 @@
  */
 
 import { create } from "zustand";
-
-interface FilterState {
-  search: string;
-  category: string | null;
-  city: string | null;
-  minPrice: number | null;
-  maxPrice: number | null;
-  setSearch: (search: string) => void;
-  setCategory: (category: string | null) => void;
-  setCity: (city: string | null) => void;
-  setPriceRange: (minPrice: number | null, maxPrice: number | null) => void;
-  resetFilters: () => void;
-}
+import type { FilterState } from "@/types/store";
 
 const initialState = {
   search: "",

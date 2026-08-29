@@ -29,7 +29,7 @@ import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
 import type {
   PropertyPackages,
   DurationUnit,
-} from "@/lib/types/property-packages";
+} from "@/types/property";
 import { createBookingOrGroupAction } from "@/actions/bookings";
 import { calculatePackageEndDate } from "@/lib/packages/calculator";
 import type { AppliedSeasonalRule } from "@/lib/pricing/seasonal";

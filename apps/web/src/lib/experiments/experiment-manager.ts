@@ -2,22 +2,13 @@ import { eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import { experiments, experimentAssignments } from "@/db/schema";
 import { createHash } from "crypto";
+import type {
+  ExperimentVariant,
+  Experiment,
+  ExperimentStatus,
+} from "@/types/infrastructure";
 
-export interface ExperimentVariant {
-  name: string;
-  weight: number;
-  config: Record<string, unknown>;
-}
-
-export interface Experiment {
-  id: string;
-  name: string;
-  status: "draft" | "running" | "completed";
-  variants: ExperimentVariant[];
-  metrics: Array<{ name: string; primary?: boolean }>;
-  startDate?: Date;
-  endDate?: Date;
-}
+export type { ExperimentVariant, Experiment, ExperimentStatus };
 
 export async function getExperiment(
   experimentId: string,

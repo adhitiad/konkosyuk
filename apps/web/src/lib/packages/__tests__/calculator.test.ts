@@ -6,7 +6,7 @@ import {
   validateBookingPackage,
   calculateCustomPrice,
 } from "@/lib/packages/calculator";
-import type { PropertyPackages } from "@/lib/types/property-packages";
+import type { PropertyPackages } from "@/types/property";
 
 const mockPackages: PropertyPackages = {
   predefined: [

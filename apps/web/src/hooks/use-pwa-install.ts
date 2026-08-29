@@ -1,11 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt(): Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
+import type { BeforeInstallPromptEvent } from "@/types/ui";
 
 export function usePwaInstall() {
   const [deferredPrompt, setDeferredPrompt] =

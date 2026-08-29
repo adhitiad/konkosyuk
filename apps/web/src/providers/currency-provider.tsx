@@ -2,8 +2,9 @@
 
 import { createContext, useContext, use, ReactNode } from "react";
 import { cookies } from "next/headers";
+import type { Currency, CurrencyContextType } from "@/types/ui";
 
-export type Currency = "IDR" | "USD" | "EUR" | "SGD" | "MYR";
+export type { Currency, CurrencyContextType };
 
 export const currencyConfig: Record<
   Currency,
@@ -14,13 +15,6 @@ export const currencyConfig: Record<
   EUR: { locale: "de-DE", currency: "EUR", symbol: "€" },
   SGD: { locale: "en-SG", currency: "SGD", symbol: "S$" },
   MYR: { locale: "ms-MY", currency: "MYR", symbol: "RM" },
-};
-
-type CurrencyContextType = {
-  currency: Currency;
-  setCurrency: (currency: Currency) => void;
-  formatCurrency: (value: number) => string;
-  convertCurrency: (value: number, from: Currency, to: Currency) => number;
 };
 
 const CurrencyContext = createContext<CurrencyContextType | null>(null);

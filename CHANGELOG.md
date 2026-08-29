@@ -1,6 +1,57 @@
 # Ringkasan Perubahan
 
-## Seed Data Tambahan (User, Owner, Staff, Properti, Iklan) - 28-Agu-2026 13:58
+## Konsolidasi Type Domain ke src/types/ - 29-Agu-2026 03:50
+
+### Ringkasan
+Konsolidasi semua definisi `interface`, `type`, dan `enum` di `apps/web/src/` ke dalam folder `src/types/` yang dikelompokkan berdasarkan domain. Semua import di hooks, stores, providers, actions, components, dan route app telah diperbarui untuk mengacu ke `src/types/*.ts`.
+
+### Perubahan Utama
+- **11 file type domain baru** di `src/types/`: `action.ts`, `user.ts`, `property.ts`, `booking.ts`, `payment.ts`, `notification.ts`, `review.ts`, `analytics.ts`, `infrastructure.ts`, `ui.ts`, `store.ts`, dan `index.ts` (barrel export)
+- **File dihapus**: `src/types/misc.ts` (tidak pernah diimport), `src/lib/types/property-packages.ts`, `src/lib/types/reviews.ts`, dan direktori `src/lib/types/`
+- **17 file action non-admin** (`bank-accounts.ts`, `booking-requests.ts`, `bookings.ts`, `chat.ts`, `group-bookings.ts`, `maintenance.ts`, `notifications.ts`, `profile.ts`, `properties.ts`, `referrals.ts`, `refund-requests.ts`, `reviews.ts`, `units.ts`, `upload.ts`, `wishlist.ts`, `withdrawals.ts`, `saved-searches.ts`) — semua mengimpor state type dari `@/types/action`
+- **7 file konsumen** (`add-unit-dialog.tsx`, `units/page.tsx`, `bank-accounts/page.tsx`, `wallet/page.tsx`, `kyc-bank-form.tsx`, `property-images-upload.tsx`, `report-form.tsx`) — import type langsung dari `@/types/action`
+- **10 file lib** (`analytics.ts`, `payments/types.ts`, `audit-log.ts`, `auth-client.ts`, `auth.ts`, `redis.ts`, `rate-limit.ts`, `cache.ts`, `device.ts`, `notification-client.ts`, dll.) — import dari `@/types/` dan hapus definisi lokal
+- **2 file komponen** (`RatingSummary.tsx`, `ReviewCard.tsx`) — import dari `@/types/review`
+- **3 file** (`package-form.tsx`, `calculator.ts`, `calculator.test.ts`) — import dari `@/types/property`
+- **ESLint config** (`eslint.config.mjs`) — menambahkan `src/types/**/*.{ts,tsx}` ke whitelist impor server-only karena hanya berisi type definitions
+- **use-kyc-status.ts** — menghapus import `KycStatus` yang tidak dipakai
+
+### Catatan Teknis
+- `types/action.ts` menggunakan `import type` untuk `typeof users.$inferSelect` dari `@/db/schema` — hanya type-level, tidak menghasilkan runtime import
+- `Locale` tetap di `config.ts`; `BucketSize`, `RoleOption`, `RoomFacilityCategory` dsb. tetap di file aslinya (dihasilkan dari const)
+- Tipe Drizzle schema tidak dipindahkan ke `types/`
+- `types/action.ts` tidak memuat `CreateReportState`/`UpdateReportState` (bergantung pada Drizzle schema inference)
+
+## Refaktor Sidebar dengan DropdownMenu Terkelompok & Dukungan 8 Bahasa - 28-Agu-2026 16:12
+
+### Ringkasan
+Mengelompokkan menu sidebar ke dalam dropdown per kategori (dashboard, keuangan, analitik, alat, book, notifikasi, chat, profil) menggunakan shadcn `DropdownMenu` dari `@base-ui/react/menu`. Setiap role (cust, owner, admin, staff) mendapatkan grup menu yang relevan dengan peran tersebut. Semua label dan item diterjemahkan ke dalam 8 bahasa (en, id, my, th, vi, ko, zh, ru).
+
+### Perbaikan
+- Memperbaiki error hydrasi `<button>` bersarang dengan menggunakan `DropdownMenuTrigger` langsung (mengganti `SidebarMenuButton` yang menghasilkan nested buttons)
+- Memperbaiki duplikat label grup "alat" pada role admin dengan menggabungkan `adminSettingsGroup` ke dalam grup "alat"
+- Mengekspor `sidebarMenuButtonVariants` dari `components/ui/sidebar.tsx` untuk digunakan di `SidebarGroupedMenu`
+
+### Perubahan Utama
+- **SidebarGroupedMenu baru**: Komponen baru di `apps/web/src/components/sidebar-grouped-menu.tsx` yang merender dropdown per grup menggunakan `DropdownMenu` dari `@base-ui/react/menu`
+- **menuConfig role-specifik**: Setiap role mendapatkan grup menu yang sesuai:
+  - `cust`: dashboard (9 items), keuangan (wallet), book, analitik, alat (12 items), chat, notifikasi, profil
+  - `owner`: dashboard (7 items), keuangan, book, analitik, alat (5 items), chat, notifikasi, profil
+  - `admin`: dashboard (11 items), keuangan (5 items), book, analitik, alat (8 items), chat, notifikasi, profil
+  - `staff`: dashboard (11 items), keuangan (3 items), book, analitik, alat (4 items), chat, notifikasi, profil
+- **Icon baru**: `RefreshCw`, `Landmark`, `Receipt`, `Globe`, `Heart` untuk item refund requests, general ledger, ad revenue/costs, ads, dan favorites
+- **Grup baru**: `chat` dan `profil` ditambahkan sebagai grup sidebar terpisah
+
+### File Baru
+- `apps/web/src/components/sidebar-grouped-menu.tsx` — Komponen DropdownMenu berbasis grup untuk sidebar
+
+### File Diubah
+- `apps/web/src/components/app-sidebar.tsx` — Refaktor menuConfig ke struktur grup per role
+- `apps/web/src/components/ui/sidebar.tsx` — Mengekspor `sidebarMenuButtonVariants`
+- `apps/web/src/messages/{en,id,my,th,vi,ko,zh,ru}.json` — Tambah kunci `chat` dan `profil` di seksi `sidebar`
+
+### Bahasa Dukungan
+Semua label grup sidebar (`dashboard`, `keuangan`, `book`, `analitik`, `alat`, `notifikasi`, `chat`, `profil`) dan item menu tersedia dalam 8 bahasa.
 
 ### Ringkasan
 Menambahkan data seed tambahan untuk pengembangan dan testing: 16 user baru (10 cust/owner, 2 admin, 4 staff), 10 properti kost/kontrakan dari berbagai provinsi, dan 1 iklan.

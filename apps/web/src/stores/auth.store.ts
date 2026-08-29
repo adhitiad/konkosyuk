@@ -6,14 +6,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
-interface AuthState {
-  isAuthenticated: boolean;
-  userName: string | null;
-  userImage: string | null;
-  setAuth: (name: string, image: string | null) => void;
-  clearAuth: () => void;
-}
+import type { AuthState } from "@/types/store";
 
 export const useAuthStore = create<AuthState>()(
   persist(

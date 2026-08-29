@@ -1,18 +1,14 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { getRedis } from "@/lib/redis";
 import { getClientIp } from "@/lib/webhook-ip-allowlist";
+import type {
+  RateLimitConfig,
+  RateLimitResult,
+  RateLimitOptions,
+  RateLimitDeviceInput,
+} from "@/types/infrastructure";
 
-export interface RateLimitConfig {
-  windowMs: number;
-  maxRequests: number;
-  keyPrefix: string;
-}
-
-export interface RateLimitResult {
-  success: boolean;
-  remaining: number;
-  resetAt: Date;
-}
+export type { RateLimitConfig, RateLimitResult, RateLimitOptions, RateLimitDeviceInput };
 
 export function getRateLimitHeaders(
   result: RateLimitResult,
@@ -105,18 +101,6 @@ export async function withRateLimit(
 
 import { getDeviceInfoFromRequest } from "@/lib/device";
 import { RateLimitResultPool } from "@/lib/perf";
-
-export interface RateLimitOptions {
-  windowMs: number;
-  max: number;
-  key?: string;
-}
-
-export interface RateLimitDeviceInput {
-  deviceId?: string;
-  deviceName?: string;
-  clientIp?: string;
-}
 
 export function rateLimitByDevice(
   options: RateLimitOptions,

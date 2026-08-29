@@ -20,10 +20,12 @@ import { KYCBankForm } from "@/components/owner/kyc-bank-form";
 import type { OwnerBankAccount } from "@/db/schema";
 import {
   deleteBankAccountAction,
-  DeleteBankAccountState,
   updateBankAccountAction,
-  UpdateBankAccountState,
 } from "@/actions/bank-accounts";
+import type {
+  DeleteBankAccountState,
+  UpdateBankAccountState,
+} from "@/types/action";
 
 const KYC_STATUS_LABEL: Record<
   string,

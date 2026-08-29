@@ -10,16 +10,15 @@ import { invalidateCacheByTag } from "@/lib/cache";
 import { createAuditLog } from "@/lib/audit-log";
 import { validateActionCsrf } from "@/lib/api-auth";
 import type { Role } from "@/lib/auth";
+import type {
+  UpdateNotificationState,
+  AdminUpdateNotificationState,
+  MarkAllNotificationsReadState,
+} from "@/types/action";
 
 const updateNotificationSchema = z.object({
   notificationId: z.string().uuid(),
 });
-
-export type UpdateNotificationState = {
-  success?: boolean;
-  error?: string;
-  data?: { success: boolean };
-};
 
 export async function updateNotificationAction(
   __prevState: UpdateNotificationState | undefined,
@@ -71,12 +70,6 @@ const adminUpdateNotificationSchema = z.object({
   notificationId: z.string().uuid(),
   isRead: z.boolean(),
 });
-
-export type AdminUpdateNotificationState = {
-  success?: boolean;
-  error?: string;
-  data?: { success: boolean };
-};
 
 export async function adminUpdateNotificationAction(
   __prevState: AdminUpdateNotificationState | undefined,
@@ -136,12 +129,6 @@ export async function adminUpdateNotificationAction(
 }
 
 const markAllNotificationsReadSchema = z.object({});
-
-export type MarkAllNotificationsReadState = {
-  success?: boolean;
-  error?: string;
-  data?: { success: boolean; count?: number };
-};
 
 export async function markAllNotificationsReadAction(): Promise<MarkAllNotificationsReadState> {
   try {

@@ -6,15 +6,11 @@ import type { NodePgQueryResultHKT } from "drizzle-orm/node-postgres";
 import { referrals } from "@/db/schema";
 import { db } from "@/db";
 import * as schemaModule from "@/db/schema";
+import type { VoucherValidationResult } from "@/types/infrastructure";
+
+export type { VoucherValidationResult };
 
 const MAX_VOUCHER_DISCOUNT_PERCENT = 0.5;
-
-export interface VoucherValidationResult {
-  valid: boolean;
-  error?: string;
-  finalAmount?: number;
-  referralId?: string;
-}
 
 export async function validateAndApplyVoucher(
   voucherCode: string,

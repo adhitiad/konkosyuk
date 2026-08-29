@@ -9,18 +9,7 @@ import { z } from "zod";
 import { createWithdrawalSchema } from "@konkosyuk/shared";
 import { invalidateCacheByTag } from "@/lib/cache";
 import { validateActionCsrf } from "@/lib/api-auth";
-
-export type CreateWithdrawalState = {
-  success?: boolean;
-  error?: string;
-  data?: {
-    id: string;
-    amount: string;
-    status: string;
-    bankAccountId: string;
-    createdAt: Date;
-  };
-};
+import type { CreateWithdrawalState } from "@/types/action";
 
 export async function createWithdrawalAction(
   _prevState: CreateWithdrawalState | undefined,

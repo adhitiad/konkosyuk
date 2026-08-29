@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createReportAction } from "@/actions/reports";
-import { uploadImageAction, type UploadImageState } from "@/actions/upload";
+import { uploadImageAction } from "@/actions/upload";
+import type { UploadImageState } from "@/types/action";
 import { getBookingsAction } from "@/actions/bookings";
 import Image from "next/image";
 import { getCsrfToken } from "@/lib/axios";

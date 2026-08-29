@@ -9,17 +9,7 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { logSecurityEvent, logInfo } from "@/lib/logger";
-import type { Session, User } from "better-auth";
-
-interface SesiPengguna {
-  session: Session;
-  user: User & {
-    role: string;
-    phone: string | null | undefined;
-    twoFactorEnabled?: boolean | null;
-    [key: string]: unknown;
-  };
-}
+import type { SesiPengguna } from "@/types/user";
 
 export const auth = betterAuth({
   trustedOrigins: [
@@ -151,8 +141,10 @@ export const auth = betterAuth({
   ],
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
+      console.log("[DEBUG] Auth hook triggered:", ctx.path);
       if (ctx.path === "/sign-in/email") {
         const email = ctx.body?.email as string | undefined;
+        console.log("[DEBUG] Sign-in hook:", { email });
         if (!email) {
           return;
         }

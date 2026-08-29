@@ -1,43 +1,9 @@
 import { db } from "@/db";
 import { auditLogs } from "@/db/schema";
 import type { AuditLog, NewAuditLog } from "@/db/schema";
+import type { AuditAction, AuditEntityType, AuditLogInput } from "@/types/infrastructure";
 
-export type AuditAction =
-  | "create"
-  | "update"
-  | "delete"
-  | "approve"
-  | "reject"
-  | "reconcile"
-  | "refund"
-  | "cancel"
-  | "refund_request"
-  | "refund_rejected"
-  | "login"
-  | "logout"
-  | "config_change";
-
-export type AuditEntityType =
-  | "user"
-  | "property"
-  | "booking"
-  | "payment"
-  | "withdrawal"
-  | "kyc"
-  | "notification"
-  | "payment_gateway"
-  | "platform_setting"
-  | "ledger"
-  | "webhook"
-  | "refund_request";
-
-export interface AuditLogInput {
-  action: AuditAction;
-  targetType: AuditEntityType;
-  targetId: string;
-  adminId?: string;
-  details?: Record<string, unknown>;
-}
+export type { AuditAction, AuditEntityType, AuditLogInput };
 
 export async function createAuditLog(input: AuditLogInput): Promise<AuditLog> {
   const payload = {
