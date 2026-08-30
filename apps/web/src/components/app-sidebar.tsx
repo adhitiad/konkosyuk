@@ -81,6 +81,16 @@ const analitikGroup: SidebarGroup = {
     { title: "analytics", href: "/owner/analytics", icon: BarChart3 },
     { title: "insights", href: "/owner/insights", icon: Activity },
     { title: "reports", href: "/owner/reports", icon: FileText },
+  ],
+};
+
+const adminAnalitikGroup: SidebarGroup = {
+  label: "analitik",
+  icon: BarChart3,
+  items: [
+    { title: "analytics", href: "/admin/analytics", icon: BarChart3 },
+    { title: "insights", href: "/admin/insights", icon: Activity },
+    { title: "reports", href: "/admin/reports", icon: FileText },
     { title: "generalLedger", href: "/admin/general-ledger", icon: Landmark },
     { title: "auditLogs", href: "/admin/audit-logs", icon: Shield },
   ],
@@ -217,7 +227,7 @@ const menuConfig: Record<Role, SidebarGroup[]> = {
         { title: "incomingBookings", href: "/admin/bookings", icon: CalendarDays },
     ],
     },
-    analitikGroup,
+    adminAnalitikGroup,
     {
       label: "alat",
       icon: Wrench,
@@ -254,7 +264,7 @@ const menuConfig: Record<Role, SidebarGroup[]> = {
         { title: "incomingBookings", href: "/admin/bookings", icon: CalendarDays },
       ],
     },
-    analitikGroup,
+    adminAnalitikGroup,
     {
       label: "alat",
       icon: Wrench,

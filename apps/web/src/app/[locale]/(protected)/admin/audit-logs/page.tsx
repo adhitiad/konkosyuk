@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -23,6 +23,15 @@ function AuditLogsPage() {
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const handleLogsChange = useCallback(
+    (data: AuditLog[], meta?: { page: number; limit: number; total: number; totalPages: number } | null) => {
+      setLogs(data);
+      setPagination(meta ?? null);
+      setIsLoading(false);
+    },
+    [],
+  );
+
   return (
     <div className="space-y-6">
       <div className="mb-6">
@@ -38,13 +47,7 @@ function AuditLogsPage() {
 
       <Card>
         <CardHeader>
-          <AuditLogsFilters
-            onLogsChange={(data, meta) => {
-              setLogs(data);
-              setPagination(meta ?? null);
-              setIsLoading(false);
-            }}
-          />
+          <AuditLogsFilters onLogsChange={handleLogsChange} />
         </CardHeader>
         <CardContent>
           {isLoading ? (

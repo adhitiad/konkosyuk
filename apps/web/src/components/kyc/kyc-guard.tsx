@@ -105,9 +105,7 @@ export function KycGuard({ children }: KycGuardProps) {
                 Verifikasi Identitas Sekarang
               </Button>
             }
-          >
-            Verifikasi Identitas Sekarang
-          </DialogTrigger>
+          />
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Verifikasi Identitas (KYC)</DialogTitle>

@@ -237,11 +237,13 @@ function AdminRefundRequestsPage() {
                               setReviewNote("");
                             }}
                           >
-                            <DialogTrigger>
-                              <Button size="sm" variant="outline">
-                                Review
-                              </Button>
-                            </DialogTrigger>
+                            <DialogTrigger
+                              render={
+                                <Button size="sm" variant="outline">
+                                  Review
+                                </Button>
+                              }
+                            />
                             <DialogContent>
                               <DialogHeader>
                                 <DialogTitle>Review Refund</DialogTitle>

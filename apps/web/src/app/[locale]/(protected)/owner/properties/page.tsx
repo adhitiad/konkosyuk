@@ -197,26 +197,30 @@ function DeletePropertyButton({
     setIsDeleting(false);
   };
 
-  return (
+return (
     <Dialog>
       <DialogTrigger
-        render={<Button size="sm" variant="destructive" className="flex-1" />}
-      >
-        <HugeiconsIcon icon={Delete01Icon} strokeWidth={2} className="size-3" />
-        Hapus
-      </DialogTrigger>
+        render={
+          <Button size="sm" variant="destructive" className="flex-1">
+            <HugeiconsIcon icon={Delete01Icon} strokeWidth={2} className="size-3" />
+            Hapus
+          </Button>
+        }
+      />
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Konfirmasi Hapus</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Apakah Anda yakin ingin menghapus properti &quot;{propertyName}&quot;?
+          Apakah Anda yakin ingin menghapus properti "{propertyName}"?
           Tindakan ini tidak dapat dibatalkan.
         </p>
         <div className="flex justify-end gap-2">
-          <DialogTrigger render={<Button variant="outline" />}>
-            Batal
-          </DialogTrigger>
+          <DialogTrigger
+            render={
+              <Button variant="outline">Batal</Button>
+            }
+          />
           <Button
             variant="destructive"
             disabled={isDeleting}

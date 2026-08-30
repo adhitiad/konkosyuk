@@ -7,7 +7,7 @@ export default async function OwnerLayout({
   children: React.ReactNode;
 }) {
   try {
-    await requireSession(["owner", "admin", "staff"]);
+    await requireSession(["owner"]);
   } catch {
     redirect("/login");
   }

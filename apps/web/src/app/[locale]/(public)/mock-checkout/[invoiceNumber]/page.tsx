@@ -194,11 +194,13 @@ export default function MockCheckoutPage() {
 
           <div className="flex flex-col gap-2 pt-4">
             <Dialog>
-              <DialogTrigger>
-                <Button className="w-full" variant="default">
-                  Simulasi Bayar Sukses
-                </Button>
-              </DialogTrigger>
+              <DialogTrigger
+                render={
+                  <Button className="w-full" variant="default">
+                    Simulasi Bayar Sukses
+                  </Button>
+                }
+              />
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Konfirmasi</DialogTitle>
@@ -220,11 +222,13 @@ export default function MockCheckoutPage() {
             </Dialog>
 
             <Dialog>
-              <DialogTrigger>
-                <Button className="w-full" variant="destructive">
-                  Simulasi Bayar Gagal
-                </Button>
-              </DialogTrigger>
+              <DialogTrigger
+                render={
+                  <Button className="w-full" variant="destructive">
+                    Simulasi Bayar Gagal
+                  </Button>
+                }
+              />
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Konfirmasi</DialogTitle>
@@ -247,11 +251,13 @@ export default function MockCheckoutPage() {
             </Dialog>
 
             <Dialog>
-              <DialogTrigger>
-                <Button className="w-full" variant="secondary">
-                  Simulasi Expired
-                </Button>
-              </DialogTrigger>
+              <DialogTrigger
+                render={
+                  <Button className="w-full" variant="secondary">
+                    Simulasi Expired
+                  </Button>
+                }
+              />
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Konfirmasi</DialogTitle>

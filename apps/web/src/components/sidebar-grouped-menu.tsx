@@ -1,7 +1,7 @@
 "use client";
 
 import type { ElementType } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -40,6 +40,7 @@ export function SidebarGroupedMenu({ groups }: SidebarGroupedMenuProps) {
   const tSidebar = useTranslations("sidebar");
   const locale = useLocale();
   const pathname = usePathname();
+  const router = useRouter();
   const { state } = useSidebar();
 
   return (
@@ -77,12 +78,7 @@ export function SidebarGroupedMenu({ groups }: SidebarGroupedMenuProps) {
                 return (
                   <DropdownMenuItem
                     key={item.title}
-                    render={
-                      <Link
-                        href={href}
-                        className="flex items-center gap-2.5 rounded-xl px-3 py-2"
-                      />
-                    }
+                    onClick={() => router.push(href)}
                     className={cn(
                       "cursor-pointer text-sm outline-hidden select-none",
                       "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",

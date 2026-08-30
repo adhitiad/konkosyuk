@@ -72,7 +72,9 @@ export async function GET(req: NextRequest) {
       .limit(20);
 
     const [{ totalRevenue }] = await db
-      .select({ totalRevenue: sum(propertyAds.price) })
+      .select({
+        totalRevenue: sql<number>`COALESCE(SUM(CAST(${propertyAds.price} AS numeric)), 0)`,
+      })
       .from(propertyAds)
       .where(
         and(

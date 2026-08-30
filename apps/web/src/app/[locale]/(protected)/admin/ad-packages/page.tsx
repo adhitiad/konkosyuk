@@ -76,7 +76,7 @@ function AdminPackagesPage() {
       const res = await fetch("/api/admin/ad-packages");
       if (!res.ok) throw new Error("Failed to fetch packages");
       const json = await res.json();
-      return json.packages as Record<string, AdPackage[]>;
+      return (json.packages ?? {}) as Record<string, AdPackage[]>;
     },
   });
 
@@ -202,16 +202,18 @@ function AdminPackagesPage() {
           </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger>
-            <Button>
-              <HugeiconsIcon
-                icon={PlusSignIcon}
-                strokeWidth={2}
-                className="mr-2 size-4"
-              />
-              Tambah Paket
-            </Button>
-          </DialogTrigger>
+          <DialogTrigger
+            render={
+              <Button>
+                <HugeiconsIcon
+                  icon={PlusSignIcon}
+                  strokeWidth={2}
+                  className="mr-2 size-4"
+                />
+                Tambah Paket
+              </Button>
+            }
+          />
           <DialogContent>
             <DialogHeader>
               <DialogTitle>

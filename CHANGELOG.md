@@ -1,5 +1,79 @@
 # Ringkasan Perubahan
 
+## Tambah Menu Wawasan dan Laporan untuk Admin - 29-Agu-2026 14:15
+
+### Ringkasan
+Menambahkan menu "Wawasan" dan "Laporan" ke sidebar untuk role admin/staff. Sebelumnya menu tersebut hanya tersedia untuk owner, sehingga admin tidak dapat mengakses insights dan laporan platform.
+
+### Perubahan Utama
+- Buat halaman `/admin/insights/page.tsx` untuk menampilkan wawasan platform (user, properti, booking, pendapatan)
+- Buat halaman `/admin/reports/page.tsx` sebagai landing page laporan dengan tautan ke demographics, analytics, audit logs, dan users
+- Update `adminAnalitikGroup` di `app-sidebar.tsx` untuk menyertakan insights dan reports
+- Typecheck berhasil lulus
+
+## Perbaikan Navigasi Sidebar Analitik - 29-Agu-2026 14:10
+
+### Ringkasan
+Memperbaiki masalah navigasi pada sidebar where clicking "Analitik", "Wawasan", and "Laporan" untuk role admin/staff malah redirect ke dashboard. Akar masalah adalah `analitikGroup` yang shared antar role mengandung route spesifik owner (`/owner/analytics`, `/owner/insights`, `/owner/reports`) yang ditolak oleh `withOwnerAuth` HOC untuk user non-owner.
+
+### Perubahan Utama
+- Pisahkan `analitikGroup` menjadi dua kelompok:
+  - `analitikGroup` untuk owner/cust dengan route `/owner/...`
+  - `adminAnalitikGroup` untuk admin/staff dengan route `/admin/...`
+- Update `menuConfig` agar admin dan staff menggunakan `adminAnalitikGroup`
+
+## Perbaikan Console Error Lanjutan - 29-Agu-2026 14:05
+
+### Ringkasan
+Memperbaiki sisa console error yang muncul setelah perbaikan sebelumnya: (1) `Query data cannot be undefined` pada query admin ad-packages, (2) `Maximum update depth exceeded` pada halaman audit logs, dan (3) nested `<button>` yang masih tersisa di `ad-packages/page.tsx`, `kyc-guard.tsx`, dan `owner/properties/page.tsx`.
+
+### Perubahan Utama
+- Tambahkan fallback `(json.packages ?? {})` pada query `admin-ad-packages` agar tidak me-return `undefined`
+- Ganti callback `onLogsChange` menjadi `useCallback` dengan dependency array kosong di `audit-logs/page.tsx`
+- Pindah pemanggilan `onLogsChange` ke `useRef` di `audit-logs-filters.tsx` untuk memutus siklus dependency
+- Perbaiki sisa nested `<button>` dengan memastikan semua `DialogTrigger` menggunakan pola `render={<Button>...</Button>}`
+
+## Perbaiki Nested Button Error pada DialogTrigger - 29-Agu-2026 14:00
+
+### Ringkasan
+Memperbaiki console error "In HTML, `<button>` cannot be a descendant of `<button>`" yang terjadi di beberapa halaman admin karena `DialogTrigger` dari Base UI secara default merender elemen `<button>`, sementara komponen `Button` kustom juga merender `<button>`, menghasilkan nested button yang invalid secara HTML.
+
+### Perubahan Utama
+- Ganti pola `<DialogTrigger><Button>...</Button></DialogTrigger>` menjadi `<DialogTrigger render={<Button>...</Button>} />` di:
+  - `admin/ad-packages/page.tsx`
+  - `admin/payment-gateways/page.tsx`
+  - `admin/refund-requests/page.tsx`
+  - `public/mock-checkout/[invoiceNumber]/page.tsx`
+  - `protected/dashboard/bookings/[id]/page.tsx`
+
+## Perbaiki Console Error Audit Logs - 29-Agu-2026 13:57
+
+### Ringkasan
+Memperbaiki dua error pada halaman audit logs: (1) `Cannot update a component while rendering a different component` akibat `onLogsChange` dipanggil langsung saat render di `AuditLogsFilters`, dan (2) `logs.map is not a function` akibat data yang tidak dijamin berupa array.
+
+### Perubahan Utama
+- Pindah pemanggilan `onLogsChange` ke dalam `useEffect` di `audit-logs-filters.tsx` agar tidak memicu state update saat render
+- Tambahkan guard `Array.isArray(data?.data)` sebelum mengirim data ke parent untuk memastikan selalu berupa array
+
+## Perbaikan Runtime Error Admin Costs & 403 Owner Bank Accounts - 29-Agu-2026 13:49
+
+### Ringkasan
+Memperbaiki dua error yang muncul saat navigasi: (1) `Failed to parse URL` pada halaman admin costs akibat `fetch` dengan URL relatif di server component Next.js 16 Turbopack, dan (2) `403 Forbidden` pada API owner bank accounts akibat ketidakcocokan peran antara layout dan route handler.
+
+### Perubahan Utama
+- Refactor `admin/costs/page.tsx` untuk memanggil fungsi `getUsage` dan `getUsageHistory` langsung dari `@/lib/usage-tracker` instead of `fetch('/api/admin/costs')`
+- Tambah `requireSession(['admin'])` di server component admin costs
+- Samakan peran di `owner/layout.tsx` menjadi hanya `['owner']` agar konsisten dengan API `/api/owner/bank-accounts` yang hanya mengizinkan `owner`
+
+## Perbaikan Error SUM pada Kolom Text di Ad Revenue - 29-Agu-2026 13:44
+
+### Ringkasan
+Memperbaiki error 500 pada endpoint `/api/admin/ad-revenue` akibat penggunaan `sum()` Drizzle ORM langsung pada kolom `price` bertipe `text` di tabel `property_ads`. PostgreSQL tidak dapat menjumlahkan nilai teks, sehingga query gagal dan mengembalikan error "Failed query".
+
+### Perubahan Utama
+- Ganti `sum(propertyAds.price)` menjadi `COALESCE(SUM(CAST(${propertyAds.price} AS numeric)), 0)` di route `ad-revenue/route.ts`
+- Konsisten dengan pola yang sudah digunakan pada query `byTier` dan `byPackage`
+
 ## Tambah Meta Tag Zero Threat Verification - 29-Agu-2026 13:41
 
 ### Ringkasan

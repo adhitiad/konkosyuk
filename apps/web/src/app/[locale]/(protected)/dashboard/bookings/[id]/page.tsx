@@ -674,15 +674,17 @@ export default function BookingDetailPage() {
                 booking.startDate > new Date() &&
                 booking.payments.some((p) => p.status === "success") && (
                   <Dialog open={refundOpen} onOpenChange={setRefundOpen}>
-                    <DialogTrigger>
-                      <Button
-                        variant="destructive"
-                        className="w-full"
-                        nativeButton={false}
-                      >
-                        Ajukan Refund
-                      </Button>
-                    </DialogTrigger>
+                    <DialogTrigger
+                      render={
+                        <Button
+                          variant="destructive"
+                          className="w-full"
+                          nativeButton={false}
+                        >
+                          Ajukan Refund
+                        </Button>
+                      }
+                    />
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle>Ajukan Refund</DialogTitle>

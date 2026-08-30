@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, type QueryFunction } from "@tanstack/react-query";
 import { apiClient } from "@/lib/axios";
@@ -70,6 +70,8 @@ export function AuditLogsFilters({
   const [localSearch, setLocalSearch] = useState(
     searchParams.get("search") ?? "",
   );
+  const onLogsChangeRef = useRef(onLogsChange);
+  onLogsChangeRef.current = onLogsChange;
 
   const page = searchParams.get("page") ?? "1";
   const limit = searchParams.get("limit") ?? "50";
@@ -126,9 +128,14 @@ export function AuditLogsFilters({
     queryFn,
   });
 
-  if (data) {
-    onLogsChange(data?.data ?? [], data?.meta ?? null);
-  }
+  useEffect(() => {
+    if (data) {
+      onLogsChangeRef.current(
+        Array.isArray(data?.data) ? data.data : [],
+        data?.meta ?? null,
+      );
+    }
+  }, [data]);
 
   const hasFilters =
     userId || action || resource || startDate || endDate || search;

@@ -358,19 +358,21 @@ function AdminPaymentGatewaysPage() {
                         Edit
                       </Button>
 
-                      {/* PERBAIKAN 2: Gunakan 'asChild' pada DialogTrigger, bukan 'render' */}
+                      {/* PERBAIKAN 2: Gunakan 'render' pada DialogTrigger untuk menghindari nested button */}
                       <Dialog
                         open={deleteTarget === existing.provider}
                         onOpenChange={(open) => !open && setDeleteTarget(null)}
                       >
-                        <DialogTrigger>
-                          <Button
-                            variant="destructive"
-                            onClick={() => setDeleteTarget(existing.provider)}
-                          >
-                            Hapus
-                          </Button>
-                        </DialogTrigger>
+                        <DialogTrigger
+                          render={
+                            <Button
+                              variant="destructive"
+                              onClick={() => setDeleteTarget(existing.provider)}
+                            >
+                              Hapus
+                            </Button>
+                          }
+                        />
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Hapus Konfigurasi</DialogTitle>
