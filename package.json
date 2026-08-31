@@ -14,7 +14,7 @@
     "packages/*"
   ],
   "dependencies": {
-    "vercel": "^59.1.4"
+    "vercel": "^59.9.1"
   },
   "devDependencies": {
     "@parcel/watcher": "^2.6.0",
