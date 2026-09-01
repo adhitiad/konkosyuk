@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { users, properties, bookings, payments } from "@/db/schema";
 import { requireSession } from "@/lib/auth";
@@ -6,7 +6,7 @@ import { ok, handleApiError } from "@/lib/api";
 import { count, sum, eq, gte, lte, and } from "drizzle-orm";
 import type { Role } from "@/lib/auth";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     await requireSession(["admin"] as Role[]);
 

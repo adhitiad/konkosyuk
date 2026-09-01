@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo, useActionState, useLayoutEffect } from "react";
+import { useState, useMemo, useActionState, useLayoutEffect, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
+import { useSession } from "@/lib/auth-client";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon, TagIcon } from "@hugeicons/core-free-icons";
 import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
+import { getCsrfToken, ensureCsrfToken } from "@/lib/axios";
 import type {
   PropertyPackages,
   DurationUnit,
@@ -82,6 +84,7 @@ export default function BookingDialogClient({
 }: BookingDialogClientProps) {
   const router = useRouter();
   const locale = useLocale();
+  const { data: session } = useSession();
   const [open, setOpen] = useState(false);
   const [selectedUnitId, setSelectedUnitId] = useState<string>(
     units[0]?.id || "",
@@ -96,7 +99,21 @@ export default function BookingDialogClient({
     createBookingOrGroupAction,
     undefined,
   );
-  const [error, setError] = useState<string | null>(null);
+  const [csrfToken, setCsrfToken] = useState("");
+
+  useEffect(() => {
+    ensureCsrfToken()
+      .then(() => setCsrfToken(getCsrfToken() || ""))
+      .catch(() => {});
+  }, []);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen && !session?.user?.id) {
+      router.push(`/${locale}/login`);
+      return;
+    }
+    setOpen(nextOpen);
+  };
 
   const selectedUnit = useMemo(
     () => units.find((u) => u.id === selectedUnitId) ?? null,
@@ -247,29 +264,27 @@ export default function BookingDialogClient({
   const isStartDateValid =
     startDate === "" || new Date(startDate) >= new Date(today.slice(0, 10));
 
-  if (state?.success) {
-    showToastSuccess(
-      isGroupBooking
-        ? "Group booking berhasil dibuat! Undangan telah dikirim ke anggota."
-        : paymentType === "full"
-          ? "Booking berhasil! Silakan lanjutkan pembayaran lunas."
-          : "Booking berhasil! Silakan bayar DP 35% untuk mengunci kamar.",
-    );
-    setOpen(false);
-    setIsGroupBooking(false);
-    setMemberEmails("");
-    router.push(
-      isGroupBooking
-        ? `/${locale}/dashboard/group-bookings`
-        : `/${locale}/dashboard/bookings`,
-    );
-  } else if (state?.error) {
-    setError(state.error);
-    showToastError(state.error);
-  }
+  useEffect(() => {
+    if (state?.success) {
+      showToastSuccess(
+        isGroupBooking
+          ? "Group booking berhasil dibuat! Undangan telah dikirim ke anggota."
+          : paymentType === "full"
+            ? "Booking berhasil! Silakan lanjutkan pembayaran lunas."
+            : "Booking berhasil! Silakan bayar DP 35% untuk mengunci kamar.",
+      );
+      router.push(
+        isGroupBooking
+          ? `/${locale}/dashboard/group-bookings`
+          : `/${locale}/dashboard/bookings`,
+      );
+    } else if (state?.error) {
+      showToastError(state.error);
+    }
+  }, [state?.success, state?.error, isGroupBooking, paymentType, locale, router]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={children as React.ReactElement} />
       <DialogContent className="max-w-lg">
         <DialogHeader>
@@ -280,7 +295,9 @@ export default function BookingDialogClient({
         </DialogHeader>
 
         <form action={formAction} className="space-y-4">
-          {error && (
+          <input type="hidden" name="csrf" value={csrfToken} />
+          <input type="hidden" name="bookingType" value="instant" />
+          {state?.error && (
             <Alert variant="destructive">
               <HugeiconsIcon
                 icon={AlertCircleIcon}
@@ -288,7 +305,7 @@ export default function BookingDialogClient({
                 className="size-4"
               />
               <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>{state.error}</AlertDescription>
             </Alert>
           )}
 
@@ -303,7 +320,7 @@ export default function BookingDialogClient({
             <input type="hidden" name="memberEmails" value={memberEmails} />
           )}
 
-          {units.length > 1 && (
+          {units.length > 1 ? (
             <div className="space-y-2">
               <Label htmlFor="unit">Unit</Label>
               <Select<string>
@@ -321,6 +338,11 @@ export default function BookingDialogClient({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label>Unit</Label>
+              <p className="text-sm font-medium">{units[0]?.name}</p>
             </div>
           )}
 
@@ -347,6 +369,7 @@ export default function BookingDialogClient({
                 )}
               </SelectContent>
             </Select>
+            <input type="hidden" name="packageId" value={selectedPackageId} />
           </div>
 
           {selectedPackageId === "custom" && packages.custom.enabled && (
@@ -356,6 +379,7 @@ export default function BookingDialogClient({
               </Label>
               <Input
                 id="customDuration"
+                name="customDuration"
                 type="number"
                 value={customDuration}
                 onChange={(e) => setCustomDuration(Number(e.target.value))}
@@ -427,6 +451,7 @@ export default function BookingDialogClient({
             <Label htmlFor="startDate">Tanggal Mulai</Label>
             <Input
               id="startDate"
+              name="startDate"
               type="date"
               min={today}
               value={startDate}
@@ -541,7 +566,11 @@ export default function BookingDialogClient({
             <Button
               type="submit"
               disabled={
-                isPending || !selectedPackageId || !startDate || !selectedUnitId
+                isPending ||
+                !selectedPackageId ||
+                !startDate ||
+                !selectedUnitId ||
+                !csrfToken
               }
             >
               {isPending ? "Memproses..." : "Booking Sekarang"}

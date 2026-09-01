@@ -6,6 +6,7 @@ import { Pool } from "pg";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { hashPassword } from "@better-auth/utils/password";
+import { generateDefaultPackages } from "../src/lib/packages/generator";
 import * as schema from "../src/db/schema";
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -306,6 +307,13 @@ async function seed() {
       }
 
       const ownerId = ownerIds[Math.floor(Math.random() * ownerIds.length)];
+      const basePriceNum = Number(prop.basePrice);
+      const packages = generateDefaultPackages(
+        prop.type,
+        basePriceNum,
+        prop.name.toLowerCase().replace(/\s+/g, "-"),
+      );
+
       const [created] = await tx.insert(schema.properties).values({
         id: randomUUID(),
         ownerId,
@@ -317,17 +325,7 @@ async function seed() {
         district: prop.district,
         type: prop.type,
         basePrice: prop.basePrice,
-        packages: {
-          predefined: [],
-          custom: {
-            enabled: false,
-            label: "Custom Duration",
-            unit: "days",
-            pricePerUnit: 0,
-            minDuration: 1,
-            maxDuration: 365,
-          },
-        },
+        packages: packages,
         amenities: prop.amenities,
         metadata: prop.metadata,
         images: prop.images,

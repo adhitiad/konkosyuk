@@ -212,7 +212,7 @@ return (
           <DialogTitle>Konfirmasi Hapus</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Apakah Anda yakin ingin menghapus properti "{propertyName}"?
+          Apakah Anda yakin ingin menghapus properti &quot;{propertyName}&quot;?
           Tindakan ini tidak dapat dibatalkan.
         </p>
         <div className="flex justify-end gap-2">

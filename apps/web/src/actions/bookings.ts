@@ -49,8 +49,8 @@ const createBookingSchema = z.object({
   unitId: z.string().uuid(),
   packageId: z.string().min(1),
   customDuration: z.coerce.number().int().positive().optional(),
-  bookingType: z.enum(["instant", "request"]),
-  startDate: z.string().datetime(),
+  bookingType: z.enum(["instant", "request"]).default("instant"),
+  startDate: z.string().min(1),
   endDate: z.string().datetime().optional(),
   paymentType: z.enum(["dp", "full"]).default("dp"),
   metadata: z.record(z.string(), z.unknown()).optional(),
@@ -88,7 +88,9 @@ export async function createBookingAction(
       customDuration: formData.get("customDuration")
         ? Number(formData.get("customDuration"))
         : undefined,
+      bookingType: formData.get("bookingType") || "instant",
       startDate: formData.get("startDate"),
+      endDate: formData.get("endDate") || undefined,
       paymentType: formData.get("paymentType") || "dp",
     });
 

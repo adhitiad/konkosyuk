@@ -45,7 +45,7 @@ interface AdminInsightsData {
 export default withAdminAuth(AdminInsightsPage);
 
 function AdminInsightsPage() {
-  const { data, isLoading, isError, error, refetch } = useQuery<AdminInsightsData>({
+  const { data, isLoading, isError, error, refetch: _refetch } = useQuery<AdminInsightsData>({
     queryKey: ["admin-insights"],
     queryFn: async () => {
       const { data } = await apiClient.get("/api/admin/insights");

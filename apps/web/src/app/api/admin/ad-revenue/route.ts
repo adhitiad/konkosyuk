@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { propertyAds, adPackages } from "@/db/schema";
-import { eq, and, sql, gte, lte, desc, sum, count } from "drizzle-orm";
+import { eq, and, sql, gte, lte, desc, count } from "drizzle-orm";
 import { requireSession } from "@/lib/auth";
 import { ok, handleApiError } from "@/lib/api";
 import { logError } from "@/lib/logger";

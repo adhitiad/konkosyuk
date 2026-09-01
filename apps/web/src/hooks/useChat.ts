@@ -200,12 +200,9 @@ export function useChat({
     }
   }, [roomId]);
 
-  const sendMessageWithAttachment = useCallback(
-    async (_content: string, _file: File) => {
-      // Attachment upload belum diimplementasikan untuk chat ini.
-    },
-    [roomId],
-  );
+  const sendMessageWithAttachment = useCallback(async () => {
+    // Attachment upload belum diimplementasikan untuk chat ini.
+  }, []);
 
   return {
     messages,

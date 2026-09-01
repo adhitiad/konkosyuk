@@ -5,6 +5,8 @@ import { PropertyRulesList } from "@/components/property/property-rules-list";
 import { NearbyPlacesList } from "@/components/property/nearby-places-list";
 import { OwnerProfileCard } from "@/components/property/owner-profile-card";
 import { Button } from "@/components/ui/button";
+import type { PropertyPackages } from "@/types/property";
+import BookingDialogClient from "@/app/[locale]/(public)/properties/[id]/booking-dialog";
 
 interface Property {
   id: string;
@@ -36,6 +38,11 @@ interface ReviewSummary {
   count: number;
 }
 
+interface UnitOption {
+  id: string;
+  name: string;
+}
+
 interface DetailSidebarProps {
   property: Property;
   owner: Owner | null;
@@ -43,6 +50,18 @@ interface DetailSidebarProps {
   rules: Array<{ id: string; rule: string; sortOrder: number }>;
   reviews: ReviewSummary | null;
   propertyId: string;
+  units?: UnitOption[];
+  packages?: PropertyPackages;
+  seasonalRules?: Array<{
+    id: string;
+    ruleType: "percentage" | "fixed" | "multiplier";
+    adjustmentValue: string;
+    startDate: string;
+    endDate: string;
+    minNights: number | null;
+    maxNights: number | null;
+    priority: number;
+  }>;
 }
 
 function StarRating({
@@ -71,7 +90,16 @@ export function DetailSidebar({
   rules,
   reviews,
   propertyId,
+  units,
+  packages,
+  seasonalRules,
 }: DetailSidebarProps) {
+  const bookingButton = (
+    <Button className="w-full h-12 text-lg font-semibold" size="lg">
+      Ajukan Sewa
+    </Button>
+  );
+
   return (
     <div className="w-full lg:w-[340px] lg:sticky lg:top-20 lg:self-start space-y-4">
       <div className="rounded-xl border border-border bg-card p-5 space-y-4">
@@ -87,9 +115,20 @@ export function DetailSidebar({
           </p>
         </div>
 
-        <Button className="w-full h-12 text-lg font-semibold" size="lg">
-          Ajukan Sewa
-        </Button>
+        {units && packages ? (
+          <BookingDialogClient
+            propertyId={propertyId}
+            units={units}
+            packages={packages}
+            seasonalRules={seasonalRules ?? []}
+          >
+            {bookingButton}
+          </BookingDialogClient>
+        ) : (
+          <div className="w-full h-12 text-lg font-semibold flex items-center justify-center text-muted-foreground bg-muted rounded-md">
+            Ajukan Sewa
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-2 mt-2">
           <span className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">

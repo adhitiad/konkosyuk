@@ -71,7 +71,9 @@ export function AuditLogsFilters({
     searchParams.get("search") ?? "",
   );
   const onLogsChangeRef = useRef(onLogsChange);
-  onLogsChangeRef.current = onLogsChange;
+  useEffect(() => {
+    onLogsChangeRef.current = onLogsChange;
+  }, [onLogsChange]);
 
   const page = searchParams.get("page") ?? "1";
   const limit = searchParams.get("limit") ?? "50";

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { DetailSidebar } from "@/components/property/detail-sidebar";
+import type { PropertyPackages } from "@/types/property";
 
 describe("DetailSidebar", () => {
   const property = {
@@ -37,6 +38,33 @@ describe("DetailSidebar", () => {
     count: 10,
   };
 
+  const units = [{ id: "unit-1", name: "Kamar 1" }];
+
+  const packages = {
+    predefined: [
+      {
+        id: "pkg-1",
+        label: "1 Bulan",
+        unit: "months" as PropertyPackages["predefined"][number]["unit"],
+        value: 1,
+        basePrice: 1500000,
+        discountPercent: 0,
+        ppnPercent: 11,
+        appFeePercent: 0,
+        finalPrice: 1665000,
+        isAvailable: true,
+      },
+    ],
+    custom: {
+      enabled: false,
+      label: "Custom Duration",
+      unit: "days" as PropertyPackages["custom"]["unit"],
+      pricePerUnit: 50000,
+      minDuration: 1,
+      maxDuration: 365,
+    },
+  } satisfies PropertyPackages;
+
   it("displays price in Indonesia format", () => {
     render(
       <DetailSidebar
@@ -46,6 +74,8 @@ describe("DetailSidebar", () => {
         rules={[]}
         reviews={null}
         propertyId="prop-1"
+        units={units}
+        packages={packages}
       />,
     );
 
@@ -61,6 +91,8 @@ describe("DetailSidebar", () => {
         rules={[]}
         reviews={null}
         propertyId="prop-1"
+        units={units}
+        packages={packages}
       />,
     );
 
@@ -76,6 +108,8 @@ describe("DetailSidebar", () => {
         rules={[]}
         reviews={reviews}
         propertyId="prop-1"
+        units={units}
+        packages={packages}
       />,
     );
 
@@ -92,6 +126,8 @@ describe("DetailSidebar", () => {
         rules={[]}
         reviews={null}
         propertyId="prop-1"
+        units={units}
+        packages={packages}
       />,
     );
 
@@ -107,6 +143,8 @@ describe("DetailSidebar", () => {
         rules={rules}
         reviews={null}
         propertyId="prop-1"
+        units={units}
+        packages={packages}
       />,
     );
 
@@ -122,6 +160,8 @@ describe("DetailSidebar", () => {
         rules={[]}
         reviews={null}
         propertyId="prop-1"
+        units={units}
+        packages={packages}
       />,
     );
 
@@ -137,6 +177,8 @@ describe("DetailSidebar", () => {
         rules={[]}
         reviews={null}
         propertyId="prop-1"
+        units={units}
+        packages={packages}
       />,
     );
 

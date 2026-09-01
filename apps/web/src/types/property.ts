@@ -29,7 +29,12 @@ export interface PropertyPackages {
   };
 }
 
-export type PropertyType = "kost" | "kontrakan" | "apartemen" | "rumah" | "ruko";
+export type PropertyType =
+  | "kost"
+  | "kontrakan"
+  | "apartemen"
+  | "rumah"
+  | "ruko";
 
 export interface Property {
   id: string;
@@ -71,5 +76,3 @@ export interface RoomFacility {
   icon: string;
   category: string;
 }
-
-

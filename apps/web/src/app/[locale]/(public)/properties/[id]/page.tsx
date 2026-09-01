@@ -22,14 +22,15 @@ import {
   reviews,
   bookings,
 } from "@/db/schema";
-import { eq, and, sql, count, avg } from "drizzle-orm";
+import { eq, and, sql, count, avg, inArray } from "drizzle-orm";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { PropertyUnitsSection } from "@/components/property/property-units-section";
 import { DetailSidebar } from "@/components/property/detail-sidebar";
-import { MiniMap } from "@/components/property/mini-map";
-import { NearbyPlacesList } from "@/components/property/nearby-places-list";
+import { PropertyLocationSection } from "@/components/property/property-location-section";
 import { JsonLd } from "@/components/seo/json-ld";
+import type { PropertyPackages } from "@/types/property";
+import { generateDefaultPackages } from "@/lib/packages/generator";
 
 type AmenityIconMap = Record<
   string,
@@ -160,7 +161,10 @@ export default async function PropertyDetailPage({
           })
           .from(roomFacilities)
           .where(
-            sql`${roomFacilities.unitId} IN (${propertyUnits.map((u) => u.id).join(",")})`,
+            inArray(
+              roomFacilities.unitId,
+              propertyUnits.map((u) => u.id),
+            ),
           )
           .orderBy(roomFacilities.sortOrder, roomFacilities.name)
       : [];
@@ -454,42 +458,19 @@ export default async function PropertyDetailPage({
                 </p>
 
                 {property.latitude && property.longitude && (
-                  <div className="h-48 rounded-xl overflow-hidden border border-border">
-                    <MiniMap
-                      latitude={Number(property.latitude)}
-                      longitude={Number(property.longitude)}
-                      nearbyPlaces={nearbyPlacesRows.map((p) => ({
-                        id: p.id,
-                        name: p.name,
-                        latitude: Number(p.latitude),
-                        longitude: Number(p.longitude),
-                      }))}
-                      onPlaceClick={(place) =>
-                        window.open(
-                          `https://www.google.com/maps/search?q=${encodeURIComponent(place.name)}@${place.latitude},${place.longitude}`,
-                          "_blank",
-                        )
-                      }
-                    />
-                  </div>
+                  <PropertyLocationSection
+                    latitude={Number(property.latitude)}
+                    longitude={Number(property.longitude)}
+                    nearbyPlaces={nearbyPlacesRows.map((p) => ({
+                      id: p.id,
+                      name: p.name,
+                      type: p.type,
+                      distance: p.distance,
+                      latitude: Number(p.latitude),
+                      longitude: Number(p.longitude),
+                    }))}
+                  />
                 )}
-
-                <NearbyPlacesList
-                  places={nearbyPlacesRows.map((p) => ({
-                    id: p.id,
-                    name: p.name,
-                    type: p.type,
-                    distance: p.distance,
-                    latitude: Number(p.latitude),
-                    longitude: Number(p.longitude),
-                  }))}
-                  onPlaceClick={(place) =>
-                    window.open(
-                      `https://www.google.com/maps/search?q=${encodeURIComponent(place.name)}@${place.latitude},${place.longitude}`,
-                      "_blank",
-                    )
-                  }
-                />
               </div>
             </CardContent>
           </Card>
@@ -516,6 +497,16 @@ export default async function PropertyDetailPage({
           rules={propertyRulesRows}
           reviews={reviewsSummary}
           propertyId={property.id}
+          units={propertyUnits.map((u) => ({ id: u.id, name: u.name }))}
+          packages={
+            property.packages?.predefined?.length
+              ? (property.packages as PropertyPackages)
+              : generateDefaultPackages(
+                  property.type,
+                  Number(property.basePrice) || 0,
+                )
+          }
+          seasonalRules={[]}
         />
       </div>
     </main>

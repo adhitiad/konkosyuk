@@ -1,5 +1,133 @@
 # Ringkasan Perubahan
 
+## Perbaikan Validasi StartDate Format ISO - 01-Sep-2026 07:50
+
+### Ringkasan
+Memperbaiki error "Invalid ISO datetime" yang terjadi saat submit form booking di `BookingDialogClient`. Input tanggal mulai (`type="date"`) mengembalikan format "YYYY-MM-DD" yang tidak valid untuk validator Zod `.datetime()` yang memerlukan format ISO 8601 lengkap dengan waktu. Juga memperbaiki penanganan nilai `null` dari FormData yang menyebabkan validasi gagal untuk field opsional seperti `endDate`.
+
+### Perubahan Utama
+- Update schema `createBookingSchema` di `apps/web/src/actions/bookings.ts` untuk menerima format tanggal "YYYY-MM-DD" dengan mengubah validasi `startDate` dari `.string().datetime()` menjadi `.string().min(1)`
+- Update schema `createGroupBookingSchema` di `apps/web/src/actions/group-bookings.ts` untuk menerima format tanggal "YYYY-MM-DD" dengan mengubah validasi `startDate` dan `endDate` dari `.string().datetime()` menjadi `.string().min(1)`
+- Tambah fallback `|| "instant"` untuk `bookingType` dan `|| "dp"` untuk `paymentType` saat mengambil dari FormData
+- Tambah fallback `|| undefined` untuk `endDate` karena FormData mengembalikan `null` untuk field yang tidak ada, sedangkan Zod `.optional()` hanya menerima `undefined`
+- Action tetap membuat `Date` object dari string tanggal yang diterima
+
+## Perbaikan Validasi Booking dengan Hidden Input & CSRF Token - 01-Sep-2026 07:36
+
+### Ringkasan
+Memperbaiki error "Invalid input: expected string, received null" dan "Invalid option: expected one of "instant"|"request"" yang terjadi saat submit form booking di `BookingDialogClient`. Field penting seperti `packageId`, `bookingType`, `startDate`, `customDuration`, dan `csrf` tidak tersedia di `FormData` karena tidak ada atribut `name` pada elemen form-nya. Juga menghapus wrapper `handleFormAction` yang menyebabkan formData kosong `{}` dan kembali menggunakan pola `useActionState` standar.
+
+### Perubahan Utama
+- Tambah hidden input `packageId`, `bookingType`, dan `csrf` di form booking
+- Tambah atribut `name="startDate"` pada input tanggal mulai
+- Tambah atribut `name="customDuration"` pada input durasi custom
+- Ganti pendekatan CSRF dari wrapper async menjadi hidden input yang diisi via state `csrfToken` dan `useEffect`
+- Tambah `useSession` untuk pengecekan login saat dialog dibuka
+- Tambah kondisi disabled tombol submit jika `csrfToken` belum tersedia
+- Hapus state `error` lokal dan gunakan `state?.error` dari `useActionState` langsung
+- Hapus useEffect duplikat untuk `ensureCsrfToken`
+
+## Perbaikan Field Form Booking yang Hilang & Validasi Schema - 01-Sep-2026 07:17
+
+### Ringkasan
+Memperbaiki error "Invalid input: expected string, received null" yang terjadi saat submit form booking di `BookingDialogClient`. Field `packageId` tidak disertakan dalam form, sehingga `formData.get("packageId")` mengembalikan `null` dan gagal validasi Zod. Juga memperbaiki schema `createBookingSchema` yang memerlukan `bookingType` tetapi tidak diekstrak dari form data.
+
+### Perubahan Utama
+- Tambah hidden input `packageId` di form booking untuk menyertakan paket yang dipilih
+- Tambah default `"instant"` pada field `bookingType` di `createBookingSchema` agar tidak gagal validasi ketika form tidak mengirimkan nilai tersebut
+
+## Penampilan Label Unit Statis untuk Properti dengan 1 Unit - 01-Sep-2026 07:13
+
+### Ringkasan
+Memperbaiki tampilan dialog booking untuk properti yang hanya memiliki 1 unit. Sebelumnya, dropdown unit disembunyikan tanpa indikasi visual mana unit yang dipilih. Sekarang menampilkan label statis "Unit: [nama unit]" agar pengguna tahu unit mana yang akan dibooking.
+
+### Perubahan Utama
+- Update `apps/web/src/app/[locale]/(public)/properties/[id]/booking-dialog.tsx` untuk menampilkan label statis nama unit ketika `units.length <= 1`
+- Tetap sembunyikan dropdown unit ketika ada lebih dari 1 unit
+
+## Perbaikan Invalid CSRF Token pada Form Booking - 01-Sep-2026 06:57
+
+### Ringkasan
+Memperbaiki error "Invalid CSRF token" yang terjadi saat submit form booking di `BookingDialogClient`. Form tidak menyertakan token CSRF yang diharapkan oleh `validateActionCsrf` di server action.
+
+### Perubahan Utama
+- Import `getCsrfToken` dan `ensureCsrfToken` dari `@/lib/axios` di `booking-dialog.tsx`
+- Tambah `useEffect` untuk memastikan cookie CSRF tersedia saat komponen dimount
+- Buat wrapper `handleFormAction` yang menambahkan token CSRF ke `FormData` sebelum mengirim ke server action
+- Ganti `action={formAction}` menjadi `action={handleFormAction}` pada form booking
+
+## Perbaikan Error State Update Saat Render di BookingDialogClient - 01-Sep-2026 06:52
+
+### Ringkasan
+Memperbaiki error React "Cannot update a component while rendering a different component" dan "Too many re-renders" yang terjadi di `BookingDialogClient` akibat pemanggilan `showToastSuccess`, `showToastError`, `setOpen`, `setIsGroupBooking`, dan `setMemberEmails` langsung di dalam body render.
+
+### Perubahan Utama
+- Pindahkan side effect (toast dan navigasi) dari body render ke `useEffect` di `apps/web/src/app/[locale]/(public)/properties/[id]/booking-dialog.tsx`
+- Hapus state lokal `error` yang duplikat dengan `state?.error` dari `useActionState`
+- Gunakan `state?.error` langsung di JSX untuk menampilkan alert error
+- Hapus panggilan `setState` di dalam `useEffect` untuk menghindari cascading render
+
+## Perbaikan Generator Paket Default & Aksi Properti - 01-Sep-2026 05:01
+
+### Ringkasan
+Memperbaiki masalah paket tidak muncul di dialog booking karena properti yang dibuat melalui UI mendapatkan paket kosong (`predefined: []`). Juga memindahkan logika generator paket dari `seed-extra.ts` ke utility bersama agar dapat dipakai oleh aksi pembuatan properti.
+
+### Perubahan Utama
+- Buat `apps/web/src/lib/packages/generator.ts` sebagai utility bersama untuk generate paket default berdasarkan tipe properti (`kost`/`kontrakan`) dan `basePrice`
+- Update `apps/web/src/actions/properties.ts` untuk mengenerate paket default saat membuat properti jika paket tidak diberikan atau kosong
+- Update `apps/web/scripts/seed-extra.ts` untuk menggunakan utility generator yang sama, menghapus duplikasi logika
+
+## Perbaikan Query UUID & Type Safety Seed Script - 01-Sep-2026 04:35
+
+### Ringkasan
+Memperbaiki error query database di halaman detail properti yang menggabungkan UUID dengan operasi IN menggunakan string interpolation. Juga memperbaiki error type safety di `seed-extra.ts` yang mencegah typecheck berjalan.
+
+### Perubahan Utama
+- Ganti operasi SQL `IN` manual di `apps/web/src/app/[locale]/(public)/properties/[id]/page.tsx` menjadi `inArray()` dari drizzle-orm agar parameter UUID diexpand secara benar
+- Tambah import `inArray` dari `drizzle-orm` di file halaman detail properti
+- Perbaiki type literal `unit: "days"` menjadi `unit: "days" as const` di `apps/web/scripts/seed-extra.ts` agar cocok dengan tipe `DurationUnit`
+
+## Perbaikan Paket Kosong di Dialog Booking - 01-Sep-2026 04:20
+
+### Ringkasan
+Memperbaiki masalah paket kosong di dialog booking karena data seed properti mengisi `packages.predefined` dengan array kosong. Akibatnya, dropdown paket di dialog booking tidak menampilkan opsi apapun meskipun properti sudah ada.
+
+### Perubahan Utama
+- Update `apps/web/scripts/seed-extra.ts` untuk menyertakan paket predefined default berdasarkan tipe properti (`kost` atau `kontrakan`)
+- Paket default dihitung dari `basePrice` properti dengan formula yang konsisten dengan `PackageForm`
+- Setiap properti kini memiliki paket booking yang siap pakai setelah seeding
+
+## Perbaikan Tombol Ajukan Sewa Tidak Berfungsi - 01-Sep-2026 04:00
+
+### Ringkasan
+Memperbaiki tombol "Ajukan Sewa" di sidebar halaman detail properti yang tidak melakukan apa-apa saat diklik. Tombol sebelumnya tidak memiliki handler, sehingga tidak membuka dialog booking yang sudah ada (`BookingDialogClient`). Pengguna yang belum login akan diarahkan ke halaman login terlebih dahulu.
+
+### Perubahan Utama
+- Tambah prop opsional `units`, `packages`, dan `seasonalRules` ke `DetailSidebar`
+- Wrap tombol "Ajukan Sewa" dengan `BookingDialogClient` ketika prop tersedia
+- Tambah pengecekan autentikasi di `BookingDialogClient`: jika pengguna belum login, redirect ke `/${locale}/login`
+- Update halaman detail properti untuk meneruskan `propertyUnits`, `property.packages`, dan `seasonalRules={[]}` ke `DetailSidebar`
+- Update test `detail-sidebar.test.tsx` untuk meneruskan data packages yang valid dan mock `useRouter`/`useLocale`/`useSession` di test setup
+
+## Perbaikan Content Security Policy untuk img-src - 01-Sep-2026 03:55
+
+### Ringkasan
+Menambahkan `https://picsum.photos` ke dalam direktif `img-src` pada Content Security Policy di `src/proxy.ts`. Tanpa penambahan ini, gambar dari picsum.photos diblokir oleh CSP dan menyebabkan warning di console browser.
+
+### Perubahan Utama
+- Tambah `https://picsum.photos` ke daftar host yang diizinkan untuk `img-src` di `src/proxy.ts`
+
+## Perbaikan Error Event Handlers di Client Component - 01-Sep-2026 14:50
+
+### Ringkasan
+Memperbaiki error "Event handlers cannot be passed to Client Component props" yang terjadi di halaman detail properti (`properties/[id]/page.tsx`). Di Next.js 16, Server Components tidak bisa mengirim fungsi (seperti `onPlaceClick`) ke Client Components karena fungsi tidak dapat diserialisasikan.
+
+### Perubahan Utama
+- Buat komponen klien baru `PropertyLocationSection` di `src/components/property/property-location-section.tsx` sebagai wrapper untuk `MiniMap` dan `NearbyPlacesList`
+- Pindahkan logika `onPlaceClick` (membuka Google Maps) ke dalam komponen klien
+- Update halaman detail properti untuk menggunakan `PropertyLocationSection` sebagai ganti pemanggilan langsung ke `MiniMap` dan `NearbyPlacesList` dengan prop `onPlaceClick`
+- Hapus import tidak terpakai untuk `MiniMap` dan `NearbyPlacesList` dari halaman detail properti
+
 ## Tambah Menu Wawasan dan Laporan untuk Admin - 29-Agu-2026 14:15
 
 ### Ringkasan

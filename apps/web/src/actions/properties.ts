@@ -30,6 +30,7 @@ import {
   redeemVoucherAtomically,
 } from "@/lib/referrals/voucher";
 import { sanitizeString } from "@/lib/sanitize";
+import { generateDefaultPackages } from "@/lib/packages/generator";
 import type {
   CreatePropertyState,
   UpdatePropertyState,
@@ -138,17 +139,13 @@ export async function createPropertyAction(
         type: validated.type as
           "kost" | "kontrakan" | "apartemen" | "rumah" | "ruko",
         basePrice: validated.basePrice,
-        packages: validated.packages ?? {
-          predefined: [],
-          custom: {
-            enabled: false,
-            label: "Custom Duration",
-            unit: "days",
-            pricePerUnit: 0,
-            minDuration: 1,
-            maxDuration: 365,
-          },
-        },
+        packages:
+          validated.packages && validated.packages.predefined.length > 0
+            ? validated.packages
+            : generateDefaultPackages(
+                validated.type,
+                Number(validated.basePrice) || 0,
+              ),
         status: (validated.status ?? "aktif") as "aktif" | "nonaktif",
         amenities: validated.amenities ?? [],
         images: validated.images ?? [],
@@ -279,32 +276,41 @@ export async function updatePropertyAction(
         : undefined,
     });
 
+    const updateData: Record<string, unknown> = {
+      name: validated.title,
+      description: validated.description,
+      address: validated.address,
+      province: validated.province,
+      city: validated.city,
+      type: validated.type as
+        | "kost"
+        | "kontrakan"
+        | "apartemen"
+        | "rumah"
+        | "ruko",
+      basePrice: validated.basePrice,
+      status: validated.status ?? ("aktif" as "aktif" | "nonaktif"),
+      amenities: validated.amenities,
+      images: validated.images,
+      metadata: validated.metadata,
+      latitude:
+        validated.latitude !== undefined
+          ? String(validated.latitude)
+          : undefined,
+      longitude:
+        validated.longitude !== undefined
+          ? String(validated.longitude)
+          : undefined,
+      updatedAt: new Date(),
+    };
+
+    if (packagesRaw !== null && packagesRaw !== "") {
+      updateData.packages = validated.packages;
+    }
+
     const [updated] = await db
       .update(properties)
-      .set({
-        name: validated.title,
-        description: validated.description,
-        address: validated.address,
-        province: validated.province,
-        city: validated.city,
-        type: validated.type as
-          "kost" | "kontrakan" | "apartemen" | "rumah" | "ruko",
-        basePrice: validated.basePrice,
-        packages: validated.packages,
-        status: validated.status ?? ("aktif" as "aktif" | "nonaktif"),
-        amenities: validated.amenities,
-        images: validated.images,
-        metadata: validated.metadata,
-        latitude:
-          validated.latitude !== undefined
-            ? String(validated.latitude)
-            : undefined,
-        longitude:
-          validated.longitude !== undefined
-            ? String(validated.longitude)
-            : undefined,
-        updatedAt: new Date(),
-      })
+      .set(updateData)
       .where(eq(properties.id, propertyId))
       .returning();
 

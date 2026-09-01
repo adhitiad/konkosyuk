@@ -23,8 +23,8 @@ type GroupBookingMemberInsert = typeof groupBookingMembers.$inferInsert;
 const createGroupBookingSchema = z.object({
   propertyId: z.string().uuid(),
   unitId: z.string().uuid(),
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime(),
+  startDate: z.string().min(1),
+  endDate: z.string().min(1),
   maxMembers: z.coerce.number().int().positive().max(50),
   memberEmails: z.array(z.string().email()).min(1, "Minimal 1 anggota"),
   metadata: z.record(z.string(), z.unknown()).optional(),
