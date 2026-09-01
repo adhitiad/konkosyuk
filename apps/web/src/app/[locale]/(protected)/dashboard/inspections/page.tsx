@@ -17,6 +17,7 @@ import { ClipboardCheckIcon } from "@hugeicons/core-free-icons";
 import Image from "next/image";
 import { formatCurrency } from "@/lib/utils/currency";
 import { apiClient } from "@/lib/axios";
+import { unwrapApiResponse } from "@/lib/api-response";
 import { InspectionForm } from "@/components/inspection/inspection-form";
 import { InspectionComparison } from "@/components/inspection/inspection-comparison";
 
@@ -85,21 +86,24 @@ export default function TenantInspectionsPage() {
     useState<InspectionDetail | null>(null);
   const [activeTab, setActiveTab] = useState("details");
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<Inspection[]>({
     queryKey: ["tenant-inspections"],
     queryFn: async () => {
-      const res = await apiClient.get("/inspections");
-      return res.data;
+      const response = await apiClient.get("/api/inspections");
+      const payload = unwrapApiResponse<{ data: Inspection[] }>(
+        response.data,
+      );
+      return payload.data ?? [];
     },
   });
 
-  const inspections = data?.data || [];
+  const inspections: Inspection[] = data || [];
 
   const detailQuery = useQuery({
     queryKey: ["inspection-detail", selectedInspection?.id],
     queryFn: async () => {
       if (!selectedInspection?.id) return null;
-      const res = await apiClient.get(`/inspections/${selectedInspection.id}`);
+      const res = await apiClient.get(`/api/inspections/${selectedInspection.id}`);
       return res.data.data as InspectionDetail;
     },
     enabled: !!selectedInspection?.id,
@@ -110,7 +114,7 @@ export default function TenantInspectionsPage() {
     queryFn: async () => {
       if (!selectedInspection?.bookingId) return null;
       const res = await apiClient.get(
-        `/inspections/compare?bookingId=${selectedInspection.bookingId}`,
+        `/api/inspections/compare?bookingId=${selectedInspection.bookingId}`,
       );
       return res.data.data;
     },

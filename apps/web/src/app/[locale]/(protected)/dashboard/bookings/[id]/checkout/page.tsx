@@ -12,10 +12,11 @@ export default async function BookingCheckoutPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ bookingId: string; locale: string }>;
+  params: Promise<{ id: string; locale: string }>;
   searchParams: Promise<{ purpose?: string }>;
 }): Promise<React.ReactNode> {
-  const { bookingId, locale } = await params;
+  const { id, locale } = await params;
+  const bookingId = id;
   const { purpose } = await searchParams;
 
   if (!purpose || !["dp", "full_payment"].includes(purpose)) {
@@ -41,12 +42,18 @@ export default async function BookingCheckoutPage({
   }
 
   let amount: number;
+  const totalPrice = booking.metadata?.totalPrice
+    ? Number(booking.metadata.totalPrice)
+    : 0;
+
   if (purpose === "dp") {
-    amount = booking.metadata?.dpAmount ? Number(booking.metadata.dpAmount) : 0;
+    amount = booking.metadata?.dpAmount
+      ? Number(booking.metadata.dpAmount)
+      : totalPrice * 0.35;
   } else {
     amount = booking.metadata?.remainingAmount
       ? Number(booking.metadata.remainingAmount)
-      : 0;
+      : totalPrice;
   }
 
   if (amount <= 0) {
@@ -59,7 +66,7 @@ export default async function BookingCheckoutPage({
   }
 
   const invoiceNumber = generateInvoiceNumber(
-    purpose.toUpperCase() as "DP" | "FULL",
+    purpose === "dp" ? "DP" : "FULL",
   );
 
   const [payment] = await db
@@ -99,7 +106,13 @@ export default async function BookingCheckoutPage({
       .where(eq(payments.id, payment.id));
 
     if (result.redirectUrl) {
-      redirect(localeHref(locale, result.redirectUrl));
+      const target =
+        result.redirectUrl.startsWith("http://") ||
+        result.redirectUrl.startsWith("https://")
+          ? result.redirectUrl
+          : localeHref(locale, result.redirectUrl);
+
+      redirect(target);
     }
 
     redirect(localeHref(locale, `/mock-checkout/${invoiceNumber}`));

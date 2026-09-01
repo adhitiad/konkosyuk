@@ -32,6 +32,7 @@ import {
   calculateCustomPrice,
   calculatePackagePriceWithSeasonal,
 } from "@/lib/packages/calculator";
+import { generateDefaultPackages } from "@/lib/packages/generator";
 import { invalidateCacheByTag } from "@/lib/cache";
 import { updateTag } from "next/cache";
 import { dispatchNotification, sendBookingRequestEmail, sendBookingRejectionEmail, sendApprovalEmail } from "@/lib/notification-client";
@@ -104,6 +105,11 @@ export async function createBookingAction(
       return { error: "Properti tidak ditemukan", success: false };
     }
 
+    const packages =
+      property.packages?.predefined?.length > 0
+        ? property.packages
+        : generateDefaultPackages(property.type, Number(property.basePrice) || 0);
+
     const result = await db.transaction(async (tx) => {
       const [unit] = await tx
         .select()
@@ -128,7 +134,7 @@ export async function createBookingAction(
       }
 
       const packageValidation = validateBookingPackage(
-        property.packages,
+        packages,
         validated.packageId,
         validated.customDuration,
       );
@@ -139,7 +145,7 @@ export async function createBookingAction(
         } as const;
       }
 
-      const pkg = getPackageById(property.packages, validated.packageId);
+      const pkg = getPackageById(packages, validated.packageId);
       if (!pkg) {
         return { error: "Paket tidak ditemukan", success: false } as const;
       }
@@ -169,10 +175,10 @@ export async function createBookingAction(
 
       if (
         validated.packageId === "custom" &&
-        property.packages.custom.enabled
+        packages.custom.enabled
       ) {
         const customResult = calculateCustomPrice(
-          property.packages,
+          packages,
           validated.customDuration!,
           seasonalRules,
           checkIn,
@@ -181,7 +187,7 @@ export async function createBookingAction(
         appliedSeasonalRuleId = customResult.seasonal?.ruleId;
         endDate = calculatePackageEndDate(
           validated.startDate,
-          property.packages.custom.unit,
+          packages.custom.unit,
           validated.customDuration!,
         );
       } else {

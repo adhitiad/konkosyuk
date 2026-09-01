@@ -26,6 +26,7 @@ import { AlertCircleIcon, EyeIcon } from "@hugeicons/core-free-icons";
 import MaintenanceTicketForm from "@/components/maintenance/maintenance-ticket-form";
 import type { MaintenanceTicket } from "@/db/schema";
 import { apiClient } from "@/lib/axios";
+import { unwrapApiResponse } from "@/lib/api-response";
 import ReportForm from "@/components/reports/report-form";
 import Image from "next/image";
 
@@ -60,16 +61,19 @@ export default function TenantMaintenancePage() {
   const [selectedTicket, setSelectedTicket] =
     useState<MaintenanceTicket | null>(null);
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError, error } = useQuery<MaintenanceTicket[]>({
     queryKey: ["maintenance-tickets"],
     queryFn: async () => {
-      const { data } = await apiClient.get("/api/maintenance");
-      return data;
+      const response = await apiClient.get("/api/maintenance");
+      const payload = unwrapApiResponse<{ data: MaintenanceTicket[] }>(
+        response.data,
+      );
+      return payload.data ?? [];
     },
     staleTime: 30000,
   });
 
-  const tickets = data?.data ?? [];
+  const tickets: MaintenanceTicket[] = data ?? [];
 
   return (
     <div className="container py-6">

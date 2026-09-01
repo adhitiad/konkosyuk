@@ -63,10 +63,11 @@ List endpoints often add `meta` manually for pagination: `ok({ data, meta: { tot
 - CSP in `next.config.ts` is strict; external map tiles and image hosts are whitelisted in `remotePatterns`
 - `apiClient` (`src/lib/axios.ts`) auto-injects CSRF token on mutations and redirects to `/login` on 401
 - Admin analytics `/revenue` defaults to current month; `/revenue-trend` defaults to 12 months
+- Rules dalam pengkodean ini bisa ditemukan di `.kilo/rules` dan `apps/web/AGENTS.md`. Baca sebelum mengubah kode web app.
 
 ## Testing
 
 - Unit tests: Vitest with jsdom, setup in `src/__tests__/setup.ts`
 - E2E tests: Playwright (`playwright.config.ts`) starts `bun run dev` automatically, runs against `http://localhost:3000`
-- Coverage thresholds enforced in `vitest.config.ts` (65% default, 90% for payments/utils)
+- Coverage thresholds enforced in `vitest.config.ts` (70% default, 90% for payments/utils)
 - Running `bun run test` starts watch mode; use `bun run test -- --run` for CI

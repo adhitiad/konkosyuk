@@ -32,6 +32,7 @@ export function isPaymentProviderName(
     value === "ipaymu" ||
     value === "doku" ||
     value === "nicepay" ||
-    value === "otto"
+    value === "otto" ||
+    value === "mock"
   );
 }

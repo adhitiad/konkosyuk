@@ -32,6 +32,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { apiClient } from "@/lib/axios";
+import { unwrapApiResponse } from "@/lib/api-response";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { useLocale } from "next-intl";
@@ -118,21 +119,21 @@ export default function ReferralsPage() {
     message: "",
   });
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<{
+    data: Referral[];
+    meta: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+    tier: number;
+    completedCount: number;
+  }>({
     queryKey: ["referrals"],
     queryFn: async () => {
-      const res = await apiClient.get("/referrals");
-      return res.data as {
-        data: Referral[];
-        meta: {
-          page: number;
-          limit: number;
-          total: number;
-          totalPages: number;
-        };
-        tier: number;
-        completedCount: number;
-      };
+      const response = await apiClient.get("/referrals");
+      return unwrapApiResponse(response.data);
     },
   });
 

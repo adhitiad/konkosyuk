@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
@@ -12,20 +11,22 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon, Search01Icon } from "@hugeicons/core-free-icons";
 import { apiClient } from "@/lib/axios";
 import { useLocale } from "next-intl";
+import { unwrapApiResponse } from "@/lib/api-response";
 
-interface BookingRequestItem {
+interface TenantBookingItem {
   id: string;
-  numOccupants: number;
-  startDate: string;
+  propertyId: string;
+  unitId: string;
+  bookingType: string;
   status: string;
-  agreedPrice: string | null;
+  startDate: string;
+  endDate: string;
+  metadata: Record<string, unknown>;
   createdAt: string;
-  tenantName: string | null;
-  tenantEmail: string | null;
-  unitName: string | null;
   propertyName: string | null;
-  unitCapacity: string | null;
-  matchedPrice: number | null;
+  propertyAddress: string | null;
+  unitName: string | null;
+  unitPrice: string | null;
 }
 
 const formatCurrency = (value: number | string | null | undefined) =>
@@ -50,38 +51,32 @@ const statusConfig: Record<
     variant: "default" | "secondary" | "destructive" | "outline";
   }
 > = {
-  pending: { label: "Menunggu Persetujuan Owner", variant: "secondary" },
-  approved: { label: "Disetujui - Segera Bayar DP", variant: "default" },
-  paid: { label: "Aktif / Lunas", variant: "default" },
-  confirmed: { label: "Aktif / Lunas", variant: "default" },
-  rejected: { label: "Ditolak Owner", variant: "destructive" },
-  expired: { label: "Kedaluwarsa (Tidak Dibayar)", variant: "outline" },
+  pending_dp: { label: "Menunggu Pembayaran DP", variant: "secondary" },
+  awaiting_full_payment: { label: "Menunggu Pembayaran Lunas", variant: "secondary" },
+  confirmed: { label: "Dikonfirmasi", variant: "default" },
+  completed: { label: "Selesai", variant: "default" },
   cancelled: { label: "Dibatalkan", variant: "destructive" },
+  expired: { label: "Kedaluwarsa", variant: "outline" },
 };
-
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  meta?: Record<string, unknown>;
-}
 
 export default function TenantBookingsPage() {
   const { data: session } = useSession();
   const locale = useLocale();
 
-  const { data, isLoading, isError, error } = useQuery<
-    ApiResponse<BookingRequestItem[]>
-  >({
-    queryKey: ["tenant-booking-requests"],
+  const { data, isLoading, isError, error } = useQuery<TenantBookingItem[]>({
+    queryKey: ["tenant-bookings"],
     queryFn: async () => {
-      const { data } = await apiClient.get("/api/tenant/booking-requests");
-      return data;
+      const response = await apiClient.get("/api/tenant/bookings");
+      const payload = unwrapApiResponse<{ data: TenantBookingItem[] }>(
+        response.data,
+      );
+      return payload.data ?? [];
     },
     staleTime: 30000,
     enabled: !!session?.user?.id,
   });
 
-  const bookings: BookingRequestItem[] = data?.data ?? [];
+  const bookings: TenantBookingItem[] = data ?? [];
 
   return (
     <div className="container py-6">
@@ -109,10 +104,9 @@ export default function TenantBookingsPage() {
       )}
 
       {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-48 w-full" />
-          ))}
+        <div className="container py-6 space-y-4">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-96 w-full" />
         </div>
       ) : bookings.length === 0 ? (
         <Card>
@@ -123,15 +117,18 @@ export default function TenantBookingsPage() {
               className="size-16 text-muted-foreground/50 mb-4"
             />
             <h3 className="text-xl font-semibold mb-2">
-              Belum ada riwayat booking
+              Belum ada booking
             </h3>
             <p className="text-sm text-muted-foreground mb-6 max-w-md">
-              Anda belum pernah melakukan permintaan sewa. Jelajahi properti
-              tersedia dan temukan kamar ideal Anda.
+              Anda belum memiliki booking aktif. Jelajahi properti tersedia
+              dan temukan kamar ideal Anda.
             </p>
-            <Button render={<Link href="/properties" />} nativeButton={false}>
+            <Link
+              href="/properties"
+              className="inline-flex shrink-0 items-center justify-center rounded-4xl border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/80 h-9 gap-1.5 px-3"
+            >
               Cari Kost Sekarang
-            </Button>
+            </Link>
           </CardContent>
         </Card>
       ) : (
@@ -141,9 +138,10 @@ export default function TenantBookingsPage() {
               label: booking.status,
               variant: "outline",
             };
-            const price =
-              booking.matchedPrice ??
-              (booking.agreedPrice ? Number(booking.agreedPrice) : null);
+            const metadata = booking.metadata as Record<string, unknown> | undefined;
+            const totalPrice = metadata?.totalPrice
+              ? Number(metadata.totalPrice)
+              : null;
 
             return (
               <Card key={booking.id} className="flex flex-col">
@@ -169,56 +167,61 @@ export default function TenantBookingsPage() {
                   <div className="space-y-1">
                     <p className="text-sm">
                       <span className="text-muted-foreground">
-                        Jumlah Penghuni:
-                      </span>{" "}
-                      <span className="font-medium">
-                        {booking.numOccupants} orang
-                      </span>
-                    </p>
-                    <p className="text-sm">
-                      <span className="text-muted-foreground">
                         Tanggal Mulai:
                       </span>{" "}
                       <span className="font-medium">
                         {formatDate(booking.startDate)}
                       </span>
                     </p>
-                    {price !== null && (
+                    <p className="text-sm">
+                      <span className="text-muted-foreground">
+                        Tanggal Selesai:
+                      </span>{" "}
+                      <span className="font-medium">
+                        {formatDate(booking.endDate)}
+                      </span>
+                    </p>
+                    {totalPrice !== null && (
                       <p className="text-sm">
                         <span className="text-muted-foreground">
-                          Harga Disetujui:
+                          Total Harga:
                         </span>{" "}
                         <span className="font-semibold text-primary">
-                          {formatCurrency(price)}
+                          {formatCurrency(totalPrice)}
                         </span>
                       </p>
                     )}
                   </div>
 
-                  {booking.status === "approved" && price !== null && (
+                  {(booking.status === "pending_dp" ||
+                    booking.status === "awaiting_full_payment") && (
                     <div className="rounded-4xl border p-3 space-y-2">
                       <p className="text-xs text-muted-foreground">
-                        DP 35% yang harus dibayar:
+                        {booking.status === "pending_dp"
+                          ? "DP 35% yang harus dibayar:"
+                          : "Pembayaran lunas yang harus dibayar:"}
                       </p>
                       <p className="text-sm font-semibold text-primary">
-                        {formatCurrency(price * 0.35)}
+                        {booking.status === "pending_dp"
+                          ? formatCurrency(
+                              metadata?.dpAmount
+                                ? Number(metadata.dpAmount)
+                                : (totalPrice ?? 0) * 0.35,
+                            )
+                          : formatCurrency(totalPrice ?? 0)}
                       </p>
                     </div>
                   )}
 
                   <div className="mt-auto flex items-center justify-end gap-2">
-                    {booking.status === "approved" && (
-                      <Button
-                        size="sm"
-                        render={
-                          <Link
-                            href={`/${locale}/dashboard/bookings/${booking.id}`}
-                          />
-                        }
-                        nativeButton={false}
+                    {(booking.status === "pending_dp" ||
+                      booking.status === "awaiting_full_payment") && (
+                      <Link
+                        href={`/${locale}/dashboard/bookings/${booking.id}/checkout?purpose=${booking.status === "pending_dp" ? "dp" : "full_payment"}`}
+                        className="inline-flex shrink-0 items-center justify-center rounded-4xl border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/80 h-9 gap-1.5 px-3"
                       >
                         Bayar Sekarang
-                      </Button>
+                      </Link>
                     )}
                   </div>
                 </CardContent>

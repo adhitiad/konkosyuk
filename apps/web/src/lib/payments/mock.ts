@@ -5,6 +5,7 @@ import type {
   NormalizedWebhook,
   PaymentProviderAdapter,
 } from "./types";
+import { generateInvoiceNumber } from "@/lib/utils";
 
 export const mockAdapter: PaymentProviderAdapter = {
   async createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult> {
@@ -16,12 +17,19 @@ export const mockAdapter: PaymentProviderAdapter = {
 
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const invoiceNumber = input.bookingId;
+    const invoiceNumber =
+      typeof input.metadata?.invoiceNumber === "string"
+        ? input.metadata.invoiceNumber
+        : generateInvoiceNumber(input.purpose === "dp" ? "DP" : "FULL");
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL_SECONDARY ||
+      process.env.NEXT_PUBLIC_APP_URL ||
+      "http://localhost:3000";
 
     return {
       paymentId: `sandbox-${Date.now()}`,
       transactionId: invoiceNumber,
-      redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/mock-checkout/${invoiceNumber}`,
+      redirectUrl: `${appUrl}/mock-checkout/${invoiceNumber}`,
       rawResponse: {
         sandbox: true,
         invoiceNumber,

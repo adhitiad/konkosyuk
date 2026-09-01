@@ -1,5 +1,71 @@
 # Ringkasan Perubahan
 
+## Perbaikan Redirect Checkout Booking ke Page yang Salah - 01-Sep-2026 21:10
+
+### Ringkasan
+Memperbaiki redirect yang membawa pengguna kembali ke daftar booking saat membuka halaman checkout booking. Akar masalah: route dynamic segment bernama `[id]` tetapi halaman memakai `bookingId`, sehingga query booking tidak pernah menemukan data dan langsung memicu redirect ke `/dashboard/bookings`.
+
+### Perubahan Utama
+- Perbaiki pembacaan parameter route di `apps/web/src/app/[locale]/(protected)/dashboard/bookings/[id]/checkout/page.tsx` dari `bookingId` menjadi `id` sesuai nama segment pada file route.
+- Tambah penanganan redirect aman untuk `redirectUrl` absolut vs relatif agar link pembayaran tidak dibungkus dengan prefix locale yang salah.
+- Tetap mempertahankan redirect ke daftar booking hanya untuk kondisi benar-benar invalid seperti purpose tidak valid, booking tidak ditemukan, hingga pembayaran gagal.
+
+### File Diubah
+- `apps/web/src/app/[locale]/(protected)/dashboard/bookings/[id]/checkout/page.tsx` (perbaiki param route dan redirect URL)
+
+## Perbaikan 404 Inspections, Navigasi Button Bayar Sekarang, dan Checkout Amount Fallback - 01-Sep-2026 21:02
+
+### Ringkasan
+Memperbaiki tiga bug di halaman dashboard: (1) halaman Inspeksi menampilkan "Gagal memuat data inspeksi" karena memanggil endpoint `/inspections` yang tidak ada (404), seharusnya `/api/inspections`; (2) tombol "Bayar Sekarang" di halaman Riwayat Booking malah me-refresh halaman instead of navigasi ke halaman checkout; (3) halaman checkout redirect kembali ke daftar booking dengan error `invalid_amount` karena amount dihitung 0 saat metadata `dpAmount` atau `remainingAmount` belum tersimpan.
+
+### Perubahan Utama
+- Perbaiki endpoint API di `apps/web/src/app/[locale]/(protected)/dashboard/inspections/page.tsx` dari `/inspections` menjadi `/api/inspections` untuk query list, detail, dan comparison
+- Ganti komponen `Button` dengan `Link` yang di-style sebagai button di halaman Riwayat Booking untuk menghindari interference dari Base UI Button terhadap navigasi Link
+- Perbaiki perhitungan amount di `apps/web/src/app/[locale]/(protected)/dashboard/bookings/[id]/checkout/page.tsx` dengan fallback ke `totalPrice * 0.35` untuk DP dan `totalPrice` untuk pembayaran lunas ketika metadata belum tersimpan, selaras dengan logika di halaman daftar booking
+
+### File Diubah
+- `apps/web/src/app/[locale]/(protected)/dashboard/inspections/page.tsx` (perbaiki endpoint API)
+- `apps/web/src/app/[locale]/(protected)/dashboard/bookings/page.tsx` (ganti Button+Link menjadi Link styled sebagai button)
+- `apps/web/src/app/[locale]/(protected)/dashboard/bookings/[id]/checkout/page.tsx` (perbaiki fallback amount calculation)
+
+## Perbaikan Dashboard Map Error - API Response Unwrapping - 01-Sep-2026 09:30
+
+### Ringkasan
+Memperbaiki runtime error `bookings.map is not a function` dan `tickets.map is not a function` di halaman-halaman dashboard. Akar masalah: response API menggunakan format `{ success: true, data: { data: [...], meta: {...} } }` (nested), tetapi halaman dashboard mengakses `data?.data` yang mengembalikan object `{ data: [...], meta: {...} }` bukan array.
+
+### Perubahan Utama
+- Tambah helper `unwrapApiResponse` di `apps/web/src/lib/api-response.ts` untuk mengekstrak payload dari response API yang berformat nested
+- Update dashboard pages untuk menggunakan `unwrapApiResponse`:
+  - `apps/web/src/app/[locale]/(protected)/dashboard/bookings/page.tsx`
+  - `apps/web/src/app/[locale]/(protected)/dashboard/maintenance/page.tsx`
+  - `apps/web/src/app/[locale]/(protected)/dashboard/inspections/page.tsx`
+  - `apps/web/src/app/[locale]/(protected)/dashboard/referrals/page.tsx`
+- Perbaiki tipe data di inspections page dari `InspectionItem[]` menjadi `Inspection[]`
+- Hapus `unwrapApiResponse` dari `apps/web/src/lib/api.ts` agar modul server-only tidak ikut di-bundle ke client
+
+## Perbaikan Dashboard Booking Menampilkan Data Booking yang Benar - 01-Sep-2026 08:20
+
+### Ringkasan
+Memperbaiki dashboard booking tenant yang menampilkan `bookingRequests` (permintaan booking) sebagai ganti `bookings` (booking aktual). Akibatnya, booking yang berhasil dibuat melalui dialog booking tidak muncul di dashboard karena disimpan di tabel `bookings`, bukan `bookingRequests`.
+
+### Perubahan Utama
+- Buat API route baru `apps/web/src/app/api/tenant/bookings/route.ts` untuk mengambil booking aktual tenant
+- Update dashboard `apps/web/src/app/[locale]/(protected)/dashboard/bookings/page.tsx` untuk menggunakan endpoint baru
+- Ganti interface `BookingRequestItem` menjadi `TenantBookingItem` yang sesuai dengan struktur data booking aktual
+- Update status badge, harga, dan tombol "Bayar Sekarang" untuk sesuai dengan status booking aktual (`pending_dp`, `awaiting_full_payment`, `confirmed`, `completed`, `cancelled`)
+- Tampilkan tanggal selesai, total harga, dan informasi DP/lunas dari `metadata` booking
+
+## Perbaikan Fallback Paket Kosong di Server Action - 01-Sep-2026 08:08
+
+### Ringkasan
+Memperbaiki error "Paket tidak ditemukan" yang terjadi saat submit booking untuk properti yang memiliki `packages` kosong di database. Frontend sudah fallback ke `generateDefaultPackages()` saat menampilkan dialog, tetapi server action membaca dari database yang masih kosong sehingga `getPackageById` gagal menemukan paket yang dipilih.
+
+### Perubahan Utama
+- Import `generateDefaultPackages` di `apps/web/src/actions/bookings.ts`
+- Tambah fallback di `createBookingAction`: jika `property.packages.predefined` kosong, generate paket default berdasarkan tipe properti dan `basePrice`
+- Gunakan paket yang sudah dinormalisasi (`packages`) untuk validasi dan perhitungan harga
+- Konsisten dengan logika fallback yang sudah ada di halaman detail properti
+
 ## Perbaikan Validasi StartDate Format ISO - 01-Sep-2026 07:50
 
 ### Ringkasan
