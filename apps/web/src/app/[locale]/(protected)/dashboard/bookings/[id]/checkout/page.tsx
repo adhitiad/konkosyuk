@@ -65,9 +65,7 @@ export default async function BookingCheckoutPage({
     redirect(localeHref(locale, "/dashboard/bookings?error=invalid_provider"));
   }
 
-  const invoiceNumber = generateInvoiceNumber(
-    purpose === "dp" ? "DP" : "FULL",
-  );
+  const invoiceNumber = generateInvoiceNumber(purpose === "dp" ? "DP" : "FULL");
 
   const [payment] = await db
     .insert(payments)
@@ -82,6 +80,8 @@ export default async function BookingCheckoutPage({
       metadata: { invoiceNumber },
     })
     .returning();
+
+  let redirectTarget: string;
 
   try {
     const result = await adapter.createPayment({
@@ -106,22 +106,25 @@ export default async function BookingCheckoutPage({
       .where(eq(payments.id, payment.id));
 
     if (result.redirectUrl) {
-      const target =
+      redirectTarget =
         result.redirectUrl.startsWith("http://") ||
         result.redirectUrl.startsWith("https://")
           ? result.redirectUrl
           : localeHref(locale, result.redirectUrl);
-
-      redirect(target);
+    } else {
+      redirectTarget = localeHref(locale, `/checkout/${invoiceNumber}`);
     }
-
-    redirect(localeHref(locale, `/mock-checkout/${invoiceNumber}`));
   } catch {
     await db
       .update(payments)
       .set({ status: "failed", updatedAt: new Date() })
       .where(eq(payments.id, payment.id));
 
-    redirect(localeHref(locale, "/dashboard/bookings?error=payment_failed"));
+    redirectTarget = localeHref(
+      locale,
+      "/dashboard/bookings?error=payment_failed",
+    );
   }
+
+  redirect(redirectTarget);
 }

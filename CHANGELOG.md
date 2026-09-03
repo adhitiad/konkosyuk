@@ -1,5 +1,102 @@
 # Ringkasan Perubahan
 
+## Dokumentasi: Perbaikan Akurasi README - 03-Sep-2026 09:03
+
+### Ringkasan
+Menyamakan isi README monorepo dan README `apps/web` dengan struktur, perintah, dan tech stack yang sebenarnya dipakai di kode.
+
+### Perubahan Utama
+- `README.md` (root): struktur workspace sekarang `apps/web`, `apps/mobile`, `packages/shared` (sebelumnya salah menyebut `web/`/`mobile/`); menambahkan daftar `AGENTS.md`, konvasi i18n/Bahasa Indonesia, daftar periksa kontribusi, dan aturan CI tiga workflow.
+- `apps/web/README.md`: pembayaran sekarang menyebut **Doku + iPaymu + Nicepay + Otto Digital** (sebelumnya Otto hilang); AI memakai **OpenAI + Groq failover** (sebelumnya salah menyebut OpenRouter); peta memakai **MapLibre GL + Stadia Maps** (sebelumnya salah menyebut Leaflet + OpenStreetMap); menambahkan 2FA TOTP, Ably, QStash, Sentry, Redis format ioredis, dan path image diperbaiki untuk konsistensi; urutan locale mengikuti `src/config.ts` (`id` default, lalu `en`, `my`, `th`, `vi`, `ko`, `zh`, `ru`).
+
+### File Diubah
+- `README.md` — README monorepo
+- `apps/web/README.md` — README web app
+
+## Dokumentasi: Panduan UI/UX & Design System - 02-Sep-2026
+
+### Ringkasan
+Menambahkan panduan desain sistem lengkap ke repository sebagai referensi proyek untuk pengembangan UI/UX.
+
+### Perubahan Utama
+- Simpan skema warna (primary, accent/gradient, background, card, text, status colors, border/hover) beserta penggunaannya
+- Dokumentasikan tipografi: font Inter untuk heading (700-800, tracking-tight) dan body (400-500), tabular-nums untuk angka/data
+- Tetapkan aturan komponen: Button (rounded-xl, gradient, shadow, hover scale), Card (glassmorphism, hover border), Form Input (focus ring), Tabel, Badge Status (4 status), Sidebar Admin (sticky, glassmorphism, menu aktif)
+- Dokumentasikan nuansa: Dark Mode Premium, Glassmorphism, Clean & Spacious, Micro-animations, Modern (Lucide Icons)
+
+### File Ditambahkan
+- `.kilo/rules/uiux-design-system.md` — Panduan UI/UX & Design System
+- Project memory: `uiux_design_system` — Ringkasan skema desain untuk referensi memori
+
+## Penerapan Design System ke Komponen UI Inti - 02-Sep-2026
+
+### Ringkasan
+Menerapkan design system yang didokumentasikan ke komponen UI inti aplikasi web agar tema warna, tipografi, dan gaya komponen konsisten dengan panduan desain premium dark mode.
+
+### Perubahan Utama
+- **globals.css**: Update semua variabel tema (light, dark, aurora) dari oklch/hsl warna teal/orange ke palet design system (Sky-400, Indigo-500, Slate series, Emerald-500, Amber-500, Red-500). Background utama #0B1120, card #1E293B dengan transparansi, text #F8FAFC, secondary #94A3B8, border rgba(255,255,255,0.1) untuk efek glassmorphism.
+- **button.tsx**: Tambah varian `gradient` dengan rounded-xl px-5 py-3, bg-gradient-to-r from-sky-400 to-indigo-500, shadow-lg shadow-sky-500/30, hover opacity-90 shadow-xl scale-1.05 transition-all duration-300.
+- **badge.tsx**: Tambah varian status badge: `pending_payment` (bg-amber-500/20 text-amber-300), `active` (bg-emerald-500/20 text-emerald-300), `completed` (bg-sky-500/20 text-sky-300), `cancelled` (bg-red-500/20 text-red-300).
+- **input.tsx**: Update gaya form input ke rounded-xl, bg-slate-800/50, border-slate-700, text-slate-100, placeholder-slate-500, fokus border-sky-500 ring-sky-500/30.
+- **card.tsx**: Tambah backdrop-blur-xl, bg-card/30, border border-white/10 untuk efek glassmorphism, serta hover border-sky-500/50 shadow-2xl.
+- **sidebar.tsx**: Tambah sticky top-0, h-screen, bg-sidebar/90, backdrop-blur-xl, border-r border-white/10. Update sidebarMenuButtonVariants untuk menu aktif dengan border-l-2 border-sky-500, bg-sky-500/20, text-sky-400. Update variabel sidebar di globals.css untuk dark/aurora mode.
+
+### File Diubah
+- `apps/web/src/app/globals.css`
+- `apps/web/src/components/ui/button.tsx`
+- `apps/web/src/components/ui/badge.tsx`
+- `apps/web/src/components/ui/input.tsx`
+- `apps/web/src/components/ui/card.tsx`
+- `apps/web/src/components/ui/sidebar.tsx`
+
+### Verifikasi
+- ESLint: 0 error baru pada file yang dimodifikasi
+- Typecheck: tidak ada error baru (1 pre-existing error di .next cache)
+
+### Ringkasan
+Menambahkan panduan desain sistem lengkap ke repository sebagai referensi proyek untuk pengembangan UI/UX. Panduan ini mencakup skema warna, tipografi, aturan komponen (tombol, card, form input, kalender, tabel, badge status, sidebar admin), serta nuansa dan vibe aplikasi.
+
+### Perubahan Utama
+- Simpan skema warna (primary, accent/gradient, background, card, text, status colors, border/hover) beserta penggunaannya
+- Dokumentasikan tipografi: font Inter untuk heading (700-800, tracking-tight) dan body (400-500), tabular-nums untuk angka/data
+- Tetapkan aturan komponen: Button (rounded-xl, gradient, shadow, hover scale), Card (glassmorphism, hover border), Form Input (focus ring), Tabel, Badge Status (4 status), Sidebar Admin (sticky, glassmorphism, menu aktif)
+- Dokumentasikan nuansa: Dark Mode Premium, Glassmorphism, Clean & Spacious, Micro-animations, Modern (Lucide Icons)
+
+### File Ditambahkan
+- `.kilo/rules/uiux-design-system.md` — Panduan UI/UX & Design System
+- Project memory: `uiux_design_system` — Ringkasan skema desain untuk referensi memori
+
+## Perbaikan Hydration Notification Bell - 01-Sep-2026 23:37
+
+### Ringkasan
+Memperbaiki hydration mismatch pada navbar yang terjadi karena `NotificationBell` merender tombol notifikasi di client sebelum state session dan komponen Base UI stabil setelah SSR.
+
+### Perubahan Utama
+- Jadikan state `mounted` bernilai `false` pada render awal dan aktifkan setelah `useEffect`, sehingga output server dan client pertama sama-sama kosong.
+- Tunda inisialisasi EventSource notifikasi sampai komponen benar-benar mounted dan session user tersedia.
+
+### File Diubah
+- `apps/web/src/components/notification-bell.tsx`
+
+## Perbaikan Fitur Chat: Response API, Room Access, dan Mark-as-Read - 01-Sep-2026 21:52
+
+### Ringkasan
+Memperbaiki masalah pada fitur chat yang disebabkan oleh tiga hal utama: parsing response API yang salah pada halaman daftar chat, akses room yang tidak normalisasi ketika route GET room mengembalikan `{ data: { room, messages } }`, dan efek `markAsRead` yang memanggil API berulang setiap kali message state berubah. Perbaikan ini membuat daftar room, detail room, dan read-status lebih konsisten serta mengurangi request duplikat.
+
+### Perubahan Utama
+- Perbaiki parsing list room di `apps/web/src/app/[locale]/(protected)/chat/page.tsx` agar membaca array dari `data?.data?.data` secara aman dan tidak gagal saat API mengembalikan payload nested.
+- Tambahkan route detail room `apps/web/src/app/api/chat/rooms/[id]/route.ts` untuk mengambil room beserta pesan sesuai participant yang valid, agar halaman room detail dapat memvalidasi akses dan memuat history pesan dengan benar.
+- Update halaman detail room `apps/web/src/app/[locale]/(protected)/chat/[roomId]/page.tsx` agar membaca room dari `data?.data?.room ?? data?.data` sehingga kompatibel dengan format response baru.
+- Batasi pemanggilan `markAsRead` di `apps/web/src/components/chat/ChatWindow.tsx` hanya saat `roomId` berubah, bukan saat `messages` berubah, untuk menghindari request berulang.
+- Normalisasi message payload di `apps/web/src/hooks/useChat.ts` saat mengambil history, menerima event realtime, dan mengirim pesan agar `createdAt` selalu menjadi `Date` dan payload kembalian dari server konsisten.
+
+### File Diubah
+- `apps/web/src/app/[locale]/(protected)/chat/page.tsx`
+- `apps/web/src/app/[locale]/(protected)/chat/[roomId]/page.tsx`
+- `apps/web/src/components/chat/ChatWindow.tsx`
+- `apps/web/src/hooks/useChat.ts`
+- `apps/web/src/app/api/chat/rooms/[id]/route.ts`
+
 ## Perbaikan Redirect Checkout Booking ke Page yang Salah - 01-Sep-2026 21:10
 
 ### Ringkasan

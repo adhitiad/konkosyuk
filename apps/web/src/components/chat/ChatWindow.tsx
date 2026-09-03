@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Bubble, BubbleContent, BubbleGroup } from "@/components/ui/bubble";
 import { User } from "lucide-react";
+import ChatTyping from "./ChatTyping";
 
 interface ChatWindowProps {
   roomId: string;
@@ -40,8 +41,9 @@ export default function ChatWindow({
   });
 
   useEffect(() => {
-    markAsRead();
-  }, [markAsRead, messages]);
+    if (!roomId) return;
+    void markAsRead();
+  }, [markAsRead, roomId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -144,7 +146,7 @@ export default function ChatWindow({
             <Bubble variant="muted" align="start">
               <BubbleContent>
                 <p className="text-xs text-muted-foreground italic">
-                  {otherPartyName} sedang mengetik...
+                  {otherPartyName} <ChatTyping />
                 </p>
               </BubbleContent>
             </Bubble>

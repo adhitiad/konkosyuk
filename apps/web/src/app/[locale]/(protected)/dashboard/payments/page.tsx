@@ -487,7 +487,7 @@ export default function TenantPaymentsPage() {
                     className="w-full"
                     render={
                       <Link
-                        href={`/${locale}/mock-checkout/${selectedPayment.transactionId}`}
+                        href={`/${locale}/checkout/${selectedPayment.transactionId}`}
                         target="_blank"
                       />
                     }

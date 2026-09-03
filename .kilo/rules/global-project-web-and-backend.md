@@ -73,4 +73,5 @@ wajib hukumnya
 
 ```powershell
  echo "=== LINT ==="; bun run lint; echo "=== TYPECHECK ==="; bunx tsc --noEmit; echo "=== TESTS ==="; bun run test -- --run
+``
 ```

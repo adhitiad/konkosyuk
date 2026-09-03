@@ -63,7 +63,7 @@ List endpoints often add `meta` manually for pagination: `ok({ data, meta: { tot
 - CSP in `next.config.ts` is strict; external map tiles and image hosts are whitelisted in `remotePatterns`
 - `apiClient` (`src/lib/axios.ts`) auto-injects CSRF token on mutations and redirects to `/login` on 401
 - Admin analytics `/revenue` defaults to current month; `/revenue-trend` defaults to 12 months
-- Rules dalam pengkodean ini bisa ditemukan di `.kilo/rules` dan `apps/web/AGENTS.md`. Baca sebelum mengubah kode web app.
+- Rules dalam pengkodean ini bisa ditemukan di `.agents/rules` atau `.kilo/**` dan `apps/web/AGENTS.md`. Baca sebelum mengubah kode web app.
 
 ## Testing
 

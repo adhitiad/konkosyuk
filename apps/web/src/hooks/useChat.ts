@@ -26,6 +26,38 @@ export function useChat({
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const clientRef = useRef<Realtime | null>(null);
 
+  const normalizeMessage = useCallback(
+    (message: Partial<ChatMessage> & { createdAt?: Date | string }) => ({
+      id: message.id ?? "",
+      roomId: message.roomId ?? roomId ?? "",
+      senderId: message.senderId ?? "",
+      content: message.content ?? "",
+      createdAt: new Date(message.createdAt ?? Date.now()),
+      isRead: message.isRead ?? false,
+    }),
+    [roomId],
+  );
+
+  const fetchRoomMessages = useCallback(async () => {
+    if (!roomId) return;
+
+    try {
+      const res = await fetch(`/api/chat/rooms/${roomId}`);
+      if (!res.ok) return;
+
+      const json = await res.json();
+      const roomMessages = Array.isArray(json?.data?.messages)
+        ? json.data.messages
+        : [];
+
+      setMessages(roomMessages.map((message: Partial<ChatMessage>) => normalizeMessage(message)));
+    } catch (error) {
+      captureException(error as Error, {
+        context: "[useChat] Failed to fetch room messages",
+      });
+    }
+  }, [normalizeMessage, roomId]);
+
   useEffect(() => {
     if (!roomId) return;
 
@@ -70,7 +102,7 @@ export function useChat({
 
         channel.subscribe((message) => {
           if (!mounted) return;
-          const msg = message.data as ChatMessage;
+          const msg = normalizeMessage(message.data as Partial<ChatMessage>);
           setMessages((prev) => {
             const exists = prev.some((m) => m.id === msg.id);
             if (exists) return prev;
@@ -98,6 +130,7 @@ export function useChat({
           }
         });
 
+        await fetchRoomMessages();
         setConnectionStatus("connected");
       } catch (error) {
         captureException(error as Error, {
@@ -123,7 +156,7 @@ export function useChat({
         clearTimeout(typingTimeoutRef.current);
       }
     };
-  }, [roomId, onMessageReceived]);
+  }, [fetchRoomMessages, normalizeMessage, onMessageReceived, roomId]);
 
   const sendMessage = useCallback(
     async (content: string) => {
@@ -137,10 +170,11 @@ export function useChat({
         const result = await sendMessageAction(undefined, formData);
 
         if (result.success && result.data) {
+          const nextMessage = normalizeMessage(result.data as Partial<ChatMessage>);
           setMessages((prev) => {
-            const exists = prev.some((m) => m.id === result.data?.id);
+            const exists = prev.some((m) => m.id === nextMessage.id);
             if (exists) return prev;
-            return [...prev, result.data as ChatMessage];
+            return [...prev, nextMessage];
           });
         } else {
           captureException(

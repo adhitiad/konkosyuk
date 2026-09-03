@@ -105,22 +105,6 @@ export const auth = betterAuth({
       },
     },
   },
-  advanced: {
-    database: {
-      generateId: "uuid",
-    },
-    cookies: {
-      sessionToken: {
-        name: "session_token",
-        attributes: {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
-          path: "/",
-        },
-      },
-    },
-  },
   session: {
     expiresIn: 60 * 60 * 24 * 7,
     updateAge: 60 * 60 * 24,

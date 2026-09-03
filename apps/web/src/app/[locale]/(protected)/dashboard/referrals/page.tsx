@@ -139,7 +139,7 @@ export default function ReferralsPage() {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const res = await apiClient.post("/referrals", data);
+       const res = await apiClient.post("/api/referrals", data);
       return res.data;
     },
     onSuccess: () => {
@@ -167,7 +167,7 @@ export default function ReferralsPage() {
       id: string;
       action: "convert_voucher" | "apply_offset";
     }) => {
-      const res = await apiClient.put(`/referrals/${id}`, { action });
+       const res = await apiClient.put(`/api/referrals/${id}`, { action });
       return res.data;
     },
     onSuccess: () => {

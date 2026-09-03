@@ -84,7 +84,7 @@ export function InspectionForm({
 
   const addItemMutation = useMutation({
     mutationFn: async (data: InspectionItemFormData) => {
-      const res = await apiClient.post(`/inspections/${inspectionId}/items`, {
+       const res = await apiClient.post(`/api/inspections/${inspectionId}/items`, {
         ...data,
         repairCost: data.repairCost ? Number(data.repairCost) : undefined,
       });
@@ -108,7 +108,7 @@ export function InspectionForm({
 
   const addPhotoMutation = useMutation({
     mutationFn: async ({ itemId, url }: { itemId: string; url: string }) => {
-      const res = await apiClient.post(`/inspections/${inspectionId}/photos`, {
+       const res = await apiClient.post(`/api/inspections/${inspectionId}/photos`, {
         itemId,
         type: "damage",
         url,

@@ -208,7 +208,11 @@ export default function TenantBookingsPage() {
                                 ? Number(metadata.dpAmount)
                                 : (totalPrice ?? 0) * 0.35,
                             )
-                          : formatCurrency(totalPrice ?? 0)}
+                          : formatCurrency(
+                              metadata?.remainingAmount
+                                ? Number(metadata.remainingAmount)
+                                : (totalPrice ?? 0) - (metadata?.dpAmount ? Number(metadata.dpAmount) : (totalPrice ?? 0) * 0.35)
+                            )}
                       </p>
                     </div>
                   )}

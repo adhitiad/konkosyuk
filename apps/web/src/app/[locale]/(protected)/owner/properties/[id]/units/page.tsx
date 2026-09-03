@@ -98,7 +98,7 @@ export default function UnitsPage() {
     }
   };
 
-  const units = data?.data ?? [];
+   const units = data?.data?.data ?? [];
 
   return (
     <div className="container py-6">

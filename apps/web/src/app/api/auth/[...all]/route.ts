@@ -15,8 +15,12 @@ export async function POST(req: NextRequest) {
   if (limited) return limited;
 
   // Debug: log the request body for sign-in attempts
-  const url = new URL(req.url);
-  if (url.pathname.includes("sign-in/email")) {
+   const url = new URL(req.url);
+   console.log("[DEBUG] Auth POST path:", url.pathname);
+   if (url.pathname.includes("sign-out")) {
+     console.log("[DEBUG] Sign-out attempt received");
+   }
+   if (url.pathname.includes("sign-in/email")) {
     try {
       const clone = req.clone();
       const body = await clone.json();
@@ -24,7 +28,12 @@ export async function POST(req: NextRequest) {
     } catch { /* ignore */ }
   }
 
-  const result = await handler.POST(req);
+   const result = await handler.POST(req);
+   
+   if (url.pathname.includes("sign-out")) {
+     console.log("[DEBUG] Sign-out response status:", result.status);
+     console.log("[DEBUG] Sign-out response headers:", Object.fromEntries(result.headers.entries()));
+   }
   
   // Create a new response with the debug header
   const response = new NextResponse(result.body, {

@@ -23,7 +23,7 @@ export default function ChatRoomPage() {
     const checkRoom = async () => {
       try {
         const { data } = await apiClient.get(`/api/chat/rooms/${roomId}`);
-        const room = data?.data;
+        const room = data?.data?.room ?? data?.data;
         if (!room) {
           setIsParticipant(false);
           return;

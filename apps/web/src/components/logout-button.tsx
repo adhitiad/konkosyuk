@@ -7,9 +7,25 @@ import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
 export function LogoutButton() {
   async function handleLogout() {
-    await signOut();
-    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-    window.location.href = "/login";
+     try {
+       await signOut({
+         fetchOptions: {
+           onSuccess: () => {
+             // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+             window.location.href = "/login";
+           },
+           onError: (ctx) => {
+             console.error("Logout failed:", ctx.error);
+             // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+             window.location.href = "/login";
+           },
+         },
+       });
+     } catch (err) {
+       console.error("Logout error:", err);
+       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+       window.location.href = "/login";
+     }
   }
 
   return (

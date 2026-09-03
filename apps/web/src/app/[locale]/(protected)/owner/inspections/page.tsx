@@ -116,19 +116,19 @@ export default function OwnerInspectionsPage() {
     queryKey: ["owner-inspections"],
     queryFn: async () => {
       const res = await apiClient.get(
-        "/inspections?page=1&limit=20&type=move_out",
+         "/api/inspections?page=1&limit=20&type=move_out",
       );
       return res.data;
     },
   });
 
-  const inspections = data?.data || [];
+   const inspections = data?.data?.data || [];
 
   const detailQuery = useQuery({
     queryKey: ["inspection-detail", selectedInspection?.id],
     queryFn: async () => {
       if (!selectedInspection?.id) return null;
-      const res = await apiClient.get(`/inspections/${selectedInspection.id}`);
+       const res = await apiClient.get(`/api/inspections/${selectedInspection.id}`);
       return res.data.data as InspectionDetail;
     },
     enabled: !!selectedInspection?.id,
@@ -148,7 +148,7 @@ export default function OwnerInspectionsPage() {
 
   const createMutation = useMutation({
     mutationFn: async (propertyType: string) => {
-      const res = await apiClient.post("/inspections", {
+       const res = await apiClient.post("/api/inspections", {
         propertyId: selectedInspection?.propertyId || "",
         unitId: selectedInspection?.unitId || "",
         bookingId: selectedInspection?.bookingId || "",

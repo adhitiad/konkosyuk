@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -45,6 +45,12 @@ export function GpsSearchButton({
     requestLocation();
   }, [enabled, setEnabled, requestLocation, clearLocation, onClear]);
 
+  useEffect(() => {
+    if (enabled && latitude !== null && longitude !== null) {
+      onLocationChange?.(latitude, longitude);
+    }
+  }, [enabled, latitude, longitude, onLocationChange]);
+
   if (error) {
     toast({
       title: "Lokasi tidak ditemukan",
@@ -54,8 +60,6 @@ export function GpsSearchButton({
   }
 
   if (enabled && latitude !== null && longitude !== null) {
-    onLocationChange?.(latitude, longitude);
-
     return (
       <div className="flex items-center gap-2">
         <Button variant="default" size="sm" className="gap-2" disabled>

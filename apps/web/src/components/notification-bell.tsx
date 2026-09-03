@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -38,7 +38,11 @@ export default function NotificationBell() {
   const locale = useLocale();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [mounted] = useState(true);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const eventSourceRef = useRef<EventSource | null>(null);
   const { data, refetch } = useQuery<{ data: { data: Notification[] } }>({
     queryKey: ["notifications"],
@@ -62,7 +66,7 @@ export default function NotificationBell() {
   ).length;
 
   useEffect(() => {
-    if (!session?.user?.id) return;
+    if (!mounted || !session?.user?.id) return;
     const source = new EventSource("/api/notifications/stream");
     eventSourceRef.current = source;
     const handleNotification = (event: MessageEvent<string>) => {
@@ -84,7 +88,7 @@ export default function NotificationBell() {
       source.close();
       eventSourceRef.current = null;
     };
-  }, [session?.user?.id, queryClient]);
+  }, [mounted, session?.user?.id, queryClient]);
 
   if (!mounted || !session) return null;
   const role = (session.user as { role?: string }).role;

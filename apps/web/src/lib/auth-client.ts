@@ -21,5 +21,5 @@ export const roleRedirectMap: Record<Role, string> = {
   cust: "/dashboard",
   owner: "/owner",
   admin: "/admin",
-  staff: "/staff",
+  staff: "/admin",
 };

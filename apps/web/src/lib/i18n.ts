@@ -17,5 +17,23 @@ export const languages: Record<
 };
 
 export function localeHref<T extends string>(locale: string, path: T): Route {
-  return `/${locale}${path}` as Route;
+  if (!path || typeof path !== "string") {
+    return `/${locale}` as Route;
+  }
+
+  const trimmedPath = path.trim();
+
+  if (/^https?:\/\//i.test(trimmedPath)) {
+    return trimmedPath as Route;
+  }
+
+  if (!trimmedPath.startsWith("/")) {
+    return `/${locale}/${trimmedPath.replace(/^\/+/, "")}` as Route;
+  }
+
+  if (trimmedPath === "/") {
+    return `/${locale}` as Route;
+  }
+
+  return `/${locale}${trimmedPath}` as Route;
 }

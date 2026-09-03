@@ -29,7 +29,7 @@ export const mockAdapter: PaymentProviderAdapter = {
     return {
       paymentId: `sandbox-${Date.now()}`,
       transactionId: invoiceNumber,
-      redirectUrl: `${appUrl}/mock-checkout/${invoiceNumber}`,
+      redirectUrl: `${appUrl}/checkout/${invoiceNumber}`,
       rawResponse: {
         sandbox: true,
         invoiceNumber,

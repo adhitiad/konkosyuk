@@ -1,286 +1,103 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { showToastSuccess, showToastError } from "@/lib/use-toast-custom";
-import { apiClient } from "@/lib/axios";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Check, CreditCard, Loader2 } from "lucide-react";
 
-function formatIDR(amount: string): string {
-  const num = parseFloat(amount);
-  return new Intl.NumberFormat("id-ID", {
+const formatIDR = (value: number) =>
+  new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(num);
-}
-
-function getStatusBadge(status: string) {
-  switch (status) {
-    case "success":
-      return <Badge variant="default">Berhasil</Badge>;
-    case "failed":
-      return <Badge variant="destructive">Gagal</Badge>;
-    case "expired":
-      return <Badge variant="secondary">Kadaluarsa</Badge>;
-    default:
-      return <Badge variant="outline">Menunggu</Badge>;
-  }
-}
+    maximumFractionDigits: 0,
+  }).format(value);
 
 export default function MockCheckoutPage() {
+  const params = useParams();
   const router = useRouter();
-  const { invoiceNumber } = useParams<{ invoiceNumber: string }>();
   const locale = useLocale();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [payment, setPayment] = useState<{
-    id: string;
-    bookingId: string;
-    propertyId: string | null;
-    provider: string;
-    purpose: string;
-    amount: string;
-    currency: string;
-    status: string;
-    transactionId: string | null;
-    paidAt: string | null;
-    createdAt: string;
-    bookingStatus: string | null;
-    bookingType: string | null;
-  } | null>(null);
-  const [fetching, setFetching] = useState(true);
+  const invoiceNumber = params.invoiceNumber as string;
 
-  const fetchPayment = async () => {
-    try {
-      setFetching(true);
-      const { data } = await apiClient.get("/api/payments", {
-        params: { invoiceNumber: invoiceNumber },
-      });
-      if (data.error) {
-        throw new Error(data.error ?? "Gagal mengambil data pembayaran");
-      }
-      setPayment(data.data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
-    } finally {
-      setFetching(false);
-    }
-  };
+  const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
 
-  const handleSimulate = async (status: "success" | "failed" | "expired") => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await apiClient.post("/api/webhooks/mock", {
-        invoiceNumber: invoiceNumber,
-        status,
-      });
-      const data = res.data;
-      if (res.status >= 400) {
-        throw new Error(data.error ?? "Gagal memproses simulasi");
-      }
-
-      if (status === "success") {
-        if (payment?.purpose === "featured_listing") {
-          showToastSuccess(
-            "Pembayaran berhasil! Properti Anda sekarang Featured.",
-          );
-        } else {
-          showToastSuccess("Pembayaran berhasil! Status booking diperbarui.");
-        }
-      } else {
-        showToastError("Pembayaran gagal atau kedaluwarsa.");
-      }
-      setTimeout(() => {
-        if (payment?.purpose === "featured_listing") {
-          router.push(`/${locale}/owner/properties`);
-        } else {
-          router.push(`/${locale}/dashboard/bookings`);
-        }
-      }, 1500);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
-      showToastError(err instanceof Error ? err.message : "Terjadi kesalahan");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (fetching) {
-    return (
-      <div className="container mx-auto py-8 max-w-lg">
-        <Skeleton className="h-8 w-48 mb-4" />
-        <Skeleton className="h-32 w-full" />
-      </div>
-    );
+  function handlePay() {
+    setStatus("loading");
+    setTimeout(() => {
+      setStatus("success");
+    }, 1500);
   }
 
-  if (error && !payment) {
+  if (status === "success") {
     return (
-      <div className="container mx-auto py-8 max-w-lg">
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-destructive">{error}</p>
-            <Button onClick={fetchPayment} className="mt-4">
-              Coba Lagi
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!payment) {
-    return (
-      <div className="container mx-auto py-8 max-w-lg">
-        <Card>
-          <CardContent className="pt-6">
-            <p>Pembayaran tidak ditemukan</p>
-          </CardContent>
-        </Card>
-      </div>
+      <main className="min-h-screen bg-[#f6f8fb] px-5 py-16 text-slate-950">
+        <section className="mx-auto flex max-w-lg flex-col items-center rounded-3xl bg-white p-10 text-center shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+          <div className="mb-6 flex size-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+            <Check className="size-8" />
+          </div>
+          <p className="text-sm font-bold uppercase tracking-[0.22em] text-emerald-600">
+            Pembayaran berhasil
+          </p>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight">
+            Terima kasih, pembayaran diproses.
+          </h1>
+          <p className="mt-3 text-slate-500">
+            Ini adalah simulasi pembayaran. Tidak ada transaksi nyata yang dibuat.
+          </p>
+          <div className="mt-8 w-full rounded-2xl bg-slate-50 p-5 text-left">
+            <div className="flex justify-between border-t border-slate-200 pt-3 font-bold">
+              <span>Invoice</span>
+              <span>{invoiceNumber}</span>
+            </div>
+          </div>
+          <Button
+            className="mt-8 w-full rounded-xl bg-[#1157d6] py-6 text-base hover:bg-[#0b46b4]"
+            onClick={() => router.push(`/${locale}/dashboard/bookings`)}
+          >
+            Kembali ke pesanan
+          </Button>
+        </section>
+      </main>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-lg">
-      <Card>
-        <CardHeader>
-          <CardTitle>Mock Checkout</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Invoice</span>
-            <span className="font-mono text-sm">{invoiceNumber}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Jumlah</span>
-            <span className="font-semibold">{formatIDR(payment.amount)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Tujuan</span>
-            <span>
-              {payment.purpose === "dp"
-                ? "DP"
-                : payment.purpose === "featured_listing"
-                  ? "Featured Listing"
-                  : "Pelunasan"}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Status</span>
-            {getStatusBadge(payment.status)}
-          </div>
-
-          {error && (
-            <div className="text-destructive text-sm bg-destructive/10 p-3 rounded-md">
-              {error}
+    <main className="min-h-screen bg-[#f6f8fb] px-5 py-16 text-slate-950">
+      <div className="mx-auto max-w-2xl">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="size-5" />
+              Simulasi Pembayaran
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="rounded-2xl bg-slate-50 p-5">
+              <p className="text-sm text-slate-500">Invoice Number</p>
+              <p className="font-bold">{invoiceNumber}</p>
             </div>
-          )}
-
-          <div className="flex flex-col gap-2 pt-4">
-            <Dialog>
-              <DialogTrigger
-                render={
-                  <Button className="w-full" variant="default">
-                    Simulasi Bayar Sukses
-                  </Button>
-                }
-              />
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Konfirmasi</DialogTitle>
-                  <DialogDescription>
-                    Apakah Anda yakin ingin mensimulasikan pembayaran sukses
-                    untuk invoice {invoiceNumber}?
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button variant="outline">Batal</Button>
-                  <Button
-                    onClick={() => handleSimulate("success")}
-                    disabled={loading}
-                  >
-                    {loading ? "Memproses..." : "Ya, Simulasi Sukses"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog>
-              <DialogTrigger
-                render={
-                  <Button className="w-full" variant="destructive">
-                    Simulasi Bayar Gagal
-                  </Button>
-                }
-              />
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Konfirmasi</DialogTitle>
-                  <DialogDescription>
-                    Apakah Anda yakin ingin mensimulasikan pembayaran gagal
-                    untuk invoice {invoiceNumber}?
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button variant="outline">Batal</Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleSimulate("failed")}
-                    disabled={loading}
-                  >
-                    {loading ? "Memproses..." : "Ya, Simulasi Gagal"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog>
-              <DialogTrigger
-                render={
-                  <Button className="w-full" variant="secondary">
-                    Simulasi Expired
-                  </Button>
-                }
-              />
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Konfirmasi</DialogTitle>
-                  <DialogDescription>
-                    Apakah Anda yakin ingin mensimulasikan pembayaran expired
-                    untuk invoice {invoiceNumber}?
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button variant="outline">Batal</Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => handleSimulate("expired")}
-                    disabled={loading}
-                  >
-                    {loading ? "Memproses..." : "Ya, Simulasi Expired"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+            <p className="text-sm text-slate-500">
+              Ini adalah halaman pembayaran simulasi untuk development saja.
+              Tidak ada transaksi nyata yang akan diproses.
+            </p>
+            <Button
+              disabled={status === "loading"}
+              onClick={handlePay}
+              className="w-full rounded-xl bg-[#1157d6] py-6 text-base font-bold hover:bg-[#0b46b4]"
+            >
+              {status === "loading" ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Memproses...
+                </>
+              ) : (
+                "Bayar Sekarang (Simulasi)"
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </main>
   );
 }

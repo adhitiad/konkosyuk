@@ -22,7 +22,7 @@ export default function ChatPage() {
     refetchInterval: 30000,
   });
 
-  const rooms = data?.data?.data ?? [];
+  const rooms = Array.isArray(data?.data?.data) ? data.data.data : [];
 
   const handleRoomSelect = (room: { id: string }) => {
     setSelectedRoom(room.id);

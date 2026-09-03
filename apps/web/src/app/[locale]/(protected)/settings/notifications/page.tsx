@@ -185,7 +185,7 @@ export default function NotificationSettingsPage() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: Partial<NotificationPreferences>) => {
-      const res = await apiClient.patch("/notifications/preferences", data);
+       const res = await apiClient.patch("/api/notifications/preferences", data);
       return res.data;
     },
     onSuccess: () => {

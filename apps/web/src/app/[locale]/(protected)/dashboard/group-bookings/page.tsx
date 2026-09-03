@@ -97,7 +97,7 @@ export default function GroupBookingsPage() {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const res = await apiClient.post("/group-bookings", {
+       const res = await apiClient.post("/api/group-bookings", {
         ...data,
         memberEmails: data.memberEmails
           .split(",")
@@ -133,7 +133,7 @@ export default function GroupBookingsPage() {
       groupId: string;
       status: "accepted" | "rejected";
     }) => {
-      const res = await apiClient.put(`/group-bookings/${groupId}/members/me`, {
+       const res = await apiClient.put(`/api/group-bookings/${groupId}/members/me`, {
         status,
       });
       return res.data;
