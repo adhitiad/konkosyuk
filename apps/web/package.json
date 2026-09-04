@@ -40,7 +40,7 @@
     "@react-pdf/renderer": "^4.6.1",
     "@sentry/nextjs": "10",
     "@tanstack/react-query": "^5.101.4",
-    "@tanstack/react-table": "^9.1.0",
+    "@tanstack/react-table": "^9.2.3",
     "@upstash/qstash": "^2.11.3",
     "@upstash/redis": "^1.38.3",
     "@vercel/analytics": "^2.0.1",
